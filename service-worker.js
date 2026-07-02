@@ -1,9 +1,9 @@
-/* HAPPYAD V532 — PWA UPDATE FORCE / CLIENT RELOAD
+/* HAPPYAD V534 — PWA UPDATE FORCE / CLIENT RELOAD
    - Met à jour automatiquement index, modules, boutique, messages, CSS, JS, manifest.
    - Ne met jamais Supabase/API en cache.
    - Force les anciennes PWA déjà installées à charger la dernière version.
 */
-const HAPPYAD_PWA_VERSION='v533icon1';
+const HAPPYAD_PWA_VERSION='v534icon2';
 const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
 const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
 
@@ -26,6 +26,19 @@ const APP_SHELL=[
   './icons/happyad-icon-maskable-192.png',
   './icons/happyad-icon-maskable-512.png',
   './icons/happyad-icon-source.png',
+  './icons/happyad-icon-v534icon2-48.png',
+  './icons/happyad-icon-v534icon2-72.png',
+  './icons/happyad-icon-v534icon2-96.png',
+  './icons/happyad-icon-v534icon2-128.png',
+  './icons/happyad-icon-v534icon2-144.png',
+  './icons/happyad-icon-v534icon2-152.png',
+  './icons/happyad-icon-v534icon2-180.png',
+  './icons/happyad-icon-v534icon2-192.png',
+  './icons/happyad-icon-v534icon2-384.png',
+  './icons/happyad-icon-v534icon2-512.png',
+  './icons/happyad-icon-v534icon2-maskable-192.png',
+  './icons/happyad-icon-v534icon2-maskable-512.png',
+  './icons/happyad-icon-v534icon2-source.png',
 
   './modules/user.html',
   './modules/photo.html',
@@ -57,7 +70,7 @@ self.addEventListener('activate',event=>{
 
     await self.clients.claim();
 
-    /* HAPPYAD V532 STEP1:
+    /* HAPPYAD V534 STEP1:
    Ne pas forcer une navigation automatique ici.
    Sinon la PWA recharge une deuxième fois après ouverture.
    index.html gère déjà l'activation du service worker. */
