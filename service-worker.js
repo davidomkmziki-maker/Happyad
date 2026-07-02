@@ -3,7 +3,7 @@
    - Ne met jamais Supabase/API en cache.
    - Force les anciennes PWA déjà installées à charger la dernière version.
 */
-const HAPPYAD_PWA_VERSION='v532';
+const HAPPYAD_PWA_VERSION='v533icon1';
 const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
 const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
 
@@ -13,17 +13,26 @@ const APP_SHELL=[
   './messages.html',
   './boutique.html',
   './manifest.webmanifest',
-  './icons/happyad-icon-192.png',
-  './icons/happyad-icon-512.png',
+  './icons/happyad-icon-48.png',
+  './icons/happyad-icon-72.png',
+  './icons/happyad-icon-96.png',
+  './icons/happyad-icon-128.png',
+  './icons/happyad-icon-144.png',
+  './icons/happyad-icon-152.png',
   './icons/happyad-icon-180.png',
+  './icons/happyad-icon-192.png',
+  './icons/happyad-icon-384.png',
+  './icons/happyad-icon-512.png',
+  './icons/happyad-icon-maskable-192.png',
+  './icons/happyad-icon-maskable-512.png',
   './icons/happyad-icon-source.png',
+
   './modules/user.html',
   './modules/photo.html',
   './modules/video.html',
   './modules/publish.html',
   './modules/map.html',
-  './modules/notifications.html'
-];
+  './modules/notifications.html'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{

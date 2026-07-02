@@ -71,7 +71,7 @@
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=532">
+<link rel="manifest" href="manifest.webmanifest?v=533icon1">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -79,9 +79,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HAPPYAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/happyad-icon-192.png?v=532">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/happyad-icon-180.png?v=532">
-<link rel="apple-touch-icon" sizes="192x192" href="icons/happyad-icon-192.png?v=532">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/happyad-icon-192.png?v=533icon1">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/happyad-icon-180.png?v=533icon1">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/happyad-icon-192.png?v=533icon1">
 <style>
 :root{--bg:#030303;--card:#11151d;--line:#2a303b;--muted:#aeb3c0;--orange:#ff8a00;--orange2:#ff4b22}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:#030303;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}body{max-width:520px;margin:auto;min-height:100dvh;background:radial-gradient(circle at 18% -10%,rgba(255,138,0,.22),transparent 32%),linear-gradient(180deg,#07080b,#020202 72%)}
@@ -9647,7 +9647,7 @@ body.happyadNativeChatOpen{overflow:hidden!important;touch-action:none!important
       });
     }catch(_c){}
 
-    navigator.serviceWorker.register('./service-worker.js?v=532',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=533icon1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -11661,7 +11661,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 #happyadInstallAppBtn .haInstallAction{display:inline-flex!important;align-items:center!important;justify-content:center!important;height:32px!important;border-radius:999px!important;padding:0 11px!important;background:linear-gradient(135deg,#ffb000,#ff6a00)!important;color:#111!important;font-weight:1000!important;font-size:11px!important;box-shadow:0 8px 20px rgba(255,138,0,.24)!important;white-space:nowrap!important}
 @media(max-width:360px){#happyadInstallAppBtn{grid-template-columns:36px minmax(0,1fr) auto!important;gap:8px!important;padding:9px!important;margin:3px 0 7px!important}#happyadInstallAppBtn .haInstallIcon{width:36px!important;height:36px!important;border-radius:13px!important}#happyadInstallAppBtn .haInstallText b{font-size:12px!important}#happyadInstallAppBtn .haInstallText small{font-size:9.5px!important}#happyadInstallAppBtn .haInstallAction{height:30px!important;padding:0 10px!important;font-size:10px!important}}
 </style>
-<button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-192.png?v=532" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Accès rapide, notifications et ouverture sans Chrome.</small></span><span class="haInstallAction">Installer</span></button>
+<button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-192.png?v=533icon1" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Accès rapide, notifications et ouverture sans Chrome.</small></span><span class="haInstallAction">Installer</span></button>
 <!-- === HAPPYAD V480 APP SHELL / ROUTEUR INTERNE SAFE ===
      Objectif: garder index.html ouvert et afficher Profil/Notifications sans recharge complète à chaque clic.
      Les anciens liens restent utilisables si le fichier est ouvert seul. -->
@@ -11799,6 +11799,8 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
     sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
     sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
     sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
+sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
 
     /* Si on quitte Boutique vers Profil/Accueil/Video/etc, on supprime l’ancien retour boutique */
     try{
@@ -11824,16 +11826,25 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
     var cur=activeFramePage(), prev='', prevUrl='', it=null, pp='';
 
     if(cur==='boutique'){
-      try{
-        prev=sessionStorage.getItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503')||'';
-        prevUrl=sessionStorage.getItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503')||'';
-        sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-        sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-        sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-        sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-      }catch(_s){}
+  try{
+    prev=sessionStorage.getItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503')||'';
+    prevUrl=sessionStorage.getItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503')||'';
 
-      if(prev==='home')return false;
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
+    sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
+
+    try{
+      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
+    }catch(_m){
+      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
+    }
+  }catch(_s){}
+
+  if(prev==='home')return false;
       if(prev&&prev!==cur&&!pages[prev]){
         prev='';
         prevUrl='';
@@ -11855,9 +11866,23 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
     if(!prev)return false;
     var fr=ensureFrame(prev,prevUrl||pages[prev],false);if(!fr)return false;
     root.querySelectorAll('.happyadAppFrame').forEach(function(x){
-      if(x!==fr)pauseFrameMedia(x,'restore-switch');
-      x.classList.remove('on');
-    });
+  if(x!==fr){
+    pauseFrameMedia(x,'restore-switch');
+    x.classList.remove('on');
+
+    if(x.id==='happyadAppFrame_boutique'){
+      try{
+        x.removeAttribute('data-happyad-src');
+        x.removeAttribute('data-happyad-loading');
+        x.style.opacity='';
+        x.style.visibility='';
+        x.src='about:blank';
+      }catch(_blank){}
+    }
+  }else{
+    x.classList.remove('on');
+  }
+});
     fr.classList.add('on');
     root.classList.add('on');
     root.setAttribute('aria-hidden','false');
@@ -11922,7 +11947,17 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 
 if(forceVideoPostReload||!sameFrameUrl(fr,url)){
   fr.setAttribute('data-happyad-src',url);
-      try{if(page==='profile_public'){fr.setAttribute('data-happyad-loading','1');fr.style.opacity='0';fr.style.visibility='hidden';}else{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';}}catch(_vis){}
+    try{
+  if(page==='profile_public'||forceVideoPostReload){
+    fr.setAttribute('data-happyad-loading','1');
+    fr.style.opacity='0';
+    fr.style.visibility='hidden';
+  }else{
+    fr.removeAttribute('data-happyad-loading');
+    fr.style.opacity='';
+    fr.style.visibility='';
+  }
+}catch(_vis){}  
       try{if(!preload){var l=loader();if(l)l.classList.add('on');}}catch(_e){}
       try{if((page==='profile_public'||(page==='video'&&/[?&]post=/.test(String(url||''))))&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
     }
@@ -11983,21 +12018,41 @@ if(forceVideoPostReload||!sameFrameUrl(fr,url)){
   /* V532 boutique clean:
      Quand Boutique revient à Accueil, on nettoie toute ancienne trace boutique.
      Sinon clic Mon profil peut réouvrir Boutique puis rediriger vers Profil. */
+try{
+  sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');
+  sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
+
+  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
+  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
+  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
+  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
+  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
+  sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
+
   try{
-    sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');
-    sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-    sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-    try{
-      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
-    }catch(_m){
-      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
+    frameStack.length=0;
+  }catch(_fs){
+    frameStack=[];
+  }
+
+  try{
+    delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
+  }catch(_m){
+    window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
+  }
+
+  try{
+    var bf=document.getElementById('happyadAppFrame_boutique');
+    if(bf){
+      bf.classList.remove('on');
+      bf.removeAttribute('data-happyad-src');
+      bf.removeAttribute('data-happyad-loading');
+      bf.style.opacity='';
+      bf.style.visibility='';
+      try{bf.src='about:blank';}catch(_blank){}
     }
-  }catch(_s){}
+  }catch(_bf){}
+}catch(_s){}
 
   return true;
   }
@@ -12418,8 +12473,8 @@ try{
 }catch(_h){
   actual='';
 }
-
-var needNav=(cur!==url);
+var forceVideoPostReload=(view==='video'&&/[?&]post=/.test(String(url||'')));
+var needNav=forceVideoPostReload||(cur!==url);
 
 try{
   var curPath=pathOf(cur);
@@ -12433,8 +12488,27 @@ try{
 
 if(needNav){
         fr.setAttribute('data-happyad-src',url);
-        try{if(view==='profile_public'){fr.setAttribute('data-happyad-loading','1');fr.style.opacity='0';fr.style.visibility='hidden';}else{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';}}catch(_vis){}
-        try{if(view==='profile_public'&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
+        try{
+  if(view==='profile_public'||forceVideoPostReload){
+    fr.setAttribute('data-happyad-loading','1');
+    fr.style.opacity='0';
+    fr.style.visibility='hidden';
+  }else{
+    fr.removeAttribute('data-happyad-loading');
+    fr.style.opacity='';
+    fr.style.visibility='';
+  }
+}catch(_vis){}
+
+try{
+  if((view==='profile_public'||forceVideoPostReload)&&fr.contentWindow&&fr.contentWindow.location){
+    fr.contentWindow.location.replace(url);
+  }else{
+    fr.src=url;
+  }
+}catch(_nav){
+  fr.src=url;
+}
       }else if(view==='profile_public'&&fr.getAttribute('data-happyad-loading')==='1'){
         try{fr.style.opacity='0';fr.style.visibility='hidden';}catch(_keepHidden){}
       }
