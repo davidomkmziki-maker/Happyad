@@ -11789,16 +11789,24 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
           sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
         }catch(_s){}
       }else{
-        try{
-          if(page&&page!=='boutique'){
-            sessionStorage.setItem('HAPPYAD_LAST_NON_BOUTIQUE_VIEW_V503',page);
-            sessionStorage.setItem('HAPPYAD_LAST_NON_BOUTIQUE_URL_V503',rootUrl(pages[page]||'index.html'));
-          }
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-        }catch(_c){}
+  try{
+    if(page&&page!=='boutique'){
+      sessionStorage.setItem('HAPPYAD_LAST_NON_BOUTIQUE_VIEW_V503',page);
+      sessionStorage.setItem('HAPPYAD_LAST_NON_BOUTIQUE_URL_V503',rootUrl(pages[page]||'index.html'));
+    }
+
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
+
+    /* Si on quitte Boutique vers Profil/Accueil/Video/etc, on supprime l’ancien retour boutique */
+    try{
+      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
+    }catch(_m){
+      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
+    }
+  }catch(_c){}
       }
 
       if(!cur||cur===page)return;
@@ -11914,7 +11922,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
       fr.setAttribute('data-happyad-src',url);
       try{if(page==='profile_public'){fr.setAttribute('data-happyad-loading','1');fr.style.opacity='0';fr.style.visibility='hidden';}else{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';}}catch(_vis){}
       try{if(!preload){var l=loader();if(l)l.classList.add('on');}}catch(_e){}
-      try{if(page==='profile_public'&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
+      try{if((page==='profile_public'||(page==='video'&&/[?&]post=/.test(String(url||''))))&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
     }
     return fr;
   }
@@ -12431,15 +12439,22 @@ if(needNav){
     }finally{setTimeout(function(){restoring=false;},80);}
   }
   function requestBack(){
-    try{
-      var sv=stateView();
-      if(sv&&sv!=='home'){
-        history.back();
-        return true;
-      }
-    }catch(_e){}
-    forceHome();
-    return true;
+  try{
+    var sv=stateView();
+
+    /* Si on est dans notification, messages, boutique, vidéo, photo, etc.
+       le retour revient à l'étape précédente. */
+    if(sv&&sv!=='home'){
+      history.back();
+      return true;
+    }
+
+    /* Si on est déjà à l'accueil, ne pas bloquer le bouton retour téléphone.
+       Android / navigateur doit pouvoir quitter l'application. */
+    return false;
+  }catch(_e){}
+
+  return false;
   }
 
   ensureBase();
@@ -12525,13 +12540,20 @@ if(needNav){
     try{return baseCloseAppPage?baseCloseAppPage.apply(this,arguments):forceHome();}catch(_x){forceHome();return true;}
   };
   function clearBoutiqueReturnKeysV503(){
+  try{
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
+
+    /* Nettoyer aussi la mémoire JS pour éviter retour mélangé après plusieurs passages */
     try{
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-    }catch(_s){}
+      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
+    }catch(_m){
+      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
+    }
+  }catch(_s){}
   }
 
   function getBoutiqueReturnTargetV503(){
@@ -12658,28 +12680,36 @@ if(needNav){
   },true);
 
   window.addEventListener('popstate',function(ev){
-    try{
-      var pending='';
-      try{pending=sessionStorage.getItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503')||'';}catch(_p){}
+  try{
+    var pending='';
+    try{pending=sessionStorage.getItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503')||'';}catch(_p){}
 
-      if(pending){
-        var target=null;
-        try{target=JSON.parse(pending);}catch(_j){target=null;}
-        try{sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');}catch(_r){}
+    if(pending){
+      var target=null;
+      try{target=JSON.parse(pending);}catch(_j){target=null;}
+      try{sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');}catch(_r){}
 
-        var s=ev&&ev.state;
-        var poppedView=(s&&s[FLAG])?String(s.view||'home'):'home';
-        applyBoutiqueReturnTargetV503(target||getBoutiqueReturnTargetV503(),poppedView);
-        return;
-      }
-
-      var s2=ev&&ev.state;
-      if(s2&&s2[FLAG])restoreTo(String(s2.view||'home'),String(s2.url||''));
-      else restoreTo('home','index.html');
-    }catch(_e){
-      restoreTo('home','index.html');
+      var s=ev&&ev.state;
+      var poppedView=(s&&s[FLAG])?String(s.view||'home'):'home';
+      applyBoutiqueReturnTargetV503(target||getBoutiqueReturnTargetV503(),poppedView);
+      return;
     }
-  },true);
+
+    var s2=ev&&ev.state;
+
+    /* Si l'état appartient au routeur HAPPYAD, on restaure normalement. */
+    if(s2&&s2[FLAG]){
+      restoreTo(String(s2.view||'home'),String(s2.url||''));
+      return;
+    }
+
+    /* Si Android / navigateur veut quitter depuis l'accueil,
+       ne pas forcer restoreTo('home'). */
+    return;
+  }catch(_e){
+    return;
+  }
+},true);
   
   document.addEventListener('click',function(e){
     try{

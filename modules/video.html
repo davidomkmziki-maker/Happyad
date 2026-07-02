@@ -778,7 +778,26 @@ window.addEventListener('storage',function(e){try{if(e.key==='HAPPYAD_ACTION_FAS
 let HAPPYAD_VIDEO_RT_STARTED=false;function startVideoRealtimeActions(){const c=happyadSb();if(!c||HAPPYAD_VIDEO_RT_STARTED)return;HAPPYAD_VIDEO_RT_STARTED=true;try{c.channel('happyad-video-actions-global').on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_actions'},p=>{const r=(p&&p.new)||p.old;if(r&&r.content_type==='video')refreshVideoLikeFromSupabase(r.post_id);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_comments'},p=>{const r=(p&&p.new)||p.old;if(r&&r.post_id)refreshVideoLikeFromSupabase(r.post_id);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_video_views'},p=>{const r=(p&&p.new)||p.old;if(r&&r.post_id)refreshVideoLikeFromSupabase(r.post_id);}).subscribe();}catch(e){console.warn('video realtime',e)}}setTimeout(startVideoRealtimeActions,700);
 function fmt(t){t=Math.floor(t||0);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 function setPausedUI(v){const r=v&&v.closest('.reel');if(r)r.classList.toggle('paused',v.paused)}
-function happyadPauseVideo(v){if(!v)return;try{v.pause();v.muted=true;}catch(e){}setPausedUI(v)}
+function happyadPauseVideo(v){
+  if(!v)return;
+  try{
+    v.pause();
+    v.muted=true;
+    v.dataset.happyadManualPause='0';
+
+    /* Reset seulement pour pause automatique:
+       scroll, retour, vidéo hors écran, changement de vidéo.
+       Le clic pause manuel utilise v.pause() directement et garde sa position. */
+    if(v.readyState>=1){
+      v.currentTime=0;
+    }else{
+      v.addEventListener('loadedmetadata',function(){
+        try{v.currentTime=0;}catch(e){}
+      },{once:true});
+    }
+  }catch(e){}
+  setPausedUI(v);
+}
 function happyadStopOtherVideos(except){
   document.querySelectorAll('.reel video').forEach(x=>{if(x!==except)happyadPauseVideo(x)})
 }
@@ -909,7 +928,8 @@ async function attachVideo(reel,p){
     if(hot)hot.onclick=e=>{e.stopPropagation();reel.classList.add('showTime');clearTimeout(reel.timer);reel.timer=setTimeout(()=>reel.classList.remove('showTime'),4200)};
     if(controls)controls.onclick=e=>e.stopPropagation();
     v.addEventListener('play',()=>{revealVideo();setPausedUI(v);try{happyadMarkVideoViewSupabase(p.id).then(()=>refreshVideoLikeFromSupabase(p.id))}catch(e){}});
-    v.addEventListener('pause',()=>setPausedUI(v));
+v.addEventListener('ended',()=>{try{v.currentTime=0;happyadPlayVideo(v,true);}catch(e){}});
+v.addEventListener('pause',()=>setPausedUI(v));
     return v;
   }catch(err){
     if(reel){reel.dataset.videoAttached='';reel.querySelector('.loader')?.remove();if(!reel.querySelector('.errorBox'))reel.insertAdjacentHTML('afterbegin','<div class="errorBox"><div><b>Erreur vidéo</b><br>Impossible d’ouvrir la vidéo.</div></div>');}
@@ -1347,7 +1367,33 @@ $('commentList').onclick=e=>{const prof=e.target.closest('[data-comment-profile]
 (function(){
   if(window.__HAPPYAD_V494_VIDEO_AUDIO_STOP_FIX__)return;window.__HAPPYAD_V494_VIDEO_AUDIO_STOP_FIX__=true;
   function ratio(el){try{if(!el)return 0;var r=el.getBoundingClientRect(),h=window.innerHeight||document.documentElement.clientHeight||0;var vis=Math.max(0,Math.min(r.bottom,h)-Math.max(r.top,0));return r.height?vis/r.height:0;}catch(_e){return 0;}}
-  function pauseOne(v,manual){try{if(!v)return;v.pause();v.muted=true;if(manual)v.dataset.happyadManualPause='1';var r=v.closest&&v.closest('.reel');if(r)r.classList.add('paused');}catch(_e){}}
+function pauseOne(v,manual){
+  try{
+    if(!v)return;
+
+    v.pause();
+    v.muted=true;
+
+    if(manual){
+      v.dataset.happyadManualPause='1';
+    }else{
+      v.dataset.happyadManualPause='0';
+
+      /* Pause automatique: scroll, retour, hors écran, page cachée.
+         Ici la vidéo doit repartir du début au prochain clic. */
+      if(v.readyState>=1){
+        v.currentTime=0;
+      }else{
+        v.addEventListener('loadedmetadata',function(){
+          try{v.currentTime=0;}catch(e){}
+        },{once:true});
+      }
+    }
+
+    var r=v.closest&&v.closest('.reel');
+    if(r)r.classList.add('paused');
+  }catch(_e){}
+}
   function allMedia(){try{return Array.prototype.slice.call(document.querySelectorAll('video,audio'));}catch(_e){return [];}}
   function stopAll(){try{allMedia().forEach(function(v){pauseOne(v,false)});}catch(_e){}}
   window.happyadStopAllVideoAudio=stopAll;

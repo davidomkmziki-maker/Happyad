@@ -48,19 +48,10 @@ self.addEventListener('activate',event=>{
 
     await self.clients.claim();
 
-    /* Force les PWA déjà installées à charger la nouvelle version */
-    try{
-      const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-      await Promise.all(list.map(client=>{
-        try{
-          const u=new URL(client.url);
-          u.searchParams.set('swv',HAPPYAD_PWA_VERSION);
-          return client.navigate(u.href);
-        }catch(_e){
-          return Promise.resolve(false);
-        }
-      }));
-    }catch(_c){}
+    /* HAPPYAD V532 STEP1:
+   Ne pas forcer une navigation automatique ici.
+   Sinon la PWA recharge une deuxième fois après ouverture.
+   index.html gère déjà l'activation du service worker. */
   })());
 });
 
