@@ -11918,8 +11918,10 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
       fr.addEventListener('load',function(){try{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=loader();if(l)l.classList.remove('on');installFrameBridge(fr,page);}catch(_e){}});
       root.appendChild(fr);
     }
-    if(!sameFrameUrl(fr,url)){
-      fr.setAttribute('data-happyad-src',url);
+    var forceVideoPostReload=(page==='video'&&/[?&]post=/.test(String(url||'')));
+
+if(forceVideoPostReload||!sameFrameUrl(fr,url)){
+  fr.setAttribute('data-happyad-src',url);
       try{if(page==='profile_public'){fr.setAttribute('data-happyad-loading','1');fr.style.opacity='0';fr.style.visibility='hidden';}else{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';}}catch(_vis){}
       try{if(!preload){var l=loader();if(l)l.classList.add('on');}}catch(_e){}
       try{if((page==='profile_public'||(page==='video'&&/[?&]post=/.test(String(url||''))))&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
@@ -11961,16 +11963,43 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
     }catch(_e){}
   }
   function closeFramePage(){
-    var root=shell();if(!root)return false;
-    if(restorePreviousFrame())return true;
-    try{root.querySelectorAll('.happyadAppFrame').forEach(function(x){pauseFrameMedia(x,'close')});}catch(_p){}
-    root.classList.remove('on');root.setAttribute('aria-hidden','true');
-    root.querySelectorAll('.happyadAppFrame').forEach(function(x){x.classList.remove('on')});
-    document.body.classList.remove('happyadAppOpen');
-    try{var l=loader();if(l)l.classList.remove('on');}catch(_l){}
-    setNavActive('home');
-    try{sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home')}catch(_s){}
-    return true;
+  var root=shell();if(!root)return false;
+  if(restorePreviousFrame())return true;
+
+  try{
+    root.querySelectorAll('.happyadAppFrame').forEach(function(x){
+      pauseFrameMedia(x,'close');
+      x.classList.remove('on');
+    });
+  }catch(_p){}
+
+  root.classList.remove('on');
+  root.setAttribute('aria-hidden','true');
+  document.body.classList.remove('happyadAppOpen');
+
+  try{var l=loader();if(l)l.classList.remove('on');}catch(_l){}
+  setNavActive('home');
+
+  /* V532 boutique clean:
+     Quand Boutique revient à Accueil, on nettoie toute ancienne trace boutique.
+     Sinon clic Mon profil peut réouvrir Boutique puis rediriger vers Profil. */
+  try{
+    sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');
+    sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
+    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
+    sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
+    try{
+      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
+    }catch(_m){
+      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
+    }
+  }catch(_s){}
+
+  return true;
   }
   function openInternalUrl(url,extra){
     url=rootUrl(url||'');
