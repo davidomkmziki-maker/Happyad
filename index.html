@@ -1170,6 +1170,13 @@ html{background:#000!important;}
 #happyadInstallAppBtn .haInstallIcon{background:#000!important;overflow:hidden!important;color:transparent!important;}
 #happyadInstallAppBtn .haInstallIcon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;border-radius:inherit!important;}
 </style>
+
+<style id="happyad-fixed-radar-admin-css">
+.sponsorStrip .happyadFixedRadarAd{display:block!important;grid-template-columns:none!important;padding:0!important;background:#000!important;overflow:hidden!important;border-radius:25px!important}
+.sponsorStrip .happyadFixedRadarAd .sponsorThumb{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;background:#000!important;border-radius:25px!important;overflow:hidden!important}
+.sponsorStrip .happyadFixedRadarAd img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#000!important}
+</style>
+
 </head><body><div class="app"><div class="top"><div class="topRow"><a class="round back" href="index.html">‹</a><div class="title">HAPPY<b>AD</b><span class="sub">Connecte · Découvre · Vends</span></div><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, un service, un produit..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Produit">Produits</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><div id="list" class="feedGrid"></div><div class="bottom"><a class="nav active" href="index.html"><span class="ico">⌂</span>Explorer</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="modules/video.html" data-happyad-bottom-video="1" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/video.html');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('video','modules/video.html');return false;}}catch(e){}return false;"><span class="ico">▶</span>Vidéos</a><a class="nav" href="modules/publish.html"><div class="plus">+</div>Publier</a><a class="nav notifNav" href="javascript:void(0)" data-native-notif-open="tout" data-happyad-bottom-notifications="1" role="button" onpointerdown="try{if(window.happyadNotificationOneTapV506){return window.happyadNotificationOneTapV506(event,this);}if(window.happyadForceOpenNotificationV503){return window.happyadForceOpenNotificationV503(event,this);}}catch(e){}" ontouchstart="try{if(window.happyadNotificationOneTapV506){return window.happyadNotificationOneTapV506(event,this);}if(window.happyadForceOpenNotificationV503){return window.happyadForceOpenNotificationV503(event,this);}}catch(e){}" onclick="try{if(window.happyadNotificationOneTapV506){return window.happyadNotificationOneTapV506(event,this);}if(window.happyadForceOpenNotificationV503){return window.happyadForceOpenNotificationV503(event,this);} if(window.happyadOpenNativeNotifications){window.happyadOpenNativeNotifications('tout');}}catch(e){} return false;"><span class="bellLineIcon"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span class="navBadge" id="homeNotifCount">0</span>Notifications</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="modules/user.html" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/user.html');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('profile','modules/user.html');return false;}}catch(e){}return false;"><span class="ico">👤</span>Compte</a></div></div><script>
 (function(){
   const el=document.getElementById('homeNotifCount');
@@ -3640,7 +3647,66 @@ function happyadSponsorStoreCurrent(index,p,items){
     },2600);
   }catch(e){}
 }
-function renderSponsor(){
+/* === HAPPYAD Radar fixe admin — V537 ===
+   Si Admin publie une image fixe, on l'affiche ici et on évite la rotation vidéo/photo lourde.
+   Si aucune image fixe n'est active, l'ancien renderSponsor continue normalement.
+*/
+const HAPPYAD_FIXED_RADAR_BUCKET='happyad-media';
+const HAPPYAD_FIXED_RADAR_CONFIG_PATH='happyad-admin/radar-fixed-config.json';
+const HAPPYAD_FIXED_RADAR_CACHE_KEY='HAPPYAD_FIXED_RADAR_PUBLIC_CONFIG_V1';
+let happyadFixedRadarLoading=false;
+let happyadFixedRadarLastCheck=0;
+function happyadFixedRadarPublicUrl(path){
+  try{
+    const c=(typeof happyadSb==='function')?happyadSb():null;
+    if(c&&c.storage&&c.storage.from){
+      const r=c.storage.from(HAPPYAD_FIXED_RADAR_BUCKET).getPublicUrl(path);
+      if(r&&r.data&&r.data.publicUrl)return r.data.publicUrl;
+    }
+  }catch(e){}
+  const base=String(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+  return base+'/storage/v1/object/public/'+HAPPYAD_FIXED_RADAR_BUCKET+'/'+String(path).split('/').map(encodeURIComponent).join('/');
+}
+function happyadFixedRadarReadCache(){try{return JSON.parse(localStorage.getItem(HAPPYAD_FIXED_RADAR_CACHE_KEY)||'null')||null}catch(e){return null}}
+function happyadFixedRadarSaveCache(cfg){try{localStorage.setItem(HAPPYAD_FIXED_RADAR_CACHE_KEY,JSON.stringify(cfg||{}))}catch(e){}}
+function happyadFixedRadarActive(cfg){return !!(cfg&&cfg.active&&cfg.imageUrl&&String(cfg.imageUrl).trim())}
+function happyadApplyFixedRadar(track,cfg){
+  try{
+    if(!track||!happyadFixedRadarActive(cfg))return false;
+    if(sponsorTimer){clearInterval(sponsorTimer);sponsorTimer=null;}
+    const img=String(cfg.imageUrl||'');
+    track.innerHTML='<button class="sponsorAd happyadFixedRadarAd" type="button" aria-label="HAPPYAD Radar"><span class="sponsorThumb"><img loading="eager" fetchpriority="high" decoding="async" src="'+esc(img)+'" alt=""></span></button>';
+    return true;
+  }catch(e){return false}
+}
+function happyadFetchFixedRadar(track,afterInactive){
+  try{
+    const now=Date.now();
+    if(happyadFixedRadarLoading||now-happyadFixedRadarLastCheck<45000)return;
+    happyadFixedRadarLoading=true;happyadFixedRadarLastCheck=now;
+    const url=happyadFixedRadarPublicUrl(HAPPYAD_FIXED_RADAR_CONFIG_PATH)+'?t='+Math.floor(now/60000);
+    fetch(url,{cache:'no-store'}).then(function(res){if(!res.ok)throw new Error('no-config');return res.json();}).then(function(cfg){
+      happyadFixedRadarSaveCache(cfg);
+      if(happyadFixedRadarActive(cfg)){happyadApplyFixedRadar(track,cfg);}else if(typeof afterInactive==='function'){afterInactive();}
+    }).catch(function(){if(typeof afterInactive==='function')afterInactive();}).finally(function(){happyadFixedRadarLoading=false;});
+  }catch(e){happyadFixedRadarLoading=false;if(typeof afterInactive==='function')afterInactive();}
+}
+function happyadTryFixedRadar(track,afterInactive){
+  const cached=happyadFixedRadarReadCache();
+  if(happyadFixedRadarActive(cached)){
+    happyadApplyFixedRadar(track,cached);
+    happyadFetchFixedRadar(track,null);
+    return true;
+  }
+  const now=Date.now();
+  if(!cached || now-happyadFixedRadarLastCheck>45000){
+    if(track){track.innerHTML='<button class="sponsorAd happyadFixedRadarAd" type="button"><span class="sponsorThumb">★</span></button>';}
+    happyadFetchFixedRadar(track,afterInactive);
+    return true;
+  }
+  return false;
+}
+function happyadRenderDynamicSponsorOriginal(){
  const track=document.getElementById('sponsorTrack'); if(!track)return;
  let items=happyadSponsorSourceItems();
  if(!items.length){
@@ -3674,6 +3740,12 @@ function renderSponsor(){
  if(sponsorTimer)clearInterval(sponsorTimer);
  sponsorTimer=setInterval(()=>{show(happyadSponsorIndex(happyadSponsorSourceItems()));},10000);
 }
+function renderSponsor(){
+ const track=document.getElementById('sponsorTrack'); if(!track)return;
+ if(happyadTryFixedRadar(track,function(){happyadRenderDynamicSponsorOriginal();}))return;
+ happyadRenderDynamicSponsorOriginal();
+}
+
 
 
 function happyadCurrentUser(){try{return JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')}catch(e){return {}}}
