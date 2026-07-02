@@ -3670,12 +3670,25 @@ function happyadFixedRadarPublicUrl(path){
 function happyadFixedRadarReadCache(){try{return JSON.parse(localStorage.getItem(HAPPYAD_FIXED_RADAR_CACHE_KEY)||'null')||null}catch(e){return null}}
 function happyadFixedRadarSaveCache(cfg){try{localStorage.setItem(HAPPYAD_FIXED_RADAR_CACHE_KEY,JSON.stringify(cfg||{}))}catch(e){}}
 function happyadFixedRadarActive(cfg){return !!(cfg&&cfg.active&&cfg.imageUrl&&String(cfg.imageUrl).trim())}
+function happyadFixedRadarFallbackToSponsor(track){
+  try{
+    happyadFixedRadarSaveCache({active:false,type:'fixed_image',imageUrl:'',imagePath:'',version:Date.now(),fallback:true});
+  }catch(_cache){}
+  try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}
+  try{if(typeof happyadRenderDynamicSponsorOriginal==='function')setTimeout(function(){happyadRenderDynamicSponsorOriginal();},30);}catch(_render){}
+}
 function happyadApplyFixedRadar(track,cfg){
   try{
     if(!track||!happyadFixedRadarActive(cfg))return false;
     if(sponsorTimer){clearInterval(sponsorTimer);sponsorTimer=null;}
+    try{track.querySelectorAll('video').forEach(function(v){try{v.pause();v.removeAttribute('src');v.load&&v.load();}catch(_v){}});}catch(_oldVideo){}
     const img=String(cfg.imageUrl||'');
-    track.innerHTML='<button class="sponsorAd happyadFixedRadarAd" type="button" aria-label="HAPPYAD Radar"><span class="sponsorThumb"><img loading="eager" fetchpriority="high" decoding="async" src="'+esc(img)+'" alt=""></span></button>';
+    try{track.dataset.fixedRadar='1';}catch(_d){}
+    track.innerHTML='<button class="sponsorAd happyadFixedRadarAd" type="button" data-fixed-radar="1" data-no-sponsor-post="1" aria-label="HAPPYAD Radar image fixe"><span class="sponsorThumb"><img loading="eager" fetchpriority="high" decoding="async" src="'+esc(img)+'" alt=""></span></button>';
+    try{
+      var im=track.querySelector('.happyadFixedRadarAd img');
+      if(im){im.onerror=function(){happyadFixedRadarFallbackToSponsor(track)};}
+    }catch(_errImg){}
     return true;
   }catch(e){return false}
 }
@@ -3687,20 +3700,20 @@ function happyadFetchFixedRadar(track,afterInactive){
     const url=happyadFixedRadarPublicUrl(HAPPYAD_FIXED_RADAR_CONFIG_PATH)+'?t='+Math.floor(now/60000);
     fetch(url,{cache:'no-store'}).then(function(res){if(!res.ok)throw new Error('no-config');return res.json();}).then(function(cfg){
       happyadFixedRadarSaveCache(cfg);
-      if(happyadFixedRadarActive(cfg)){happyadApplyFixedRadar(track,cfg);}else if(typeof afterInactive==='function'){afterInactive();}
-    }).catch(function(){if(typeof afterInactive==='function')afterInactive();}).finally(function(){happyadFixedRadarLoading=false;});
+      if(happyadFixedRadarActive(cfg)){happyadApplyFixedRadar(track,cfg);}else{try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}; if(typeof afterInactive==='function'){afterInactive();}else if(typeof happyadRenderDynamicSponsorOriginal==='function'){happyadRenderDynamicSponsorOriginal();}}
+    }).catch(function(){try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}; if(typeof afterInactive==='function')afterInactive(); else if(typeof happyadRenderDynamicSponsorOriginal==='function')happyadRenderDynamicSponsorOriginal();}).finally(function(){happyadFixedRadarLoading=false;});
   }catch(e){happyadFixedRadarLoading=false;if(typeof afterInactive==='function')afterInactive();}
 }
 function happyadTryFixedRadar(track,afterInactive){
   const cached=happyadFixedRadarReadCache();
   if(happyadFixedRadarActive(cached)){
     happyadApplyFixedRadar(track,cached);
-    happyadFetchFixedRadar(track,null);
+    happyadFetchFixedRadar(track,afterInactive||function(){happyadRenderDynamicSponsorOriginal();});
     return true;
   }
   const now=Date.now();
   if(!cached || now-happyadFixedRadarLastCheck>45000){
-    if(track){track.innerHTML='<button class="sponsorAd happyadFixedRadarAd" type="button"><span class="sponsorThumb">★</span></button>';}
+    if(track){try{track.dataset.fixedRadar='1';}catch(_d){} track.innerHTML='<button class="sponsorAd happyadFixedRadarAd" type="button" data-fixed-radar="1" data-no-sponsor-post="1"><span class="sponsorThumb">★</span></button>';}
     happyadFetchFixedRadar(track,afterInactive);
     return true;
   }
@@ -3708,6 +3721,7 @@ function happyadTryFixedRadar(track,afterInactive){
 }
 function happyadRenderDynamicSponsorOriginal(){
  const track=document.getElementById('sponsorTrack'); if(!track)return;
+ try{delete track.dataset.fixedRadar;}catch(_d){try{track.removeAttribute('data-fixed-radar');}catch(_r){}}
  let items=happyadSponsorSourceItems();
  if(!items.length){
    track.innerHTML='<button class="sponsorAd" type="button"><span class="sponsorThumb">★</span></button>';
@@ -11418,9 +11432,11 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   }
   function injectAvatar(el,p){
     try{
-      if(!el||el.__happyadSponsorFloatReady)return;
-      el.__happyadSponsorFloatReady=true;
+      if(!el)return;
       var old=el.querySelector('.sponsorCreatorFloat');
+      if(el.classList&&el.classList.contains('happyadFixedRadarAd') || (el.dataset&&el.dataset.fixedRadar==='1') || (el.closest&&el.closest('#sponsorTrack')&&el.closest('#sponsorTrack').dataset.fixedRadar==='1')){if(old)old.remove();return;}
+      if(el.__happyadSponsorFloatReady)return;
+      el.__happyadSponsorFloatReady=true;
       if(old)old.remove();
       var owner=ownerFromPost(p);
       var av=clean(owner.avatar||owner.avatar_url||owner.photo||owner.picture||'');
@@ -11454,6 +11470,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
       var track=document.getElementById('sponsorTrack');
       if(!track)return;
       var ad=track.querySelector('.sponsorAd');
+      if(track.dataset.fixedRadar==='1' || (ad&&ad.classList&&ad.classList.contains('happyadFixedRadarAd'))){try{if(ad){var oldFloat=ad.querySelector('.sponsorCreatorFloat');if(oldFloat)oldFloat.remove();}}catch(_f){}return;}
       if(ad && !ad.querySelector('.sponsorCreatorFloat')){
         var posts=[];
         try{posts=(typeof happyadSponsorSourceItems==='function'?happyadSponsorSourceItems():(Array.isArray(ALL_POSTS)?ALL_POSTS:[]));}catch(e){posts=[];}
@@ -11580,6 +11597,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
       track.__v478SponsorClick=true;
       track.addEventListener('click',function(e){
         var ad=e.target&&e.target.closest&&e.target.closest('.sponsorAd');if(!ad)return;
+        if(ad.classList&&ad.classList.contains('happyadFixedRadarAd') || (ad.dataset&&ad.dataset.fixedRadar==='1')){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false;}
         var p=currentSponsorPost(ad)||{};
         if(e.target.closest('.sponsorCreatorFloat')){
           e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();openProfileFromPost(p);return false;
@@ -11610,6 +11628,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 .sponsorStrip .sponsorThumb img,.sponsorStrip .sponsorThumb video{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#000!important;}
 .sponsorStrip .sponsorText,.sponsorStrip .sponsorDescWrap,.sponsorStrip .sponsorDesc,.sponsorStrip .sponsorMeta,.sponsorStrip .sponsorLiveDot{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}
 .sponsorStrip .sponsorCreatorFloat{pointer-events:auto!important;z-index:20!important;}
+.sponsorStrip .happyadFixedRadarAd .sponsorCreatorFloat,.sponsorStrip .happyadFixedRadarAd video{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
 </style>
 <script id="happyad-v481-publicite-final-click-js">
 (function(){
@@ -11617,11 +11636,11 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   function clean(v){return String(v==null?'':v).trim()}
   function allPosts(){try{if(typeof ALL_POSTS!=='undefined'&&Array.isArray(ALL_POSTS))return ALL_POSTS}catch(e){}try{return Array.isArray(window.ALL_POSTS)?window.ALL_POSTS:[]}catch(e){return []}}
   function idx(){try{return Number(typeof sponsorIndex!=='undefined'?sponsorIndex:(window.sponsorIndex||0))||0}catch(e){return 0}}
-  function post(ad){try{if(ad&&ad.__happyadSponsorPost)return ad.__happyadSponsorPost}catch(e){}try{var pid=clean(ad&&ad.dataset&&ad.dataset.postId);if(pid){var p=allPosts().find(function(x){return String(x&&x.id)===String(pid)});if(p)return p}}catch(e){}var a=(typeof happyadSponsorSourceItems==='function'?happyadSponsorSourceItems():allPosts());return a.length?a[idx()%a.length]:null;}
-  function cleanDom(){try{document.querySelectorAll('#sponsorTrack .sponsorAd').forEach(function(ad){var p=post(ad);if(p){ad.__happyadSponsorPost=p;if(p.id)ad.dataset.postId=String(p.id)}ad.querySelectorAll('.sponsorText,.sponsorDescWrap,.sponsorDesc,.sponsorMeta,.sponsorLiveDot').forEach(function(x){try{x.remove()}catch(e){x.style.display='none'}});});}catch(e){}}
+  function post(ad){try{if(ad&&(ad.classList&&ad.classList.contains('happyadFixedRadarAd') || ad.dataset&&ad.dataset.fixedRadar==='1'))return null;}catch(_fixed){}try{if(ad&&ad.__happyadSponsorPost)return ad.__happyadSponsorPost}catch(e){}try{var pid=clean(ad&&ad.dataset&&ad.dataset.postId);if(pid){var p=allPosts().find(function(x){return String(x&&x.id)===String(pid)});if(p)return p}}catch(e){}var a=(typeof happyadSponsorSourceItems==='function'?happyadSponsorSourceItems():allPosts());return a.length?a[idx()%a.length]:null;}
+  function cleanDom(){try{document.querySelectorAll('#sponsorTrack .sponsorAd').forEach(function(ad){if(ad.classList&&ad.classList.contains('happyadFixedRadarAd') || (ad.dataset&&ad.dataset.fixedRadar==='1')){ad.querySelectorAll('.sponsorCreatorFloat,video,.sponsorText,.sponsorDescWrap,.sponsorDesc,.sponsorMeta,.sponsorLiveDot').forEach(function(x){try{x.remove()}catch(e){x.style.display='none'}});return;}var p=post(ad);if(p){ad.__happyadSponsorPost=p;if(p.id)ad.dataset.postId=String(p.id)}ad.querySelectorAll('.sponsorText,.sponsorDescWrap,.sponsorDesc,.sponsorMeta,.sponsorLiveDot').forEach(function(x){try{x.remove()}catch(e){x.style.display='none'}});});}catch(e){}}
   function profile(p){try{if(!p)return false;if(typeof happyadOpenPublicProfileFromPostV417==='function')return happyadOpenPublicProfileFromPostV417(p);var uid=clean(p.creatorId||p.creator_id||p.user_id||p.userId||p.ownerId||p.owner_id);if(!uid)return false;localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify({id:uid,user_id:uid,name:p.creatorName||p.creator_name||p.display_name||p.full_name||p.name||'Utilisateur HAPPYAD',avatar:p.avatar||p.avatar_url||p.creator_avatar||p.author_avatar||'',avatar_url:p.avatar_url||p.avatar||'',badge:p.badge||p.user_badge||'',source:'sponsor_v481',__happyadUidLocked:true}));if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/user.html?public=1&uid='+encodeURIComponent(uid)+(p.id?'&post='+encodeURIComponent(p.id):''));}else{location.href='modules/user.html?public=1&uid='+encodeURIComponent(uid)+(p.id?'&post='+encodeURIComponent(p.id):'');}}catch(e){}return false;}
   function open(p,ad){try{if(!p||!p.id)return false;try{window.__happyadPhotoReturnSourceV478={id:String(p.id),scrollY:window.scrollY||document.documentElement.scrollTop||0,at:Date.now(),el:ad||null}}catch(e){}if(typeof isVideo==='function'&&isVideo(p)){if(typeof openLongVideo==='function')openLongVideo(p.id);else location.href='modules/video.html?post='+encodeURIComponent(p.id);}else{if(typeof openLongPhoto==='function')openLongPhoto(p.id);else location.href='modules/photo.html?post='+encodeURIComponent(p.id);}return false;}catch(e){return false;}}
-  function install(){var t=document.getElementById('sponsorTrack');if(!t)return;cleanDom();if(!t.__v481Click){t.__v481Click=true;t.addEventListener('click',function(e){var ad=e.target&&e.target.closest&&e.target.closest('.sponsorAd');if(!ad)return;var p=post(ad);e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();if(e.target.closest('.sponsorCreatorFloat'))return profile(p);return open(p,ad);},true);}if(!t.__v481Mo){try{t.__v481Mo=new MutationObserver(function(){setTimeout(install,10)});t.__v481Mo.observe(t,{childList:true,subtree:true})}catch(e){}}}
+  function install(){var t=document.getElementById('sponsorTrack');if(!t)return;cleanDom();if(!t.__v481Click){t.__v481Click=true;t.addEventListener('click',function(e){var ad=e.target&&e.target.closest&&e.target.closest('.sponsorAd');if(!ad)return;if((ad.classList&&ad.classList.contains('happyadFixedRadarAd')) || (ad.dataset&&ad.dataset.fixedRadar==='1') || t.dataset.fixedRadar==='1'){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false;}var p=post(ad);e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();if(e.target.closest('.sponsorCreatorFloat'))return profile(p);return open(p,ad);},true);}if(!t.__v481Mo){try{t.__v481Mo=new MutationObserver(function(){setTimeout(install,10)});t.__v481Mo.observe(t,{childList:true,subtree:true})}catch(e){}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();setTimeout(install,120);setTimeout(install,700);setTimeout(install,1800);
 })();
 </script>
@@ -12012,7 +12031,7 @@ sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
     if(!fr){
       fr=document.createElement('iframe');
       fr.id=id;fr.className='happyadAppFrame';fr.setAttribute('title',titles[page]||page);fr.setAttribute('data-happyad-page',page);fr.setAttribute('loading','eager');
-      fr.addEventListener('load',function(){try{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=loader();if(l)l.classList.remove('on');installFrameBridge(fr,page);}catch(_e){}});
+      fr.addEventListener('load',function(){try{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';if(fr.__happyadLoadWatch){clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=null;}var l=loader();if(l)l.classList.remove('on');installFrameBridge(fr,page);}catch(_e){}});
       root.appendChild(fr);
     }
     var forceVideoPostReload=(page==='video'&&/[?&]post=/.test(String(url||'')));
@@ -12040,6 +12059,7 @@ if(forceVideoPostReload||staleFrameNav||!sameFrameUrl(fr,url)){
 }catch(_vis){}  
       try{if(!preload){var l=loader();if(l)l.classList.add('on');}}catch(_e){}
       try{if((page==='profile_public'||forceVideoPostReload||staleFrameNav)&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
+      try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=setTimeout(function(){try{if(fr.classList&&fr.classList.contains('on')){fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=loader();if(l)l.classList.remove('on');}}catch(_w){}},2600);}catch(_watch){}
     }
     return fr;
   }
@@ -12229,7 +12249,7 @@ try{
     try{setTimeout(function(){openFramePage('video','modules/video.html',true);},900);}catch(_e){}
     try{setTimeout(function(){openFramePage('photo','modules/photo.html',true);},1500);}catch(_e){}
   }
-  if(document.readyState==='complete')setTimeout(preload,1800);else window.addEventListener('load',function(){setTimeout(preload,1800)},{once:true});
+  if(document.readyState==='complete')setTimeout(preload,350);else window.addEventListener('load',function(){setTimeout(preload,350)},{once:true});
 
   /* V519: installation propre depuis lien/app browser.
      - Le bandeau reste visible pour les comptes déjà connectés quand ils ouvrent par lien/navigateur.
@@ -12590,6 +12610,7 @@ try{
 }catch(_nav){
   fr.src=url;
 }
+try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=setTimeout(function(){try{if(fr.classList&&fr.classList.contains('on')){fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=document.getElementById('happyadAppMiniLoader');if(l)l.classList.remove('on');}}catch(_w){}},2600);}catch(_watch){}
       }else if(view==='profile_public'&&fr.getAttribute('data-happyad-loading')==='1'){
         try{fr.style.opacity='0';fr.style.visibility='hidden';}catch(_keepHidden){}
       }
