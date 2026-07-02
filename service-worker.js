@@ -3,7 +3,7 @@
    - Ne met jamais Supabase/API en cache.
    - Force les anciennes PWA déjà installées à charger la dernière version.
 */
-const HAPPYAD_PWA_VERSION='v539radardeletefallback1';
+const HAPPYAD_PWA_VERSION='v540resetrecovery1';
 const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
 const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
 
@@ -12,7 +12,6 @@ const APP_SHELL=[
   './index.html',
   './messages.html',
   './boutique.html',
-  './reset-password.html',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-48.png',
   './icons/happyad-icon-v535center1-72.png',
@@ -138,6 +137,13 @@ self.addEventListener('fetch',event=>{
   const url=new URL(request.url);
   if(isApiRequest(url))return;
   if(url.origin!==self.location.origin)return;
+
+  if((url.pathname||'').toLowerCase().endsWith('/reset-password.html')){
+    event.respondWith(fetch(request,{cache:'reload'}).catch(async()=>{
+      return (await caches.match('./reset-password.html')) || Response.error();
+    }));
+    return;
+  }
 
   if(shouldNetworkFirst(url,request)){
     event.respondWith(networkFirst(request));
