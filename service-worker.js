@@ -3,7 +3,7 @@
    - Ne met jamais Supabase/API en cache.
    - Force les anciennes PWA déjà installées à charger la dernière version.
 */
-const HAPPYAD_PWA_VERSION='v534icon2';
+const HAPPYAD_PWA_VERSION='v535center1';
 const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
 const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
 
@@ -13,32 +13,19 @@ const APP_SHELL=[
   './messages.html',
   './boutique.html',
   './manifest.webmanifest',
-  './icons/happyad-icon-48.png',
-  './icons/happyad-icon-72.png',
-  './icons/happyad-icon-96.png',
-  './icons/happyad-icon-128.png',
-  './icons/happyad-icon-144.png',
-  './icons/happyad-icon-152.png',
-  './icons/happyad-icon-180.png',
-  './icons/happyad-icon-192.png',
-  './icons/happyad-icon-384.png',
-  './icons/happyad-icon-512.png',
-  './icons/happyad-icon-maskable-192.png',
-  './icons/happyad-icon-maskable-512.png',
-  './icons/happyad-icon-source.png',
-  './icons/happyad-icon-v534icon2-48.png',
-  './icons/happyad-icon-v534icon2-72.png',
-  './icons/happyad-icon-v534icon2-96.png',
-  './icons/happyad-icon-v534icon2-128.png',
-  './icons/happyad-icon-v534icon2-144.png',
-  './icons/happyad-icon-v534icon2-152.png',
-  './icons/happyad-icon-v534icon2-180.png',
-  './icons/happyad-icon-v534icon2-192.png',
-  './icons/happyad-icon-v534icon2-384.png',
-  './icons/happyad-icon-v534icon2-512.png',
-  './icons/happyad-icon-v534icon2-maskable-192.png',
-  './icons/happyad-icon-v534icon2-maskable-512.png',
-  './icons/happyad-icon-v534icon2-source.png',
+  './icons/happyad-icon-v535center1-48.png',
+  './icons/happyad-icon-v535center1-72.png',
+  './icons/happyad-icon-v535center1-96.png',
+  './icons/happyad-icon-v535center1-128.png',
+  './icons/happyad-icon-v535center1-144.png',
+  './icons/happyad-icon-v535center1-152.png',
+  './icons/happyad-icon-v535center1-180.png',
+  './icons/happyad-icon-v535center1-192.png',
+  './icons/happyad-icon-v535center1-384.png',
+  './icons/happyad-icon-v535center1-512.png',
+  './icons/happyad-icon-v535center1-maskable-192.png',
+  './icons/happyad-icon-v535center1-maskable-512.png',
+  './icons/happyad-icon-v535center1-source.png',
 
   './modules/user.html',
   './modules/photo.html',
