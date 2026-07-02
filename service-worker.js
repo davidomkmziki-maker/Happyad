@@ -3,7 +3,7 @@
    - Ne met jamais Supabase/API en cache.
    - Force les anciennes PWA déjà installées à charger la dernière version.
 */
-const HAPPYAD_PWA_VERSION='v535center1';
+const HAPPYAD_PWA_VERSION='v536reset1';
 const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
 const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
 
@@ -12,6 +12,7 @@ const APP_SHELL=[
   './index.html',
   './messages.html',
   './boutique.html',
+  './reset-password.html',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-48.png',
   './icons/happyad-icon-v535center1-72.png',
