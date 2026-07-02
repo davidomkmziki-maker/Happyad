@@ -1,0 +1,254 @@
+/* Extracted from index.html. Keep load order. */
+/* V74 — Mon profil boutique respirable : affichage seulement, aucune fonction modifiée */
+#profile{
+  display:none;
+  gap:12px;
+}
+#profile.active{
+  display:grid;
+}
+#profile .vendorHero{
+  border-radius:24px;
+  padding:14px;
+  margin:2px 0 8px;
+  box-shadow:0 12px 28px rgba(0,0,0,.22);
+  background:linear-gradient(145deg,rgba(255,122,0,.20),rgba(123,97,255,.13),rgba(11,14,21,.96));
+}
+#profile .vendorTop{
+  gap:11px;
+  align-items:center;
+}
+#profile .vendorTop .avatar{
+  width:52px;
+  height:52px;
+  font-size:20px;
+  flex:0 0 auto;
+}
+#profile .vendorTop h2{
+  font-size:22px;
+  line-height:1.05;
+  letter-spacing:-.35px;
+  max-width:230px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#profile .vendorTop .small{
+  display:none!important;
+}
+#profile .status{
+  margin-top:6px;
+  padding:6px 9px;
+  font-size:11px;
+  line-height:1;
+}
+#profile .greenDot{
+  width:7px;
+  height:7px;
+}
+#profile .stats{
+  margin-top:12px;
+  gap:7px;
+}
+#profile .stat{
+  border-radius:15px;
+  padding:9px 5px;
+  min-width:0;
+}
+#profile .stat b{
+  display:none!important;
+}
+#profile .stat strong{
+  display:block;
+  font-size:16px;
+  line-height:1.05;
+}
+#profile .stat span{
+  font-size:9px;
+  line-height:1.05;
+  opacity:.72;
+  white-space:nowrap;
+}
+#profile>.quickActions,
+#profile .sellerQuickActions{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+  margin:0;
+}
+#profile>.quickActions .actionMini,
+#profile .sellerQuickActions .actionMini{
+  height:44px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:0 10px;
+  font-size:12px;
+  line-height:1;
+}
+#profile>.quickActions .actionMini span[data-ico],
+#profile .sellerQuickActions .actionMini span[data-ico]{
+  width:18px;
+  height:18px;
+}
+#profile>button.btn[onclick*="editProfile"]{
+  height:46px;
+  border-radius:18px;
+  margin:0;
+  font-size:14px;
+}
+#profile .cleanSwitch{
+  margin:0;
+  padding:11px 12px;
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+}
+#profile .cleanSwitch b{
+  font-size:13px;
+  line-height:1.1;
+}
+#profile .cleanSwitch span{
+  display:none!important;
+}
+#profile .switch{
+  transform:scale(.92);
+  transform-origin:right center;
+}
+#profile .profileMiniBlock{
+  margin:0;
+}
+#profile .profileMiniBlock .section{
+  display:none!important;
+}
+#profile .publicCard{
+  margin:0;
+  padding:12px;
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(20,24,34,.70),rgba(8,10,15,.92));
+}
+#profile .publicCardTop{
+  gap:9px;
+}
+#profile .publicCardTop .avatar{
+  width:42px;
+  height:42px;
+  font-size:17px;
+}
+#profile .publicCard h3{
+  font-size:17px;
+  line-height:1.08;
+}
+#profile .publicCard p{
+  display:none!important;
+}
+#profile .ratingLine{
+  margin-top:10px;
+  gap:7px;
+  font-size:13px;
+  min-width:0;
+}
+#profile .ratingLine span:nth-of-type(1){
+  display:inline-grid;
+}
+#profile .ratingLine span:nth-of-type(2){
+  max-width:130px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#profile .ratingBar{
+  height:6px;
+  min-width:50px;
+}
+#profile .publicCard .ratingLine + div{
+  display:none!important;
+}
+#profile .freeHead{
+  margin:2px 2px 6px;
+  align-items:center;
+}
+#profile .freeHead h3{
+  font-size:22px;
+  letter-spacing:-.35px;
+}
+#profile .freeHead span{
+  font-size:0;
+}
+#profile .freeHead span::after{
+  content:'Filtre';
+  font-size:12px;
+  color:var(--muted);
+}
+#profile .freeCats{
+  display:flex;
+  gap:8px;
+  overflow:auto;
+  padding:0 0 8px;
+  margin:0;
+}
+#profile .freeCats .chip{
+  padding:8px 12px;
+  border-radius:18px;
+  font-size:12px;
+  font-weight:900;
+}
+#profile .freeGrid{
+  gap:10px;
+}
+#profile .pubCard{
+  min-height:248px;
+  border-radius:22px;
+  box-shadow:0 14px 30px rgba(0,0,0,.20);
+}
+#profile .pubCard .pic{
+  height:112px;
+}
+#profile .pubCard .pbody{
+  padding:11px;
+}
+#profile .pubCard .cat{
+  font-size:11px;
+}
+#profile .pubCard .name{
+  font-size:15px;
+  line-height:1.15;
+  margin:5px 0;
+}
+#profile .pubCard .sellerMini{
+  font-size:11px;
+  margin-top:4px;
+}
+#profile .pubCard .price{
+  font-size:16px;
+  margin-top:7px;
+}
+#profile .pubCard .btn.white{
+  height:42px;
+  border-radius:18px;
+  margin-top:8px;
+}
+#profile .ownerTools{
+  left:8px;
+  right:8px;
+  top:8px;
+}
+#profile .ownerTools button{
+  width:32px;
+  height:32px;
+  border-radius:13px;
+  background:rgba(5,7,10,.76);
+}
+#profile .productOrderBadge.show{
+  transform:scale(.88);
+  transform-origin:right top;
+}
+@media(max-width:380px){
+  #profile .vendorTop h2{max-width:185px;font-size:20px}
+  #profile .stat strong{font-size:14px}
+  #profile .stat span{font-size:8.5px}
+  #profile .pubCard{min-height:238px}
+  #profile .pubCard .pic{height:104px}
+  #profile .pubCard .btn.white{height:40px}
+}

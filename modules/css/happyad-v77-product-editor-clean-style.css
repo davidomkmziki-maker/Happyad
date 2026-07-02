@@ -1,0 +1,49 @@
+/* Extracted from index.html. Keep load order. */
+#productEditOverlay .productEditSheet{
+    max-height:calc(100vh - 32px)!important;
+    overflow-y:auto!important;
+    padding:22px 28px 30px!important;
+    border-radius:28px!important;
+    gap:14px!important;
+  }
+  #productEditOverlay .sheetTop{margin-bottom:8px!important;align-items:flex-start!important;}
+  #productEditOverlay .sheetTop b{font-size:clamp(24px,6vw,34px)!important;line-height:1.02!important;}
+  #productEditOverlay .sheetTop span{display:none!important;}
+  #productEditOverlay input,
+  #productEditOverlay textarea,
+  #productEditOverlay select,
+  #productEditOverlay .v62CurrencyPickerBox{margin-top:0!important;margin-bottom:0!important;}
+  #productEditOverlay .v62CurrencyAdminNote,
+  #productEditOverlay .currencyEditHelp,
+  #productEditOverlay .editHint,
+  #productEditOverlay #prodEditCurrencyAdminNote,
+  #productEditOverlay #currencyEditHelp{
+    display:none!important;
+    visibility:hidden!important;
+    height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    overflow:hidden!important;
+  }
+  #productEditOverlay .deliveryZonesHelp{
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    margin:2px 0 -4px!important;
+    padding:0!important;
+    color:rgba(255,255,255,.92)!important;
+  }
+  #productEditOverlay .deliveryZonesHelp b{
+    font-size:16px!important;
+    font-weight:900!important;
+    color:rgba(255,255,255,.95)!important;
+  }
+  #productEditOverlay #prodEditDesc{min-height:112px!important;}
+  #productEditOverlay #prodEditZones{min-height:118px!important;}
+  #productEditOverlay .v62CurrencyPanel{max-height:56vh!important;}
+  @media(max-height:740px){
+    #productEditOverlay .productEditSheet{padding-top:18px!important;gap:12px!important;}
+    #productEditOverlay #prodEditDesc{min-height:96px!important;}
+    #productEditOverlay #prodEditZones{min-height:102px!important;}
+  }

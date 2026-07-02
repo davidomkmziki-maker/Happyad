@@ -1,0 +1,139 @@
+/* HAPPYAD V532 — PWA UPDATE FORCE / CLIENT RELOAD
+   - Met à jour automatiquement index, modules, boutique, messages, CSS, JS, manifest.
+   - Ne met jamais Supabase/API en cache.
+   - Force les anciennes PWA déjà installées à charger la dernière version.
+*/
+const HAPPYAD_PWA_VERSION='v532';
+const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
+const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
+
+const APP_SHELL=[
+  './',
+  './index.html',
+  './messages.html',
+  './boutique.html',
+  './manifest.webmanifest',
+  './icons/happyad-icon-192.png',
+  './icons/happyad-icon-512.png',
+  './icons/happyad-icon-180.png',
+  './icons/happyad-icon-source.png',
+  './modules/user.html',
+  './modules/photo.html',
+  './modules/video.html',
+  './modules/publish.html',
+  './modules/map.html',
+  './modules/notifications.html'
+];
+
+self.addEventListener('install',event=>{
+  event.waitUntil((async()=>{
+    const cache=await caches.open(APP_CACHE);
+    for(const item of APP_SHELL){
+      try{await cache.add(new Request(item,{cache:'reload'}));}catch(e){}
+    }
+    await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate',event=>{
+  event.waitUntil((async()=>{
+    const keys=await caches.keys();
+
+    await Promise.all(keys.map(k=>{
+      if(k.startsWith('HAPPYAD-PWA-APP-SHELL-')||k.startsWith('HAPPYAD-PWA-RUNTIME-')){
+        if(k!==APP_CACHE&&k!==RUNTIME_CACHE)return caches.delete(k);
+      }
+      return Promise.resolve(false);
+    }));
+
+    await self.clients.claim();
+
+    /* Force les PWA déjà installées à charger la nouvelle version */
+    try{
+      const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+      await Promise.all(list.map(client=>{
+        try{
+          const u=new URL(client.url);
+          u.searchParams.set('swv',HAPPYAD_PWA_VERSION);
+          return client.navigate(u.href);
+        }catch(_e){
+          return Promise.resolve(false);
+        }
+      }));
+    }catch(_c){}
+  })());
+});
+
+self.addEventListener('message',event=>{
+  try{
+    const d=event&&event.data;
+    if(d&&d.type==='HAPPYAD_SKIP_WAITING')self.skipWaiting();
+    if(d&&d.type==='HAPPYAD_CLEAR_OLD_CACHES'){
+      event.waitUntil((async()=>{
+        const keys=await caches.keys();
+        await Promise.all(keys.map(k=>{
+          if(k.startsWith('HAPPYAD-PWA-APP-SHELL-')||k.startsWith('HAPPYAD-PWA-RUNTIME-')){
+            if(k!==APP_CACHE&&k!==RUNTIME_CACHE)return caches.delete(k);
+          }
+          return Promise.resolve(false);
+        }));
+      })());
+    }
+  }catch(e){}
+});
+
+function isApiRequest(url){
+  const h=(url.hostname||'').toLowerCase();
+  const p=(url.pathname||'').toLowerCase();
+  return h.includes('supabase.co') || h.includes('supabase.in') || p.includes('/rest/v1/') || p.includes('/auth/v1/') || p.includes('/storage/v1/') || p.includes('/realtime/v1/');
+}
+
+function shouldNetworkFirst(url,request){
+  const p=(url.pathname||'').toLowerCase();
+  return request.mode==='navigate'
+    || request.destination==='script'
+    || request.destination==='style'
+    || request.destination==='document'
+    || p.endsWith('.html')
+    || p.endsWith('.js')
+    || p.endsWith('.css')
+    || p.endsWith('.webmanifest');
+}
+
+async function networkFirst(request){
+  const cache=await caches.open(RUNTIME_CACHE);
+  try{
+    const res=await fetch(request,{cache:'reload'});
+    if(res && res.ok) cache.put(request,res.clone()).catch(()=>{});
+    return res;
+  }catch(e){
+    return (await cache.match(request)) || (await caches.match(request)) || (request.mode==='navigate'?(await caches.match('./index.html')):null) || Response.error();
+  }
+}
+
+async function cacheFirstUpdate(request){
+  const cached=await caches.match(request);
+  const fetchPromise=fetch(request).then(res=>{
+    if(res && res.ok){
+      caches.open(RUNTIME_CACHE).then(cache=>cache.put(request,res.clone())).catch(()=>{});
+    }
+    return res;
+  }).catch(()=>null);
+  return cached || fetchPromise || Response.error();
+}
+
+self.addEventListener('fetch',event=>{
+  const request=event.request;
+  if(!request || request.method!=='GET')return;
+
+  const url=new URL(request.url);
+  if(isApiRequest(url))return;
+  if(url.origin!==self.location.origin)return;
+
+  if(shouldNetworkFirst(url,request)){
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  event.respondWith(cacheFirstUpdate(request));
+});

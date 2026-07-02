@@ -1,0 +1,5 @@
+/* Extracted from index.html. Keep load order. */
+.resolutionMiniCard{border:1px solid rgba(255,122,0,.30);background:rgba(255,122,0,.10);border-radius:18px;padding:12px;margin-bottom:10px}
+.resolutionMiniCard b{display:block;font-size:16px}.resolutionMiniCard span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.chatBubble{border:1px solid var(--line);border-radius:18px;padding:11px 13px;margin:9px 0;line-height:1.35;font-size:13px}
+.chatBubble b{display:block;font-size:12px;margin-bottom:4px}.chatBubble span{color:#f2f2f5}.chatBubble.client{background:rgba(255,122,0,.13);border-color:rgba(255,122,0,.25);margin-left:24px}.chatBubble.seller{background:rgba(46,140,255,.12);border-color:rgba(46,140,255,.25);margin-right:24px}.chatBubble.support{background:rgba(33,212,135,.10);border-color:rgba(33,212,135,.25)}

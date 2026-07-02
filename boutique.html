@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="fr">
+<head>
+
+<script id="happyad-v496-boutique-app-entry">
+/* V496: si Boutique est ouverte directement, retour vers index.html pour rester dans l'application. */
+(function(){
+  try{
+    if(window.top!==window.self)return;
+    var q=new URLSearchParams(location.search||'');
+    if(q.get('standaloneBoutique')==='1')return;
+    q.delete('standaloneBoutique');
+    var s=q.toString();
+    location.replace('index.html?app=boutique'+(s?('&'+s):''));
+  }catch(_e){}
+})();
+</script>
+
+  <!-- HAPPYAD V127 performance: connexion réseau préparée -->
+  <link id="HAPPYAD_PERF_PRECONNECT_V127" rel="preconnect" href="https://txjjyhupbejgjcianrmr.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<link rel="manifest" href="manifest.webmanifest?v=532">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/happyad-icon-192.png?v=532">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/happyad-icon-180.png?v=532">
+<title>HAPPYAD — Boutique</title>
+<link rel="stylesheet" href="modules/css/01-profile.css?v=532">
+<style id="happyad-v85-boutique-startup-hide">
+/* V85: anti-flash ouverture Boutique. Les popups paiement/édition restent invisibles
+   dès le premier affichage, avant même le chargement des CSS modules du bas. */
+#paymentOverlay:not(.show),
+#productEditOverlay:not(.show){
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+#paymentOverlay.show,
+#productEditOverlay.show{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="topLine">
+      <button class="back" onclick="return happyadBoutiqueBackToMainProfileV503(event)">‹</button>
+      <div class="title"><h1 id="screenTitle">HAPPYAD<br>Boutique</h1><p id="screenSub">Marché boutique</p></div>
+      <button class="topBtn" onclick="toggleSearch()" aria-label="Recherche"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+      <button class="topBtn" onclick="show('cart')" aria-label="Panier"><svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M6 6h15l-2 8H8L6 3H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg><span class="cartDot" id="cartN">0</span></button>
+    </div>
+  </header>
+  <div class="searchPanel" id="searchPanel"><label class="search compactSearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher produit, support, vendeur..." oninput="renderProducts()"><button type="button" onclick="toggleSearch(false)">×</button></label></div>
+
+  <main class="content" id="content">
+    <section class="module active" id="home">
+      <div class="homeTools">
+        <button class="refreshBtn" id="refreshMarketBtn" onclick="refreshMarket()"><span data-ico="stats" class="icoMini"></span> Actualiser</button>
+        <button class="filterBtn" onclick="toggleCats()">Catégories <span>∨</span></button>
+        <button class="sortBtn" onclick="toggleSortMenu()"><span data-ico="stats" class="icoMini"></span> Trier <span>∨</span></button>
+        <div class="sortMenu" id="sortMenu">
+          <button onclick="applySort('rating')"><span data-ico="star" class="icoMini"></span> Meilleures étoiles</button>
+          <button onclick="applySort('new')"><span data-ico="grid" class="icoMini"></span> Nouveautés</button>
+          <button onclick="applySort('priceLow')"><span data-ico="cart" class="icoMini"></span> Prix bas</button>
+          <button onclick="applySort('priceHigh')"><span data-ico="cart" class="icoMini"></span> Prix haut</button>
+          <button onclick="applySort('available')"><span data-ico="shield" class="icoMini"></span> Disponibles</button>
+        </div>
+        <span id="count" class="marketCount">8 articles</span>
+      </div>
+      <div class="catCards catsCollapsed" id="cats"><button class="catCard active" onclick="selectCategory('all',this)"><span class="iconBox" data-ico="grid"></span><b>Tout</b><span>marché</span></button><button class="catCard" onclick="selectCategory('mode',this)"><span class="iconBox" data-ico="bag"></span><b>Mode</b><span>vêtements</span></button><button class="catCard" onclick="selectCategory('deco',this)"><span class="iconBox" data-ico="store"></span><b>Décoration</b><span>maison</span></button><button class="catCard" onclick="selectCategory('support',this)"><span class="iconBox" data-ico="shield"></span><b>Support</b><span>services</span></button><button class="catCard" onclick="selectCategory('cuisine',this)"><span class="iconBox" data-ico="cart"></span><b>Cuisine</b><span>maison</span></button></div>
+      <div class="searchResultsNote">Résultats de recherche</div>
+      <div class="grid" id="catalog"></div>
+      <div id="homeSections"></div>
+    </section>
+
+    <section class="module" id="categoryView"><div id="categoryBox"></div></section>
+    <section class="module" id="detail"><div id="detailBox"></div></section>
+    <section class="module" id="vendor"><div id="vendorBox"></div></section>
+
+    <section class="module" id="profile">
+      <div class="vendorHero"><div class="vendorTop"><div class="avatar">B</div><div><h2 class="happyadName">Profil boutique</h2><div class="small">Profil vendeur</div><span class="status"><i class="greenDot"></i>Prêt</span></div></div><div class="stats svgStats sellerProfileStats creatorProfileStats"><div class="stat noteStat globalStarStat v118GlobalStarStat"><b data-ico="star"></b><strong>0.0</strong><span>Note /5</span></div><div class="stat satisfactionStat"><b data-ico="star"></b><strong>0%</strong><span>Satisfaction</span></div><div class="stat ordersStat"><b data-ico="cart"></b><strong>0</strong><span>Commandes</span></div><div class="stat viewsStat"><b data-ico="eye"></b><strong>0</strong><span>Vues</span></div><div class="stat productsStat"><b data-ico="shop"></b><strong>0</strong><span>Produits</span></div></div></div>
+      <div class="quickActions" style="margin-top:12px">
+        <button class="actionMini" onclick="show('settings')"><span data-ico="shield"></span>Paramètres</button>
+      </div>
+      <button class="btn" style="width:100%" onclick="show('editProfile')"><span data-ico="edit" class="icoMini"></span> Modifier mon profil boutique</button>
+      <div class="switchLine cleanSwitch"><div><b id="globalCartTitle">Panier boutique actif</b><span id="globalCartSub">Activer ou fermer tous les paniers de mes produits.</span></div><i class="switch" id="globalCartSwitch" onclick="toggleGlobalCart()"></i></div>
+      <div class="profileMiniBlock">
+        <div class="section tight"><h3>Gestion rapide</h3><span>boutique</span></div>
+        <div class="quickActions sellerQuickActions">
+          <button class="actionMini" onclick="show('stats')"><span data-ico="stats"></span>Stats boutique</button>
+          <button class="actionMini" onclick="show('sellerOrders')"><span data-ico="cart"></span>Livraisons<span class="deliveryCountBadge" id="sellerDeliveryCount">0</span></button>
+        </div>
+      </div>
+      <div class="publicCard v117HiddenPublicPreview" aria-hidden="true">
+        <div class="publicCardTop"><div class="avatar">B</div><div><h3>Aperçu public</h3><p>Profil boutique</p></div></div>
+        <div class="ratingLine"><span data-ico="shield"></span><span>Profil vendeur</span><span data-ico="star"></span><span>—</span><div class="ratingBar"><i style="width:0%"></i></div><span>0%</span></div><div style="margin-top:8px;font-size:14px;opacity:.9">0 produit • 0 commande • 0% satisfaction</div>
+      </div>
+      <div class="freeHead"><h3>Mes publications</h3><span>Filtre ∨</span></div>
+      <div class="freeCats"><button class="chip active" onclick="profileCat='all';activateChip(this);renderProfilePublications()">Tout</button><button class="chip" onclick="profileCat='mode';activateChip(this);renderProfilePublications()">Mode</button><button class="chip" onclick="profileCat='deco';activateChip(this);renderProfilePublications()">Décoration</button><button class="chip" onclick="profileCat='support';activateChip(this);renderProfilePublications()">Support</button><button class="chip" onclick="profileCat='cuisine';activateChip(this);renderProfilePublications()">Cuisine</button></div>
+      <div class="freeGrid" id="profilePreview"></div>
+    </section>
+
+    <section class="module" id="editProfile">
+      <div class="settingsBlock">
+        <h3>Modifier le profil boutique</h3>
+        <div class="adminNotice"><span data-ico="shield"></span><span>Après modification, la demande sera envoyée à l’équipe HAPPYAD avant affichage public.</span></div>
+        <div class="form cleanEditForm">
+          <input id="editShopName" value="" placeholder="Nom de la boutique">
+          <input id="editShopCity" value="" placeholder="Ville visible">
+          <textarea id="editShopDesc" placeholder="Description publique"></textarea>
+        </div>
+      </div>
+      <div class="settingsBlock">
+        <h3>Aperçu avant validation</h3>
+        <div class="infoItem"><div class="iconBox" data-ico="store"></div><div class="rowInfo"><b id="previewShopName">Nom boutique</b><span>Nom visible par les acheteurs</span></div></div>
+        <div class="infoItem"><div class="iconBox" data-ico="pin"></div><div class="rowInfo"><b id="previewShopCity">Ville</b><span>Localisation affichée</span></div></div>
+        <div class="infoItem"><div class="iconBox" data-ico="doc"></div><div class="rowInfo"><b>Description</b><span id="previewShopDesc">Description</span></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn dark" style="width:100%" onclick="show('profile')">Annuler</button>
+        <button class="btn" style="width:100%" onclick="submitProfileEdit()"><span data-ico="shield" class="icoMini"></span> Envoyer</button>
+      </div>
+    </section>
+
+    <section class="module" id="settings">
+      <div class="settingsBlock">
+        <h3>Paramètres boutique</h3><div class="adminNotice"><span data-ico="shield"></span><span>Les changements sont enregistrés avant publication.</span></div>
+        <div class="infoItem"><div class="iconBox" data-ico="store"></div><div class="rowInfo"><b>Nom public HAPPYAD</b><span>Profil vendeur</span></div><button class="circleBtn" onclick="show('editProfile')" data-ico="chevron"></button></div>
+        <div class="infoItem"><div class="iconBox" data-ico="pin"></div><div class="rowInfo"><b>Ville visible</b><span>Ville</span></div><button class="circleBtn" onclick="show('editProfile')" data-ico="chevron"></button></div>
+        <div class="infoItem"><div class="iconBox" data-ico="doc"></div><div class="rowInfo"><b>Description publique</b><span>Description</span></div><button class="circleBtn" onclick="show('editProfile')" data-ico="chevron"></button></div>
+      </div>
+      <div class="settingsBlock">
+        <h3>Paiement et revenus</h3>
+        <div class="infoItem"><div class="iconBox" data-ico="stats"></div><div class="rowInfo"><b>Revenu moyen</b><span>0</span></div><button class="circleBtn" onclick="toast('Revenu moyen ouvert')" data-ico="chevron"></button></div>
+        <div class="infoItem"><div class="iconBox" data-ico="cart"></div><div class="rowInfo"><b>Recevoir les paiements</b><span>Mobile Money, carte, cash livraison</span></div><button class="circleBtn" onclick="toast('Moyens de paiement reçus ouverts')" data-ico="chevron"></button></div>
+        <div class="infoItem"><div class="iconBox" data-ico="shield"></div><div class="rowInfo"><b>Payer mes achats</b><span>À choisir par l’acheteur au paiement</span></div><button class="circleBtn" onclick="toast('Moyens de paiement acheteur ouverts')" data-ico="chevron"></button></div>
+        <div class="adminNotice"><span data-ico="shield"></span><span>Les modifications sensibles sont contrôlées avant affichage.</span></div>
+      </div>
+      <div class="settingsBlock"><h3>Fermeture boutique</h3><div class="ruleCard"><b>Commandes en cours</b>La boutique reste ouverte tant que des commandes ne sont pas terminées.</div><button class="btn dark" style="width:100%" onclick="toast('Demande de fermeture envoyée')"><span data-ico="trash" class="icoMini"></span> Demander fermeture boutique</button></div><button class="btn" style="width:100%" onclick="toast('Demande envoyée pour validation')"><span data-ico="shield" class="icoMini"></span> Enregistrer les changements</button>
+    </section>
+
+    <section class="module" id="products">
+      <div class="noPriceNotice">Tu peux publier normalement depuis HAPPYAD. Le bouton prix apparaît seulement si ton compte boutique/vendeur est validé.</div>
+      <div class="card form sellerOnly"><div class="section"><h3>Créer produit</h3><span>Publication HAPPYAD</span></div><input placeholder="Nom du produit ou service"><input class="sellerOnly" placeholder="Prix"><input placeholder="Catégorie"><textarea placeholder="Description complète"></textarea><div class="ruleCard"><b>Contrôle produit</b>Les changements importants sont vérifiés avant affichage public.</div><button class="btn">+ Enregistrer les changements</button></div>
+      <div class="chips sellerOnly"><button class="chip active">Tous</button><button class="chip">En ligne</button><button class="chip">Panier désactivé</button><button class="chip">En attente</button></div><div id="myList" class="sellerOnly"></div>
+    </section>
+
+    <section class="module" id="stats">
+      <div class="statsHero">
+        <h3>Résumé boutique</h3>
+        <p>Suivi des ventes, revenus, messages et produits les plus performants.</p>
+      </div>
+      <div class="statsPeriod">
+        <button class="periodBtn active" onclick="selectStatsPeriod('week',this)">Cette semaine</button>
+        <button class="periodBtn" onclick="selectStatsPeriod('month',this)">30 jours</button>
+        <button class="periodBtn" onclick="selectStatsPeriod('year',this)">Année</button>
+      </div>
+      <div class="statDash" id="statsDash"></div>
+      <div class="statActions">
+        <button class="statActionBtn primary" onclick="openRevenueDetails()"><span data-ico="stats"></span> Revenus</button>
+        <button class="statActionBtn" onclick="show('cart')"><span data-ico="cart"></span> Commandes</button>
+        <button class="statActionBtn" onclick="show('messages')"><span data-ico="message"></span> Messages</button>
+        <button class="statActionBtn" onclick="refreshStats()"><span data-ico="stats"></span> Actualiser</button>
+      </div>
+      <div class="card">
+        <div class="section"><h3>Produits performants</h3><button class="filterBtn" onclick="toggleAllStatsProducts()">Voir tout ∨</button></div>
+        <div id="statRows"></div>
+        <div class="statsSummaryLine"><span>Total estimé</span><b id="statsTotalRevenue">0</b></div>
+      </div>
+    </section>
+
+    <section class="module" id="sellerOrders">
+      <div class="sellerOrderHero">
+        <div>
+          <h3>Livraisons à valider</h3>
+          <p>Quand vous livrez une commande, ajoutez une preuve. Le client reçoit une notification et confirme la réception.</p>
+          <div class="sellerOrderCounterLine"><span data-ico="cart"></span><span id="sellerOrdersScreenCount">0 commande à traiter</span></div>
+        </div>
+      </div>
+      <div id="sellerOrdersList"></div>
+    </section>
+
+    <section class="module" id="messages">
+      <div class="messageBridge happyadMessagesBridge">
+        <div class="bridgeCard">
+          <div class="section"><h3>Messages HAPPYAD</h3><span>Centrale</span></div>
+          <div class="accessLine"><span data-ico="message"></span><span>Profil, nom et badge HAPPYAD.</span></div>
+          <button class="btn" style="width:100%" onclick="openHappyadMessages('central')"><span data-ico="message" class="icoMini"></span> Ouvrir Messages HAPPYAD</button>
+        </div>
+        <div class="bridgeCard">
+          <h3>Revendications boutique</h3>
+          <p>Les dossiers de commande restent dans la boutique.</p>
+          <button class="btn dark" style="width:100%" onclick="openResolution()"><span data-ico="shield" class="icoMini"></span> Centre de résolution</button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- RESOLUTION MODULE START - Centre de résolution commande -->
+    <section class="module" id="resolution">
+      <div class="resolutionShell">
+        <div class="resolutionHeader">
+          <div class="resolutionHeaderTop">
+            <div class="statusIcon"><span data-ico="message"></span></div>
+            <div>
+              <h3 id="resolutionTitle">Centre de résolution</h3>
+              <p id="resolutionSub">Commande liée</p>
+            </div>
+          </div>
+          <div style="margin-top:12px" class="resolutionBadge"><span data-ico="shield"></span><span>Client · Vendeur · Support HAPPYAD</span></div>
+        </div>
+        <div class="refundRule" id="resolutionRule">Annulation possible seulement pendant 30 min. Remboursement gardé 2h avant validation finale.</div>
+        <div class="issueChips" id="issueChips">
+          <button class="issueChip active" onclick="chooseIssue(this,'Problème général')">Problème</button>
+          <button class="issueChip" onclick="chooseIssue(this,'Je n’ai pas reçu')">Je n’ai pas reçu</button>
+          <button class="issueChip" onclick="chooseIssue(this,'Annulation')">Annuler</button>
+          <button class="issueChip" onclick="chooseIssue(this,'Difficulté livraison')">Difficulté livraison</button>
+          <button class="issueChip" onclick="chooseIssue(this,'Déjà expédié')">Déjà expédié</button>
+        </div>
+        <div class="resolutionChat" id="resolutionChat"></div>
+        <div class="resolutionComposer">
+          <textarea id="resolutionInput" placeholder="Écrire un message lié à cette commande..."></textarea>
+          <button class="resolutionSend" onclick="sendResolutionMessage()"><span data-ico="message"></span></button>
+        </div>
+        <div class="resolutionActions">
+          <button class="btn dark" onclick="markResolutionPending()">Support</button>
+          <button class="btn" onclick="markResolutionSolved()">Résolu</button>
+        </div>
+      </div>
+    </section>
+    <!-- RESOLUTION MODULE END -->
+
+    <section class="module" id="cart"><div id="cartRows"></div></section>
+  </main>
+
+  <nav class="bottomNav" id="bottomNav"><button class="nav active" onclick="show('home')"><span class="navIcon" data-ico="home"></span>Accueil</button><button class="nav" onclick="show('messages')"><span class="navIcon" data-ico="message"></span>Messages</button><button class="nav" onclick="show('profile')"><span class="navIcon" data-ico="user"></span>Profil</button><button class="nav" onclick="show('cart')"><span class="navIcon" data-ico="cart"></span>Panier</button></nav>
+
+
+  <div class="paymentOverlay" id="paymentOverlay" onclick="closePaymentPopup(event)">
+    <div class="paymentSheet" onclick="event.stopPropagation()">
+      <div class="sheetTop">
+        <div><b>Choisir le paiement</b><span>Commande protégée par HAPPYAD</span></div>
+        <button class="circleBtn" onclick="closePaymentPopup()">×</button>
+      </div>
+      <div class="payOption active" data-pay="mobile" onclick="selectPayMethod(this,'Mobile Money')"><span data-ico="cart"></span><div><b>Mobile Money</b><small>MTN / Airtel / autre réseau disponible</small></div></div>
+      <div class="payOption" data-pay="card" onclick="selectPayMethod(this,'Carte bancaire')"><span data-ico="shield"></span><div><b>Carte bancaire</b><small>Visa / Mastercard selon disponibilité</small></div></div>
+      <div class="payOption" data-pay="wallet" onclick="selectPayMethod(this,'Solde HAPPYAD')"><span data-ico="stats"></span><div><b>Solde HAPPYAD</b><small>Utiliser le solde de votre compte</small></div></div>
+      <div class="payNotice"><b>Après paiement</b><br>L’argent reste gardé par HAPPYAD. Il sera envoyé au vendeur seulement après livraison confirmée, frais plateforme déjà coupés.</div>
+      <button class="btn" style="width:100%" onclick="payAndCreateOrder()"><span data-ico="shield" class="icoMini"></span> Payer et créer ma commande</button>
+    </div>
+  </div>
+
+  <div class="productEditOverlay" id="productEditOverlay" onclick="closeProductEditor(event)">
+    <div class="productEditSheet" onclick="event.stopPropagation()">
+      <div class="sheetTop">
+        <div><b>Modifier publication</b><span>Changement appliqué directement</span></div>
+        <button class="circleBtn" onclick="closeProductEditor()">×</button>
+      </div>
+      <input id="prodEditName" placeholder="Titre du produit">
+      <input id="prodEditPrice" placeholder="Prix">
+      <select id="prodEditCat">
+        <option value="mode">Mode</option>
+        <option value="deco">Décoration</option>
+        <option value="support">Support</option>
+        <option value="cuisine">Cuisine</option>
+      </select>
+      <textarea id="prodEditDesc" placeholder="Description complète"></textarea>
+      <div class="editHint">Modifiez les informations du produit puis enregistrez.</div>
+      <button class="btn" style="width:100%" onclick="saveProductEdit()"><span data-ico="edit" class="icoMini"></span> Enregistrer</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script src="modules/js/01-profile.js?v=532"></script>
+
+<link rel="stylesheet" href="modules/css/02-base.css?v=532">
+<script src="modules/js/02-cart-orders.js?v=532"></script>
+
+
+<!-- HAPPYAD Boutique Resolution Chat Module V32: séparé et facilement extractible -->
+<link rel="stylesheet" href="modules/css/resolution-chat-style.css?v=532">
+<script src="modules/js/resolution-chat-script.js?v=532" data-module-id="resolution-chat-script"></script>
+
+<link rel="stylesheet" href="modules/css/v34-claim-visible-final.css?v=532">
+
+<link rel="stylesheet" href="modules/css/05-base.css?v=532">
+<script src="modules/js/04-cart-orders.js?v=532"></script>
+
+
+<link rel="stylesheet" href="modules/css/happyad-message-bridge-style.css?v=532">
+<script src="modules/js/happyad-message-bridge-final.js?v=532" data-module-id="happyad-message-bridge-final"></script>
+
+
+<!-- V56 : correction finale réception + note étoile popup unique -->
+<link rel="stylesheet" href="modules/css/v56-rating-popup-final-style.css?v=532">
+<script src="modules/js/happyad-v69-two-points-only.js?v=532" data-module-id="happyad-v69-two-points-only"></script>
+
+
+
+<!-- V71: correction directe ouverture Voir chat + lecture seule après opération terminée -->
+<link rel="stylesheet" href="modules/css/happyad-v71-chat-open-readonly-style.css?v=532">
+<script src="modules/js/happyad-v71-chat-open-readonly-fix.js?v=532" data-module-id="happyad-v71-chat-open-readonly-fix"></script>
+
+
+<!-- V75 : mots allégés commander + réception -->
+<link rel="stylesheet" href="modules/css/happyad-v75-light-popup-words-style.css?v=532">
+<link rel="stylesheet" href="modules/css/happyad-v74-profile-breathe-style.css?v=532">
+
+<link rel="stylesheet" href="modules/css/happyad-v76-profile-breathe-restore-style.css?v=532">
+
+
+
+
+
+
+
+<!-- v14 fullscreen cleanup patch injected by HAPPYAD -->
+<link rel="stylesheet" href="modules/css/14-profile.css?v=532">
+
+<script src="modules/js/11-cart-orders.js?v=532"></script>
+
+<!-- V35 FIX: boutons revendication connectés au vrai chat de résolution -->
+<script src="modules/js/v35-claim-chat-direct-fix.js?v=532" data-module-id="v35-claim-chat-direct-fix"></script>
+<link rel="stylesheet" href="modules/css/v35-claim-chat-style.css?v=532">
+
+<!-- V36: revendication cachée après validation + notation client -->
+<link rel="stylesheet" href="modules/css/v36-rating-claim-final-style.css?v=532">
+
+<!-- v39 cancellation state patch -->
+<link rel="stylesheet" href="modules/css/17-base.css?v=532">
+<script src="modules/js/14-cart-orders.js?v=532"></script>
+
+<link rel="stylesheet" href="modules/css/18-product-editor.css?v=532">
+
+<script src="modules/js/15-products.js?v=532"></script>
+
+
+<link rel="stylesheet" href="modules/css/19-profile.css?v=532">
+
+<script src="modules/js/16-cart-orders.js?v=532"></script>
+
+<script src="modules/js/17-cart-orders.js?v=532"></script>
+
+<!-- V45 : commandes/livraisons validées compactes et ouvrables -->
+<link rel="stylesheet" href="modules/css/v45-collapsed-orders-style.css?v=532">
+<script src="modules/js/v45-collapsed-orders-script.js?v=532" data-module-id="v45-collapsed-orders-script"></script>
+
+<!-- V47 : organisation propre de la ligne produit dans le panier -->
+<link rel="stylesheet" href="modules/css/v47-cart-item-layout-style.css?v=532">
+<script src="modules/js/v47-cart-item-layout-script.js?v=532" data-module-id="v47-cart-item-layout-script"></script>
+
+
+<!-- V50 : currency-aware cart/order totals (USD stays USD, UGX stays UGX) -->
+<script src="modules/js/v50-currency-adapter.js?v=532" data-module-id="v50-currency-adapter"></script>
+
+<!-- V51 : popup réception client professionnel -->
+<link rel="stylesheet" href="modules/css/22-base.css?v=532">
+<!-- V52 : note client après réception + note visible vendeur -->
+<link rel="stylesheet" href="modules/css/v52-rating-visible-style.css?v=532">
+<!-- HAPPYAD V57 : correction finale popup réception + note étoile maître anti-conflit -->
+<link rel="stylesheet" href="modules/css/happyad-v57-rating-master-style.css?v=532">
+<script src="modules/js/happyad-v57-rating-popup-conflict-master.js?v=532" data-module-id="happyad-v57-rating-popup-conflict-master"></script>
+
+
+<link rel="stylesheet" href="modules/css/v58-product-seller-rating-style.css?v=532">
+<script src="modules/js/v58-product-seller-rating-engine.js?v=532" data-module-id="v58-product-seller-rating-engine"></script>
+
+
+<link rel="stylesheet" href="modules/css/happyad-v59-product-rating-short-final-bottom-style.css?v=532">
+<script src="modules/js/happyad-v59-product-card-rating-short-final.js?v=532" data-module-id="happyad-v59-product-rating-short-final-bottom"></script>
+
+
+<link rel="stylesheet" href="modules/css/happyad-v60-currency-style.css?v=532">
+<script src="modules/js/happyad-v60-global-currency-engine.js?v=532" data-module-id="happyad-v60-global-currency-engine"></script>
+
+
+<!-- V62 : currency picker with full labels + CDF visible -->
+<link rel="stylesheet" href="modules/css/happyad-v62-currency-picker-style.css?v=532">
+<script src="modules/js/happyad-v62-currency-picker-final.js?v=532" data-module-id="happyad-v62-currency-picker-final"></script>
+
+<!-- V63 : client order age + delivery arrival time visible after payment validation -->
+<link rel="stylesheet" href="modules/css/happyad-v63-order-time-style.css?v=532">
+<script src="modules/js/happyad-v63-order-age-eta-fix.js?v=532" data-module-id="happyad-v63-order-age-eta-fix"></script>
+
+
+<!-- V64 FINAL : after completed operation, keep only fine notification + Voir (client and seller) -->
+<link rel="stylesheet" href="modules/css/happyad-v64-final-notification-style.css?v=532">
+<script src="modules/js/happyad-v64-final-notification-fix.js?v=532" data-module-id="happyad-v64-final-notification-fix"></script>
+
+
+<!-- V67 : fine notification only + clickable proof fullscreen + proof visible inside revendication chat -->
+<link rel="stylesheet" href="modules/css/happyad-v67-fine-proof-style.css?v=532">
+<script src="modules/js/happyad-v67-fine-proof-fix.js?v=532" data-module-id="happyad-v67-fine-proof-fix"></script>
+
+
+<!-- V68 : classement commandes/livraisons + chat lecture seule après opération terminée -->
+<link rel="stylesheet" href="modules/css/happyad-v68-order-tabs-readonly-style.css?v=532">
+<script src="modules/js/happyad-v68-order-tabs-readonly-chat-fix.js?v=532" data-module-id="happyad-v68-order-tabs-readonly-chat-fix"></script>
+
+<!-- V72 FINAL: Voir chat vraiment lecture seule après opération terminée -->
+<link rel="stylesheet" href="modules/css/happyad-v72-final-readonly-chat-style.css?v=532">
+<script src="modules/js/happyad-v72-final-readonly-chat-script.js?v=532" data-module-id="happyad-v72-final-readonly-chat-script"></script>
+
+<!-- V73: interface achat/livraison et voir chat allégés -->
+<link rel="stylesheet" href="modules/css/happyad-v73-light-interface-style.css?v=532">
+<script src="modules/js/happyad-v73-light-interface-script.js?v=532" data-module-id="happyad-v73-light-interface-script"></script>
+
+<!-- HAPPYAD V77 - PRODUCT EDITOR CLEAN WORDS/UI ONLY -->
+<link rel="stylesheet" href="modules/css/happyad-v77-product-editor-clean-style.css?v=532">
+<script src="modules/js/happyad-v77-product-editor-clean-script.js?v=532" data-module-id="happyad-v77-product-editor-clean-script"></script>
+<link rel="stylesheet" href="modules/css/happyad-v78-bridge-media-style.css?v=532">
+<script src="modules/js/happyad-v78-happyad-boutique-bridge-script.js?v=532" data-module-id="happyad-v78-happyad-boutique-bridge-script"></script>
+
+
+
+
+
+<link rel="stylesheet" href="modules/css/happyad-v80-clean-profile-style.css?v=532">
+
+
+<!-- V82/V84 : connexion Supabase produits Boutique -->
+<!-- V84 : Boutique connectée au projet Supabase principal HAPPYAD -->
+<script>
+window.HAPPYAD_SUPABASE_URL = window.HAPPYAD_SUPABASE_URL || "https://txjjyhupbejgjcianrmr.supabase.co";
+window.HAPPYAD_SUPABASE_KEY = window.HAPPYAD_SUPABASE_KEY || "sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
+window.HAPPYAD_BOUTIQUE_IN_MAIN_APP = true;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="modules/js/happyad-v82-supabase-config.js?v=532" data-module-id="happyad-v82-supabase-config"></script>
+<script src="modules/js/happyad-v82-supabase-products-bridge.js?v=532" data-module-id="happyad-v82-supabase-products-bridge"></script>
+<script src="modules/js/happyad-v87-main-profile-sync.js?v=532" data-module-id="happyad-v87-main-profile-sync"></script>
+
+<!-- V107 SAFE : afficher uniquement les médias réels dans les cartes Boutique, sans toucher aux systèmes existants -->
+<link rel="stylesheet" href="modules/css/happyad-v107-boutique-real-card-media-safe.css?v=532">
+<link rel="stylesheet" href="modules/css/happyad-v117-profile-star-top-clean-style.css?v=532">
+<link rel="stylesheet" href="modules/css/happyad-v119-profile-publication-actions-vertical.css?v=532">
+<script src="modules/js/happyad-v107-boutique-real-card-media-safe.js?v=532" data-module-id="happyad-v107-boutique-real-card-media-safe"></script>
+<script src="modules/js/happyad-v109-boutique-profile-photo-open-safe.js?v=532" data-module-id="happyad-v109-boutique-profile-photo-open-safe"></script>
+<script src="modules/js/happyad-v110-detail-cart-message-safe.js?v=532" data-module-id="happyad-v110-detail-cart-message-safe"></script>
+<script src="modules/js/happyad-v111-cart-image-click-safe.js?v=532" data-module-id="happyad-v111-cart-image-click-safe"></script>
+<script src="modules/js/happyad-v112-hide-owner-message-cart-safe.js?v=532" data-module-id="happyad-v112-hide-owner-message-cart-safe"></script>
+<script src="modules/js/happyad-v113-real-product-description-safe.js?v=532" data-module-id="happyad-v113-real-product-description-safe"></script>
+<script src="modules/js/happyad-v114-profile-hero-avatar-safe.js?v=532" data-module-id="happyad-v114-profile-hero-avatar-safe"></script>
+<script src="modules/js/happyad-v115-profile-photo-publiccard-safe.js?v=532" data-module-id="happyad-v115-profile-photo-publiccard-safe"></script>
+<script src="modules/js/happyad-v117-profile-star-top-clean.js?v=532" data-module-id="happyad-v117-profile-star-top-clean"></script>
+
+<!-- V123 : correction ouverture popup Modifier produit (V122 retiré pour éviter double clic/conflit) -->
+<link rel="stylesheet" href="modules/css/happyad-v123-product-edit-popup-open-style.css?v=532">
+<script src="modules/js/happyad-v123-product-edit-popup-open-fix.js?v=532" data-module-id="happyad-v123-product-edit-popup-open-fix"></script>
+<!-- V124 : vraie photo/vidéo produit dans le panier -->
+<link rel="stylesheet" href="modules/css/happyad-v124-cart-product-real-media-style.css?v=532">
+<script src="modules/js/happyad-v124-cart-product-real-media-fix.js?v=532" data-module-id="happyad-v124-cart-product-real-media-fix"></script>
+<link rel="stylesheet" href="modules/css/happyad-v126-detail-images-recos-fast-style.css?v=532">
+<script src="modules/js/happyad-v126-detail-images-recos-fast-fix.js?v=532" data-module-id="happyad-v126-detail-images-recos-fast-fix"></script>
+
+<script id="happyad-v409-buy-post-opens-cart">
+(function(){
+  if(window.__happyadV409BuyPostOpensCart)return;
+  window.__happyadV409BuyPostOpensCart=true;
+  var KEY='HAPPYAD_BOUTIQUE_CART_REQUEST_V409';
+  function esc(v){return String(v==null?'':v)}
+  function toastSafe(m){try{if(typeof toast==='function')toast(m)}catch(e){}}
+  function readReq(){
+    var req=null;
+    try{
+      var qs=new URLSearchParams(location.search||'');
+      if(qs.get('cart')==='1' || qs.get('product') || qs.get('post')){
+        req={productId:qs.get('product')||'',postId:qs.get('post')||'',qty:Number(qs.get('qty')||1)||1,t:Date.now(),from:'url'};
+      }
+    }catch(e){}
+    if(!req){try{req=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){req=null}}
+    if(!req || (!req.productId && !req.postId))return null;
+    req.productId=String(req.productId||'').trim();
+    req.postId=String(req.postId||'').trim();
+    req.qty=Math.max(1,Number(req.qty)||1);
+    return req;
+  }
+  function clearReq(){
+    try{localStorage.removeItem(KEY)}catch(e){}
+    try{if(history&&history.replaceState){history.replaceState(null,'',location.pathname)}}catch(e){}
+  }
+  function productsList(){try{return Array.isArray(window.products)?window.products:[]}catch(e){return []}}
+  function boutiquePostProductMapV411(){try{return JSON.parse(localStorage.getItem('HAPPYAD_BOUTIQUE_POST_PRODUCT_MAP_V1')||'{}')||{}}catch(_e){return {}}}
+  function matchProduct(req){
+    var list=productsList();
+    var pid=String(req.productId||'');
+    var post=String(req.postId||'');
+    if(!pid && post){try{pid=String(boutiquePostProductMapV411()[post]||'')}catch(_e){}}
+    return list.find(function(p){
+      if(!p)return false;
+      return (pid && String(p.id||'')===pid) ||
+             (pid && String(p.product_id||'')===pid) ||
+             (post && String(p.linkedHappyadPostId||p.happyadPostId||p.linked_post_id||p.happyad_post_id||'')===post) ||
+             (post && String(p.postId||p.post_id||'')===post);
+    }) || null;
+  }
+  function cartEnabled(p){
+    try{return (typeof globalCartEnabled==='undefined'||globalCartEnabled!==false)&&(!window.productCartEnabled||productCartEnabled[p.id]!==false)&&p.cart_enabled!==false}catch(e){return true}
+  }
+  function addProductToCart(p,qty){
+    if(!p)return false;
+    if(!cartEnabled(p)){toastSafe('Panier désactivé par le vendeur');return true;}
+    try{if(typeof window.cart==='undefined'||!Array.isArray(window.cart))window.cart=[];}catch(e){window.cart=[];}
+    var arr=[];try{arr=Array.isArray(cart)?cart:window.cart}catch(e){arr=window.cart}
+    var existing=arr.find(function(it){return String(it.id||it.product_id||'')===String(p.id)});
+    if(existing)existing.qty=(Number(existing.qty)||0)+qty;
+    else arr.push({id:p.id,qty:qty,product_id:p.id,fromHappyad:true,linkedPostId:p.linkedHappyadPostId||p.happyadPostId||p.linked_post_id||null});
+    try{syncCartCount()}catch(e){}
+    try{show('cart')}catch(e){try{window.currentScreen='cart'}catch(_){}}
+    try{renderCart()}catch(e){}
+    try{hydrateIcons(document.getElementById('cartRows')||document)}catch(e){}
+    toastSafe(existing?'Quantité ajoutée':'Produit ajouté au panier');
+    return true;
+  }
+  function loadProducts(){
+    try{if(window.HAPPYAD_SUPABASE_PRODUCTS&&typeof window.HAPPYAD_SUPABASE_PRODUCTS.loadProducts==='function')return Promise.resolve(window.HAPPYAD_SUPABASE_PRODUCTS.loadProducts({toast:false}))}catch(e){}
+    return Promise.resolve(false);
+  }
+  var tries=0;
+  async function run(){
+    var req=readReq();
+    if(!req)return;
+    var p=matchProduct(req);
+    if(!p && tries<3){
+      tries++;
+      try{await loadProducts()}catch(e){}
+      p=matchProduct(req);
+      if(!p){setTimeout(run,300);return;}
+    }
+    if(p){addProductToCart(p,req.qty);clearReq();return;}
+    toastSafe('Produit boutique introuvable');
+    clearReq();
+    try{show('cart')}catch(e){}
+  }
+  setTimeout(run,80);
+})();
+</script>
+
+<script id="happyad-v496-boutique-frame-bridge">
+/* V496: retour et liens Boutique restent dans le routeur parent. */
+(function(){
+  if(window.__HAPPYAD_V496_BOUTIQUE_FRAME_BRIDGE__)return;
+  window.__HAPPYAD_V496_BOUTIQUE_FRAME_BRIDGE__=true;
+  function inFrame(){try{return window.parent&&window.parent!==window;}catch(_e){return false;}}
+  function askParent(url,extra){try{if(!inFrame())return false;window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,extra:extra||{},source:'boutique'},'*');return true;}catch(_e){return false;}}
+  
+  document.addEventListener('click',function(e){
+    try{
+      var btn=e.target&&e.target.closest&&e.target.closest('#bottomNav .nav');
+      if(btn){
+        var txt=String(btn.textContent||'').toLowerCase();
+        if(txt.indexOf('profil')>=0 && inFrame()){
+          /* V498: le bouton Profil de la Boutique reste dans le profil Boutique local. */
+          return;
+        }
+      }
+      var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
+      var href=a.getAttribute('href')||'';
+      var clean=href.replace(/^\.\//,'').replace(/^\.\.\//,'');
+      if(clean==='index.html'||clean==='/'||clean.indexOf('modules/')===0||clean.indexOf('messages.html')===0||clean.indexOf('boutique.html')===0){
+        if(askParent(clean)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false;}
+      }
+    }catch(_e){}
+  },true);
+})();
+</script>
+
+
+<script id="happyad-v498-boutique-local-profile-return-fix">
+/* V498: Profil dans Boutique = profil boutique; Retour Boutique = étape précédente de l'application. */
+(function(){
+  if(window.__HAPPYAD_V498_BOUTIQUE_LOCAL_PROFILE_RETURN_FIX__)return;
+  window.__HAPPYAD_V498_BOUTIQUE_LOCAL_PROFILE_RETURN_FIX__=true;
+  function inFrame(){try{return window.parent&&window.parent!==window;}catch(_e){return false;}}
+  document.addEventListener('click',function(e){
+    try{
+      var btn=e.target&&e.target.closest&&e.target.closest('#bottomNav .nav');
+      if(!btn)return;
+      var txt=String(btn.textContent||'').toLowerCase();
+      if(txt.indexOf('profil')>=0){
+        e.stopPropagation();
+        try{show('profile');}catch(_s){}
+        return true;
+      }
+    }catch(_e){}
+  },false);
+})();
+</script>
+
+<style id="happyad-v503-boutique-tap-orange-css">
+/* V503: font/icônes orange immédiatement au toucher. */
+.happyadTapOrange,
+.happyadTapOrange *,
+button:active,
+a:active,
+.nav:active,
+[role="button"]:active{
+  color:#ff8a00!important;
+  border-color:rgba(255,138,0,.72)!important;
+}
+.happyadTapOrange svg,
+.happyadTapOrange svg *,
+button:active svg,
+a:active svg,
+.nav:active svg{
+  stroke:#ff8a00!important;
+}
+.happyadTapOrange{filter:drop-shadow(0 0 8px rgba(255,138,0,.35))!important;transition:color .05s linear,filter .05s linear!important}
+</style>
+<script id="happyad-v503-boutique-back-direct-main-profile">
+(function(){
+  if(window.__HAPPYAD_V503_BOUTIQUE_BACK_DIRECT_MAIN_PROFILE__)return;
+  window.__HAPPYAD_V503_BOUTIQUE_BACK_DIRECT_MAIN_PROFILE__=true;
+  function inFrame(){try{return window.parent&&window.parent!==window;}catch(_e){return false;}}
+  function orange(el){try{if(!el||!el.classList)return;el.classList.add('happyadTapOrange');clearTimeout(el.__happyadTapOrangeT);el.__happyadTapOrangeT=setTimeout(function(){try{el.classList.remove('happyadTapOrange');}catch(_e){}},260);}catch(_e){}}
+  function askParent(){
+  try{
+    if(!inFrame())return false;
+    var p=window.parent;
+    if(p&&typeof p.happyadReturnFromBoutiqueToMainProfileV503==='function'){
+      if(p.happyadReturnFromBoutiqueToMainProfileV503({source:'boutique-v503-direct'}))return true;
+    }
+    try{
+      p.postMessage({type:'HAPPYAD_RETURN_FROM_BOUTIQUE_TO_MAIN_PROFILE_V503',source:'boutique-v503-post'},'*');
+      return true;
+    }catch(_m){}
+  }catch(_e){}
+  return false;
+}
+var lastBoutiqueBackV503=0;
+  window.happyadBoutiqueBackToMainProfileV503=function(ev){
+  try{
+    if(ev){
+      ev.preventDefault&&ev.preventDefault();
+      ev.stopPropagation&&ev.stopPropagation();
+      ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
+      orange((ev.currentTarget)||(ev.target&&ev.target.closest&&ev.target.closest('button,a,.back')));
+    }
+  }catch(_e){}
+
+  try{
+    var t=Date.now?Date.now():(new Date()).getTime();
+    if(t-lastBoutiqueBackV503<650)return false;
+    lastBoutiqueBackV503=t;
+  }catch(_d){}
+
+  try{sessionStorage.setItem('HAPPYAD_BOUTIQUE_BACK_REQUEST_V503',String(Date.now?Date.now():(new Date()).getTime()));}catch(_s){}
+
+  if(askParent())return false;
+  try{history.back();}catch(_h){}
+  return false;
+};
+  var previousBack=window.back;
+  window.back=function(){
+    try{
+      if(!window.currentScreen||window.currentScreen==='home')return window.happyadBoutiqueBackToMainProfileV503({preventDefault:function(){},stopPropagation:function(){},stopImmediatePropagation:function(){}});
+    }catch(_e){}
+    return previousBack?previousBack.apply(this,arguments):false;
+  };
+  ['pointerdown','touchstart','click'].forEach(function(ev){
+    try{document.addEventListener(ev,function(e){
+      try{
+        var t=e.target&&e.target.closest&&e.target.closest('button.back,.back[onclick*="BoutiqueBack"],.back[onclick*="BackToMainProfile"]');
+        if(!t)return;
+        orange(t);
+        return window.happyadBoutiqueBackToMainProfileV503(e);
+      }catch(_x){}
+    },{capture:true,passive:false});}catch(_e){try{document.addEventListener(ev,function(e){var t=e.target&&e.target.closest&&e.target.closest('button.back,.back');if(t)return window.happyadBoutiqueBackToMainProfileV503(e);},true);}catch(_x){}}
+  });
+  ['pointerdown','touchstart','mousedown','click'].forEach(function(ev){
+    try{document.addEventListener(ev,function(e){try{var el=e.target&&e.target.closest&&e.target.closest('button,a,.nav,[role="button"],.filterBtn,.sortBtn,.catCard,.refreshBtn,.topBtn');if(el)orange(el);}catch(_x){}},{capture:true,passive:true});}catch(_e){}
+  });
+})();
+</script>
+
+</body>
+</html>
