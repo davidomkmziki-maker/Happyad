@@ -12074,20 +12074,17 @@ sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
 
 if(forceVideoPostReload||staleFrameNav||!sameFrameUrl(fr,url)){
   fr.setAttribute('data-happyad-src',url);
-    try{
-      if(page==='profile_public'||forceVideoPostReload||staleFrameNav){
-    fr.setAttribute('data-happyad-loading','1');
-    fr.style.opacity='';
-    fr.style.visibility='';
-  }else{
-    fr.style.opacity='';
-    fr.style.visibility='';
-  }else{
-    fr.removeAttribute('data-happyad-loading');
-    fr.style.opacity='';
-    fr.style.visibility='';
-  }
-}catch(_vis){}  
+  try{
+    if(page==='profile_public'||forceVideoPostReload||staleFrameNav){
+      fr.setAttribute('data-happyad-loading','1');
+      fr.style.opacity='';
+      fr.style.visibility='';
+    }else{
+      fr.removeAttribute('data-happyad-loading');
+      fr.style.opacity='';
+      fr.style.visibility='';
+    }
+  }catch(_vis){}
       try{if(!preload){var l=loader();if(l)l.classList.add('on');}}catch(_e){}
       try{if((page==='profile_public'||forceVideoPostReload||staleFrameNav)&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
       try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=setTimeout(function(){try{if(fr.classList&&fr.classList.contains('on')){fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=loader();if(l)l.classList.remove('on');}}catch(_w){}},2600);}catch(_watch){}
