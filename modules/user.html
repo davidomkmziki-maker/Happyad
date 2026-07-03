@@ -23,18 +23,13 @@
 <title>HAPPYAD — Central User V1</title>
 <script id="happyad-v125-profile-fast-return-flag">
 (function(){
+  /* V545 : suppression du faux retour rapide Boutique. Il gardait un ancien rendu visible après retour accueil. */
   try{
-    var qs=String(location.search||'');
-    var ss=window.sessionStorage;
-    var armed=ss.getItem('HAPPYAD_PROFILE_FAST_RETURN_V1')==='1';
-    var fromBoutique=qs.indexOf('fromBoutique=1')>-1 || armed;
-    if(fromBoutique){
-      window.HAPPYAD_PROFILE_FAST_RETURN=true;
-      window.HAPPYAD_PROFILE_FAST_RETURN_UNTIL=Date.now()+4500;
-      ss.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
-      ss.setItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL',String(window.HAPPYAD_PROFILE_FAST_RETURN_UNTIL));
-      document.documentElement.classList.add('happyadFastProfileReturn');
-    }
+    window.HAPPYAD_PROFILE_FAST_RETURN=false;
+    window.HAPPYAD_PROFILE_FAST_RETURN_UNTIL=0;
+    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
+    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');
+    document.documentElement.classList.remove('happyadFastProfileReturn');
   }catch(e){}
 })();
 </script>
@@ -1010,7 +1005,7 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
 
 <style id="happyad-v220-counts-no-overflow">
 /* V220 : compteurs likes/commentaires/partages/favoris compacts et sans debordement */
-.miniActions,.profileActions{
+.miniActions{
   display:flex!important;
   align-items:center!important;
   gap:4px!important;
@@ -1019,7 +1014,10 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   overflow:hidden!important;
   white-space:nowrap!important;
 }
-.miniActions .actionBtn,.profileActions .profileAct{
+.profileActions{
+  display:none!important;
+}
+.miniActions .actionBtn{
   flex:0 1 auto!important;
   min-width:0!important;
   max-width:34%!important;
@@ -1033,7 +1031,7 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   padding-right:0!important;
   line-height:1.05!important;
 }
-.miniActions .actionBtn small,.profileActions .profileAct small{
+.miniActions .actionBtn small{
   display:inline-block!important;
   min-width:0!important;
   max-width:42px!important;
@@ -1044,15 +1042,15 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   line-height:1!important;
   font-variant-numeric:tabular-nums!important;
 }
-.miniActions .actionBtn.fav,.profileActions .profileAct.fav{
+.miniActions .actionBtn.fav{
   margin-left:auto!important;
   flex:0 1 auto!important;
   max-width:30%!important;
 }
 @media(max-width:360px){
-  .miniActions,.profileActions{gap:3px!important;font-size:10px!important}
-  .miniActions .actionBtn,.profileActions .profileAct{gap:1px!important;font-size:10px!important}
-  .miniActions .actionBtn small,.profileActions .profileAct small{font-size:10px!important;max-width:34px!important}
+  .miniActions{gap:3px!important;font-size:10px!important}
+  .miniActions .actionBtn{gap:1px!important;font-size:10px!important}
+  .miniActions .actionBtn small{font-size:10px!important;max-width:34px!important}
 }
 </style>
 
@@ -1123,7 +1121,7 @@ body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending{background-
 <div id="toast" class="toast"></div>
 <div class="app">
 <div class="card">
-       <a class="profileBoutiqueBtn" href="../boutique.html?v=v544zipclean1&return=profile&entry=profile-cart" title="Boutique" aria-label="Ouvrir la Boutique" data-happyad-boutique-entry="profile" onclick="try{sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');sessionStorage.setItem('HAPPYAD_PROFILE_SCROLL_Y',String(window.scrollY||document.documentElement.scrollTop||0));var u='boutique.html?v=v544zipclean1&return=profile&entry=profile-cart';if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:u,extra:{source:'profile-boutique-direct-v544'}},'*');return false;}if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492(u);return false;}}catch(e){}return false;">
+       <a class="profileBoutiqueBtn" href="../boutique.html?v=v545profileclean1&return=profile&entry=profile-cart" title="Boutique" aria-label="Ouvrir la Boutique" data-happyad-boutique-entry="profile" onclick="try{sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');sessionStorage.setItem('HAPPYAD_PROFILE_SCROLL_Y',String(window.scrollY||document.documentElement.scrollTop||0));var u='boutique.html?v=v545profileclean1&return=profile&entry=profile-cart';if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:u,extra:{source:'profile-boutique-direct-v544'}},'*');return false;}if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492(u);return false;}}catch(e){}return false;">
       <!-- V86 : vrai chariot boutique SVG, plus clair que l'ancien sac -->
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M3 4.8h2.35c.42 0 .78.29.88.7l.42 1.8m0 0 1.55 7.2c.18.84.92 1.44 1.78 1.44h7.24c.82 0 1.54-.54 1.76-1.33L21 8.35H6.65Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
