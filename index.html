@@ -71,7 +71,7 @@
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=v547debug1">
+<link rel="manifest" href="manifest.webmanifest?v=v548profilepublicclean1">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -4144,14 +4144,14 @@ function happyadOpenBoutiqueCartRequest(p){
     const postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     const req={productId:productId,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'home_post_buy'};
     try{localStorage.setItem(HAPPYAD_BOUTIQUE_CART_REQUEST_V409,JSON.stringify(req));}catch(_s){}
-    let url='boutique.html?v=v547debug1&cart=1&from=home';
+    let url='boutique.html?v=v548profilepublicclean1&cart=1&from=home';
     if(productId)url+='&product='+encodeURIComponent(productId);
     if(postId)url+='&post='+encodeURIComponent(postId);
     /* V496: Boutique reste dans l'application, sans ouvrir un lien Chrome séparé. */
     try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492(url)){return;}}catch(_r){}
     try{if(window.happyadOpenAppPage&&window.happyadOpenAppPage('boutique',url)){return;}}catch(_a){}
     location.href=url;
-  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v547debug1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v547debug1&cart=1';}
+  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v548profilepublicclean1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v548profilepublicclean1&cart=1';}
 }
 function createCard(p){
 primeCardActionFromPost(p);
@@ -9731,7 +9731,7 @@ try{
   });
 }catch(_c){}
 
-    navigator.serviceWorker.register('./service-worker.js?v=v547debug1',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=v548profilepublicclean1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -11765,7 +11765,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__=true;
 
     var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
-  var DEPLOY_V='v547debug1';
+  var DEPLOY_V='v548profilepublicclean1';
   var pages={
     profile:'modules/user.html?v='+DEPLOY_V,
     profile_public:'modules/user.html?public=1&v='+DEPLOY_V,
@@ -12050,7 +12050,23 @@ var fr=ensureFrame(prev,versionHtmlUrl(prevUrl||pages[prev]),false);if(!fr)retur
     if(!fr){
       fr=document.createElement('iframe');
       fr.id=id;fr.className='happyadAppFrame';fr.setAttribute('title',titles[page]||page);fr.setAttribute('data-happyad-page',page);fr.setAttribute('loading','eager');
-      fr.addEventListener('load',function(){try{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';if(fr.__happyadLoadWatch){clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=null;}var l=loader();if(l)l.classList.remove('on');installFrameBridge(fr,page);}catch(_e){}});
+      fr.addEventListener('load',function(){try{
+        /* V548: sécurité réelle — Boutique ne doit jamais rester dans une iframe profil/profil visiteur.
+           En déploiement, une navigation tardive peut finir après le retour Accueil. On vide immédiatement. */
+        try{
+          var actualLoad=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
+          if(page!=='boutique'&&pathOf(actualLoad)==='boutique.html'){
+            fr.classList.remove('on');
+            fr.removeAttribute('data-happyad-src');
+            fr.removeAttribute('data-happyad-loading');
+            fr.style.opacity='';
+            fr.style.visibility='';
+            try{fr.src='about:blank';}catch(_blankLeak){}
+            var l0=loader();if(l0)l0.classList.remove('on');
+            return;
+          }
+        }catch(_leakLoad){}
+        fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';if(fr.__happyadLoadWatch){clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=null;}var l=loader();if(l)l.classList.remove('on');installFrameBridge(fr,page);}catch(_e){}});
       root.appendChild(fr);
     }
     var forceVideoPostReload=(page==='video'&&/[?&]post=/.test(String(url||'')));
@@ -12060,9 +12076,10 @@ var fr=ensureFrame(prev,versionHtmlUrl(prevUrl||pages[prev]),false);if(!fr)retur
       var actualPathCheck=actualCheck?pathOf(actualCheck):'';
       var urlPathCheck=pathOf(url);
       if(actualPathCheck&&urlPathCheck&&actualPathCheck!==urlPathCheck)staleFrameNav=true;
-if(page==='profile'&&actualPathCheck==='boutique.html'){
+if(page!=='boutique'&&actualPathCheck==='boutique.html'){
   staleFrameNav=true;
   try{
+    fr.classList.remove('on');
     fr.removeAttribute('data-happyad-src');
     fr.removeAttribute('data-happyad-loading');
     fr.style.opacity='';
@@ -12522,7 +12539,7 @@ try{
     }catch(_e){return cleanUrl(url)}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-    var DEPLOY_V520='v547debug1';
+    var DEPLOY_V520='v548profilepublicclean1';
   function versionHtmlUrlV520(url){
     url=rootUrl(url||'');
     var p=pathOf(url);
@@ -12701,10 +12718,11 @@ try{
 
   if(actualPath&&urlPath&&actualPath!==urlPath){needNav=true;staleFrameNav=true;}
   if(view==='profile_public'&&actual&&actual!==url){needNav=true;staleFrameNav=true;}
-  if(view==='profile'&&actualPath==='boutique.html'){
+  if(view!=='boutique'&&actualPath==='boutique.html'){
   needNav=true;
   staleFrameNav=true;
   try{
+    fr.classList.remove('on');
     fr.removeAttribute('data-happyad-src');
     fr.removeAttribute('data-happyad-loading');
     fr.style.opacity='';
@@ -12970,12 +12988,14 @@ function clearBoutiqueReturnKeysV503(){
         if(actual)bu=actual;
       }catch(_a){}
       if((!rv||rv==='home')&&bu&&bu.indexOf('boutique.html')>=0){
-        if(bu.indexOf('return=profile')>=0||bu.indexOf('entry=profile-cart')>=0){
+        if(bu.indexOf('return=profile_public')>=0){
+          rv='profile_public';
+          var returnUrl='';
+          try{returnUrl=(new URL(bu,location.href)).searchParams.get('returnUrl')||'';}catch(_ru){}
+          ru=returnUrl||sessionStorage.getItem('HAPPYAD_LAST_NON_BOUTIQUE_URL_V503')||'modules/user.html?public=1';
+        }else if(bu.indexOf('return=profile')>=0||bu.indexOf('entry=profile-cart')>=0){
           rv='profile';
           ru='modules/user.html';
-        }else if(bu.indexOf('return=profile_public')>=0){
-          rv='profile_public';
-          ru=sessionStorage.getItem('HAPPYAD_LAST_NON_BOUTIQUE_URL_V503')||'modules/user.html?public=1';
         }
       }
     }catch(_detect){}
@@ -13157,7 +13177,7 @@ function clearBoutiqueReturnKeysV503(){
     try{var u=clean(sessionStorage.getItem('HAPPYAD_LAST_APP_URL'));if(u&&view!=='home'&&view!=='notifications')return u;}catch(e){}
     if(view==='profile')return 'modules/user.html';
     if(view==='profile_public')return 'modules/user.html?public=1';
-    if(view==='boutique')return 'boutique.html?v=v547debug1';
+    if(view==='boutique')return 'boutique.html?v=v548profilepublicclean1';
     if(view==='notifications')return 'modules/notifications.html';
     if(view==='messages')return 'messages.html';
     if(view==='video')return 'modules/video.html';
@@ -13369,7 +13389,7 @@ function clearBoutiqueReturnKeysV503(){
     return true;
   }
 
-  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v547debug1');}catch(_v){}
+  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v548profilepublicclean1');}catch(_v){}
 
 function refreshServiceWorker(){
   try{
@@ -13422,7 +13442,7 @@ function refreshServiceWorker(){
 <script id="happyad-v547-debug-panel">
 (function(){
   'use strict';
-  var VERSION='v547debug1';
+  var VERSION='v548profilepublicclean1';
   var DEBUG_KEY='HAPPYAD_DEBUG_PANEL_V547';
   try{
     var sp=new URLSearchParams(location.search||'');

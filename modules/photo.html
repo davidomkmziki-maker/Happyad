@@ -1801,7 +1801,7 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
     p=p||{};var pid=productId(p);var postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     if(!pid && !postId)return;
     try{localStorage.setItem(KEY,JSON.stringify({productId:pid,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'central_photo_buy'}));}catch(e){}
-    var url='../boutique.html?v=v547debug1&cart=1&from=central';
+    var url='../boutique.html?v=v548profilepublicclean1&cart=1&from=central';
     if(pid)url+='&product='+encodeURIComponent(pid);
     if(postId)url+='&post='+encodeURIComponent(postId);
     location.href=url;
