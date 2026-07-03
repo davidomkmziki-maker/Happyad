@@ -71,7 +71,7 @@
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=v546boutiquereturn1">
+<link rel="manifest" href="manifest.webmanifest?v=v547debug1">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -4144,14 +4144,14 @@ function happyadOpenBoutiqueCartRequest(p){
     const postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     const req={productId:productId,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'home_post_buy'};
     try{localStorage.setItem(HAPPYAD_BOUTIQUE_CART_REQUEST_V409,JSON.stringify(req));}catch(_s){}
-    let url='boutique.html?v=v546boutiquereturn1&cart=1&from=home';
+    let url='boutique.html?v=v547debug1&cart=1&from=home';
     if(productId)url+='&product='+encodeURIComponent(productId);
     if(postId)url+='&post='+encodeURIComponent(postId);
     /* V496: Boutique reste dans l'application, sans ouvrir un lien Chrome séparé. */
     try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492(url)){return;}}catch(_r){}
     try{if(window.happyadOpenAppPage&&window.happyadOpenAppPage('boutique',url)){return;}}catch(_a){}
     location.href=url;
-  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v546boutiquereturn1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v546boutiquereturn1&cart=1';}
+  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v547debug1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v547debug1&cart=1';}
 }
 function createCard(p){
 primeCardActionFromPost(p);
@@ -9731,7 +9731,7 @@ try{
   });
 }catch(_c){}
 
-    navigator.serviceWorker.register('./service-worker.js?v=v546boutiquereturn1',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=v547debug1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -11765,7 +11765,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__=true;
 
     var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
-  var DEPLOY_V='v546boutiquereturn1';
+  var DEPLOY_V='v547debug1';
   var pages={
     profile:'modules/user.html?v='+DEPLOY_V,
     profile_public:'modules/user.html?public=1&v='+DEPLOY_V,
@@ -12522,7 +12522,7 @@ try{
     }catch(_e){return cleanUrl(url)}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-    var DEPLOY_V520='v546boutiquereturn1';
+    var DEPLOY_V520='v547debug1';
   function versionHtmlUrlV520(url){
     url=rootUrl(url||'');
     var p=pathOf(url);
@@ -13157,7 +13157,7 @@ function clearBoutiqueReturnKeysV503(){
     try{var u=clean(sessionStorage.getItem('HAPPYAD_LAST_APP_URL'));if(u&&view!=='home'&&view!=='notifications')return u;}catch(e){}
     if(view==='profile')return 'modules/user.html';
     if(view==='profile_public')return 'modules/user.html?public=1';
-    if(view==='boutique')return 'boutique.html?v=v546boutiquereturn1';
+    if(view==='boutique')return 'boutique.html?v=v547debug1';
     if(view==='notifications')return 'modules/notifications.html';
     if(view==='messages')return 'messages.html';
     if(view==='video')return 'modules/video.html';
@@ -13369,7 +13369,7 @@ function clearBoutiqueReturnKeysV503(){
     return true;
   }
 
-  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v546boutiquereturn1');}catch(_v){}
+  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v547debug1');}catch(_v){}
 
 function refreshServiceWorker(){
   try{
@@ -13418,4 +13418,139 @@ function refreshServiceWorker(){
   },true);
 })();
 </script>
+
+<script id="happyad-v547-debug-panel">
+(function(){
+  'use strict';
+  var VERSION='v547debug1';
+  var DEBUG_KEY='HAPPYAD_DEBUG_PANEL_V547';
+  try{
+    var sp=new URLSearchParams(location.search||'');
+    if(sp.get('debug')==='1')localStorage.setItem(DEBUG_KEY,'1');
+    if(sp.get('debug')==='0')localStorage.removeItem(DEBUG_KEY);
+  }catch(_e){}
+  try{if(localStorage.getItem(DEBUG_KEY)!=='1')return;}catch(_e){return;}
+
+  window.__HAPPYAD_DEBUG_EVENTS=window.__HAPPYAD_DEBUG_EVENTS||[];
+  function pushEvent(label,data){
+    try{
+      var a=window.__HAPPYAD_DEBUG_EVENTS;
+      a.push({t:new Date().toLocaleTimeString(),label:String(label||''),data:data||''});
+      while(a.length>14)a.shift();
+    }catch(_e){}
+  }
+  try{pushEvent('debug-start',location.href);}catch(_e){}
+
+  try{
+    window.addEventListener('message',function(ev){
+      try{
+        var d=ev&&ev.data;
+        if(d&&typeof d==='object'){
+          pushEvent('message',String(d.type||'object')+' '+String(d.url||d.source||''));
+        }
+      }catch(_e){}
+    },true);
+    window.addEventListener('popstate',function(ev){
+      try{pushEvent('popstate',JSON.stringify(ev&&ev.state||{}).slice(0,180));}catch(_e){}
+    },true);
+    window.addEventListener('hashchange',function(){pushEvent('hashchange',location.hash||'');},true);
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.addEventListener('controllerchange',function(){pushEvent('sw-controllerchange','controller changed');});
+    }
+  }catch(_e){}
+
+  function esc(x){return String(x==null?'':x).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function short(x,n){x=String(x||'');n=n||120;return x.length>n?x.slice(0,n)+'…':x;}
+  function ss(k){try{return sessionStorage.getItem(k)||'';}catch(_e){return '';}}
+  function ls(k){try{return localStorage.getItem(k)||'';}catch(_e){return '';}}
+  function getActualFrameUrl(f){
+    try{return f.contentWindow&&f.contentWindow.location?String(f.contentWindow.location.href||''):'';}catch(_e){return 'BLOCKED';}
+  }
+  function frameLine(f){
+    var cls='';try{cls=f.className||'';}catch(_e){}
+    var on=(' '+cls+' ').indexOf(' on ')>=0?'ON':'off';
+    return [
+      (f.id||'frame'),
+      'page='+(f.getAttribute('data-happyad-page')||''),
+      'class='+on,
+      'dataSrc='+short(f.getAttribute('data-happyad-src')||'',80),
+      'src='+short(f.getAttribute('src')||'',80),
+      'actual='+short(getActualFrameUrl(f),110)
+    ].join('\n  ');
+  }
+  function findFrames(){
+    try{return Array.prototype.slice.call(document.querySelectorAll('.happyadAppFrame, iframe[id^="happyadAppFrame"]'));}catch(_e){return [];}
+  }
+  function collect(){
+    var frames=findFrames();
+    var active=[];
+    frames.forEach(function(f){
+      try{if((' '+(f.className||'')+' ').indexOf(' on ')>=0)active.push(f.id||'frame');}catch(_e){}
+    });
+    var lines=[];
+    lines.push('VERSION: '+VERSION);
+    lines.push('TIME: '+new Date().toLocaleTimeString());
+    lines.push('URL: '+short(location.href,120));
+    lines.push('HISTORY: '+(history&&history.length));
+    lines.push('BODY_APP_OPEN: '+document.body.classList.contains('happyadAppOpen'));
+    lines.push('ACTIVE_FRAMES: '+(active.join(', ')||'none'));
+    lines.push('SS_ACTIVE_VIEW: '+ss('HAPPYAD_ACTIVE_APP_VIEW'));
+    lines.push('SS_LAST_URL: '+short(ss('HAPPYAD_LAST_APP_URL'),120));
+    lines.push('SS_RETURN_VIEW: '+ss('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503'));
+    lines.push('SS_RETURN_URL: '+short(ss('HAPPYAD_BOUTIQUE_RETURN_URL_V503'),120));
+    lines.push('SS_PENDING_RETURN: '+short(ss('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503'),120));
+    lines.push('SS_PROFILE_FAST: '+ss('HAPPYAD_PROFILE_FAST_RETURN_V1')+' / '+ss('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL'));
+    lines.push('LS_DEPLOY: '+ls('HAPPYAD_DEPLOY_VERSION_ACTIVE'));
+    lines.push('SW_CONTROLLER: '+(('serviceWorker' in navigator && navigator.serviceWorker.controller)?short(navigator.serviceWorker.controller.scriptURL,120):'none'));
+    lines.push('FRAMES:');
+    if(frames.length){frames.forEach(function(f,i){lines.push('['+(i+1)+'] '+frameLine(f));});}else{lines.push('none');}
+    lines.push('EVENTS:');
+    try{(window.__HAPPYAD_DEBUG_EVENTS||[]).slice(-10).forEach(function(e){lines.push(e.t+' '+e.label+' '+short(e.data,160));});}catch(_e){}
+    return lines.join('\n');
+  }
+  function copyText(txt){
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});return;}
+      var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    }catch(_e){}
+  }
+  function clearDebugCaches(){
+    try{
+      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
+      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
+      sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
+      sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
+      sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');
+      pushEvent('clear-session','boutique/profile return keys removed');
+    }catch(_e){}
+  }
+  function build(){
+    if(document.getElementById('happyadDebugPanelV547'))return;
+    var css=document.createElement('style');
+    css.id='happyadDebugStyleV547';
+    css.textContent='#happyadDebugPanelV547{position:fixed;left:8px;right:8px;bottom:8px;max-height:46vh;z-index:2147483647;background:rgba(0,0,0,.88);color:#d8ffd8;border:1px solid rgba(255,122,0,.75);border-radius:12px;box-shadow:0 0 25px rgba(255,106,0,.35);font:11px/1.35 monospace;padding:8px;overflow:auto;white-space:pre-wrap;direction:ltr;text-align:left}#happyadDebugPanelV547 .dbgTop{position:sticky;top:0;background:rgba(0,0,0,.94);padding-bottom:5px;margin-bottom:5px;color:#fff;font:700 12px/1.2 Arial,sans-serif}#happyadDebugPanelV547 button{background:#ff6a00;color:#000;border:0;border-radius:8px;padding:5px 8px;margin:0 4px 4px 0;font-weight:800;font-size:11px}#happyadDebugPanelV547 .dbgBody{user-select:text;-webkit-user-select:text}#happyadDebugPanelV547.min{max-height:42px;overflow:hidden}';
+    document.head.appendChild(css);
+    var box=document.createElement('div');
+    box.id='happyadDebugPanelV547';
+    box.innerHTML='<div class="dbgTop">HAPPYAD DEBUG v547 <button data-act="min">réduire</button><button data-act="copy">copier</button><button data-act="clear">clear session</button><button data-act="off">fermer</button></div><div class="dbgBody"></div>';
+    document.body.appendChild(box);
+    box.addEventListener('click',function(ev){
+      var act=ev.target&&ev.target.getAttribute&&ev.target.getAttribute('data-act');
+      if(!act)return;
+      if(act==='min')box.classList.toggle('min');
+      if(act==='copy')copyText(collect());
+      if(act==='clear')clearDebugCaches();
+      if(act==='off'){
+        try{localStorage.removeItem(DEBUG_KEY);}catch(_e){}
+        box.remove();
+      }
+    });
+    function render(){try{var b=box.querySelector('.dbgBody');if(b)b.textContent=collect();}catch(_e){}}
+    render();
+    setInterval(render,650);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
+})();
+</script>
+
 </body></html>
