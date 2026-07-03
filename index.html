@@ -9721,17 +9721,15 @@ body.happyadNativeChatOpen{overflow:hidden!important;touch-action:none!important
     if(!('serviceWorker' in navigator))return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
 
-    var swReloadKey='HAPPYAD_SW_RELOADED_V532';
+  var swReloadKey='HAPPYAD_SW_CONTROLLER_CHANGED_V542';
 
+try{
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
     try{
-      navigator.serviceWorker.addEventListener('controllerchange',function(){
-        try{
-          if(sessionStorage.getItem(swReloadKey)==='1')return;
-          sessionStorage.setItem(swReloadKey,'1');
-          setTimeout(function(){location.reload();},350);
-        }catch(_r){}
-      });
-    }catch(_c){}
+      sessionStorage.setItem(swReloadKey,'1');
+    }catch(_r){}
+  });
+}catch(_c){}
 
     navigator.serviceWorker.register('./service-worker.js?v=542navclean1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
@@ -13333,23 +13331,13 @@ function clearBoutiqueReturnKeysV503(){
     return true;
   }
 
-  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE',VERSION);}catch(_v){}
-  function refreshServiceWorker(){
-    try{
-      if(!('serviceWorker' in navigator))return;
-      navigator.serviceWorker.getRegistrations().then(function(regs){
-        regs.forEach(function(reg){
-          try{reg.update();}catch(_u){}
-          try{if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_w){}
-          try{if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});}catch(_a){}
-        });
-      }).catch(function(){});
-    }catch(_e){}
-  }
-  setTimeout(refreshServiceWorker,250);
-  window.addEventListener('pageshow',function(){setTimeout(refreshServiceWorker,300);});
-  window.addEventListener('focus',function(){setTimeout(refreshServiceWorker,300);});
+  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v542navclean1');}catch(_v){}
 
+function refreshServiceWorker(){
+  try{
+    if(!('serviceWorker' in navigator))return;
+  }catch(_e){}
+}
   var oldOpenInternal=window.happyadOpenInternalUrlV492;
   if(typeof oldOpenInternal==='function'){
     window.happyadOpenInternalUrlV492=function(url,extra){

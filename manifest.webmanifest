@@ -105,7 +105,7 @@
     {
       "name": "Messages",
       "short_name": "Messages",
-      "url": "./index.html?v=542navclean1#messages",#messages",
+      "url": "./index.html?v=542navclean1#messages",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
