@@ -11983,7 +11983,7 @@ sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
     }
 
     if(!prev)return false;
-    var fr=ensureFrame(prev,prevUrl||pages[prev],false);if(!fr)return false;
+var fr=ensureFrame(prev,versionHtmlUrl(prevUrl||pages[prev]),false);if(!fr)return false;
     root.querySelectorAll('.happyadAppFrame').forEach(function(x){
   if(x!==fr){
     pauseFrameMedia(x,'restore-switch');
@@ -12053,7 +12053,7 @@ sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
 }
   function ensureFrame(page,url,preload){
     var root=shell();if(!root)return null;
-    url=rootUrl(url||pages[page]||'');if(!url)return null;
+    url=versionHtmlUrl(url||pages[page]||'');if(!url)return null;
     var id='happyadAppFrame_'+page;
     var fr=$(id);
     if(!fr){
@@ -12171,14 +12171,32 @@ try{
   }
 
   try{
-    var bf=document.getElementById('happyadAppFrame_boutique');
-    if(bf){
-      bf.classList.remove('on');
-      bf.removeAttribute('data-happyad-src');
-      bf.removeAttribute('data-happyad-loading');
-      bf.style.opacity='';
-      bf.style.visibility='';
-      try{bf.src='about:blank';}catch(_blank){}
+    var rc=document.getElementById('happyadAppShell');
+    if(rc){
+      rc.querySelectorAll('.happyadAppFrame').forEach(function(f){
+        try{
+          var src=String(f.getAttribute('data-happyad-src')||'');
+          var actual='';
+          try{
+            actual=rootUrl(f.contentWindow&&f.contentWindow.location&&f.contentWindow.location.href||'');
+          }catch(_a){actual='';}
+
+          var isBoutique =
+            f.id==='happyadAppFrame_boutique' ||
+            String(f.getAttribute('data-happyad-page')||'')==='boutique' ||
+            src.indexOf('boutique.html')>=0 ||
+            actual.indexOf('boutique.html')>=0;
+
+          if(isBoutique){
+            f.classList.remove('on');
+            f.removeAttribute('data-happyad-src');
+            f.removeAttribute('data-happyad-loading');
+            f.style.opacity='';
+            f.style.visibility='';
+            try{f.src='about:blank';}catch(_blank){}
+          }
+        }catch(_one){}
+      });
     }
   }catch(_bf){}
 }catch(_s){}
@@ -12504,6 +12522,34 @@ try{
     }catch(_e){return cleanUrl(url)}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
+    var DEPLOY_V520='v541navfix1';
+  function versionHtmlUrlV520(url){
+    url=rootUrl(url||'');
+    var p=pathOf(url);
+    if(
+      p==='modules/user.html' ||
+      p==='modules/video.html' ||
+      p==='modules/photo.html' ||
+      p==='modules/publish.html' ||
+      p==='modules/map.html' ||
+      p==='modules/notifications.html' ||
+      p==='messages.html' ||
+      p==='boutique.html'
+    ){
+      try{
+        var hash='';
+        var h=url.indexOf('#');
+        if(h>=0){hash=url.slice(h);url=url.slice(0,h);}
+        var parts=url.split('?');
+        var base=parts[0];
+        var qs=parts[1]?parts[1].split('&'):[];
+        qs=qs.filter(function(x){return x && x.split('=')[0]!=='v';});
+        qs.push('v='+DEPLOY_V520);
+        return base+'?'+qs.join('&')+hash;
+      }catch(_e){}
+    }
+    return url;
+  }
   function viewFromUrl(url,page){
     page=String(page||'').toLowerCase();
     var ru=rootUrl(url||'');
@@ -12539,9 +12585,9 @@ try{
   function pushView(view,url){
     try{
       if(restoring||opening===false&&view==='')return;
-      view=view||'home';url=url||((view==='profile')?'modules/user.html':(view==='profile_public')?'modules/user.html?public=1':(view==='boutique')?'boutique.html?v=532':(view==='notifications')?'modules/notifications.html':(view==='messages')?'messages.html':'index.html');
+      view=view||'home';url=versionHtmlUrlV520(url||((view==='profile')?'modules/user.html':(view==='profile_public')?'modules/user.html?public=1':(view==='boutique')?'boutique.html':(view==='notifications')?'modules/notifications.html':(view==='messages')?'messages.html':'index.html'));
       ensureBase();
-      var next=rootUrl(url),cur=stateView(),curUrl=currentUrlFromState();
+      var next=versionHtmlUrlV520(url),cur=stateView(),curUrl=currentUrlFromState();
       if(view==='profile'&&next.indexOf('public=1')>=0&&cur==='profile'&&curUrl&&curUrl.indexOf('public=1')<0){history.replaceState(navState(view,next),'',location.href);lastPushAt=now();return;}
       if(view==='profile_public'&&cur==='profile_public'&&curUrl!==next){history.replaceState(navState(view,next),'',location.href);lastPushAt=now();return;}
       if(cur===view&&curUrl===next)return;
@@ -12584,7 +12630,7 @@ try{
     try{sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home')}catch(_e){}
   }
   function showFrame(view,url){
-    view=view||viewFromUrl(url);url=rootUrl(url||((view==='profile')?'modules/user.html':(view==='profile_public')?'modules/user.html?public=1':(view==='boutique')?'boutique.html?v=532':(view==='video')?'modules/video.html':(view==='photo')?'modules/photo.html':(view==='publish')?'modules/publish.html':(view==='map')?'modules/map.html':''));
+    view=view||viewFromUrl(url);url=versionHtmlUrlV520(url||((view==='profile')?'modules/user.html':(view==='profile_public')?'modules/user.html?public=1':(view==='boutique')?'boutique.html':(view==='video')?'modules/video.html':(view==='photo')?'modules/photo.html':(view==='publish')?'modules/publish.html':(view==='map')?'modules/map.html':''));
     if(!view||!url)return false;
     closeNotificationsPure();closeChatPure();
     var r=document.getElementById('happyadAppShell');
@@ -12789,19 +12835,37 @@ try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoa
     try{if(!restoring&&!opening&&stateView()&&stateView()!=='home')return requestBack();}catch(_e){}
     try{return baseCloseAppPage?baseCloseAppPage.apply(this,arguments):forceHome();}catch(_x){forceHome();return true;}
   };
-  function cleanupBoutiqueFrameV534(){
+   function cleanupBoutiqueFrameV534(){
   try{
-    var bf=document.getElementById('happyadAppFrame_boutique');
-    if(bf){
-      bf.classList.remove('on');
-      bf.removeAttribute('data-happyad-src');
-      bf.removeAttribute('data-happyad-loading');
-      bf.style.opacity='';
-      bf.style.visibility='';
-      try{bf.src='about:blank';}catch(_blank){}
+    var rc=document.getElementById('happyadAppShell');
+    if(rc){
+      rc.querySelectorAll('.happyadAppFrame').forEach(function(f){
+        try{
+          var src=String(f.getAttribute('data-happyad-src')||'');
+          var actual='';
+          try{
+            actual=rootUrl(f.contentWindow&&f.contentWindow.location&&f.contentWindow.location.href||'');
+          }catch(_a){actual='';}
+
+          var isBoutique =
+            f.id==='happyadAppFrame_boutique' ||
+            String(f.getAttribute('data-happyad-page')||'')==='boutique' ||
+            src.indexOf('boutique.html')>=0 ||
+            actual.indexOf('boutique.html')>=0;
+
+          if(isBoutique){
+            f.classList.remove('on');
+            f.removeAttribute('data-happyad-src');
+            f.removeAttribute('data-happyad-loading');
+            f.style.opacity='';
+            f.style.visibility='';
+            try{f.src='about:blank';}catch(_blank){}
+          }
+        }catch(_one){}
+      });
     }
   }catch(_bf){}
-}
+   }
 
 function clearBoutiqueReturnKeysV503(){
   try{
@@ -12859,7 +12923,7 @@ function clearBoutiqueReturnKeysV503(){
       );
     }
 
-    return {view:rv,url:rootUrl(ru)};
+    return {view:rv,url:versionHtmlUrlV520(ru)};
   }
 
   function applyBoutiqueReturnTargetV503(target,poppedView){
