@@ -71,7 +71,7 @@
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=v545profileclean1">
+<link rel="manifest" href="manifest.webmanifest?v=v546boutiquereturn1">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -4144,14 +4144,14 @@ function happyadOpenBoutiqueCartRequest(p){
     const postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     const req={productId:productId,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'home_post_buy'};
     try{localStorage.setItem(HAPPYAD_BOUTIQUE_CART_REQUEST_V409,JSON.stringify(req));}catch(_s){}
-    let url='boutique.html?v=v545profileclean1&cart=1&from=home';
+    let url='boutique.html?v=v546boutiquereturn1&cart=1&from=home';
     if(productId)url+='&product='+encodeURIComponent(productId);
     if(postId)url+='&post='+encodeURIComponent(postId);
     /* V496: Boutique reste dans l'application, sans ouvrir un lien Chrome séparé. */
     try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492(url)){return;}}catch(_r){}
     try{if(window.happyadOpenAppPage&&window.happyadOpenAppPage('boutique',url)){return;}}catch(_a){}
     location.href=url;
-  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v545profileclean1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v545profileclean1&cart=1';}
+  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v546boutiquereturn1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v546boutiquereturn1&cart=1';}
 }
 function createCard(p){
 primeCardActionFromPost(p);
@@ -9731,7 +9731,7 @@ try{
   });
 }catch(_c){}
 
-    navigator.serviceWorker.register('./service-worker.js?v=v545profileclean1',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=v546boutiquereturn1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -11765,7 +11765,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__=true;
 
     var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
-  var DEPLOY_V='v545profileclean1';
+  var DEPLOY_V='v546boutiquereturn1';
   var pages={
     profile:'modules/user.html?v='+DEPLOY_V,
     profile_public:'modules/user.html?public=1&v='+DEPLOY_V,
@@ -12522,7 +12522,7 @@ try{
     }catch(_e){return cleanUrl(url)}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-    var DEPLOY_V520='v545profileclean1';
+    var DEPLOY_V520='v546boutiquereturn1';
   function versionHtmlUrlV520(url){
     url=rootUrl(url||'');
     var p=pathOf(url);
@@ -12790,15 +12790,24 @@ try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoa
   try{
     var sv=stateView();
 
-    /* Si on est dans notification, messages, boutique, vidéo, photo, etc.
-       le retour revient à l'étape précédente. */
+    /* Boutique ne doit jamais faire history.back(): on applique directement
+       la cible mémorisée pour éviter Accueil -> Boutique -> Profil en cascade. */
+    if(sv==='boutique'){
+      try{
+        if(window.happyadReturnFromBoutiqueToMainProfileV503){
+          return !!window.happyadReturnFromBoutiqueToMainProfileV503({source:'android-back-v546'});
+        }
+      }catch(_b){}
+      return false;
+    }
+
+    /* Les autres modules gardent le retour historique normal. */
     if(sv&&sv!=='home'){
       history.back();
       return true;
     }
 
-    /* Si on est déjà à l'accueil, ne pas bloquer le bouton retour téléphone.
-       Android / navigateur doit pouvoir quitter l'application. */
+    /* Si on est déjà à l'accueil, ne pas bloquer le bouton retour téléphone. */
     return false;
   }catch(_e){}
 
@@ -12951,6 +12960,26 @@ function clearBoutiqueReturnKeysV503(){
       if(!ru&&mem.url)ru=String(mem.url||'');
     }catch(_m){}
 
+    /* V546: si la mémoire a été perdue mais Boutique contient return=profile,
+       reconstruire la cible au lieu de tomber sur Accueil. */
+    try{
+      var b=document.getElementById('happyadAppFrame_boutique');
+      var bu=String((b&&b.getAttribute('data-happyad-src'))||'');
+      try{
+        var actual=rootUrl(b&&b.contentWindow&&b.contentWindow.location&&b.contentWindow.location.href||'');
+        if(actual)bu=actual;
+      }catch(_a){}
+      if((!rv||rv==='home')&&bu&&bu.indexOf('boutique.html')>=0){
+        if(bu.indexOf('return=profile')>=0||bu.indexOf('entry=profile-cart')>=0){
+          rv='profile';
+          ru='modules/user.html';
+        }else if(bu.indexOf('return=profile_public')>=0){
+          rv='profile_public';
+          ru=sessionStorage.getItem('HAPPYAD_LAST_NON_BOUTIQUE_URL_V503')||'modules/user.html?public=1';
+        }
+      }
+    }catch(_detect){}
+
     if(!rv||rv==='boutique'){
       rv='home';
       ru='index.html';
@@ -12977,6 +13006,7 @@ function clearBoutiqueReturnKeysV503(){
 
     return {view:rv,url:versionHtmlUrlV520(ru)};
   }
+
 
   function applyBoutiqueReturnTargetV503(target,poppedView){
     target=target||{};
@@ -13026,30 +13056,20 @@ function clearBoutiqueReturnKeysV503(){
     opts=opts||{};
     var target=getBoutiqueReturnTargetV503();
 
-    try{
-      sessionStorage.setItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503',JSON.stringify(target));
-    }catch(_p){}
-
-    try{
-      if(stateView()==='boutique'){
-        history.back();
-
-        setTimeout(function(){
-          try{
-            var raw=sessionStorage.getItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503')||'';
-            if(!raw)return;
-            sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-            applyBoutiqueReturnTargetV503(target,'');
-          }catch(_f){}
-        },220);
-
-        return true;
-      }
-    }catch(_h){}
-
+    /* V546: retour Boutique direct. Ne jamais utiliser history.back() ici.
+       history.back() faisait d'abord revenir Accueil, puis le code restaurait Profil
+       après coup: c'est ce qui affichait Boutique/écran noir/profil ancien. */
     try{sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');}catch(_c){}
-    return applyBoutiqueReturnTargetV503(target,'');
+
+    try{
+      var now=Date.now?Date.now():(new Date()).getTime();
+      if(window.__HAPPYAD_BOUTIQUE_RETURN_LOCK_V546 && now-window.__HAPPYAD_BOUTIQUE_RETURN_LOCK_V546<900)return true;
+      window.__HAPPYAD_BOUTIQUE_RETURN_LOCK_V546=now;
+    }catch(_lock){}
+
+    return applyBoutiqueReturnTargetV503(target,'direct-v546');
   };
+
 
   window.addEventListener('message',function(ev){
     try{
@@ -13137,7 +13157,7 @@ function clearBoutiqueReturnKeysV503(){
     try{var u=clean(sessionStorage.getItem('HAPPYAD_LAST_APP_URL'));if(u&&view!=='home'&&view!=='notifications')return u;}catch(e){}
     if(view==='profile')return 'modules/user.html';
     if(view==='profile_public')return 'modules/user.html?public=1';
-    if(view==='boutique')return 'boutique.html?v=v545profileclean1';
+    if(view==='boutique')return 'boutique.html?v=v546boutiquereturn1';
     if(view==='notifications')return 'modules/notifications.html';
     if(view==='messages')return 'messages.html';
     if(view==='video')return 'modules/video.html';
@@ -13349,7 +13369,7 @@ function clearBoutiqueReturnKeysV503(){
     return true;
   }
 
-  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v545profileclean1');}catch(_v){}
+  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v546boutiquereturn1');}catch(_v){}
 
 function refreshServiceWorker(){
   try{

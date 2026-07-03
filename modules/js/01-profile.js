@@ -482,19 +482,28 @@ function back(){
   const previous=navStack.pop();
   if(previous){show(previous,{fromBack:true});return;}
   if(currentScreen && currentScreen!=='home'){show('home',{fromBack:true});return;}
+
+  /* V546: Boutique ne doit plus réactiver l'ancien retour rapide Profil
+     ni faire history.back(). Le parent index.html décide de la vraie cible. */
   try{
-    var qs=String(location.search||'');
-    var ref=document.referrer||'';
-    var profileReturn=(qs.indexOf('return=profile')>-1 || ref.indexOf('/modules/user.html')>-1 || ref.indexOf('modules/user.html')>-1);
-    if(profileReturn){
-      try{sessionStorage.setItem('HAPPYAD_PROFILE_FAST_RETURN_V1','1');}catch(_e){}
-      if(history.length>1){history.back();return;}
-      location.href='modules/user.html?fromBoutique=1';return;
+    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
+    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');
+  }catch(_s){}
+
+  try{
+    if(window.parent&&window.parent!==window){
+      var p=window.parent;
+      if(p&&typeof p.happyadReturnFromBoutiqueToMainProfileV503==='function'){
+        if(p.happyadReturnFromBoutiqueToMainProfileV503({source:'01-profile-back-v546'}))return;
+      }
+      try{
+        p.postMessage({type:'HAPPYAD_RETURN_FROM_BOUTIQUE_TO_MAIN_PROFILE_V503',source:'01-profile-back-v546'},'*');
+        return;
+      }catch(_m){}
     }
-  }catch(e){}
-  try{
-    if(document.referrer && new URL(document.referrer).origin===location.origin){history.back();return;}
-  }catch(e){}
+  }catch(_e){}
+
+  try{location.replace('index.html');return;}catch(_r){}
   location.href='index.html';
 }
 let tt;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1700)}
