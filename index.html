@@ -71,7 +71,7 @@
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=542navclean1">
+<link rel="manifest" href="manifest.webmanifest?v=v544zipclean1">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -4144,14 +4144,14 @@ function happyadOpenBoutiqueCartRequest(p){
     const postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     const req={productId:productId,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'home_post_buy'};
     try{localStorage.setItem(HAPPYAD_BOUTIQUE_CART_REQUEST_V409,JSON.stringify(req));}catch(_s){}
-    let url='boutique.html?v=532&cart=1&from=home';
+    let url='boutique.html?v=v544zipclean1&cart=1&from=home';
     if(productId)url+='&product='+encodeURIComponent(productId);
     if(postId)url+='&post='+encodeURIComponent(postId);
     /* V496: Boutique reste dans l'application, sans ouvrir un lien Chrome séparé. */
     try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492(url)){return;}}catch(_r){}
     try{if(window.happyadOpenAppPage&&window.happyadOpenAppPage('boutique',url)){return;}}catch(_a){}
     location.href=url;
-  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=532&cart=1'))return;}catch(_x){}location.href='boutique.html?v=532&cart=1';}
+  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v544zipclean1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v544zipclean1&cart=1';}
 }
 function createCard(p){
 primeCardActionFromPost(p);
@@ -9731,7 +9731,7 @@ try{
   });
 }catch(_c){}
 
-    navigator.serviceWorker.register('./service-worker.js?v=542navclean1',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=v544zipclean1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -9817,13 +9817,7 @@ try{
     if(app==='video'||app==='videos')return 'modules/video.html';
     if(app==='profile'||app==='profil'||app==='user'||app==='compte')return 'modules/user.html';
     if(app==='boutique'||app==='shop'||app==='market'||app==='panier'||app==='cart'){
-      try{
-        var q=new URLSearchParams(location.search||'');
-        q.delete('app');q.delete('open');q.delete('source');q.delete('v');
-        q.set('v','532');
-        var s=q.toString();
-        return 'boutique.html'+(s?('?'+s):'');
-      }catch(_q){return 'boutique.html';}
+  return '';
     }
     return '';
   }
@@ -10104,10 +10098,9 @@ try{
     try{
       var u=new URL(location.href),app=String(u.searchParams.get('app')||u.searchParams.get('open')||'').toLowerCase();
       if(app==='boutique'||app==='shop'||app==='market'||app==='panier'||app==='cart'){
-        /* V499: Boutique ne s'ouvre plus depuis l'accueil/raccourci. Le passage officiel est le chariot du profil principal. */
-        var tries=0,go=function(){tries++;try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('modules/user.html')){try{history.replaceState(null,'','index.html')}catch(_h){}return true;}}catch(_e){} if(tries<35)setTimeout(go,140);return false;};
-        go();
-      }
+  try{history.replaceState(null,'','index.html')}catch(_h){}
+  return;
+  }
     }catch(_e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){forceNotifButtonReady();patchBoutiqueLinks();openAppQuery();},{once:true});
@@ -11772,7 +11765,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__=true;
 
     var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
-  var DEPLOY_V='v542navclean1';
+  var DEPLOY_V='v544zipclean1';
   var pages={
     profile:'modules/user.html?v='+DEPLOY_V,
     profile_public:'modules/user.html?public=1&v='+DEPLOY_V,
@@ -12529,7 +12522,7 @@ try{
     }catch(_e){return cleanUrl(url)}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-    var DEPLOY_V520='v542navclean1';
+    var DEPLOY_V520='v544zipclean1';
   function versionHtmlUrlV520(url){
     url=rootUrl(url||'');
     var p=pathOf(url);
@@ -13144,7 +13137,7 @@ function clearBoutiqueReturnKeysV503(){
     try{var u=clean(sessionStorage.getItem('HAPPYAD_LAST_APP_URL'));if(u&&view!=='home'&&view!=='notifications')return u;}catch(e){}
     if(view==='profile')return 'modules/user.html';
     if(view==='profile_public')return 'modules/user.html?public=1';
-    if(view==='boutique')return 'boutique.html?v=532';
+    if(view==='boutique')return 'boutique.html?v=v544zipclean1';
     if(view==='notifications')return 'modules/notifications.html';
     if(view==='messages')return 'messages.html';
     if(view==='video')return 'modules/video.html';
@@ -13331,7 +13324,7 @@ function clearBoutiqueReturnKeysV503(){
     return true;
   }
 
-  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v542navclean1');}catch(_v){}
+  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v544zipclean1');}catch(_v){}
 
 function refreshServiceWorker(){
   try{
