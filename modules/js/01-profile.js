@@ -494,10 +494,10 @@ function back(){
     if(window.parent&&window.parent!==window){
       var p=window.parent;
       if(p&&typeof p.happyadReturnFromBoutiqueToMainProfileV503==='function'){
-        if(p.happyadReturnFromBoutiqueToMainProfileV503({source:'01-profile-back-v546'}))return;
+        if(p.happyadReturnFromBoutiqueToMainProfileV503({source:'01-profile-back-home-v550'}))return;
       }
       try{
-        p.postMessage({type:'HAPPYAD_RETURN_FROM_BOUTIQUE_TO_MAIN_PROFILE_V503',source:'01-profile-back-v546'},'*');
+        p.postMessage({type:'HAPPYAD_RETURN_FROM_BOUTIQUE_TO_MAIN_PROFILE_V503',source:'01-profile-back-home-v550'},'*');
         return;
       }catch(_m){}
     }
