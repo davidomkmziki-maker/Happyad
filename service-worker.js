@@ -3,7 +3,7 @@
    - Ne met jamais Supabase/API en cache.
    - Force les anciennes PWA déjà installées à charger la dernière version.
 */
-const HAPPYAD_PWA_VERSION='v540resetrecovery1';
+const HAPPYAD_PWA_VERSION='v541navfix1';
 const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
 const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
 
@@ -102,21 +102,20 @@ function shouldNetworkFirst(url,request){
 
 async function networkFirst(request){
   const cache=await caches.open(RUNTIME_CACHE);
-  const url=new URL(request.url);
-  const p=(url.pathname||'').toLowerCase();
-  const isDocument=request.mode==='navigate' || request.destination==='document' || p.endsWith('.html');
-  const timeoutMs=isDocument?900:1800;
-  const fetchPromise=fetch(request,{cache:'reload'}).then(res=>{
-    if(res && res.ok) cache.put(request,res.clone()).catch(()=>{});
+
+  try{
+    const res=await fetch(request,{cache:'reload'});
+    if(res && res.ok){
+      cache.put(request,res.clone()).catch(()=>{});
+    }
     return res;
-  }).catch(()=>null);
-  const timeoutPromise=new Promise(resolve=>setTimeout(()=>resolve(null),timeoutMs));
-  const first=await Promise.race([fetchPromise,timeoutPromise]);
-  if(first)return first;
-  const cached=(await cache.match(request)) || (await caches.match(request));
-  if(cached)return cached;
-  const late=await fetchPromise;
-  return late || (request.mode==='navigate'?(await caches.match('./index.html')):null) || Response.error();
+  }catch(_e){
+    const cached=(await cache.match(request)) || (await caches.match(request));
+    if(cached)return cached;
+    return request.mode==='navigate'
+      ? ((await caches.match('./index.html')) || Response.error())
+      : Response.error();
+  }
 }
 
 async function cacheFirstUpdate(request){

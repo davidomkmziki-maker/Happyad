@@ -71,7 +71,7 @@
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=536reset1">
+<link rel="manifest" href="manifest.webmanifest?v=541navfix1">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -9733,7 +9733,7 @@ body.happyadNativeChatOpen{overflow:hidden!important;touch-action:none!important
       });
     }catch(_c){}
 
-    navigator.serviceWorker.register('./service-worker.js?v=535center1',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=541navfix1',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -11773,15 +11773,16 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   if(window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__)return;
   window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__=true;
 
-  var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
+    var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
+  var DEPLOY_V='v541navfix1';
   var pages={
-    profile:'modules/user.html',
-    profile_public:'modules/user.html?public=1',
-    video:'modules/video.html',
-    photo:'modules/photo.html',
-    publish:'modules/publish.html',
-    map:'modules/map.html',
-    boutique:'boutique.html?v=532'
+    profile:'modules/user.html?v='+DEPLOY_V,
+    profile_public:'modules/user.html?public=1&v='+DEPLOY_V,
+    video:'modules/video.html?v='+DEPLOY_V,
+    photo:'modules/photo.html?v='+DEPLOY_V,
+    publish:'modules/publish.html?v='+DEPLOY_V,
+    map:'modules/map.html?v='+DEPLOY_V,
+    boutique:'boutique.html?v='+DEPLOY_V
   };
   var titles={profile:'Profil HAPPYAD',profile_public:'Profil visiteur',video:'Centrale Vidéo',photo:'Centrale Photo',publish:'Publier',map:'Radar',boutique:'Boutique HAPPYAD'};
   var frameStack=[];
@@ -11818,6 +11819,33 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
     }catch(e){return cleanUrl(url)}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
+    function versionHtmlUrl(url){
+    url=rootUrl(url||'');
+    var p=pathOf(url);
+    if(
+      p==='modules/user.html' ||
+      p==='modules/video.html' ||
+      p==='modules/photo.html' ||
+      p==='modules/publish.html' ||
+      p==='modules/map.html' ||
+      p==='modules/notifications.html' ||
+      p==='messages.html' ||
+      p==='boutique.html'
+    ){
+      try{
+        var hash='';
+        var h=url.indexOf('#');
+        if(h>=0){hash=url.slice(h);url=url.slice(0,h);}
+        var parts=url.split('?');
+        var base=parts[0];
+        var qs=parts[1]?parts[1].split('&'):[];
+        qs=qs.filter(function(x){return x && x.split('=')[0]!=='v';});
+        qs.push('v='+DEPLOY_V);
+        return base+'?'+qs.join('&')+hash;
+      }catch(_e){}
+    }
+    return url;
+    }
   function pageFromUrl(url){
     var p=pathOf(url);
     if(p==='modules/user.html'){var u=rootUrl(url);return (u.indexOf('public=1')>=0||u.indexOf('uid=')>=0||u.indexOf('profile_uid=')>=0)?'profile_public':'profile';}
@@ -12047,10 +12075,13 @@ sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
 if(forceVideoPostReload||staleFrameNav||!sameFrameUrl(fr,url)){
   fr.setAttribute('data-happyad-src',url);
     try{
-  if(page==='profile_public'||forceVideoPostReload||staleFrameNav){
+      if(page==='profile_public'||forceVideoPostReload||staleFrameNav){
     fr.setAttribute('data-happyad-loading','1');
-    fr.style.opacity='0';
-    fr.style.visibility='hidden';
+    fr.style.opacity='';
+    fr.style.visibility='';
+  }else{
+    fr.style.opacity='';
+    fr.style.visibility='';
   }else{
     fr.removeAttribute('data-happyad-loading');
     fr.style.opacity='';
@@ -12075,10 +12106,11 @@ if(forceVideoPostReload||staleFrameNav||!sameFrameUrl(fr,url)){
       var a=document.querySelector('.bottom '+sel);if(a)a.classList.add('active');
     }catch(_e){}
   }
-  function openFramePage(page,url,preload){
+    function openFramePage(page,url,preload){
     var root=shell();if(!root)return false;
     page=page||pageFromUrl(url);if(!page||!pages[page])return false;
-    var fr=ensureFrame(page,url||pages[page],!!preload);if(!fr)return false;
+    url=versionHtmlUrl(url||pages[page]);
+    var fr=ensureFrame(page,url,!!preload);if(!fr)return false;
     if(preload)return true;
     rememberFrameBefore(page);
     try{if(window.happyadCloseNativeNotifications)window.happyadCloseNativeNotifications();}catch(_n){}
@@ -12157,7 +12189,7 @@ try{
   return true;
   }
   function openInternalUrl(url,extra){
-    url=rootUrl(url||'');
+    url=versionHtmlUrl(url||'');
     var p=pathOf(url);
     if(!url||p==='index.html'||url==='#'||url==='/'){try{if(window.happyadCloseAppPage&&window.happyadCloseAppPage!==closeFramePage)return window.happyadCloseAppPage();}catch(_n){}closeFramePage();return true;}
     if(p==='modules/notifications.html'||url.indexOf('#notifications')>=0||url.indexOf('open=notifications')>=0){try{if(window.happyadOpenNativeNotifications){window.happyadOpenNativeNotifications(url);return true;}}catch(_n){} }
@@ -12590,10 +12622,10 @@ try{
 if(needNav){
         fr.setAttribute('data-happyad-src',url);
         try{
-  if(view==='profile_public'||forceVideoPostReload||staleFrameNav){
+    if(view==='profile_public'||forceVideoPostReload||staleFrameNav){
     fr.setAttribute('data-happyad-loading','1');
-    fr.style.opacity='0';
-    fr.style.visibility='hidden';
+    fr.style.opacity='';
+    fr.style.visibility='';
   }else{
     fr.removeAttribute('data-happyad-loading');
     fr.style.opacity='';
@@ -12611,9 +12643,9 @@ try{
   fr.src=url;
 }
 try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=setTimeout(function(){try{if(fr.classList&&fr.classList.contains('on')){fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=document.getElementById('happyadAppMiniLoader');if(l)l.classList.remove('on');}}catch(_w){}},2600);}catch(_watch){}
-      }else if(view==='profile_public'&&fr.getAttribute('data-happyad-loading')==='1'){
-        try{fr.style.opacity='0';fr.style.visibility='hidden';}catch(_keepHidden){}
-      }
+            }else if(view==='profile_public'&&fr.getAttribute('data-happyad-loading')==='1'){
+        try{fr.style.opacity='';fr.style.visibility='';}catch(_keepVisible){}
+}
     }catch(_e){}
     try{r.querySelectorAll('.happyadAppFrame').forEach(function(x){
       if(x!==fr){
