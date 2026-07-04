@@ -1,7 +1,7 @@
-/* HAPPYAD V16ZC - Service worker PWA actif, léger, sans double chargement au démarrage. */
+/* HAPPYAD V16ZE - Service worker PWA actif, léger, publication/story sans squelette. */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v16zc-20260704';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v16ze-20260704';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

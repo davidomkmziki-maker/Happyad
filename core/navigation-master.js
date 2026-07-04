@@ -1,15 +1,15 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_NAVIGATION_MASTER_V27__)return;
-  window.__HAPPYAD_NAVIGATION_MASTER_V27__=true;
+  if(window.__HAPPYAD_NAVIGATION_MASTER_V28__)return;
+  window.__HAPPYAD_NAVIGATION_MASTER_V28__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V27';
+  var MASTER_VERSION='NAV_MASTER_V28_PUBLISH_STORY_NO_SKELETON';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
   var LOADER_ID='happyadAppMiniLoader';
   var SKELETON_ID='happyadAppSkeleton';
   var VIDEO_DIRECT_ID='happyadAppVideoDirect';
-  var SKELETON_STYLE_ID='happyadAppSkeletonStyleV27';
+  var SKELETON_STYLE_ID='happyadAppSkeletonStyleV28';
   var PREFETCH_FLAG='__happyadSoftPrefetchV27';
   var activePage='home';
   var activeUrl='index.html';
@@ -106,6 +106,7 @@
   }
   function showSkeleton(page,url,on){
     try{
+      if(on&&isNoSkeletonPage(page,url))on=false;
       injectSkeletonStyle();
       var root=ensureShell(); if(!root)return;
       var sk=skeleton();
@@ -350,7 +351,15 @@
     try{if(!fr)return;try{fr.contentWindow.postMessage({type:'HAPPYAD_PAUSE_ALL_MEDIA',reason:reason||MASTER_VERSION},'*');}catch(_m){}try{fr.contentWindow.postMessage({type:'HAPPYAD_STOP_MEDIA',reason:reason||MASTER_VERSION},'*');}catch(_s){}}catch(_e){}
   }
   function isProfilePage(page){return page==='profile'||page==='profile_public';}
-  function isSoftOpenPage(page){return page&&page!=='home';}
+  function isNoSkeletonPage(page,url){
+    page=String(page||'').trim();
+    url=rootUrl(url||pages[page]||'');
+    if(page==='publish'||page==='story'||page==='stories')return true;
+    if(pathOf(url)==='modules/publish.html')return true;
+    if(/[?&]mode=story(?:&|$)/i.test(url))return true;
+    return false;
+  }
+  function isSoftOpenPage(page,url){return page&&page!=='home'&&!isNoSkeletonPage(page,url);}
   function isHeavySoftPage(page){return page==='profile'||page==='profile_public'||page==='boutique'||page==='messages'||page==='notifications'||page==='publish'||page==='map'||page==='video'||page==='photo';}
   function isDirectMediaPage(page){return page==='video';}
   function prefetchUrl(url){
@@ -561,7 +570,7 @@
     var mustReload=!sameFrameUrl(fr,url);
     if(page==='video'&&hasPost(url))mustReload=true;
     var directMedia=isDirectMediaPage(page);
-    var deferVisible=mustReload&&isSoftOpenPage(page);
+    var deferVisible=mustReload&&isSoftOpenPage(page,url);
 
     /* V23: vidéo = ouverture centrale seulement.
        Pendant le chargement, on garde juste une frame/poster avec bouton play tournant;
