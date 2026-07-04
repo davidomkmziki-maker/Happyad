@@ -2452,31 +2452,30 @@ async function happyadInsertContentCommentSafeV16W(c,row){
   if(!txt)throw new Error('Commentaire vide');
   var now=row.created_at||new Date().toISOString();
   var postId=String(row.post_id||row.content_id||'').trim();
-  var userId=String(row.user_id||row.author_id||row.uid||'').trim();
   if(!postId)throw new Error('Publication introuvable');
-  if(!userId)throw new Error('Compte introuvable');
   var parentId=(row.parent_id||row.parentId)?String(row.parent_id||row.parentId):null;
   var contentType=String(row.content_type||row.type||'photo').trim()||'photo';
+  async function strictAuthUser(){
+    try{if(c&&c.auth&&c.auth.getSession){var gs=await c.auth.getSession();var su=gs&&gs.data&&gs.data.session&&gs.data.session.user;if(su&&su.id)return su;}}catch(_e){}
+    try{if(c&&c.auth&&c.auth.getUser){var gu=await c.auth.getUser();var u=gu&&gu.data&&gu.data.user;if(u&&u.id)return u;}}catch(_e){}
+    return null;
+  }
+  var authUser=await strictAuthUser();
+  if(!authUser||!authUser.id){var ae=new Error('Session Supabase expirée : reconnecte-toi pour enregistrer le commentaire.');ae.happyadAuthRequired=true;throw ae;}
+  var userId=String(authUser.id).trim();
   function clean(o){var r={};Object.keys(o||{}).forEach(function(k){var v=o[k];if(v!==undefined&&v!==null&&v!=='')r[k]=v;});return r;}
   function isSchemaColumnError(err){try{return /Could not find the ['\"][^'\"]+['\"] column|schema cache|PGRST204/i.test(String((err&&err.message)||err||''));}catch(_e){return false;}}
-  var tries=[
-    clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId}),
-    clean({post_id:postId,user_id:userId,text:txt,created_at:now}),
-    clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId,content_type:contentType}),
-    clean({post_id:postId,content_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId,content_type:contentType}),
-    clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId,author_name:row.author_name||row.name||'Utilisateur HAPPYAD'}),
-    clean({post_id:postId,user_id:userId,body:txt,created_at:now,parent_id:parentId}),
-    clean({post_id:postId,user_id:userId,comment:txt,created_at:now,parent_id:parentId})
-  ];
+  function isRlsError(err){try{return /row-level security|violates row-level|RLS|42501/i.test(String((err&&err.message)||err||''));}catch(_e){return false;}}
+  var base={post_id:postId,content_id:postId,content_type:contentType,user_id:userId,text:txt,created_at:now,parent_id:parentId,author_name:row.author_name||row.name||'Utilisateur HAPPYAD',author_avatar:row.author_avatar||row.avatar||'',author_badge:row.author_badge||row.badge||''};
+  var tries=[clean(base),clean({post_id:postId,content_id:postId,content_type:contentType,user_id:userId,text:txt,created_at:now,parent_id:parentId}),clean({post_id:postId,content_type:contentType,user_id:userId,text:txt,created_at:now,parent_id:parentId}),clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId}),clean({post_id:postId,user_id:userId,text:txt,created_at:now}),clean({post_id:postId,user_id:userId,body:txt,created_at:now,parent_id:parentId}),clean({post_id:postId,user_id:userId,comment:txt,created_at:now,parent_id:parentId})];
   var last=null,firstReal=null,seen={};
   for(var i=0;i<tries.length;i++){
-    var payload=tries[i]||{};
-    if(!payload.post_id||!payload.user_id)continue;
-    var sig=JSON.stringify(Object.keys(payload).sort().map(function(k){return k+':'+payload[k];}));
-    if(seen[sig])continue;seen[sig]=1;
+    var payload=tries[i]||{};if(!payload.post_id||!payload.user_id)continue;
+    var sig=JSON.stringify(Object.keys(payload).sort().map(function(k){return k+':'+payload[k];}));if(seen[sig])continue;seen[sig]=1;
     var ins=await c.from('happyad_content_comments').insert(payload);
     if(!ins.error)return ins;
     last=ins.error;
+    if(isRlsError(ins.error)){var re=new Error('Supabase bloque l’enregistrement du commentaire par RLS. Il faut appliquer SUPABASE_COMMENTS_RLS_FIX_V16ZI.sql dans Supabase.');re.original=ins.error;re.happyadRlsBlocked=true;throw re;}
     if(!isSchemaColumnError(ins.error)&&!firstReal)firstReal=ins.error;
   }
   throw firstReal||last||new Error('Commentaire non enregistré');
@@ -2517,7 +2516,7 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
     var reply=window.__HAPPYAD_COMMENT_REPLY_TARGET_V469||null;var parentId=reply?happyadProfileCommentId(reply):null;var author=await happyadProfileResolveCommentAuthor();var a=getHappyAction(p.id);
     var temp={id:'local_'+Date.now(),post_id:p.id,parent_id:parentId,parentId:parentId,user_id:author.id||happyadProfileCommentCurrentUid(),authorId:author.id||happyadProfileCommentCurrentUid(),name:author.name||'Utilisateur HAPPYAD',author:author.name||'Utilisateur HAPPYAD',avatar:author.avatar||'',badge:author.badge||'',text:text,likes:0,liked:false,at:Date.now(),created_at:new Date().toISOString(),replies:[]};
     happyadProfileSetPendingComment(p.id,temp,10000);a.commentsList=(a.commentsList||[]).concat([temp]);a.comments=Number(a.comments||0)+1;setHappyAction(p.id,a);happyadProfileRefreshCommentCount(p.id);happyadRenderHomeCommentsV468(p.id);happyadProfileSetReplyTarget(null);setTimeout(function(){try{list.scrollTop=list.scrollHeight;}catch(_e){}},20);
-    try{await happyadAddProfileCommentSupabase(p,contentType,text,parentId,author);happyadRenderHomeCommentsV468(p.id);setTimeout(function(){try{list.scrollTop=list.scrollHeight;}catch(_e){}},20);}catch(err){alert('Commentaire non envoyé : '+((err&&err.message)||err));await happyadLoadProfileCommentsFromSupabase(p.id,contentType);happyadRenderHomeCommentsV468(p.id);}finally{btn.disabled=false;}
+    try{await happyadAddProfileCommentSupabase(p,contentType,text,parentId,author);happyadRenderHomeCommentsV468(p.id);setTimeout(function(){try{list.scrollTop=list.scrollHeight;}catch(_e){}},20);}catch(err){happyadProfileHandleCommentSaveErrorV16ZI(err);await happyadLoadProfileCommentsFromSupabase(p.id,contentType);happyadRenderHomeCommentsV468(p.id);}finally{btn.disabled=false;}
     return false;
   };
   if(!box.__haProfileCommentDelegationV486){

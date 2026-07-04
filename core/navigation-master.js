@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_NAVIGATION_MASTER_V29__)return;
   window.__HAPPYAD_NAVIGATION_MASTER_V29__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V29_RELOAD_KEEP_OPEN_PAGE_V16ZH';
+  var MASTER_VERSION='NAV_MASTER_V30_RELOAD_NO_HOME_FLASH_V16ZJ';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
   var LOADER_ID='happyadAppMiniLoader';
@@ -12,6 +12,7 @@
   var SKELETON_STYLE_ID='happyadAppSkeletonStyleV28';
   var PREFETCH_FLAG='__happyadSoftPrefetchV27';
   var RESTORE_KEY_V16ZH='HAPPYAD_LAST_OPEN_ROUTE_V16ZH';
+  var BOOT_RESTORE_CLASS_V16ZJ='happyadBootRestoringPageV16ZJ';
   var activePage='home';
   var activeUrl='index.html';
   var restoring=false;
@@ -122,6 +123,34 @@
         sk.classList.remove('on');sk.removeAttribute('data-happyad-page');
         root.classList.remove('happyadSkeletonOpen');
       }
+    }catch(_e){}
+  }
+  function clearBootRestoreMaskV16ZJ(reason){
+    try{
+      if(document.documentElement&&document.documentElement.classList){
+        document.documentElement.classList.remove(BOOT_RESTORE_CLASS_V16ZJ);
+      }
+      window.__HAPPYAD_BOOT_RESTORE_MASK_CLEARED_V16ZJ={reason:String(reason||''),t:Date.now()};
+    }catch(_e){}
+  }
+  function prepareBootRestoreShellV16ZJ(page,url){
+    try{
+      page=String(page||'home');url=rootUrl(url||pages[page]||'index.html');
+      injectSkeletonStyle();
+      var root=ensureShell();
+      if(root){
+        root.classList.add('on');
+        root.setAttribute('aria-hidden','false');
+      }
+      try{document.body&&document.body.classList&&document.body.classList.add('happyadAppOpen');}catch(_b){}
+      if(isNoSkeletonPage(page,url)){
+        try{showSkeleton(page,url,false);}catch(_sk){}
+      }else{
+        try{showSkeleton(page,url,true);}catch(_sk2){}
+      }
+      try{showVideoDirect(url,false);}catch(_v){}
+      try{releaseNavGate('boot-restore-prepare-v16zj');}catch(_g){}
+      window.__HAPPYAD_BOOT_RESTORE_PREPARED_V16ZJ={page:page,url:url,t:Date.now()};
     }catch(_e){}
   }
   function ensureShell(){
@@ -558,6 +587,7 @@
     }catch(_e){}
     try{root.classList.add('on');root.setAttribute('aria-hidden','false');}catch(_r){}
     try{document.body.classList.add('happyadAppOpen');}catch(_b){}
+    clearBootRestoreMaskV16ZJ('frame-visible-'+String(page||''));
     showSkeleton(page,url,false);
     if(page==='video'&&videoDirect()&&videoDirect().classList.contains('on')){holdVideoFrameSafe(fr,url,source||'frame-visible');}
     else {showVideoDirect(url,false);}
@@ -726,7 +756,7 @@
     try{if(window.HappyMedia)HappyMedia.pauseAll(reason);}catch(_e){}
     var root=shell();
     try{if(root){root.querySelectorAll('.happyadAppFrame').forEach(function(fr){pauseFrame(fr,reason);fr.classList.remove('on');});root.classList.remove('on');root.setAttribute('aria-hidden','true');}}catch(_e){}
-    try{showSkeleton('home','index.html',false);showVideoDirect('',false);showLoader(false);releaseNavGate(reason);document.body.classList.remove('happyadAppOpen');}catch(_e){}
+    try{showSkeleton('home','index.html',false);showVideoDirect('',false);showLoader(false);releaseNavGate(reason);document.body.classList.remove('happyadAppOpen');clearBootRestoreMaskV16ZJ('close-'+reason);}catch(_e){}
     setNavActive('home','index.html');updateState('home','index.html');
     try{if(replace!==false)history.replaceState(state('home','index.html'),'',location.href);}catch(_e){}
     return true;
@@ -848,25 +878,32 @@
         showVideoDirect('',false);
         showLoader(false);
         releaseNavGate('boot-home');
+        clearBootRestoreMaskV16ZJ('boot-home');
         var root=shell();
         if(root&&!root.querySelector('.happyadAppFrame.on')){root.classList.remove('on');root.setAttribute('aria-hidden','true');}
         document.body.classList.remove('happyadAppOpen');
       }
     }catch(_e){}
   }
-  function bootRestoreOpenPageV16ZH(){
+  function bootRestoreOpenPageV16ZJ(){
     try{
       var r=routeFromLocationV16ZH()||readReloadRouteV16ZH();
       if(!r||!r.view||String(r.view)==='home')return false;
       var page=String(r.view);
       var url=rootUrl(r.url||pages[page]||'index.html');
       if(!pages[page]&&page!=='profile_public')return false;
+      prepareBootRestoreShellV16ZJ(page,url);
       try{history.replaceState(state(page,url),'',location.href);}catch(_st){}
-      setTimeout(function(){try{open(url,{page:page,replace:true,source:'reload-restore-v16zh'});}catch(_o){}},35);
+      try{open(url,{page:page,replace:true,force:true,source:'reload-restore-no-home-v16zj'});}catch(_o){}
       return true;
-    }catch(_e){return false;}
+    }catch(_e){clearBootRestoreMaskV16ZJ('restore-error');return false;}
   }
-  function bootV16ZH(){ensureBaseState();bootHomeSafety();bootRestoreOpenPageV16ZH();scheduleSoftPreload();}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV16ZH,{once:true});else bootV16ZH();
+  function bootV16ZJ(){
+    ensureBaseState();
+    var restored=bootRestoreOpenPageV16ZJ();
+    if(!restored)bootHomeSafety();
+    scheduleSoftPreload();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV16ZJ,{once:true});else bootV16ZJ();
   try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('navigation',{file:'core/navigation-master.js',responsibility:'navigation unique, iframe, retour interne, bouton téléphone, ouverture modules',legacy:['happyadOpenInternalUrlV492','happyadOpenAppPage','happyadCloseAppPage','V492 router','V520 history'],active:true,version:MASTER_VERSION});}catch(_e){}
 })();

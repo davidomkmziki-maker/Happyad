@@ -69,9 +69,40 @@
   }catch(e){}
 })();
 </script>
+<script id="happyad-v16zj-boot-route-mask">
+(function(){
+  try{
+    var view='',url='';
+    try{
+      var raw=sessionStorage.getItem('HAPPYAD_LAST_OPEN_ROUTE_V16ZH');
+      var r=raw?JSON.parse(raw):null;
+      if(r&&r.view){view=String(r.view||'');url=String(r.url||'');}
+    }catch(_r){}
+    try{
+      if(!view)view=String(sessionStorage.getItem('HAPPYAD_ACTIVE_APP_VIEW')||'');
+      if(!url)url=String(sessionStorage.getItem('HAPPYAD_LAST_APP_URL')||'');
+    }catch(_s){}
+    try{
+      var u=new URL(location.href);
+      var app=String(u.searchParams.get('app')||'').trim();
+      var hash=String(u.hash||'').replace(/^#/,'').trim();
+      if(app||hash)view=app||hash;
+    }catch(_u){}
+    view=String(view||'').toLowerCase();
+    if(view&&view!=='home'&&view!=='index'&&view!=='index.html'){
+      document.documentElement.classList.add('happyadBootRestoringPageV16ZJ');
+    }
+  }catch(_e){}
+})();
+</script>
+<style id="happyad-v16zj-boot-route-mask-style">
+html.happyadBootRestoringPageV16ZJ body{background:#000!important;}
+html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!important;}
+</style>
+
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
-<!-- HAPPYAD V16ZH — actualisation garde la page ouverte -->
-<link rel="manifest" href="manifest.webmanifest?v=16zh">
+<!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
+<link rel="manifest" href="manifest.webmanifest?v=16zj">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -2605,7 +2636,7 @@ function happyadMergePendingComments(postId,remoteList){try{
   var k=happyadCommentPendingKey(postId),now=Date.now();
   var list=Array.isArray(remoteList)?remoteList.slice():[];
   var pending=(HAPPYAD_COMMENT_PENDING_LOCKS[k]||[]).filter(function(x){return x&&now<Number(x.__until||0);});
-  /* V16ZH: on protège aussi les commentaires locaux déjà affichés dans le popup.
+  /* V16ZI: on protège aussi les commentaires locaux déjà affichés dans le popup.
      Une lecture Supabase trop rapide ne doit jamais faire disparaître le commentaire optimiste. */
   try{
     var localA=getA(postId)||{};
@@ -2756,7 +2787,7 @@ function happyadEnsureHomeCommentPopupV468(){
   box.querySelector('.haCommentBackdrop').onclick=function(){happyadCloseHomeCommentPopupV468()};
   var rb=box.querySelector('.haReplyBar');
   if(rb){var rbc=rb.querySelector('button'); if(rbc)rbc.onclick=function(e){e.preventDefault();happyadSetReplyTargetV469(null);return false;};}
-  try{happyadBindCommentKeyboardV16ZH(box);}catch(_kb){}
+  try{happyadBindCommentKeyboardV16ZI(box);}catch(_kb){}
   return box;
 }
 function happyadCloseHomeCommentPopupV468(){
@@ -2782,7 +2813,7 @@ function happyadCurrentUserIdV469(){
   return '';
 }
 
-function happyadFastCommentAuthorV16ZH(){
+function happyadFastCommentAuthorV16ZI(){
   var local={},u=null;
   try{local=JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||localStorage.getItem('HAPPYAD_USER')||'{}')||{};}catch(_e){local={};}
   try{u=currentUser&&currentUser();}catch(_u){u=null;}
@@ -2792,9 +2823,9 @@ function happyadFastCommentAuthorV16ZH(){
   var badge=String(local.badge||local.userBadge||local.verifiedBadge||local.verifyLevel||'').trim();
   return {id:id,name:name,avatar:avatar,badge:badge};
 }
-function happyadBindCommentKeyboardV16ZH(box){
+function happyadBindCommentKeyboardV16ZI(box){
   try{
-    if(!box||box.__haKeyboardV16ZH)return;box.__haKeyboardV16ZH=true;
+    if(!box||box.__haKeyboardV16ZI)return;box.__haKeyboardV16ZI=true;
     var input=box.querySelector('.haCommentComposer input'),list=box.querySelector('.haCommentList');
     function update(){
       try{
@@ -3050,21 +3081,34 @@ async function happyadInsertContentCommentSafeV16V(c,row){
   if(!txt)throw new Error('Commentaire vide');
   var now=row.created_at||new Date().toISOString();
   var postId=String(row.post_id||row.content_id||'').trim();
-  var userId=String(row.user_id||row.author_id||row.uid||'').trim();
   if(!postId)throw new Error('Publication introuvable');
-  if(!userId)throw new Error('Compte introuvable');
   var parentId=(row.parent_id||row.parentId)?String(row.parent_id||row.parentId):null;
   var contentType=String(row.content_type||row.type||'photo').trim()||'photo';
+  async function strictAuthUser(){
+    try{if(c&&c.auth&&c.auth.getSession){var gs=await c.auth.getSession();var su=gs&&gs.data&&gs.data.session&&gs.data.session.user;if(su&&su.id)return su;}}catch(_e){}
+    try{if(c&&c.auth&&c.auth.getUser){var gu=await c.auth.getUser();var u=gu&&gu.data&&gu.data.user;if(u&&u.id)return u;}}catch(_e){}
+    return null;
+  }
+  var authUser=await strictAuthUser();
+  if(!authUser||!authUser.id){
+    var ae=new Error('Session Supabase expirée : reconnecte-toi pour enregistrer le commentaire.');
+    ae.happyadAuthRequired=true;
+    throw ae;
+  }
+  var userId=String(authUser.id).trim();
   function clean(o){var r={};Object.keys(o||{}).forEach(function(k){var v=o[k];if(v!==undefined&&v!==null&&v!=='')r[k]=v;});return r;}
   function isSchemaColumnError(err){try{return /Could not find the ['\"][^'\"]+['\"] column|schema cache|PGRST204/i.test(String((err&&err.message)||err||''));}catch(_e){return false;}}
-  var minimalParent=clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId});
-  var minimal=clean({post_id:postId,user_id:userId,text:txt,created_at:now});
-  var typed=clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId,content_type:contentType});
-  var withContentId=clean({post_id:postId,content_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId,content_type:contentType});
-  var withAuthor=clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId,author_name:row.author_name||row.name||'Utilisateur HAPPYAD'});
-  var bodyFallback=clean({post_id:postId,user_id:userId,body:txt,created_at:now,parent_id:parentId});
-  var commentFallback=clean({post_id:postId,user_id:userId,comment:txt,created_at:now,parent_id:parentId});
-  var tries=[minimalParent,minimal,typed,withContentId,withAuthor,bodyFallback,commentFallback];
+  function isRlsError(err){try{return /row-level security|violates row-level|RLS|42501/i.test(String((err&&err.message)||err||''));}catch(_e){return false;}}
+  var base={post_id:postId,content_id:postId,content_type:contentType,user_id:userId,text:txt,created_at:now,parent_id:parentId,author_name:row.author_name||row.name||'Utilisateur HAPPYAD',author_avatar:row.author_avatar||row.avatar||'',author_badge:row.author_badge||row.badge||''};
+  var tries=[
+    clean(base),
+    clean({post_id:postId,content_id:postId,content_type:contentType,user_id:userId,text:txt,created_at:now,parent_id:parentId}),
+    clean({post_id:postId,content_type:contentType,user_id:userId,text:txt,created_at:now,parent_id:parentId}),
+    clean({post_id:postId,user_id:userId,text:txt,created_at:now,parent_id:parentId}),
+    clean({post_id:postId,user_id:userId,text:txt,created_at:now}),
+    clean({post_id:postId,user_id:userId,body:txt,created_at:now,parent_id:parentId}),
+    clean({post_id:postId,user_id:userId,comment:txt,created_at:now,parent_id:parentId})
+  ];
   var last=null,firstReal=null,seen={};
   for(var i=0;i<tries.length;i++){
     var payload=tries[i]||{};
@@ -3074,6 +3118,10 @@ async function happyadInsertContentCommentSafeV16V(c,row){
     var ins=await c.from('happyad_content_comments').insert(payload);
     if(!ins.error)return ins;
     last=ins.error;
+    if(isRlsError(ins.error)){
+      var re=new Error('Supabase bloque l’enregistrement du commentaire par RLS. Il faut appliquer SUPABASE_COMMENTS_RLS_FIX_V16ZI.sql dans Supabase.');
+      re.original=ins.error; re.happyadRlsBlocked=true; throw re;
+    }
     if(!isSchemaColumnError(ins.error)&&!firstReal)firstReal=ins.error;
   }
   throw firstReal||last||new Error('Commentaire non enregistré');
@@ -3109,6 +3157,20 @@ async function happyadDeleteCommentSupabaseV469(postId,commentId){
   try{await syncPostCountsSupabase(postId,'photo')}catch(_s){}
   return await loadContentActionsFromSupabase(postId,'photo');
 }
+
+function happyadIsCommentRlsOrAuthErrorV16ZI(err){
+  try{return /row-level security|violates row-level|Supabase bloque|RLS|Session Supabase expirée|42501/i.test(String((err&&err.message)||err||''));}catch(_e){return false;}
+}
+function happyadHandleCommentSaveErrorV16ZI(err){
+  var msg=String((err&&err.message)||err||'Erreur inconnue');
+  if(happyadIsCommentRlsOrAuthErrorV16ZI(err)){
+    var m=msg.indexOf('SUPABASE_COMMENTS_RLS_FIX_V16ZI')>=0?msg:'Commentaire visible localement, mais Supabase bloque l’enregistrement. Applique SUPABASE_COMMENTS_RLS_FIX_V16ZI.sql.';
+    try{if(typeof toast==='function')toast(m);else console.warn(m);}catch(_e){console.warn(m)}
+    return;
+  }
+  alert('Commentaire non envoyé : '+msg);
+}
+
 async function happyadOpenHomeCommentPopupV468(p,contentType){
   var box=happyadEnsureHomeCommentPopupV468();
   var form=box.querySelector('.haCommentComposer');
@@ -3127,7 +3189,7 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
     e.preventDefault();e.stopPropagation();
     var text=String(input.value||'').trim();
     if(!text)return false;
-    var oldText=text,temp=null,parentId=null,author=happyadFastCommentAuthorV16ZH();
+    var oldText=text,temp=null,parentId=null,author=happyadFastCommentAuthorV16ZI();
     btn.disabled=true;
     try{
       input.value='';
@@ -3169,8 +3231,8 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
           rb.commentsList=rl;rb.comments=rl.length;rb.__commentsLoading=false;rb.__commentsExact=false;setA(p.id,rb);happyadSetPendingComment(p.id,Object.assign({},temp,{__pendingError:true}),120000);refreshLikeEverywhere(p.id);happyadRenderHomeCommentsV468(p.id);
         }else{input.value=oldText;}
       }catch(_keepErr){input.value=oldText;}
-      alert('Commentaire non envoyé : '+((err&&err.message)||err));
-    }finally{btn.disabled=false;try{happyadBindCommentKeyboardV16ZH(box);}catch(_kb){}}
+      happyadHandleCommentSaveErrorV16ZI(err);
+    }finally{btn.disabled=false;try{happyadBindCommentKeyboardV16ZI(box);}catch(_kb){}}
     return false;
   };
   if(!box.__haCommentDelegationV469){
@@ -9913,7 +9975,7 @@ body.happyadNativeChatOpen{overflow:hidden!important;touch-action:none!important
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=16zh',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=16zj',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -12456,7 +12518,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 
 
 
-<style id="happyad-v16zh-comment-keyboard-css">
+<style id="happyad-v16zi-comment-keyboard-css">
 :root{--ha-comment-keyboard-offset:0px!important;}
 #happyadHomeCommentPopup .haCommentComposer{bottom:var(--ha-comment-keyboard-offset,0px)!important;z-index:5!important;}
 #happyadHomeCommentPopup .haCommentList{padding-bottom:calc(128px + var(--ha-comment-keyboard-offset,0px))!important;}
@@ -12485,7 +12547,7 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation/vidéo + profil/boutique maîtres actifs, ouverture boutique profil sécurisée -->
-<script src="core/navigation-master.js?v=core-nav-v36-reload-keep-page-v16zh"></script>
+<script src="core/navigation-master.js?v=core-nav-v37-reload-no-home-flash-v16zj"></script>
 <script src="core/video-master.js?v=core-nav-v10"></script>
 
 <!-- HAPPYAD CORE V4: regroupement passif des maîtres par module/catégorie, sans changer le design -->
