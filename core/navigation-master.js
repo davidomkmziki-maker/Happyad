@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_NAVIGATION_MASTER_V28__)return;
-  window.__HAPPYAD_NAVIGATION_MASTER_V28__=true;
+  if(window.__HAPPYAD_NAVIGATION_MASTER_V29__)return;
+  window.__HAPPYAD_NAVIGATION_MASTER_V29__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V28_PUBLISH_STORY_NO_SKELETON';
+  var MASTER_VERSION='NAV_MASTER_V29_RELOAD_KEEP_OPEN_PAGE_V16ZH';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
   var LOADER_ID='happyadAppMiniLoader';
@@ -11,6 +11,7 @@
   var VIDEO_DIRECT_ID='happyadAppVideoDirect';
   var SKELETON_STYLE_ID='happyadAppSkeletonStyleV28';
   var PREFETCH_FLAG='__happyadSoftPrefetchV27';
+  var RESTORE_KEY_V16ZH='HAPPYAD_LAST_OPEN_ROUTE_V16ZH';
   var activePage='home';
   var activeUrl='index.html';
   var restoring=false;
@@ -321,10 +322,56 @@
   function state(page,url){var s={};s[NAV_FLAG]=true;s.view=page||'home';s.url=rootUrl(url||pages[page]||'index.html');s.ts=Date.now();return s;}
   function ensureBaseState(){try{var s=history.state;if(!s||!s[NAV_FLAG])history.replaceState(state('home','index.html'),'',location.href);}catch(_e){}}
   function currentNavState(){try{var s=history.state;return s&&s[NAV_FLAG]?s:null;}catch(_e){return null;}}
+  function rememberReloadRouteV16ZH(page,url){
+    try{
+      page=String(page||'home');url=rootUrl(url||pages[page]||'index.html');
+      var data={view:page,url:url,t:Date.now(),version:MASTER_VERSION};
+      sessionStorage.setItem(RESTORE_KEY_V16ZH,JSON.stringify(data));
+      sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW',page);
+      sessionStorage.setItem('HAPPYAD_LAST_APP_URL',url);
+    }catch(_e){}
+  }
+  function readReloadRouteV16ZH(){
+    try{
+      var s=currentNavState();
+      if(s&&s.view&&String(s.view)!=='home'){return {view:String(s.view),url:rootUrl(s.url||pages[s.view]||'index.html'),source:'history-state'};}
+    }catch(_hs){}
+    try{
+      var raw=sessionStorage.getItem(RESTORE_KEY_V16ZH);
+      var r=raw?JSON.parse(raw):null;
+      if(r&&r.view&&String(r.view)!=='home'){
+        var u=rootUrl(r.url||pages[r.view]||'index.html');
+        if(pageOf(u,String(r.view))===String(r.view)||pages[String(r.view)])return {view:String(r.view),url:u,source:'session-route'};
+      }
+    }catch(_r){}
+    try{
+      var p=String(sessionStorage.getItem('HAPPYAD_ACTIVE_APP_VIEW')||'home');
+      var u=rootUrl(sessionStorage.getItem('HAPPYAD_LAST_APP_URL')||pages[p]||'index.html');
+      if(p&&p!=='home'&&(pageOf(u,p)===p||pages[p]))return {view:p,url:u,source:'session-active'};
+    }catch(_a){}
+    return null;
+  }
+  function routeFromLocationV16ZH(){
+    try{
+      var u=new URL(location.href);
+      var app=String(u.searchParams.get('app')||'').trim().toLowerCase();
+      var hash=String(u.hash||'').replace(/^#/,'').trim().toLowerCase();
+      var key=app||hash;
+      if(!key)return null;
+      if(key==='notifications')return {view:'notifications',url:'modules/notifications.html',source:'url'};
+      if(key==='messages')return {view:'messages',url:'messages.html',source:'url'};
+      if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
+      if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
+      if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/user.html',source:'url'};
+      if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
+      if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
+      if(key==='boutique')return {view:'boutique',url:'boutique.html',source:'url'};
+    }catch(_e){}
+    return null;
+  }
   function updateState(page,url){
     activePage=page||'home';activeUrl=rootUrl(url||pages[activePage]||'index.html');
-    try{sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW',activePage);}catch(_e){}
-    try{sessionStorage.setItem('HAPPYAD_LAST_APP_URL',activeUrl);}catch(_e){}
+    rememberReloadRouteV16ZH(activePage,activeUrl);
     try{if(window.HappyState)HappyState.route(activePage,{url:activeUrl},MASTER_VERSION);}catch(_e){}
   }
   function clearBottomVideoPressed(){
@@ -807,6 +854,19 @@
       }
     }catch(_e){}
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){ensureBaseState();bootHomeSafety();scheduleSoftPreload();},{once:true});else {ensureBaseState();bootHomeSafety();scheduleSoftPreload();}
+  function bootRestoreOpenPageV16ZH(){
+    try{
+      var r=routeFromLocationV16ZH()||readReloadRouteV16ZH();
+      if(!r||!r.view||String(r.view)==='home')return false;
+      var page=String(r.view);
+      var url=rootUrl(r.url||pages[page]||'index.html');
+      if(!pages[page]&&page!=='profile_public')return false;
+      try{history.replaceState(state(page,url),'',location.href);}catch(_st){}
+      setTimeout(function(){try{open(url,{page:page,replace:true,source:'reload-restore-v16zh'});}catch(_o){}},35);
+      return true;
+    }catch(_e){return false;}
+  }
+  function bootV16ZH(){ensureBaseState();bootHomeSafety();bootRestoreOpenPageV16ZH();scheduleSoftPreload();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV16ZH,{once:true});else bootV16ZH();
   try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('navigation',{file:'core/navigation-master.js',responsibility:'navigation unique, iframe, retour interne, bouton téléphone, ouverture modules',legacy:['happyadOpenInternalUrlV492','happyadOpenAppPage','happyadCloseAppPage','V492 router','V520 history'],active:true,version:MASTER_VERSION});}catch(_e){}
 })();
