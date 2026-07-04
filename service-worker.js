@@ -1,153 +1,104 @@
-/* HAPPYAD V534 — PWA UPDATE FORCE / CLIENT RELOAD
-   - Met à jour automatiquement index, modules, boutique, messages, CSS, JS, manifest.
-   - Ne met jamais Supabase/API en cache.
-   - Force les anciennes PWA déjà installées à charger la dernière version.
-*/
-const HAPPYAD_PWA_VERSION='v550foundation1';
-const APP_CACHE='HAPPYAD-PWA-APP-SHELL-'+HAPPYAD_PWA_VERSION;
-const RUNTIME_CACHE='HAPPYAD-PWA-RUNTIME-'+HAPPYAD_PWA_VERSION;
+/* HAPPYAD V16ZC - Service worker PWA actif, léger, sans double chargement au démarrage. */
+'use strict';
 
-const APP_SHELL=[
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v16zc-20260704';
+var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
+var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
+var HAPPYAD_APP_SHELL = [
   './',
   './index.html',
-  './messages.html',
-  './boutique.html',
   './manifest.webmanifest',
-  './icons/happyad-icon-v535center1-48.png',
-  './icons/happyad-icon-v535center1-72.png',
-  './icons/happyad-icon-v535center1-96.png',
-  './icons/happyad-icon-v535center1-128.png',
-  './icons/happyad-icon-v535center1-144.png',
-  './icons/happyad-icon-v535center1-152.png',
-  './icons/happyad-icon-v535center1-180.png',
   './icons/happyad-icon-v535center1-192.png',
-  './icons/happyad-icon-v535center1-384.png',
   './icons/happyad-icon-v535center1-512.png',
   './icons/happyad-icon-v535center1-maskable-192.png',
-  './icons/happyad-icon-v535center1-maskable-512.png',
-  './icons/happyad-icon-v535center1-source.png',
+  './icons/happyad-icon-v535center1-maskable-512.png'
+];
 
-  './modules/user.html',
-  './modules/photo.html',
-  './modules/video.html',
-  './modules/publish.html',
-  './modules/map.html',
-  './modules/notifications.html'];
+function isHappyCache(name){
+  return String(name||'').toLowerCase().indexOf('happyad') > -1;
+}
+function isCurrentCache(name){
+  return name === HAPPYAD_STATIC_CACHE || name === HAPPYAD_RUNTIME_CACHE;
+}
+function sameOrigin(url){
+  try{return new URL(url).origin === self.location.origin;}catch(e){return false;}
+}
+function isSupabaseOrExternal(url){
+  try{var u=new URL(url);return u.origin !== self.location.origin || /supabase\.co|storage\.googleapis\.com|cloudinary|res\.cloudinary/i.test(u.hostname);}catch(e){return true;}
+}
+function isHeavyMedia(request){
+  try{
+    var u=new URL(request.url);
+    var dest=request.destination||'';
+    return dest==='video' || dest==='audio' || /\.(mp4|mov|webm|m4v|mp3|wav|ogg)(\?|$)/i.test(u.pathname);
+  }catch(e){return false;}
+}
+function networkFirst(request){
+  return caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){
+    return fetch(request).then(function(response){
+      try{if(response && response.ok)cache.put(request,response.clone());}catch(e){}
+      return response;
+    }).catch(function(){
+      return caches.match(request).then(function(cached){return cached || caches.match('./index.html');});
+    });
+  });
+}
+function cacheFirst(request){
+  return caches.match(request).then(function(cached){
+    if(cached)return cached;
+    return fetch(request).then(function(response){
+      try{if(response && response.ok)caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){cache.put(request,response.clone());});}catch(e){}
+      return response;
+    });
+  });
+}
 
-self.addEventListener('install',event=>{
-  event.waitUntil((async()=>{
-    const cache=await caches.open(APP_CACHE);
-    for(const item of APP_SHELL){
-      try{await cache.add(new Request(item,{cache:'reload'}));}catch(e){}
-    }
-    await self.skipWaiting();
-  })());
+self.addEventListener('install', function(event){
+  event.waitUntil(caches.open(HAPPYAD_STATIC_CACHE).then(function(cache){
+    return cache.addAll(HAPPYAD_APP_SHELL).catch(function(){return true;});
+  }).then(function(){return self.skipWaiting();}));
 });
 
-self.addEventListener('activate',event=>{
-  event.waitUntil((async()=>{
-    const keys=await caches.keys();
-
-    await Promise.all(keys.map(k=>{
-      if(k.startsWith('HAPPYAD-PWA-APP-SHELL-')||k.startsWith('HAPPYAD-PWA-RUNTIME-')){
-        if(k!==APP_CACHE&&k!==RUNTIME_CACHE)return caches.delete(k);
-      }
+self.addEventListener('activate', function(event){
+  event.waitUntil(caches.keys().then(function(keys){
+    return Promise.all(keys.map(function(key){
+      if(isHappyCache(key) && !isCurrentCache(key))return caches.delete(key);
       return Promise.resolve(false);
     }));
-
-    await self.clients.claim();
-
-    /* HAPPYAD V534 STEP1:
-   Ne pas forcer une navigation automatique ici.
-   Sinon la PWA recharge une deuxième fois après ouverture.
-   index.html gère déjà l'activation du service worker. */
-  })());
+  }).then(function(){return self.clients.claim();}));
 });
 
-self.addEventListener('message',event=>{
+self.addEventListener('message', function(event){
   try{
-    const d=event&&event.data;
-    if(d&&d.type==='HAPPYAD_SKIP_WAITING')self.skipWaiting();
-    if(d&&d.type==='HAPPYAD_CLEAR_OLD_CACHES'){
-      event.waitUntil((async()=>{
-        const keys=await caches.keys();
-        await Promise.all(keys.map(k=>{
-          if(k.startsWith('HAPPYAD-PWA-APP-SHELL-')||k.startsWith('HAPPYAD-PWA-RUNTIME-')){
-            if(k!==APP_CACHE&&k!==RUNTIME_CACHE)return caches.delete(k);
-          }
+    var type=event && event.data && event.data.type;
+    if(type==='HAPPYAD_SKIP_WAITING')self.skipWaiting();
+    if(type==='HAPPYAD_CLEAR_OLD_CACHES'){
+      event.waitUntil(caches.keys().then(function(keys){
+        return Promise.all(keys.map(function(key){
+          if(isHappyCache(key) && !isCurrentCache(key))return caches.delete(key);
           return Promise.resolve(false);
         }));
-      })());
+      }));
     }
   }catch(e){}
 });
 
-function isApiRequest(url){
-  const h=(url.hostname||'').toLowerCase();
-  const p=(url.pathname||'').toLowerCase();
-  return h.includes('supabase.co') || h.includes('supabase.in') || p.includes('/rest/v1/') || p.includes('/auth/v1/') || p.includes('/storage/v1/') || p.includes('/realtime/v1/');
-}
+self.addEventListener('fetch', function(event){
+  var request=event.request;
+  if(!request || request.method !== 'GET')return;
+  if(isSupabaseOrExternal(request.url) || isHeavyMedia(request))return;
+  if(!sameOrigin(request.url))return;
 
-function shouldNetworkFirst(url,request){
-  const p=(url.pathname||'').toLowerCase();
-  return request.mode==='navigate'
-    || request.destination==='script'
-    || request.destination==='style'
-    || request.destination==='document'
-    || p.endsWith('.html')
-    || p.endsWith('.js')
-    || p.endsWith('.css')
-    || p.endsWith('.webmanifest');
-}
-
-async function networkFirst(request){
-  const cache=await caches.open(RUNTIME_CACHE);
-
-  try{
-    const res=await fetch(request,{cache:'reload'});
-    if(res && res.ok){
-      cache.put(request,res.clone()).catch(()=>{});
-    }
-    return res;
-  }catch(_e){
-    const cached=(await cache.match(request)) || (await caches.match(request));
-    if(cached)return cached;
-    return request.mode==='navigate'
-      ? ((await caches.match('./index.html')) || Response.error())
-      : Response.error();
-  }
-}
-
-async function cacheFirstUpdate(request){
-  const cached=await caches.match(request);
-  const fetchPromise=fetch(request).then(res=>{
-    if(res && res.ok){
-      caches.open(RUNTIME_CACHE).then(cache=>cache.put(request,res.clone())).catch(()=>{});
-    }
-    return res;
-  }).catch(()=>null);
-  return cached || fetchPromise || Response.error();
-}
-
-self.addEventListener('fetch',event=>{
-  const request=event.request;
-  if(!request || request.method!=='GET')return;
-
-  const url=new URL(request.url);
-  if(isApiRequest(url))return;
-  if(url.origin!==self.location.origin)return;
-
-  if((url.pathname||'').toLowerCase().endsWith('/reset-password.html')){
-    event.respondWith(fetch(request,{cache:'reload'}).catch(async()=>{
-      return (await caches.match('./reset-password.html')) || Response.error();
-    }));
-    return;
-  }
-
-  if(shouldNetworkFirst(url,request)){
+  var dest=request.destination||'';
+  if(request.mode==='navigate' || dest==='document' || /\.html(\?|$)/i.test(new URL(request.url).pathname)){
     event.respondWith(networkFirst(request));
     return;
   }
-
-  event.respondWith(cacheFirstUpdate(request));
+  if(dest==='script' || dest==='style' || dest==='worker' || /\.(js|css|webmanifest)(\?|$)/i.test(new URL(request.url).pathname)){
+    event.respondWith(networkFirst(request));
+    return;
+  }
+  if(dest==='image' || /\.(png|jpg|jpeg|webp|svg|ico)(\?|$)/i.test(new URL(request.url).pathname)){
+    event.respondWith(cacheFirst(request));
+  }
 });

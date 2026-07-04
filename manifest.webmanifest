@@ -1,8 +1,8 @@
 {
   "name": "HAPPYAD",
   "short_name": "HAPPYAD",
-  "description": "HAPPYAD – réseau social, marketplace et notifications rapides.",
-"start_url": "./index.html?source=pwa&v=v550foundation1",
+  "description": "HAPPYAD – réseau social, marketplace, notifications rapides et installation PWA.",
+  "start_url": "./index.html?source=pwa&v=16zc",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -93,7 +93,7 @@
     {
       "name": "Notifications",
       "short_name": "Notifications",
-      "url": "./index.html?v=v550foundation1#notifications",
+      "url": "./index.html?v=16zc#notifications",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -105,7 +105,7 @@
     {
       "name": "Messages",
       "short_name": "Messages",
-      "url": "./index.html?v=v550foundation1#messages",
+      "url": "./index.html?v=16zc#messages",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -117,7 +117,7 @@
     {
       "name": "Vidéos",
       "short_name": "Vidéos",
-      "url": "./index.html?app=video&v=v550foundation1",
+      "url": "./index.html?app=video&v=16zc",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -129,7 +129,7 @@
     {
       "name": "Mon profil",
       "short_name": "Profil",
-      "url": "./index.html?app=profile&v=v550foundation1",
+      "url": "./index.html?app=profile&v=16zc",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -138,5 +138,6 @@
         }
       ]
     }
-  ]
+  ],
+  "id": "./index.html"
 }

@@ -15,6 +15,26 @@
 })();
 </script>
 
+<script id="happyad-v15-own-profile-public-redirect">
+(function(){
+  if(window.__HAPPYAD_V15_OWN_PROFILE_PUBLIC_REDIRECT__)return;
+  window.__HAPPYAD_V15_OWN_PROFILE_PUBLIC_REDIRECT__=true;
+  try{
+    var qs=new URLSearchParams(location.search||'');
+    var uid=String(qs.get('uid')||qs.get('user_id')||qs.get('profile_uid')||'').trim();
+    if(!uid || String(qs.get('public')||'')!=='1')return;
+    function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')||null}catch(e){return null}}
+    function valid(u){if(!u||typeof u!=='object')return false;var id=String(u.id||u.user_id||u.uid||u.uuid||u.auth_id||'').trim().toLowerCase();var nm=String(u.name||u.full_name||u.display_name||'').toLowerCase();if(id.indexOf('guest')===0||id.indexOf('logged_out')===0)return false;if(nm==='utilisateur'||nm==='utilisateur happyad'||nm.indexOf('aucun compte')>-1)return false;return !!id;}
+    function ids(){var out=[],seen={};function add(v){v=String(v||'').trim();if(!v)return;var k=v.toLowerCase();if(!seen[k]){seen[k]=1;out.push(k)}}function u(x){if(!valid(x))return;add(x.id);add(x.user_id);add(x.uid);add(x.uuid);add(x.auth_id);add(x.email)};try{if(window.UserStore)u(window.UserStore.data||{})}catch(e){}['HAPPYAD_LOGGED_USER','HAPPYAD_CURRENT_USER','HAPPYAD_USER','HAPPYAD_USER_V1','HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL'].forEach(function(k){u(read(k)||{})});try{add(localStorage.getItem('HAPPYAD_AUTH_UID'))}catch(e){}return out}
+    if(ids().indexOf(uid.toLowerCase())>-1){
+      try{localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE')}catch(e){}
+      try{sessionStorage.removeItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID');sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_MODE','my')}catch(e){}
+      location.replace(location.pathname.split('/').pop()+'');
+    }
+  }catch(e){}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -23,13 +43,18 @@
 <title>HAPPYAD — Central User V1</title>
 <script id="happyad-v125-profile-fast-return-flag">
 (function(){
-  /* V545 : suppression du faux retour rapide Boutique. Il gardait un ancien rendu visible après retour accueil. */
   try{
-    window.HAPPYAD_PROFILE_FAST_RETURN=false;
-    window.HAPPYAD_PROFILE_FAST_RETURN_UNTIL=0;
-    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
-    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');
-    document.documentElement.classList.remove('happyadFastProfileReturn');
+    var qs=String(location.search||'');
+    var ss=window.sessionStorage;
+    var armed=ss.getItem('HAPPYAD_PROFILE_FAST_RETURN_V1')==='1';
+    var fromBoutique=qs.indexOf('fromBoutique=1')>-1 || armed;
+    if(fromBoutique){
+      window.HAPPYAD_PROFILE_FAST_RETURN=true;
+      window.HAPPYAD_PROFILE_FAST_RETURN_UNTIL=Date.now()+4500;
+      ss.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
+      ss.setItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL',String(window.HAPPYAD_PROFILE_FAST_RETURN_UNTIL));
+      document.documentElement.classList.add('happyadFastProfileReturn');
+    }
   }catch(e){}
 })();
 </script>
@@ -76,30 +101,6 @@ button,input,textarea,select{font-family:inherit}
 .bottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:100;width:min(496px,calc(100% - 22px));display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:rgba(13,15,20,.96);border:1px solid #2a2f3a;border-radius:24px;padding:7px 5px;box-shadow:0 13px 40px rgba(0,0,0,.62)}
 .nav{text-decoration:none;text-align:center;color:#a8abb4;font-size:10px;font-weight:1000}.nav .ico{display:block;font-size:20px;margin-bottom:2px}.nav.active{color:var(--orange)}
 
-/* HAPPYAD profile mini-grid + shared actions */
-#publicationsBox{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
-.profilePosts{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important}
-.profilePost{background:#11151d!important;border:1px solid #2a303b!important;border-radius:16px!important;overflow:hidden!important;position:relative!important;padding:0!important;box-shadow:0 10px 24px rgba(0,0,0,.28)!important}
-.profilePost.videoPost{cursor:pointer!important}
-.happyadVideoViewsBadge,
-.happyadVideoViewsBadge:before,
-.happyadVideoViewsBadge:after{
-  display:none!important;
-  content:none!important;
-}
-.profileMedia{height:auto!important;aspect-ratio:1/1!important;background:linear-gradient(135deg,#171d29,#0b0f17)!important;overflow:hidden!important;display:grid!important;place-items:center!important;position:relative!important}
-.profileMedia img,.profileMedia video{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important}
-.profileMedia.hpvMediaLoading{background:linear-gradient(135deg,#171d29,#0b0f17)!important}
-.profileMedia video.hpvStableVideo{opacity:1!important;transition:opacity .18s ease;background:linear-gradient(135deg,#171d29,#0b0f17)!important}
-.profileMedia video.hpvStableVideo.hpvReady{opacity:1!important}
-.profilePostTitle{font-size:12.5px!important;line-height:1.08!important;padding:7px 8px 0!important;font-weight:1000!important;display:-webkit-box!important;-webkit-line-clamp:1!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
-.profilePostMeta{font-size:9.5px!important;color:#aeb3c0!important;line-height:1.1!important;padding:3px 8px 8px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.profilePostDesc{display:none!important}
-.profileActions{display:none!important}
-.profileAct{border:0!important;background:transparent!important;color:#d8dbe4!important;font:inherit!important;font-weight:1000!important;padding:3px 0!important;display:inline-flex!important;gap:3px!important;align-items:center!important}
-.profileAct.on{color:#ff315f!important}.profileAct.fav.on{color:#ff315f!important}
-.profilePlay{position:absolute;left:50%;top:50%!important;transform:translate(-50%,-50%);width:42px!important;height:42px!important;border-radius:50%;background:rgba(255,255,255,.86);color:#000;display:grid;place-items:center;font-size:19px!important;font-weight:1000;pointer-events:none}
-@media(max-width:360px){.profilePosts{gap:8px!important}}
 
 /* === V72 — Badge HAPPYAD officiel depuis Supabase === */
 .happyBadgeMark{position:relative!important;display:inline-block!important;width:14px!important;height:14px!important;margin-left:5px!important;vertical-align:-3px!important;overflow:visible!important;clip-path:polygon(50% 0%,58% 12%,71% 6%,76% 20%,91% 22%,88% 38%,100% 50%,88% 62%,91% 78%,76% 80%,71% 94%,58% 88%,50% 100%,42% 88%,29% 94%,24% 80%,9% 78%,12% 62%,0% 50%,12% 38%,9% 22%,24% 20%,29% 6%,42% 12%)!important}
@@ -110,6 +111,61 @@ button,input,textarea,select{font-family:inherit}
 .happyBadgeMark.blue{background:linear-gradient(135deg,#4fc3ff,#1ea7ff,#0078ff)!important;box-shadow:0 0 3px rgba(79,195,255,.45),0 0 8px rgba(0,120,255,.25)!important}
 .happyBadgeMark.blue:before{background:linear-gradient(135deg,#6fd4ff,#38b6ff,#0090ff)!important}
 </style>
+
+<!-- HAPPYAD V16F — verrou anti-zoom cartes profil avant rendu JS -->
+<style id="happyad-v16f-profile-cards-early-lock">
+/* Ce verrou charge avant les scripts profil visiteur: il empêche l'ancien affichage 1 colonne/zoom pendant l'ouverture. */
+#publicationsBox > .profilePosts,
+#profilePostsList,
+#publicCreatorPosts,
+.profilePosts.happyadPublicProfileLoadingCards{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  align-content:start!important;
+  width:100%!important;
+  min-width:0!important;
+}
+#profilePostsList > .profilePost,
+#publicCreatorPosts > .profilePost,
+#profilePostsList > .happyadPublicProfileLoadingCard,
+#publicCreatorPosts > .happyadPublicProfileLoadingCard{
+  width:auto!important;
+  max-width:none!important;
+  min-width:0!important;
+  grid-column:auto!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border-radius:15px!important;
+}
+#profilePostsList .profileMedia,
+#publicCreatorPosts .profileMedia,
+#profilePostsList .happyadPublicProfileLoadingMedia,
+#publicCreatorPosts .happyadPublicProfileLoadingMedia{
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  max-height:none!important;
+  overflow:hidden!important;
+  margin:0!important;
+}
+#profilePostsList .profileMedia img,
+#publicCreatorPosts .profileMedia img,
+#profilePostsList .profileMedia video,
+#publicCreatorPosts .profileMedia video{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  display:block!important;
+}
+#profilePostsList .profilePostDesc,
+#publicCreatorPosts .profilePostDesc,
+#profilePostsList .profileActions,
+#publicCreatorPosts .profileActions{display:none!important}
+</style>
+
 
 <style id="happyad-user-v7-final-stickers">
 /* V7 : stickers simples, filtre sur même ligne, suppression du point vert */
@@ -440,12 +496,6 @@ body{
   border:1px solid rgba(255,49,93,.25)!important;
 }
 </style>
-
-
-<style id="happyad-profile-posts-fix">
-.profilePosts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left}.profilePost{position:relative;background:#11151d;border:1px solid #2a303b;border-radius:18px;padding:8px;overflow:hidden}.profileMedia{height:170px;background:#050609;border-radius:14px;display:grid;place-items:center;overflow:hidden;margin-bottom:8px}.profileMedia img,.profileMedia video{width:100%;height:100%;object-fit:contain}.profileMedia img.happyadCropImg{object-fit:cover!important;max-width:none!important;max-height:none!important;will-change:transform;transform-origin:center center}.profilePostTitle{font-size:14px;font-weight:1000;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.profilePostMeta{font-size:10px;color:#aeb3c0;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.profilePostDesc{margin-top:5px;line-height:1.25;font-size:12px;max-height:31px;overflow:hidden}.profileDelete{position:absolute;right:10px;top:10px;z-index:5;border:0;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;width:32px;height:32px;font-weight:1000;backdrop-filter:blur(8px)}.profileEmpty{text-align:center;padding:28px 10px}.profileEmptyIcon{font-size:52px;opacity:.45}.profileAddBtn{display:inline-block;margin-top:12px;text-decoration:none;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-radius:16px;padding:12px 16px;font-weight:1000}
-</style>
-
 <style id="happyad-block2-profile-final-css">
 /* BLOC 2 PROFIL : partie publications scrollable seule */
 #publicationsBox{
@@ -1005,7 +1055,7 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
 
 <style id="happyad-v220-counts-no-overflow">
 /* V220 : compteurs likes/commentaires/partages/favoris compacts et sans debordement */
-.miniActions{
+.miniActions,.profileActions{
   display:flex!important;
   align-items:center!important;
   gap:4px!important;
@@ -1014,10 +1064,7 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   overflow:hidden!important;
   white-space:nowrap!important;
 }
-.profileActions{
-  display:none!important;
-}
-.miniActions .actionBtn{
+.miniActions .actionBtn,.profileActions .profileAct{
   flex:0 1 auto!important;
   min-width:0!important;
   max-width:34%!important;
@@ -1031,7 +1078,7 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   padding-right:0!important;
   line-height:1.05!important;
 }
-.miniActions .actionBtn small{
+.miniActions .actionBtn small,.profileActions .profileAct small{
   display:inline-block!important;
   min-width:0!important;
   max-width:42px!important;
@@ -1042,15 +1089,15 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   line-height:1!important;
   font-variant-numeric:tabular-nums!important;
 }
-.miniActions .actionBtn.fav{
+.miniActions .actionBtn.fav,.profileActions .profileAct.fav{
   margin-left:auto!important;
   flex:0 1 auto!important;
   max-width:30%!important;
 }
 @media(max-width:360px){
-  .miniActions{gap:3px!important;font-size:10px!important}
-  .miniActions .actionBtn{gap:1px!important;font-size:10px!important}
-  .miniActions .actionBtn small{font-size:10px!important;max-width:34px!important}
+  .miniActions,.profileActions{gap:3px!important;font-size:10px!important}
+  .miniActions .actionBtn,.profileActions .profileAct{gap:1px!important;font-size:10px!important}
+  .miniActions .actionBtn small,.profileActions .profileAct small{font-size:10px!important;max-width:34px!important}
 }
 </style>
 
@@ -1114,18 +1161,68 @@ body.happyadPublicCreatorProfile .profileBoutiqueBtn{opacity:.92!important;}
 body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending::before{content:""!important;display:none!important}
 body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending{background-color:rgba(255,255,255,.025)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)!important}
 </style>
-<style id="happyad-v550-profile-card-clean-style">
-/* v550: profil propre — les anciennes lignes d'actions dans les cartes profil ne doivent plus s'afficher pendant le chargement. */
-.profileGrid .profileActions,.profilePosts .profileActions,#profilePosts .profileActions,#publicProfilePosts .profileActions{display:none!important;visibility:hidden!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}
-</style>
 </head>
 <body>
 <a id="realBackToCentral" href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;text-decoration:none;color:#fff;font-size:28px;font-weight:900;background:linear-gradient(135deg,rgba(255,138,0,.22),rgba(255,75,34,.10));border:1px solid rgba(255,138,0,.45)">‹</a>
 
 <div id="toast" class="toast"></div>
+<script id="happyad-v8-profile-boutique-master-entry">
+(function(){
+  if(window.__HAPPYAD_PROFILE_BOUTIQUE_MASTER_ENTRY_V10__)return;
+  window.__HAPPYAD_PROFILE_BOUTIQUE_MASTER_ENTRY_V10__=true;
+  function profileUrl(){
+    try{return 'modules/user.html'+(location.search||'')+(location.hash||'');}catch(_e){return 'modules/user.html';}
+  }
+  function markFastReturn(){
+    try{sessionStorage.setItem('HAPPYAD_PROFILE_FAST_RETURN_V1','1');}catch(_e){}
+    try{sessionStorage.setItem('HAPPYAD_PROFILE_SCROLL_Y',String(window.scrollY||document.documentElement.scrollTop||0));}catch(_e){}
+    try{sessionStorage.setItem('HAPPYAD_PROFILE_RETURN_URL_V8',profileUrl());}catch(_e){}
+  }
+  function askParentOpenBoutique(opts){
+    var sent=false;
+    try{
+      if(window.parent&&window.parent!==window){
+        window.parent.postMessage({type:'HAPPYAD_PROFILE_BOUTIQUE_OPEN_REQUEST_V10',fromTarget:opts.fromTarget,source:'profile-button-postmessage-v10'},'*');
+        sent=true;
+      }
+    }catch(_m){}
+    try{
+      if(window.parent&&window.parent!==window&&window.parent.HappyBoutique&&typeof window.parent.HappyBoutique.open==='function'){
+        if(window.parent.HappyBoutique.open(opts))return true;
+      }
+    }catch(_p){}
+    try{
+      if(window.parent&&window.parent!==window&&window.parent.HappyNavigation&&typeof window.parent.HappyNavigation.open==='function'){
+        if(window.parent.HappyNavigation.open('boutique.html?v=532&return=profile&entry=profile-cart&from=profile-cart',{source:'profile-button-v10',fromTarget:opts.fromTarget}))return true;
+      }
+    }catch(_n){}
+    return sent;
+  }
+  window.happyadProfileOpenBoutiqueFromMaster=function(ev){
+    try{if(ev){ev.preventDefault&&ev.preventDefault();ev.stopPropagation&&ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();}}catch(_e){}
+    markFastReturn();
+    var opts={from:'profile-cart',fromTarget:{view:'profile',url:profileUrl()},source:'profile-button-v10'};
+    if(askParentOpenBoutique(opts))return false;
+    try{location.href='../boutique.html?standaloneBoutique=1&v=532&return=profile&entry=profile-cart&from=profile-cart';}catch(_x){}
+    return false;
+  };
+  function bindBoutiqueButtonV10(){
+    try{
+      document.querySelectorAll('.profileBoutiqueBtn,[data-happyad-boutique-entry="profile"]').forEach(function(btn){
+        if(btn.__happyadBoutiqueV10)return;btn.__happyadBoutiqueV10=true;
+        btn.addEventListener('pointerdown',window.happyadProfileOpenBoutiqueFromMaster,{capture:true,passive:false});
+        btn.addEventListener('click',window.happyadProfileOpenBoutiqueFromMaster,{capture:true,passive:false});
+      });
+    }catch(_e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindBoutiqueButtonV10,{once:true});else bindBoutiqueButtonV10();
+  try{new MutationObserver(bindBoutiqueButtonV10).observe(document.documentElement,{childList:true,subtree:true});}catch(_mo){}
+})();
+</script>
+
 <div class="app">
 <div class="card">
-       <a class="profileBoutiqueBtn" href="../boutique.html?v=v550foundation1&return=home&entry=profile-cart" title="Boutique" aria-label="Ouvrir la Boutique" data-happyad-boutique-entry="profile" onclick="try{sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503','home');sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503','index.html');var u='boutique.html?v=v550foundation1&return=home&entry=profile-cart';if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:u,extra:{source:'profile-boutique-home-v550'}},'*');return false;}if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492(u);return false;}}catch(e){}return false;">
+    <a class="profileBoutiqueBtn" href="../boutique.html?standaloneBoutique=1&v=532&return=profile&entry=profile-cart" title="Boutique" aria-label="Ouvrir la Boutique" data-happyad-boutique-entry="profile" onclick="return happyadProfileOpenBoutiqueFromMaster(event)">
       <!-- V86 : vrai chariot boutique SVG, plus clair que l'ancien sac -->
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M3 4.8h2.35c.42 0 .78.29.88.7l.42 1.8m0 0 1.55 7.2c.18.84.92 1.44 1.78 1.44h7.24c.82 0 1.54-.54 1.76-1.33L21 8.35H6.65Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2348,12 +2445,57 @@ async function happyadLoadProfileCommentsFromSupabase(postId,contentType){
     var a=getHappyAction(id);var keepLike=happyadProfileGetPendingAction(id,'like');var keepFav=happyadProfileGetPendingAction(id,'fav')||happyadProfileGetPendingAction(id,'favorite');var mergedList=happyadProfileMergePendingComments(id,list);if(keepLike){a.likes=Number(keepLike.count||0);a.like=!!keepLike.on;}else{a.likes=counts.likes;a.like=mine.like;}if(keepFav){a.favs=Number(keepFav.count||0);a.fav=!!keepFav.on;}else{a.favs=counts.favs;a.fav=mine.fav;}a.shares=counts.shares;a.comments=Math.max(Number((cr&&cr.count)||list.length||0),mergedList.length);a.commentsList=mergedList;setHappyAction(id,a);happyadProfileRefreshCommentCount(id);return a;
   }catch(e){console.warn('profile comments load',e);return null;}
 }
+async function happyadInsertContentCommentSafeV16W(c,row){
+  if(!c)throw new Error('Supabase non chargé');
+  row=Object.assign({},row||{});
+  var txt=String(row.text||row.comment_text||row.comment||row.body||'').trim();
+  if(!txt)throw new Error('Commentaire vide');
+  var now=row.created_at||new Date().toISOString();
+  var full=Object.assign({},row,{text:txt,created_at:now});
+  if(!full.post_id&&full.content_id)full.post_id=String(full.content_id);
+  if(!full.content_id&&full.post_id)full.content_id=String(full.post_id);
+  if(full.post_id!=null)full.post_id=String(full.post_id);
+  if(full.content_id!=null)full.content_id=String(full.content_id);
+  if(full.user_id!=null)full.user_id=String(full.user_id);
+  function clean(o){var r={};Object.keys(o||{}).forEach(function(k){var v=o[k];if(v!==undefined)r[k]=v;});return r;}
+  function omit(o,keys){var r={},drop={};(keys||[]).forEach(function(k){drop[k]=1;});Object.keys(o||{}).forEach(function(k){if(!drop[k])r[k]=o[k];});return clean(r);}
+  var basic={post_id:full.post_id,user_id:full.user_id,author_name:full.author_name||'Utilisateur HAPPYAD',text:txt,created_at:now};
+  var basicParent=Object.assign({},basic,{parent_id:full.parent_id||null});
+  var basicType=Object.assign({},basicParent,{content_type:full.content_type||'photo'});
+  var tries=[
+    clean(full),
+    omit(full,['content_id']),
+    omit(full,['author_avatar','author_badge']),
+    omit(full,['content_id','author_avatar','author_badge']),
+    clean(basicType),
+    clean(basicParent),
+    clean(basic),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,comment_text:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,comment:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,body:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,text:txt,created_at:now}),
+    clean({post_id:full.post_id,user_id:full.user_id,comment_text:txt,created_at:now}),
+    clean({post_id:full.post_id,user_id:full.user_id,comment:txt,created_at:now}),
+    clean({post_id:full.post_id,user_id:full.user_id,body:txt,created_at:now})
+  ];
+  var last=null,seen={};
+  for(var i=0;i<tries.length;i++){
+    var payload=tries[i]||{};
+    if(!payload.post_id||!payload.user_id)continue;
+    var sig=JSON.stringify(Object.keys(payload).sort().map(function(k){return k+':'+payload[k];}));
+    if(seen[sig])continue;seen[sig]=1;
+    var ins=await c.from('happyad_content_comments').insert(payload);
+    if(!ins.error)return ins;
+    last=ins.error;
+  }
+  throw last||new Error('Commentaire non enregistré');
+}
 async function happyadAddProfileCommentSupabase(p,contentType,text,parentId,author){
   var c=happyadSb();if(!c||!p||!p.id)throw new Error('Supabase non chargé');
   var user=await happyadProfileAuthUser();if(!user)throw new Error('Connecte-toi pour commenter');
   author=author||await happyadProfileResolveCommentAuthor();
   var row={post_id:String(p.id),content_id:String(p.id),content_type:contentType,user_id:user.id,author_name:author.name||user.email||'Utilisateur HAPPYAD',author_avatar:author.avatar||'',author_badge:author.badge||'',text:String(text||'').trim(),parent_id:parentId||null,created_at:new Date().toISOString()};
-  var ins=await c.from('happyad_content_comments').insert(row).select('*').single();if(ins.error)throw ins.error;
+  await happyadInsertContentCommentSafeV16W(c,row);
   try{await happyadNotifyProfilePostAction(p,'commentaire',text);}catch(_n){}
   try{await happyadLoadProfileCommentsFromSupabase(p.id,contentType);}catch(_l){}
   return getHappyAction(p.id);
@@ -2447,7 +2589,7 @@ async function renderProfilePublications(){
 },0);
     return;
   }
-  const __fastReturnFromBoutique = false; /* v550: ancien retour rapide Boutique désactivé */
+  const __fastReturnFromBoutique = !!(window.HAPPYAD_PROFILE_FAST_RETURN || (function(){try{return Number(sessionStorage.getItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL')||0)>Date.now()}catch(e){return false}})());
   function __profileIdle(fn,delay){
     delay = delay || 0;
     try{
@@ -2904,8 +3046,30 @@ if(hasRealAccount){
     sRating.textContent=happyadCompactCount(u.likes || 0);
   }
 
-  if(document.getElementById("bioDisplay")) bioDisplay.textContent=u.bio || "Ajoute une bio pour te présenter aux autres utilisateurs.";
-  if(document.getElementById("bioFree")) bioFree.textContent=u.bio || "";
+  var __happyadProfileBioText = "";
+  try{
+    if(__publicActiveProfile){
+      var __happyadProfileBioFromContent = false;
+      try{
+        var __bioSource = String(__publicActiveProfile.__happyadBioSource || __publicActiveProfile.source || "").toLowerCase();
+        __happyadProfileBioFromContent = !__publicActiveProfile.__happyadBioSource && (
+          __bioSource.indexOf("post") > -1 ||
+          __bioSource.indexOf("story") > -1 ||
+          !!(__publicActiveProfile.postId || __publicActiveProfile.post_id || __publicActiveProfile.media_url || __publicActiveProfile.mediaUrl || __publicActiveProfile.post_type || __publicActiveProfile.postType || __publicActiveProfile.price || __publicActiveProfile.category || __publicActiveProfile.batch_id || __publicActiveProfile.group_id)
+        );
+      }catch(__bioContentErr){}
+      __happyadProfileBioText = __happyadProfileBioFromContent ? "" : String(__publicActiveProfile.bio || __publicActiveProfile.about || __publicActiveProfile.profile_bio || __publicActiveProfile.bio_text || "").trim();
+    }else{
+      __happyadProfileBioText = String((u && u.bio) || "").trim();
+    }
+  }catch(__bioTextErr){
+    __happyadProfileBioText = String((u && u.bio) || "").trim();
+  }
+  if(document.getElementById("bioDisplay")) bioDisplay.textContent = __publicActiveProfile ? __happyadProfileBioText : (__happyadProfileBioText || "Ajoute une bio pour te présenter aux autres utilisateurs.");
+  if(document.getElementById("bioFree")){
+    bioFree.textContent = __happyadProfileBioText || "";
+    if(__publicActiveProfile) bioFree.style.display = __happyadProfileBioText ? "" : "none";
+  }
 
   const __nameInput = document.getElementById("nameInput");
 const __handleInput = document.getElementById("handleInput");
@@ -2924,7 +3088,7 @@ if(__birthInput) __birthInput.value = u.birthDate || "";
   if(document.getElementById("statsPanel")) renderFullStats();
     try{
     happyadPaintOwnProfileLoadingCardsNowV2();
-    var __fastUntil=0; /* v550: ancien retour rapide Boutique désactivé */
+    var __fastUntil=Number(sessionStorage.getItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL')||0);
     var __hasRealProfileContent=document.querySelector(
       '#publicationsBox .profilePost,#publicationsBox .profileEmpty'
     );
@@ -3167,10 +3331,13 @@ function closeStoryViewer(){storyViewerShade.classList.remove("show");storyMedia
     var nm=clean(row.full_name||row.display_name||row.name||row.creator_name||row.user_name||row.username||row.seller_name||row.author_name||'')||clean(ap.full_name||ap.name||ap.display_name||ap.username||'');
     var hd=clean(row.username||row.handle||row.user_name||row.seller_handle||row.author_handle||'').replace(/^@+/,'')||handleOf(ap);
     var bg=clean(row.badge||row.user_badge||row.badge_type||row.certification||row.verified_badge||row.role_badge||'')||clean(ap.badge||ap.user_badge||'');
+    var __bioContentRow=!!(row.media_url||row.mediaUrl||row.media_type||row.mediaType||row.post_type||row.postType||row.mode||row.title||row.price||row.category||row.batch_id||row.batchId||row.group_id||row.groupId||row.story_id||row.storyId||row.caption);
+    var bio=clean(row.bio||row.about||row.profile_bio||row.bio_text||(!__bioContentRow?row.description:'')||'')||clean(ap.bio||ap.about||ap.profile_bio||ap.bio_text||'');
     if(av){ap.avatar=av;ap.avatar_url=av;}
     if(nm && nm!=='Chargement profil...'){ap.name=nm;ap.full_name=nm;}
     if(hd){ap.handle=hd;ap.username=hd;}
     if(bg){ap.badge=bg;ap.user_badge=bg;}
+    if(bio){ap.bio=bio;}
     return ap;
   }
   function commitCreatorIdentity(ap){
@@ -3380,6 +3547,49 @@ function mapPost(r,ap){
     if(window.typePill)typePill.style.display='none';
     if(window.verifyPill)verifyPill.style.display='none';
   }catch(e){}
+
+  try{
+    if(location.search.indexOf('public=1')>-1){
+      var __bioSource = clean(ap.__happyadBioSource||ap.source||'').toLowerCase();
+      var __bioContentProfile = !ap.__happyadBioSource && (__bioSource.indexOf('post')>-1 || __bioSource.indexOf('story')>-1 || !!(ap.postId||ap.post_id||ap.media_url||ap.mediaUrl||ap.post_type||ap.postType||ap.price||ap.category||ap.batch_id||ap.group_id));
+      var bioTxt = __bioContentProfile ? '' : clean(ap.bio||ap.about||ap.profile_bio||ap.bio_text||'');
+      var bf = document.getElementById('bioFree');
+      if(bf){
+        bf.textContent = bioTxt || '';
+        bf.style.display = bioTxt ? '' : 'none';
+      }
+      var bd = document.getElementById('bioDisplay');
+      if(bd) bd.textContent = bioTxt || '';
+      if(!bioTxt && uid){
+        try{
+          window.__HAPPYAD_PUBLIC_BIO_FETCHING__ = window.__HAPPYAD_PUBLIC_BIO_FETCHING__ || {};
+          if(!window.__HAPPYAD_PUBLIC_BIO_FETCHING__[String(uid)]){
+            window.__HAPPYAD_PUBLIC_BIO_FETCHING__[String(uid)] = true;
+            setTimeout(function(){
+              try{
+                var c = sb && sb();
+                if(!c)return;
+                c.from('profiles').select('id,bio,about,description,profile_bio,bio_text').eq('id',uid).maybeSingle().then(function(r){
+                  try{
+                    if(!r || r.error || !r.data)return;
+                    var b = clean(r.data.bio||r.data.about||r.data.profile_bio||r.data.bio_text||r.data.description||'');
+                    if(!b)return;
+                    var cur = active() || ap || {};
+                    if(String(uidOf(cur)||uid) !== String(uid))return;
+                    cur.bio = b;
+                    cur.__happyadBioSource = 'profile';
+                    setActive(cur);
+                    saveProfileCache(cur);
+                    paintHeader(cur);
+                  }catch(_bh){}
+                });
+              }catch(_bf){}
+            },60);
+          }
+        }catch(_bioFetch){}
+      }
+    }
+  }catch(_bioPaint){}
 
   try{
     if(window.avatarPreview){
@@ -3797,7 +4007,7 @@ function mapPost(r,ap){
   var c = sb();
   var fc = readFollowCountCache(Object.assign({}, ap, {id:requested,user_id:requested}));
 
-  function applyProfileRow(row){
+  function applyProfileRow(row,fromProfile){
     if(!row) return;
 
     var av = avatarOf(row) || avatarOf(ap);
@@ -3847,7 +4057,8 @@ function mapPost(r,ap){
       username: hd || ap.username || '',
       avatar: av || ap.avatar || '',
       avatar_url: av || ap.avatar_url || '',
-      bio: row.bio || ap.bio || '',
+      bio: (row.bio || row.about || row.profile_bio || row.bio_text || (fromProfile ? row.description : '') || ap.bio || ''),
+      __happyadBioSource: (row.bio || row.about || row.profile_bio || row.bio_text || (fromProfile ? row.description : '')) ? 'profile' : ap.__happyadBioSource,
       country: row.country || ap.country || '',
       badge: bg || ap.badge || 'aucun',
       user_badge: bg || ap.user_badge || ap.badge || 'aucun',
@@ -3862,7 +4073,7 @@ function mapPost(r,ap){
     try{
       var r = await c.from('profiles').select('*').eq(col, requested).maybeSingle();
       if(r && !r.error && r.data){
-        applyProfileRow(r.data);
+        applyProfileRow(r.data,true);
         return true;
       }
     }catch(e){}
@@ -3874,7 +4085,7 @@ function mapPost(r,ap){
     try{
       var r = await c.from(table).select('*').eq(col, requested).order('created_at',{ascending:false}).limit(1);
       if(r && !r.error && r.data && r.data[0]){
-        applyProfileRow(r.data[0]);
+        applyProfileRow(r.data[0],false);
         return true;
       }
     }catch(e){}
@@ -6409,8 +6620,7 @@ else if(event==='TOKEN_REFRESHED') setTimeout(function(){hydrateFromSupabase(fal
 body.happyadPublicCreatorProfile #actionFree,
 body.happyadPublicCreatorProfile #settingsPanel,
 body.happyadPublicCreatorProfile #statsPanel,
-body.happyadPublicCreatorProfile #profileStatsPanel,
-body.happyadPublicCreatorProfile #bioFree{display:none!important}
+body.happyadPublicCreatorProfile #profileStatsPanel{display:none!important}
 body.happyadPublicCreatorProfile #avatarPreview .plus{display:none!important;pointer-events:none!important}
 body.happyadPublicCreatorProfile #publicationsBox{display:block!important;text-align:left!important;padding-bottom:120px!important}
 body.happyadPublicCreatorProfile .profileDelete{display:none!important}
@@ -6878,8 +7088,7 @@ body.happyadPublicCreatorProfile .profileDelete{display:none!important}
 body.happyadPublicCreatorProfile #actionFree,
 body.happyadPublicCreatorProfile #settingsPanel,
 body.happyadPublicCreatorProfile #statsPanel,
-body.happyadPublicCreatorProfile #profileStatsPanel,
-body.happyadPublicCreatorProfile #bioFree{display:none!important}
+body.happyadPublicCreatorProfile #profileStatsPanel{display:none!important}
 </style>
 <script id="happyad-v6-public-profile-no-fight">
 (function(){
@@ -6971,6 +7180,15 @@ if(avatar){
       }
     }catch(e){}
     try{if(window.typePill)typePill.style.display='none'; if(window.verifyPill)verifyPill.style.display='none';}catch(e){}
+    try{
+      var __bioSource=String(ap.__happyadBioSource||ap.source||'').toLowerCase();
+      var __bioContentProfile=!ap.__happyadBioSource&&(__bioSource.indexOf('post')>-1||__bioSource.indexOf('story')>-1||!!(ap.postId||ap.post_id||ap.media_url||ap.mediaUrl||ap.post_type||ap.postType||ap.price||ap.category||ap.batch_id||ap.group_id));
+      var bioTxt=__bioContentProfile?'':String(ap.bio||ap.about||ap.profile_bio||ap.bio_text||'').trim();
+      var bf=document.getElementById('bioFree');
+      if(bf){bf.textContent=bioTxt||'';bf.style.display=bioTxt?'':'none';}
+      var bd=document.getElementById('bioDisplay');
+      if(bd)bd.textContent=bioTxt||'';
+    }catch(_bioLegacy){}
     return true;
   }
   async function resolveFromSupabase(ap){
@@ -6983,7 +7201,7 @@ if(avatar){
       }
       if(q&&q.data&&!q.error){
         var p=q.data;
-        return Object.assign({},ap,{id:p.id||ap.id||'',name:p.full_name||p.username||ap.name||'Utilisateur HAPPYAD',handle:p.username?('@'+cleanAt(p.username)):(ap.handle||''),avatar:p.avatar_url||'',bio:p.bio||ap.bio||'',country:p.country||ap.country||'',badge:p.badge||ap.badge||'aucun',type:p.type||ap.type||''});
+        return Object.assign({},ap,{id:p.id||ap.id||'',name:p.full_name||p.username||ap.name||'Utilisateur HAPPYAD',handle:p.username?('@'+cleanAt(p.username)):(ap.handle||''),avatar:p.avatar_url||'',bio:p.bio||ap.bio||'',__happyadBioSource:p.bio?'profile':ap.__happyadBioSource,country:p.country||ap.country||'',badge:p.badge||ap.badge||'aucun',type:p.type||ap.type||''});
       }
     }catch(e){console.warn('HAPPYAD V7 public profile resolve',e)}
     return ap;
@@ -12291,36 +12509,180 @@ setTimeout(function(){
 })();
 </script>
 
-<!-- HAPPYAD V323 — Profil/visiteur: cartes propres sans compteurs actions -->
-<style id="happyad-profile-cards-no-actions-v323">
-/* Sur mon profil et le profil visiteur, les cartes restent petites et propres.
-   Les actions/counters restent disponibles dans l'ouverture photo/vidéo, mais ne s'affichent plus sur la grille. */
-.profilePost .profileActions{
-  display:none!important;
+<!-- HAPPYAD V16F — cartes profil : ancien designer supprimé + anti-zoom ouverture visiteur -->
+<style id="happyad-profile-global-compact-v324">
+/* V16F — Designer actuel des cartes profil récupéré proprement.
+   Ce bloc devient le seul maître visuel des cartes Mon profil / Profil visiteur.
+   Ancien design supprimé : plus de height 170px, plus de padding 8px, plus de description/actions visibles dans la grille. */
+.app{padding:0 10px 82px!important}
+.top{margin:0 -10px!important;padding:8px 10px!important}
+.topRow{grid-template-columns:40px 1fr 40px!important;gap:7px!important}
+.round{width:38px!important;height:38px!important;font-size:20px!important}
+.title{font-size:22px!important}
+.sub{font-size:10px!important;margin-top:1px!important}
+.card{border-radius:18px!important;margin-bottom:8px!important;padding:10px!important;box-shadow:0 9px 22px rgba(0,0,0,.26)!important}
+.card:first-of-type{padding:9px 10px!important;margin-bottom:7px!important}
+.card:first-of-type .avatar{width:56px!important;height:56px!important;border-width:2px!important}
+.card:first-of-type .avatar .plus{width:27px!important;height:27px!important;font-size:18px!important;right:-7px!important;bottom:0!important;border-width:2px!important}
+.nameRow{margin:6px 0 0!important}
+.name{font-size:18px!important;line-height:1.05!important}
+.handle{font-size:12px!important}
+.stats{margin:8px 0!important;border-radius:18px!important}
+.stat{padding:6px 1px!important}
+.stat b{font-size:14px!important}
+.stat span{font-size:9px!important}
+.big{font-size:18px!important}
+.muted{font-size:12px!important;line-height:1.2!important}
+.grid{gap:7px!important}
+.primary,.ghost,#openSettings,#openStats,#openEdit{min-height:40px!important;padding:8px 7px!important;border-radius:14px!important;font-size:12px!important}
+.tabs{gap:6px!important;margin:8px -10px 9px!important;padding:0 10px!important}
+.tab{padding:8px 11px!important;border-radius:14px!important;font-size:11px!important}
+
+/* Cartes publications actuelles */
+#publicationsBox{background:transparent!important;border:0!important;box-shadow:none!important;text-align:left!important}
+.profilePosts,
+#profilePostsList,
+#publicCreatorPosts,
+.profilePosts.happyadPublicProfileLoadingCards{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  align-content:start!important;
+  width:100%!important;
+  min-width:0!important;
 }
 .profilePost{
-  padding:7px!important;
+  position:relative!important;
+  overflow:hidden!important;
+  padding:0!important;
+  border-radius:15px!important;
+  border:1px solid #2a303b!important;
+  background:#11151d!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.22)!important;
 }
+#profilePostsList > .profilePost,
+#publicCreatorPosts > .profilePost,
+#profilePostsList > .happyadPublicProfileLoadingCard,
+#publicCreatorPosts > .happyadPublicProfileLoadingCard{
+  width:auto!important;
+  max-width:none!important;
+  min-width:0!important;
+  grid-column:auto!important;
+  align-self:start!important;
+}
+.profilePost.videoPost{cursor:pointer!important}
+.profileMedia,
+.profilePost.videoPost .profileMedia{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border-radius:0!important;
+  background:#11151d!important;
+  background-image:linear-gradient(180deg,#151a23,#0d1118)!important;
+}
+.profileMedia img,
+.profileMedia video,
+.profileMedia img.hpvStableVideoPoster,
+.profileMedia video.hpvStableVideo,
+.profileMedia video.hpvStableVideo.hpvReady{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  border-radius:0!important;
+  background:transparent!important;
+  opacity:1!important;
+}
+.profileMedia img.happyadCropImg{object-fit:cover!important;will-change:transform;transform-origin:center center}
+.profileMedia.hpvMediaLoading{
+  background:#11151d!important;
+  background-image:linear-gradient(180deg,#151a23,#0d1118)!important;
+}
+.profileMedia.hpvMediaLoading::after,
+.profileMedia:not(.hpvMediaLoading)::after{display:none!important;content:""!important}
 .profilePostTitle{
-  margin-top:2px!important;
-  margin-bottom:2px!important;
+  margin:0!important;
+  padding:7px 8px 0!important;
+  font-size:12.5px!important;
+  line-height:1.08!important;
+  font-weight:1000!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:1!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+  word-break:break-word!important;
 }
 .profilePostMeta{
-  margin-bottom:0!important;
+  margin:0!important;
+  padding:3px 8px 8px!important;
+  font-size:9.5px!important;
+  line-height:1.1!important;
+  color:#aeb3c0!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
 }
-.profilePostDesc{
-  display:none!important;
+.profilePostDesc,
+.profilePost .profileActions{display:none!important}
+.profilePlay{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:42px!important;
+  height:42px!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  z-index:6!important;
+  background:rgba(255,255,255,.86)!important;
+  color:#111!important;
+  font-size:19px!important;
+  font-weight:1000!important;
+  pointer-events:none!important;
 }
-</style>
+.happyadVideoViewsBadge,
+.happyadVideoViewsBadge:before,
+.happyadVideoViewsBadge:after{display:none!important;content:none!important}
+.profileDelete{
+  position:absolute!important;
+  right:9px!important;
+  top:9px!important;
+  z-index:8!important;
+  width:32px!important;
+  height:32px!important;
+  border:0!important;
+  border-radius:999px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:rgba(0,0,0,.62)!important;
+  color:#fff!important;
+  font-size:23px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  backdrop-filter:blur(8px)!important;
+}
+.profileEmpty{text-align:center!important;padding:28px 10px!important}
+.profileEmptyIcon{font-size:52px!important;opacity:.45!important}
+.profileAddBtn{display:inline-block!important;margin-top:12px!important;text-decoration:none!important;background:linear-gradient(135deg,var(--orange),var(--orange2))!important;color:#111!important;border-radius:16px!important;padding:12px 16px!important;font-weight:1000!important}
 
-<!-- HAPPYAD V324 — PROFIL COMPACT GLOBAL / AUCUNE NOUVELLE FONCTION -->
-<style id="happyad-profile-global-compact-v324">
-.app{padding:0 10px 82px!important}.top{margin:0 -10px!important;padding:8px 10px!important}.topRow{grid-template-columns:40px 1fr 40px!important;gap:7px!important}.round{width:38px!important;height:38px!important;font-size:20px!important}.title{font-size:22px!important}.sub{font-size:10px!important;margin-top:1px!important}
-.card{border-radius:18px!important;margin-bottom:8px!important;padding:10px!important;box-shadow:0 9px 22px rgba(0,0,0,.26)!important}.card:first-of-type{padding:9px 10px!important;margin-bottom:7px!important}.card:first-of-type .avatar{width:56px!important;height:56px!important;border-width:2px!important}.card:first-of-type .avatar .plus{width:27px!important;height:27px!important;font-size:18px!important;right:-7px!important;bottom:0!important;border-width:2px!important}.nameRow{margin:6px 0 0!important}.name{font-size:18px!important;line-height:1.05!important}.handle{font-size:12px!important}.stats{margin:8px 0!important;border-radius:18px!important}.stat{padding:6px 1px!important}.stat b{font-size:14px!important}.stat span{font-size:9px!important}.big{font-size:18px!important}.muted{font-size:12px!important;line-height:1.2!important}
-.grid{gap:7px!important}.primary,.ghost,#openSettings,#openStats,#openEdit{min-height:40px!important;padding:8px 7px!important;border-radius:14px!important;font-size:12px!important}.tabs{gap:6px!important;margin:8px -10px 9px!important;padding:0 10px!important}.tab{padding:8px 11px!important;border-radius:14px!important;font-size:11px!important}
-.profilePosts{gap:8px!important;grid-template-columns:1fr 1fr!important}.profilePost{border-radius:15px!important;padding:0!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important}.profileMedia{height:auto!important;aspect-ratio:1/1!important}.profilePostTitle{font-size:12.5px!important;line-height:1.08!important;padding:7px 8px 0!important;display:-webkit-box!important;-webkit-line-clamp:1!important;-webkit-box-orient:vertical!important;overflow:hidden!important}.profilePostMeta{font-size:9.5px!important;line-height:1.1!important;padding:3px 8px 8px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.profilePostDesc,.profileActions{display:none!important}.profilePlay{width:42px!important;height:42px!important;font-size:19px!important;top:50%!important}.happyadVideoViewsBadge{display:none!important}
-.bottom{bottom:8px!important;width:min(496px,calc(100% - 18px))!important;border-radius:22px!important;padding:6px 5px!important}.nav{font-size:9.5px!important}.nav .ico{font-size:18px!important}.plus{width:46px!important;height:46px!important;font-size:29px!important;margin-top:-26px!important}
-@media(max-width:380px){.app{padding-left:8px!important;padding-right:8px!important}.top{margin-left:-8px!important;margin-right:-8px!important}.profilePosts{gap:7px!important}.profilePostTitle{font-size:12px!important}.profilePostMeta{font-size:9px!important}.tab{font-size:10.5px!important;padding:7px 10px!important}}
+.bottom{bottom:8px!important;width:min(496px,calc(100% - 18px))!important;border-radius:22px!important;padding:6px 5px!important}
+.nav{font-size:9.5px!important}.nav .ico{font-size:18px!important}.plus{width:46px!important;height:46px!important;font-size:29px!important;margin-top:-26px!important}
+@media(max-width:380px){
+  .app{padding-left:8px!important;padding-right:8px!important}
+  .top{margin-left:-8px!important;margin-right:-8px!important}
+  .profilePosts,#profilePostsList,#publicCreatorPosts{gap:7px!important}
+  .profilePostTitle{font-size:12px!important}
+  .profilePostMeta{font-size:9px!important}
+  .tab{font-size:10.5px!important;padding:7px 10px!important}
+}
 </style>
 
 <!-- HAPPYAD V327 — MON PROFIL FULL SCREEN + VIDEO CARD NO BLACK -->

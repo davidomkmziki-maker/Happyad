@@ -382,6 +382,30 @@
 
 
 </head><body><div class="screen booting" id="screen"><div class="photoFixedHeader" id="photoFixedHeader"><a class="photoFixedBack" href="../index.html" aria-label="Retour">‹</a><div class="photoFixedTitle">PHOTO HAPPYAD</div><div class="photoFixedRight" aria-hidden="true"></div></div><div class="photoStage chainScreen" id="photoStage"></div></div><!-- V402: ancien viewer temporaire V401 supprimé pour éviter le flash au démarrage --><div id="photoLegacyCompat" aria-hidden="true" style="display:none!important;visibility:hidden!important;pointer-events:none!important;height:0!important;width:0!important;overflow:hidden!important"><span id="counter"></span><div id="creatorPill"></div><div id="title"></div><div id="desc"></div><button id="prevZone" type="button"></button><button id="nextZone" type="button"></button></div><div id="commentBackdrop" class="commentBackdrop"></div><div id="commentPanel" class="commentPanel"><div class="panelHead"><div id="commentDragHandle" class="commentDragHandle">_</div><b>Commentaires photo</b><button id="commentSortBtn" class="commentSortBtn" type="button">^</button><div class="panelBtns"><button id="toggleCommentsSize">Plein écran</button><button id="closeComments">Fermer</button></div></div><div id="commentSortMenu" class="commentSortMenu"><button data-comment-sort="auto">Top 5 + récent</button><button data-comment-sort="popular">Plus populaires</button><button data-comment-sort="recent">Plus récent</button><button data-comment-sort="old">Plus ancien</button><button data-comment-sort="success">Très réussit</button></div><div class="commentBody"><div id="commentsList"></div></div><div id="replyBanner" class="replyBanner"><span id="replyBannerText"></span><button id="cancelReply">Annuler</button></div><div class="commentInput commentInputBar" id="commentInputBar"><input id="commentInput" placeholder="Écrire un commentaire..."><button id="sendComment">Envoyer</button></div></div><script>
+
+(function(){
+  'use strict';
+  if(window.__HAPPYAD_PHOTO_INTERNAL_BACK_MASTER_V14B__)return;
+  window.__HAPPYAD_PHOTO_INTERNAL_BACK_MASTER_V14B__=true;
+  function inFrame(){try{return !!(window.parent&&window.parent!==window);}catch(_e){return false;}}
+  function stop(e){try{e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}catch(_e){}}
+  function sendClose(source){
+    try{if(inFrame()&&window.parent&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_CLOSE_APP_PAGE',source:source||'photo-internal-back-v14b'},'*');return true;}}catch(_e){}
+    try{location.href='../index.html';return true;}catch(_e2){return false;}
+  }
+  function backTarget(t){
+    try{
+      if(!t||!t.closest)return null;
+      return t.closest('.photoFixedBack,.slideTop a.round,a.btn[href="../index.html"],a[href="../index.html"]');
+    }catch(_e){return null;}
+  }
+  document.addEventListener('click',function(e){
+    var a=backTarget(e&&e.target);
+    if(!a)return;
+    stop(e);
+    sendClose('photo-internal-back-v14b');
+  },true);
+})();
 const $=id=>document.getElementById(id), KEY='HAPPYAD_VIDEO_ACTIONS_V1';const params=new URLSearchParams(location.search);let post=null, photoPosts=[], allPhotoPosts=[], currentIndex=0, img=null;let currentAuthId='', replyingTo=null;let COMMENT_REPLIES_VISIBLE={}, commentSortMode='auto';let __happyadPhotoRenderedOnce=false,__happyadPhotoRenderedPostId='',__happyadPhotoLastSource='';let scale=1, tx=0, ty=0, startDist=0, startScale=1, lastTap=0, startX=0, startY=0, isPan=false, moved=false, tapTimer=null;function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function currentUser(){try{return JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')}catch(e){return {}}}function isVideo(p){return p&&(p.kind==='video'||p.type==='video'||p.mediaType==='video')}function isCommercial(p){return !!(p&&(p.price||p.amount||p.category==='Produit'||p.category==='Service'||p.type==='product'||p.kind==='product'))}function creatorName(p){return (p&&(p.creatorName||p.display_name||p.userName||p.author||p.name))||'Utilisateur HAPPYAD'}function creatorHandle(p){const h=(p&&(p.handle||p.username))||'';return h?(String(h).startsWith('@')?h:'@'+h):''}function creatorAvatar(p){return (p&&(p.avatar||p.avatar_url||p.userAvatar||p.authorAvatar))||''}function initials(s){return String(s||'H').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'H'}function readActions(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}}function saveActions(x){localStorage.setItem(KEY,JSON.stringify(x))}function getA(id){const all=readActions();return all[id]||{like:false,fav:false,likes:0,comments:0,shares:0,reposts:0,favs:0,commentsList:[]}}function setA(id,a){const all=readActions();all[id]=a;saveActions(all)}const HAPPYAD_PHOTO_ACTION_PENDING_LOCKS={};function photoPendingKey(postId,actionType){return String(postId||'')+'::'+String(actionType||'like')}function setPhotoPendingAction(postId,actionType,on,count,ttl){try{HAPPYAD_PHOTO_ACTION_PENDING_LOCKS[photoPendingKey(postId,actionType)]={on:!!on,count:Number(count||0),until:Date.now()+Number(ttl||8000)}}catch(e){}}function clearPhotoPendingAction(postId,actionType){try{delete HAPPYAD_PHOTO_ACTION_PENDING_LOCKS[photoPendingKey(postId,actionType)]}catch(e){}}function getPhotoPendingAction(postId,actionType){try{const x=HAPPYAD_PHOTO_ACTION_PENDING_LOCKS[photoPendingKey(postId,actionType)];if(x&&Date.now()<Number(x.until||0))return x;if(x)delete HAPPYAD_PHOTO_ACTION_PENDING_LOCKS[photoPendingKey(postId,actionType)]}catch(e){}return null}const HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS={};function setPhotoPendingComment(postId,cmt,ttl){try{var k=String(postId||''),arr=HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k]||[];cmt=Object.assign({},cmt||{},{__pending:true,__until:Date.now()+Number(ttl||10000)});arr=arr.filter(function(x){return x&&Date.now()<Number(x.__until||0)&&String(x.id)!==String(cmt.id)});arr.push(cmt);HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k]=arr}catch(e){}}function samePhotoPendingComment(a,b){try{var tx=String(a&&a.text||'').trim(),ty=String(b&&b.text||b&&b.comment_text||b&&b.body||b&&b.comment||'').trim();if(!tx||tx!==ty)return false;var ax=String(a&&a.user_id||a&&a.authorId||''),ay=String(b&&b.user_id||b&&b.authorId||'');if(ax&&ay&&ax!==ay)return false;var px=String(a&&a.parent_id||a&&a.parentId||''),py=String(b&&b.parent_id||b&&b.parentId||'');return px===py}catch(e){return false}}function getPhotoPendingComments(postId){try{var k=String(postId||''),now=Date.now(),arr=(HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k]||[]).filter(function(x){return x&&now<Number(x.__until||0)});if(arr.length)HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k]=arr;else delete HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k];return arr}catch(e){return []}}function mergePhotoPendingComments(postId,remoteList){try{var k=String(postId||''),list=Array.isArray(remoteList)?remoteList.slice():[],keep=[];getPhotoPendingComments(postId).forEach(function(p){var found=list.some(function(r){return samePhotoPendingComment(p,r)});if(!found){keep.push(p);list.unshift(p)}});if(keep.length)HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k]=keep;else delete HAPPYAD_PHOTO_COMMENT_PENDING_LOCKS[k];return list}catch(e){return Array.isArray(remoteList)?remoteList:[]}}function countComments(list){return (list||[]).reduce((n,c)=>n+1+countComments(c.replies||[]),0)}function formatN(n){n=Number(n||0);if(n>=1e6)return(n/1e6).toFixed(n%1e6?1:0)+'M';if(n>=1e3)return(n/1e3).toFixed(n%1e3?1:0)+'K';return String(n)}function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('HAPPYAD_MEDIA_DB',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('media'))req.result.createObjectStore('media',{keyPath:'id'});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}async function getMedia(id){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('media','readonly');const req=tx.objectStore('media').get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
 function happyadSb(){if(window.happyadSupabase)return window.happyadSupabase;if(window.supabase&&window.supabase.createClient){window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return window.happyadSupabase;}return null}
 function happyadPhotoPublicUrl(v){
@@ -594,7 +618,52 @@ function openCommentProfile(c){const data=commentProfileData(c||{});const uid=St
 async function loadPhotoActionsFromSupabase(postRef){const c=happyadSb();if(!c||!postRef)return null;try{const user=await happyadAuthUser();currentAuthId=user&&user.id?String(user.id):'';const ids=happyadPhotoCentralActionIds(postRef);const id=happyadPhotoCentralPrimaryId(postRef)||ids[0];if(!id||!ids.length)return null;const {data:actions,error}=await c.from('happyad_content_actions').select('action_type,user_id,liked').eq('post_id',id).eq('content_type','photo');if(error)throw error;let cq=c.from('happyad_content_comments').select('*');cq=ids.length>1?cq.in('post_id',ids):cq.eq('post_id',id);const {data:rawComments,error:commentErr}=await cq.order('created_at',{ascending:false}).limit(180);if(commentErr)console.warn('photo comments',commentErr);let counts={like:0,fav:0,share:0,repost:0},mine={like:false,fav:false};(actions||[]).forEach(r=>{const t=r.action_type;if(t==='like'&&r.liked===true)counts.like++;if((t==='fav'||t==='favorite')&&r.liked===true)counts.fav++;if(t==='share')counts.share++;if(t==='repost'||t==='republish')counts.repost++;if(user&&String(r.user_id)===String(user.id)){if(t==='like')mine.like=!!r.liked;if(t==='fav'||t==='favorite')mine.fav=!!r.liked;}});const seen={};const comments=(rawComments||[]).filter(r=>{const k=String(r.id||'');if(!k||seen[k])return false;seen[k]=1;return true;});const list=comments.map(r=>({id:r.id,post_id:r.post_id||id,user_id:r.user_id||'',parent_id:r.parent_id||null,name:r.author_name||r.name||'Utilisateur',avatar:r.author_avatar||r.avatar||'',text:r.text||r.comment_text||r.body||r.comment||'',badge:r.author_badge||r.user_badge||r.badge||'',likes:Number(r.likes||0),liked:false,replies:[],created_at:r.created_at||'',updated_at:r.updated_at||'',at:new Date(r.created_at||Date.now()).getTime()}));await enrichCommentProfiles(list);await applyPhotoCommentLikes(list,user);const a=getA(id);const keepLike=getPhotoPendingAction(id,'like'),keepFav=getPhotoPendingAction(id,'fav')||getPhotoPendingAction(id,'favorite');const mergedList=mergePhotoPendingComments(id,list);if(keepLike){a.likes=Number(keepLike.count||0);a.like=!!keepLike.on}else{a.likes=counts.like;a.like=mine.like}if(keepFav){a.favs=Number(keepFav.count||0);a.fav=!!keepFav.on}else{a.favs=counts.fav;a.fav=mine.fav}a.shares=counts.share;a.reposts=counts.repost;a.comments=Math.max(list.length,mergedList.length);a.commentsList=mergedList;setA(id,a);ids.forEach(function(pid){if(String(pid)===String(id))return;const ax=getA(pid);ax.comments=a.comments;ax.commentsList=a.commentsList;setA(pid,ax);});refresh();return a;}catch(e){console.warn('photo actions load',e);return null}}
 async function syncPhotoPostCounts(postId){const c=happyadSb();if(!c||!postId)return;try{const a=await loadPhotoActionsFromSupabase(postId);if(a)await c.from('happyad_posts').update({likes_count:Number(a.likes||0),comments_count:Number(a.comments||0),shares_count:Number(a.shares||0),saves_count:Number(a.favs||0)}).eq('id',String(postId));}catch(e){console.warn('photo sync counts',e)}}
 async function togglePhotoActionSupabase(postId,actionType,nextValue){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour enregistrer cette action');const id=String(postId);if(actionType==='share'){const row={post_id:id,content_id:id,content_type:'photo',action_type:'share',user_id:user.id,liked:true};const ins=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(ins.error)throw ins.error;}else{const safeActionType=(actionType==='fav'?'favorite':actionType);const row={post_id:id,content_id:id,content_type:'photo',action_type:safeActionType,user_id:user.id,liked:!!nextValue};const up=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(up.error)throw up.error;}await syncPhotoPostCounts(id);if(nextValue&&(actionType==='like'||actionType==='fav'||actionType==='favorite')){try{happyadNotifyMediaAction(actionType==='like'?'like':'favoris');}catch(_n){}}return await loadPhotoActionsFromSupabase(id)}
-async function addPhotoCommentSupabase(postId,text,parentId=null,author=null){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour commenter');author=author||await resolvePhotoCommentAuthor();const row={post_id:String(postId),content_id:String(postId),content_type:'photo',user_id:user.id,author_name:author.name||user.email||'Utilisateur HAPPYAD',author_avatar:author.avatar||'',author_badge:author.badge||'',text:String(text||'').trim(),parent_id:parentId||null,created_at:new Date().toISOString()};const ins=await c.from('happyad_content_comments').insert(row).select('*').single();if(ins.error)throw ins.error;try{happyadNotifyMediaAction('commentaire',text);}catch(_n){}await syncPhotoPostCounts(postId);return await loadPhotoActionsFromSupabase(postId)}
+
+async function happyadInsertContentCommentSafeV16V(c,row){
+  if(!c)throw new Error('Supabase non chargé');
+  row=Object.assign({},row||{});
+  var txt=String(row.text||row.comment_text||row.comment||row.body||'').trim();
+  if(!txt)throw new Error('Commentaire vide');
+  var now=row.created_at||new Date().toISOString();
+  var full=Object.assign({},row,{text:txt,created_at:now});
+  if(!full.post_id&&full.content_id)full.post_id=String(full.content_id);
+  if(!full.content_id&&full.post_id)full.content_id=String(full.post_id);
+  if(full.post_id!=null)full.post_id=String(full.post_id);
+  if(full.content_id!=null)full.content_id=String(full.content_id);
+  if(full.user_id!=null)full.user_id=String(full.user_id);
+  function clean(o){var r={};Object.keys(o||{}).forEach(function(k){var v=o[k];if(v!==undefined)r[k]=v;});return r;}
+  function omit(o,keys){var r={};var drop={};(keys||[]).forEach(function(k){drop[k]=1});Object.keys(o||{}).forEach(function(k){if(!drop[k])r[k]=o[k];});return clean(r);}
+  var basic={post_id:full.post_id,user_id:full.user_id,author_name:full.author_name||'Utilisateur HAPPYAD',text:txt,created_at:now};
+  var basicParent=Object.assign({},basic,{parent_id:full.parent_id||null});
+  var basicType=Object.assign({},basicParent,{content_type:full.content_type||'photo'});
+  var tries=[
+    clean(full),
+    omit(full,['content_id']),
+    omit(full,['author_avatar','author_badge']),
+    omit(full,['content_id','author_avatar','author_badge']),
+    clean(basicType),
+    clean(basicParent),
+    clean(basic),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,comment_text:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,comment:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,body:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,text:txt,created_at:now}),
+    clean({post_id:full.post_id,user_id:full.user_id,comment_text:txt,created_at:now})
+  ];
+  var last=null,seen={};
+  for(var i=0;i<tries.length;i++){
+    var payload=tries[i]||{};
+    if(!payload.post_id||!payload.user_id)continue;
+    var sig=JSON.stringify(Object.keys(payload).sort().map(function(k){return k+':'+payload[k]}));
+    if(seen[sig])continue;seen[sig]=1;
+    var ins=await c.from('happyad_content_comments').insert(payload);
+    if(!ins.error)return ins;
+    last=ins.error;
+  }
+  throw last||new Error('Commentaire non enregistré');
+}
+
+async function addPhotoCommentSupabase(postId,text,parentId=null,author=null){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour commenter');author=author||await resolvePhotoCommentAuthor();const row={post_id:String(postId),content_id:String(postId),content_type:'photo',user_id:user.id,author_name:author.name||user.email||'Utilisateur HAPPYAD',author_avatar:author.avatar||'',author_badge:author.badge||'',text:String(text||'').trim(),parent_id:parentId||null,created_at:new Date().toISOString()};await happyadInsertContentCommentSafeV16V(c,row);try{happyadNotifyMediaAction('commentaire',text);}catch(_n){}await syncPhotoPostCounts(postId);return await loadPhotoActionsFromSupabase(postId)}
 let HAPPYAD_PHOTO_RT_STARTED=false;function startPhotoRealtime(){const c=happyadSb();if(!c||HAPPYAD_PHOTO_RT_STARTED)return;HAPPYAD_PHOTO_RT_STARTED=true;try{c.channel('happyad-photo-actions-global').on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_actions'},p=>{const r=(p&&p.new)||p.old;if(r&&post&&String(r.content_type||'photo')==='photo'&&happyadPhotoRealtimeMatchesActive(r))loadPhotoActionsFromSupabase(post);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_comments'},p=>{const r=(p&&p.new)||p.old;if(r&&post&&happyadPhotoRealtimeMatchesActive(r))loadPhotoActionsFromSupabase(post);}).subscribe();}catch(e){console.warn('photo realtime',e)}}setTimeout(startPhotoRealtime,1000);
 
 function normBadge(v){v=String(v||'aucun').toLowerCase();if(v==='bleu'||v==='blue')return 'blue';if(v==='violet'||v==='jaune'||v==='yellow')return 'violet';return ''}
@@ -1801,7 +1870,7 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
     p=p||{};var pid=productId(p);var postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     if(!pid && !postId)return;
     try{localStorage.setItem(KEY,JSON.stringify({productId:pid,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'central_photo_buy'}));}catch(e){}
-    var url='../boutique.html?v=v550foundation1&cart=1&from=central';
+    var url='../boutique.html?v=532&cart=1&from=central';
     if(pid)url+='&product='+encodeURIComponent(pid);
     if(postId)url+='&post='+encodeURIComponent(postId);
     location.href=url;

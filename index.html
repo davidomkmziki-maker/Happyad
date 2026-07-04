@@ -70,8 +70,8 @@
 })();
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
-<!-- HAPPYAD V491 — PWA / application installable stable -->
-<link rel="manifest" href="manifest.webmanifest?v=v550foundation1">
+<!-- HAPPYAD V16ZC — PWA sans double chargement -->
+<link rel="manifest" href="manifest.webmanifest?v=16zc">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -1176,6 +1176,7 @@ html{background:#000!important;}
 .sponsorStrip .happyadFixedRadarAd .sponsorThumb{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;background:#000!important;border-radius:25px!important;overflow:hidden!important}
 .sponsorStrip .happyadFixedRadarAd img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#000!important}
 </style>
+
 
 </head><body><div class="app"><div class="top"><div class="topRow"><a class="round back" href="index.html">‹</a><div class="title">HAPPY<b>AD</b><span class="sub">Connecte · Découvre · Vends</span></div><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, un service, un produit..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Produit">Produits</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><div id="list" class="feedGrid"></div><div class="bottom"><a class="nav active" href="index.html"><span class="ico">⌂</span>Explorer</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="modules/video.html" data-happyad-bottom-video="1" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/video.html');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('video','modules/video.html');return false;}}catch(e){}return false;"><span class="ico">▶</span>Vidéos</a><a class="nav" href="modules/publish.html"><div class="plus">+</div>Publier</a><a class="nav notifNav" href="javascript:void(0)" data-native-notif-open="tout" data-happyad-bottom-notifications="1" role="button" onpointerdown="try{if(window.happyadNotificationOneTapV506){return window.happyadNotificationOneTapV506(event,this);}if(window.happyadForceOpenNotificationV503){return window.happyadForceOpenNotificationV503(event,this);}}catch(e){}" ontouchstart="try{if(window.happyadNotificationOneTapV506){return window.happyadNotificationOneTapV506(event,this);}if(window.happyadForceOpenNotificationV503){return window.happyadForceOpenNotificationV503(event,this);}}catch(e){}" onclick="try{if(window.happyadNotificationOneTapV506){return window.happyadNotificationOneTapV506(event,this);}if(window.happyadForceOpenNotificationV503){return window.happyadForceOpenNotificationV503(event,this);} if(window.happyadOpenNativeNotifications){window.happyadOpenNativeNotifications('tout');}}catch(e){} return false;"><span class="bellLineIcon"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span class="navBadge" id="homeNotifCount">0</span>Notifications</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="modules/user.html" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/user.html');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('profile','modules/user.html');return false;}}catch(e){}return false;"><span class="ico">👤</span>Compte</a></div></div><script>
 (function(){
@@ -2952,13 +2953,57 @@ async function happyadPersistCommentLikeV469(postId,comment,liked,likes){
     return {likes:Number(likes||0),liked:!!liked};
   }
 }
+
+async function happyadInsertContentCommentSafeV16V(c,row){
+  if(!c)throw new Error('Supabase non chargé');
+  row=Object.assign({},row||{});
+  var txt=String(row.text||row.comment_text||row.comment||row.body||'').trim();
+  if(!txt)throw new Error('Commentaire vide');
+  var now=row.created_at||new Date().toISOString();
+  var full=Object.assign({},row,{text:txt,created_at:now});
+  if(!full.post_id&&full.content_id)full.post_id=String(full.content_id);
+  if(!full.content_id&&full.post_id)full.content_id=String(full.post_id);
+  if(full.post_id!=null)full.post_id=String(full.post_id);
+  if(full.content_id!=null)full.content_id=String(full.content_id);
+  if(full.user_id!=null)full.user_id=String(full.user_id);
+  function clean(o){var r={};Object.keys(o||{}).forEach(function(k){var v=o[k];if(v!==undefined)r[k]=v;});return r;}
+  function omit(o,keys){var r={};var drop={};(keys||[]).forEach(function(k){drop[k]=1});Object.keys(o||{}).forEach(function(k){if(!drop[k])r[k]=o[k];});return clean(r);}
+  var basic={post_id:full.post_id,user_id:full.user_id,author_name:full.author_name||'Utilisateur HAPPYAD',text:txt,created_at:now};
+  var basicParent=Object.assign({},basic,{parent_id:full.parent_id||null});
+  var basicType=Object.assign({},basicParent,{content_type:full.content_type||'photo'});
+  var tries=[
+    clean(full),
+    omit(full,['content_id']),
+    omit(full,['author_avatar','author_badge']),
+    omit(full,['content_id','author_avatar','author_badge']),
+    clean(basicType),
+    clean(basicParent),
+    clean(basic),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,comment_text:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,comment:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,author_name:basic.author_name,body:txt,created_at:now,parent_id:full.parent_id||null}),
+    clean({post_id:full.post_id,user_id:full.user_id,text:txt,created_at:now}),
+    clean({post_id:full.post_id,user_id:full.user_id,comment_text:txt,created_at:now})
+  ];
+  var last=null,seen={};
+  for(var i=0;i<tries.length;i++){
+    var payload=tries[i]||{};
+    if(!payload.post_id||!payload.user_id)continue;
+    var sig=JSON.stringify(Object.keys(payload).sort().map(function(k){return k+':'+payload[k]}));
+    if(seen[sig])continue;seen[sig]=1;
+    var ins=await c.from('happyad_content_comments').insert(payload);
+    if(!ins.error)return ins;
+    last=ins.error;
+  }
+  throw last||new Error('Commentaire non enregistré');
+}
+
 async function happyadAddHomeCommentSupabaseV468(p,contentType,text,parentId,author){
   var c=happyadSb();if(!c||!p||!p.id)throw new Error('Supabase non chargé');
   var user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour commenter');
   author=author||await happyadResolveCommentAuthorV469();
   var row={post_id:String(p.id),content_id:String(p.id),content_type:contentType,user_id:user.id,author_name:author.name||user.email||'Utilisateur HAPPYAD',author_avatar:author.avatar||'',author_badge:author.badge||'',text:String(text||'').trim(),parent_id:parentId||null,created_at:new Date().toISOString()};
-  var ins=await c.from('happyad_content_comments').insert(row).select('*').single();
-  if(ins.error)throw ins.error;
+  await happyadInsertContentCommentSafeV16V(c,row);
   try{await happyadNotifyPostAction(p,'commentaire')}catch(_n){}
   try{await syncPostCountsSupabase(p.id,contentType)}catch(_s){}
   try{happyadBroadcastActionLocal(p.id)}catch(_b){}
@@ -3103,16 +3148,22 @@ function happyadVideoFastOpenPayload(postId){
     function looksVideo(p){try{return typeof isVideo==='function'?isVideo(p):String(p&&((p.kind||p.type||p.mediaType||p.media_type||''))).toLowerCase().indexOf('video')>=0}catch(_e){return false}}
     var source=raw.filter(function(p){var id=String(p&&p.id||p&&p.post_id||'');if(!p||!id||seen[id]||!looksVideo(p)||p.deleted_at||p.deletedAt)return false;seen[id]=1;return true;});
     var target=source.find(function(p){return String(p&&p.id||p&&p.post_id||'')===String(postId);})||null;
-    function slim(p){return {
+    function slim(p){
+      var media=p.mediaUrl||p.media_url||p.homeMediaUrl||p.home_media_url||p.videoUrl||p.video_url||p.url||p.src||'';
+      var poster=p.posterUrl||p.poster_url||p.thumbnailUrl||p.thumbnail_url||p.coverUrl||p.cover_url||p.imageUrl||p.image_url||p.photoUrl||p.photo_url||'';
+      try{if(!poster&&typeof happyadGetCachedVideoThumb==='function')poster=happyadGetCachedVideoThumb(p,media)||'';}catch(_thumb){}
+      return {
       id:p.id||p.post_id, post_id:p.post_id||p.id, title:p.title||'Vidéo HAPPYAD', desc:p.desc||p.description||'', description:p.description||p.desc||'',
       kind:p.kind||p.type||p.mediaType||p.media_type||'video', type:p.type||p.kind||p.media_type||'video', mediaType:p.mediaType||p.media_type||p.kind||p.type||'video', media_type:p.media_type||p.mediaType||'video',
-      mediaUrl:p.mediaUrl||p.media_url||p.homeMediaUrl||p.home_media_url||p.videoUrl||p.video_url||p.url||p.src||'', media_url:p.media_url||p.mediaUrl||p.home_media_url||p.homeMediaUrl||p.video_url||p.videoUrl||p.url||p.src||'',
+      mediaUrl:media, media_url:p.media_url||p.mediaUrl||p.home_media_url||p.homeMediaUrl||p.video_url||p.videoUrl||p.url||p.src||'',
+      mediaPath:p.mediaPath||p.media_path||'', media_path:p.media_path||p.mediaPath||'',
       homeMediaUrl:p.homeMediaUrl||p.home_media_url||p.mediaUrl||p.media_url||'', home_media_url:p.home_media_url||p.homeMediaUrl||p.media_url||p.mediaUrl||'',
       videoUrl:p.videoUrl||p.video_url||p.mediaUrl||p.media_url||'', video_url:p.video_url||p.videoUrl||p.media_url||p.mediaUrl||'',
-      posterUrl:p.posterUrl||p.poster_url||p.thumbnailUrl||p.thumbnail_url||p.coverUrl||p.cover_url||'', poster_url:p.poster_url||p.posterUrl||'', thumbnailUrl:p.thumbnailUrl||p.thumbnail_url||p.posterUrl||p.poster_url||'', thumbnail_url:p.thumbnail_url||p.thumbnailUrl||p.poster_url||p.posterUrl||'',
+      posterUrl:poster, poster_url:poster||p.poster_url||p.posterUrl||'', thumbnailUrl:poster||p.thumbnailUrl||p.thumbnail_url||p.posterUrl||p.poster_url||'', thumbnail_url:poster||p.thumbnail_url||p.thumbnailUrl||p.poster_url||p.posterUrl||'', cachedThumb:poster, cached_thumb:poster,
       creatorId:p.creatorId||p.user_id||p.userId||'', user_id:p.user_id||p.creatorId||'', creatorName:p.creatorName||p.display_name||p.userName||p.author||p.name||'', display_name:p.display_name||p.creatorName||'',
       avatar:p.avatar||p.avatar_url||'', avatar_url:p.avatar_url||p.avatar||'', handle:p.handle||p.username||'', username:p.username||p.handle||'', badge:p.badge||p.userBadge||p.user_badge||'aucun',
-      createdAt:p.createdAt||p.created_at||Date.now(), created_at:p.created_at||p.createdAt||Date.now(), views_count:p.views_count||p.video_views_count||0, video_views_count:p.video_views_count||p.views_count||0
+      createdAt:p.createdAt||p.created_at||Date.now(), created_at:p.created_at||p.createdAt||Date.now(), views_count:p.views_count||p.video_views_count||0, video_views_count:p.video_views_count||p.views_count||0,
+      __from_video:'1'
     };}
     var minimal=source.slice(0,120).map(slim);
     if(target && !minimal.some(function(p){return String(p.id)===String(target.id||target.post_id)})) minimal.unshift(slim(target));
@@ -3124,7 +3175,24 @@ function happyadVideoFastOpenPayload(postId){
   }catch(_e){}
 }
 
-async function happyadMarkVideoViewFromHome(id){try{const c=happyadSb();const u=await happyadAuthUser();if(!c||!u||!id)return;const r=await c.from('happyad_video_views').upsert({post_id:String(id),viewer_id:u.id,viewed_at:new Date().toISOString()},{onConflict:'post_id,viewer_id'}).select('id').maybeSingle();if(r&&r.error)throw r.error;const vc=await c.from('happyad_video_views').select('id',{count:'exact',head:true}).eq('post_id',String(id));const a=getA(id);a.views=Number((vc&&!vc.error&&vc.count)||a.views||0);setA(id,a);refreshLikeEverywhere(id);try{await c.from('happyad_posts').update({views_count:Number(a.views||0)}).eq('id',String(id));localStorage.setItem('HAPPYAD_ACTION_FAST_SYNC_V1',JSON.stringify({id:String(id),t:Date.now(),type:'view'}));}catch(_e){}}catch(e){console.warn('home video view mark',e)}}function openLongVideo(id){try{happyadVideoFastOpenPayload(id)}catch(_fast){}try{happyadMarkVideoViewFromHome(id)}catch(e){}try{sessionStorage.setItem('HAPPYAD_VIDEO_START_POST_V550',String(id||''));sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_s){}var u='modules/video.html?v=v550foundation1';if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492(u,{source:'home-video-v550',postId:String(id||'')});}else{location.href=u}}
+async function happyadMarkVideoViewFromHome(id){try{const c=happyadSb();const u=await happyadAuthUser();if(!c||!u||!id)return;const r=await c.from('happyad_video_views').upsert({post_id:String(id),viewer_id:u.id,viewed_at:new Date().toISOString()},{onConflict:'post_id,viewer_id'}).select('id').maybeSingle();if(r&&r.error)throw r.error;const vc=await c.from('happyad_video_views').select('id',{count:'exact',head:true}).eq('post_id',String(id));const a=getA(id);a.views=Number((vc&&!vc.error&&vc.count)||a.views||0);setA(id,a);refreshLikeEverywhere(id);try{await c.from('happyad_posts').update({views_count:Number(a.views||0)}).eq('id',String(id));localStorage.setItem('HAPPYAD_ACTION_FAST_SYNC_V1',JSON.stringify({id:String(id),t:Date.now(),type:'view'}));}catch(_e){}}catch(e){console.warn('home video view mark',e)}}
+function happyadVideoCardClickFeedback(id){
+  try{document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active','happyadTapOrange','happyadBottomPressedV504','happyadVideoOpeningV16R');});}catch(_b){}
+  try{var safe=(window.CSS&&CSS.escape)?CSS.escape(String(id)):String(id).replace(/[^a-zA-Z0-9_-]/g,'\\$&');var card=document.querySelector('[data-post-id="'+safe+'"]');if(card){card.classList.add('happyadVideoCardOpeningV16R');clearTimeout(card.__happyadVideoOpenT);card.__happyadVideoOpenT=setTimeout(function(){try{card.classList.remove('happyadVideoCardOpeningV16R');}catch(_e){}},520);}}catch(_c){}
+}
+function openLongVideo(id){
+  try{
+    var t=Date.now?Date.now():(new Date()).getTime();
+    if(window.HappyNavigation&&typeof window.HappyNavigation.isBusy==='function'&&window.HappyNavigation.isBusy())return false;
+    if(openLongVideo.__happyadLastOpenV16U && (t-openLongVideo.__happyadLastOpenV16U.t)<1200)return false;
+    openLongVideo.__happyadLastOpenV16U={id:String(id||''),t:t};
+  }catch(_lock){}
+  try{happyadVideoCardClickFeedback(id)}catch(_fb){}
+  try{happyadVideoFastOpenPayload(id)}catch(_fast){}
+  try{setTimeout(function(){try{happyadMarkVideoViewFromHome(id)}catch(e){}},240)}catch(e){}
+  if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/video.html?post='+encodeURIComponent(id),{source:'home-video-card-v16u'});}else{location.href='modules/video.html?post='+encodeURIComponent(id)}
+  return false;
+}
 function openLongPhoto(id){
   /* V466 — Accueil photo: centrale photo en pause.
      Un clic sur une photo ouvre maintenant un plein écran léger dans l'accueil. */
@@ -3457,6 +3525,9 @@ async function hydrateAlbumMedia(card,p){
     card.addEventListener('click',function(e){
       if(track&&track.__haAlbumSwipeUntilV472&&Date.now()<track.__haAlbumSwipeUntilV472){e.preventDefault();e.stopPropagation();return false;}
       var t=e.target;
+      /* V16: sur les cartes groupées, le header/avatar/nom doit ouvrir le profil.
+         On laisse donc .miniTop remonter vers son onclick profil, au lieu de l'intercepter comme clic photo. */
+      if(t&&t.closest&&t.closest('.miniTop'))return;
       if(t&&t.closest&&t.closest('[data-card-act],[data-home-buy],.miniSeeMore,button,a'))return;
       var slide=t&&t.closest?t.closest('.haAlbumFullSlide'):null;
       if(!slide)return;
@@ -4144,14 +4215,14 @@ function happyadOpenBoutiqueCartRequest(p){
     const postId=String(p.id||p.post_id||p.happyadPostId||'').trim();
     const req={productId:productId,postId:postId,qty:1,title:p.title||p.name||'',price:p.price||'',t:Date.now(),from:'home_post_buy'};
     try{localStorage.setItem(HAPPYAD_BOUTIQUE_CART_REQUEST_V409,JSON.stringify(req));}catch(_s){}
-    let url='boutique.html?v=v550foundation1&cart=1&from=home';
+    let url='boutique.html?v=532&cart=1&from=home';
     if(productId)url+='&product='+encodeURIComponent(productId);
     if(postId)url+='&post='+encodeURIComponent(postId);
     /* V496: Boutique reste dans l'application, sans ouvrir un lien Chrome séparé. */
     try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492(url)){return;}}catch(_r){}
     try{if(window.happyadOpenAppPage&&window.happyadOpenAppPage('boutique',url)){return;}}catch(_a){}
     location.href=url;
-  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=v550foundation1&cart=1'))return;}catch(_x){}location.href='boutique.html?v=v550foundation1&cart=1';}
+  }catch(e){console.warn('open boutique cart request',e);try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492('boutique.html?v=532&cart=1'))return;}catch(_x){}location.href='boutique.html?v=532&cart=1';}
 }
 function createCard(p){
 primeCardActionFromPost(p);
@@ -9717,21 +9788,14 @@ body.happyadNativeChatOpen{overflow:hidden!important;touch-action:none!important
   window.__HAPPYAD_V491_PWA_APP_LAUNCHER__=true;
 
   function registerServiceWorker(){
-  try{
+  try{ if(window.__HAPPYAD_PWA_DISABLED__)return;
     if(!('serviceWorker' in navigator))return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
 
-  var swReloadKey='HAPPYAD_SW_CONTROLLER_CHANGED_V542';
+    /* V16ZC : plus de reload automatique sur controllerchange.
+       Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-try{
-  navigator.serviceWorker.addEventListener('controllerchange',function(){
-    try{
-      sessionStorage.setItem(swReloadKey,'1');
-    }catch(_r){}
-  });
-}catch(_c){}
-
-    navigator.serviceWorker.register('./service-worker.js?v=v550foundation1',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=16zc',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -9817,7 +9881,13 @@ try{
     if(app==='video'||app==='videos')return 'modules/video.html';
     if(app==='profile'||app==='profil'||app==='user'||app==='compte')return 'modules/user.html';
     if(app==='boutique'||app==='shop'||app==='market'||app==='panier'||app==='cart'){
-  return '';
+      try{
+        var q=new URLSearchParams(location.search||'');
+        q.delete('app');q.delete('open');q.delete('source');q.delete('v');
+        q.set('v','532');
+        var s=q.toString();
+        return 'boutique.html'+(s?('?'+s):'');
+      }catch(_q){return 'boutique.html';}
     }
     return '';
   }
@@ -10098,9 +10168,18 @@ try{
     try{
       var u=new URL(location.href),app=String(u.searchParams.get('app')||u.searchParams.get('open')||'').toLowerCase();
       if(app==='boutique'||app==='shop'||app==='market'||app==='panier'||app==='cart'){
-  try{history.replaceState(null,'','index.html')}catch(_h){}
-  return;
-  }
+        /* V9: ancien comportement V499 neutralisé. app=boutique doit ouvrir Boutique, pas renvoyer vers profil. */
+        var q=new URLSearchParams(location.search||'');
+        q.delete('app');q.delete('open');q.delete('source');q.delete('v');q.set('v','532');
+        var url='boutique.html'+(q.toString()?('?'+q.toString()):'');
+        var tries=0,go=function(){
+          tries++;
+          try{if(window.HappyNavigation&&window.HappyNavigation.open){window.HappyNavigation.open(url,{source:'v9-app-query-boutique',fromTarget:{view:'home',url:'index.html'}});try{history.replaceState(null,'','index.html')}catch(_h){}return true;}}catch(_n){}
+          try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492(url,{source:'v9-app-query-boutique'})){try{history.replaceState(null,'','index.html')}catch(_h2){}return true;}}catch(_e){}
+          if(tries<35)setTimeout(go,140);return false;
+        };
+        go();
+      }
     }catch(_e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){forceNotifButtonReady();patchBoutiqueLinks();openAppQuery();},{once:true});
@@ -11732,18 +11811,203 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 
 
 <!-- === HAPPYAD V492 — APPLICATION CONNECTÉE / ROUTEUR CENTRAL PHOTO-VIDÉO-PROFIL === -->
-<style id="happyad-v492-connected-app-style">
-#happyadInstallAppBtn{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;z-index:79!important;width:100%!important;max-width:none!important;margin:4px 0 8px!important;display:none!important;grid-template-columns:38px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;border:1px solid rgba(255,138,0,.38)!important;background:linear-gradient(180deg,rgba(22,24,31,.98),rgba(8,10,15,.98))!important;color:#fff!important;border-radius:20px!important;padding:10px 11px!important;font:900 12px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;box-shadow:0 12px 26px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.04) inset!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;opacity:0!important;transform:translateY(-8px)!important;transition:opacity .22s ease,transform .22s ease!important;text-align:left!important;touch-action:manipulation!important}
-#happyadInstallAppBtn.on{display:grid!important;opacity:1!important;transform:translateY(0)!important}
-#happyadInstallAppBtn .haInstallIcon{width:38px!important;height:38px!important;border-radius:14px!important;display:grid!important;place-items:center!important;background:#000!important;color:#fff!important;font-size:0!important;box-shadow:0 10px 24px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.12) inset!important;flex:0 0 auto!important;overflow:hidden!important}
+<style id="happyad-v16zc-pwa-install-10s-session-style">
+#happyadInstallAppBtn{position:fixed!important;left:50%!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 10px)!important;bottom:auto!important;z-index:1000008!important;width:min(496px,calc(100% - 22px))!important;max-width:496px!important;margin:0!important;display:none!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;border:1px solid rgba(255,138,0,.46)!important;background:linear-gradient(180deg,rgba(21,23,30,.98),rgba(6,7,11,.985))!important;color:#fff!important;border-radius:22px!important;padding:10px 11px!important;font:900 12px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;box-shadow:0 16px 38px rgba(0,0,0,.54),0 0 0 1px rgba(255,255,255,.05) inset!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;opacity:0!important;transform:translate(-50%,-12px)!important;transition:opacity .22s ease,transform .22s ease!important;text-align:left!important;touch-action:manipulation!important;cursor:pointer!important}
+#happyadInstallAppBtn.on{display:grid!important;opacity:1!important;transform:translate(-50%,0)!important}
+#happyadInstallAppBtn .haInstallIcon{width:42px!important;height:42px!important;border-radius:15px!important;display:grid!important;place-items:center!important;background:#000!important;color:#fff!important;font-size:0!important;box-shadow:0 10px 24px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.14) inset!important;flex:0 0 auto!important;overflow:hidden!important}
 #happyadInstallAppBtn .haInstallIcon img{width:100%!important;height:100%!important;display:block!important;object-fit:cover!important;border-radius:inherit!important;background:#000!important}
 #happyadInstallAppBtn .haInstallText{min-width:0!important;display:block!important;line-height:1.05!important}
 #happyadInstallAppBtn .haInstallText b{display:block!important;color:#fff!important;font-size:13px!important;font-weight:1000!important;letter-spacing:-.2px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#happyadInstallAppBtn .haInstallText small{display:block!important;color:#bfc5d2!important;font-size:10px!important;font-weight:800!important;margin-top:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#happyadInstallAppBtn .haInstallAction{display:inline-flex!important;align-items:center!important;justify-content:center!important;height:32px!important;border-radius:999px!important;padding:0 11px!important;background:linear-gradient(135deg,#ffb000,#ff6a00)!important;color:#111!important;font-weight:1000!important;font-size:11px!important;box-shadow:0 8px 20px rgba(255,138,0,.24)!important;white-space:nowrap!important}
-@media(max-width:360px){#happyadInstallAppBtn{grid-template-columns:36px minmax(0,1fr) auto!important;gap:8px!important;padding:9px!important;margin:3px 0 7px!important}#happyadInstallAppBtn .haInstallIcon{width:36px!important;height:36px!important;border-radius:13px!important}#happyadInstallAppBtn .haInstallText b{font-size:12px!important}#happyadInstallAppBtn .haInstallText small{font-size:9.5px!important}#happyadInstallAppBtn .haInstallAction{height:30px!important;padding:0 10px!important;font-size:10px!important}}
+#happyadInstallAppBtn .haInstallText small{display:block!important;color:#c8ceda!important;font-size:10px!important;font-weight:850!important;margin-top:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#happyadInstallAppBtn .haInstallAction{display:inline-flex!important;align-items:center!important;justify-content:center!important;height:32px!important;border-radius:999px!important;padding:0 12px!important;background:linear-gradient(135deg,#ffb000,#ff6a00)!important;color:#111!important;font-weight:1000!important;font-size:11px!important;box-shadow:0 8px 20px rgba(255,138,0,.25)!important;white-space:nowrap!important}
+#happyadPwaGuide{position:fixed!important;inset:0!important;z-index:1000012!important;background:rgba(0,0,0,.62)!important;display:none!important;align-items:flex-end!important;justify-content:center!important;padding:16px 12px calc(env(safe-area-inset-bottom,0px) + 16px)!important;backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important}
+#happyadPwaGuide.on{display:flex!important}
+#happyadPwaGuide .haPwaBox{width:min(480px,100%)!important;background:linear-gradient(180deg,#151821,#08090d)!important;border:1px solid rgba(255,138,0,.36)!important;border-radius:24px!important;color:#fff!important;box-shadow:0 24px 60px rgba(0,0,0,.68)!important;padding:16px!important;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important}
+#happyadPwaGuide .haPwaTop{display:flex!important;gap:11px!important;align-items:center!important;margin-bottom:10px!important}
+#happyadPwaGuide .haPwaLogo{width:46px!important;height:46px!important;border-radius:16px!important;background:#000!important;object-fit:cover!important;box-shadow:0 0 0 1px rgba(255,255,255,.14) inset!important}
+#happyadPwaGuide .haPwaTitle{min-width:0!important;line-height:1.08!important}
+#happyadPwaGuide .haPwaTitle b{display:block!important;font-size:16px!important;font-weight:1000!important;color:#fff!important}
+#happyadPwaGuide .haPwaTitle small{display:block!important;color:#c8ceda!important;font-size:11px!important;font-weight:850!important;margin-top:4px!important}
+#happyadPwaGuide .haPwaSteps{margin:10px 0 0!important;padding:0!important;list-style:none!important;display:grid!important;gap:8px!important}
+#happyadPwaGuide .haPwaSteps li{background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.075)!important;border-radius:16px!important;padding:10px 11px!important;font-size:13px!important;font-weight:850!important;line-height:1.28!important;color:#eef1f7!important}
+#happyadPwaGuide .haPwaSteps li b{color:#ffb000!important}
+#happyadPwaGuide .haPwaBtns{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:8px!important;margin-top:12px!important}
+#happyadPwaGuide .haPwaBtn{height:42px!important;border-radius:15px!important;border:1px solid rgba(255,255,255,.12)!important;background:rgba(255,255,255,.06)!important;color:#fff!important;font-size:13px!important;font-weight:1000!important}
+#happyadPwaGuide .haPwaBtn.primary{border:0!important;background:linear-gradient(135deg,#ffb000,#ff6a00)!important;color:#111!important}
+#happyadPwaGuide .haPwaNote{margin-top:10px!important;color:#aeb5c4!important;font-size:10.5px!important;font-weight:800!important;line-height:1.25!important;text-align:center!important}
+@media(max-width:380px){#happyadPwaGuide .haPwaBtns{grid-template-columns:1fr!important}#happyadInstallAppBtn{grid-template-columns:38px minmax(0,1fr) auto!important;gap:8px!important;padding:9px!important;border-radius:20px!important}#happyadInstallAppBtn .haInstallIcon{width:38px!important;height:38px!important;border-radius:14px!important}#happyadInstallAppBtn .haInstallText b{font-size:12px!important}#happyadInstallAppBtn .haInstallText small{font-size:9.5px!important}#happyadInstallAppBtn .haInstallAction{height:30px!important;padding:0 10px!important;font-size:10px!important}#happyadPwaGuide .haPwaBox{padding:14px!important;border-radius:22px!important}#happyadPwaGuide .haPwaSteps li{font-size:12px!important}}
 </style>
-<button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Accès rapide, notifications et ouverture sans Chrome.</small></span><span class="haInstallAction">Installer</span></button>
+<button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Disponible avec Chrome, Samsung, Edge, Brave, Firefox...</small></span><span class="haInstallAction">Installer</span></button>
+<div id="happyadPwaGuide" aria-hidden="true"><div class="haPwaBox" role="dialog" aria-modal="true" aria-label="Installation HAPPYAD"><div class="haPwaTop"><img class="haPwaLogo" src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""><span class="haPwaTitle"><b>Installer HAPPYAD</b><small id="happyadPwaGuideSub">Choisis ton navigateur puis suis les étapes.</small></span></div><ul class="haPwaSteps" id="happyadPwaGuideSteps"><li><b>1.</b> Ouvre le menu du navigateur.</li><li><b>2.</b> Choisis “Installer l’application” ou “Ajouter à l’écran d’accueil”.</li><li><b>3.</b> Confirme avec “Installer” ou “Ajouter”.</li></ul><div class="haPwaBtns"><button type="button" class="haPwaBtn" id="happyadPwaGuideClose">Fermer</button><button type="button" class="haPwaBtn" id="happyadPwaAlreadyInstalled">Déjà installé</button><button type="button" class="haPwaBtn primary" id="happyadPwaCopyLink">Copier le lien</button></div><div class="haPwaNote">Si HAPPYAD est déjà installé, ouvre l’icône de l’application. La notification d’installation sera cachée automatiquement.</div></div></div>
+<script id="happyad-v16zc-pwa-install-10s-session">
+(function(){
+  'use strict';
+  if(window.__HAPPYAD_V16ZC_PWA_INSTALL_10S_SESSION__)return;
+  window.__HAPPYAD_V16ZC_PWA_INSTALL_10S_SESSION__=true;
+  window.__HAPPYAD_PWA_DISABLED__=false;
+
+  var deferredPrompt=null;
+  var readyForNativePrompt=false;
+  var INSTALLED_KEY='HAPPYAD_PWA_INSTALLED_V16ZA';
+  var INSTALL_NOTICE_DURATION_MS=10000;
+  var noticeClosedThisVisit=false;
+  var noticeAutoTimer=null;
+
+  function isStandalone(){
+    try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(_e){return false;}
+  }
+  function markInstalled(){try{localStorage.setItem(INSTALLED_KEY,'1');}catch(_e){}}
+  function clearInstalledMark(){try{localStorage.removeItem(INSTALLED_KEY);}catch(_e){}}
+  function isInstalledKnown(){
+    try{if(isStandalone()){markInstalled();return true;}}catch(_e){}
+    try{return localStorage.getItem(INSTALLED_KEY)==='1';}catch(_e2){return false;}
+  }
+  function ua(){try{return String(navigator.userAgent||'');}catch(_e){return '';}}
+  function isAndroid(){return /Android/i.test(ua());}
+  function isIOS(){return /iPhone|iPad|iPod/i.test(ua()) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);}
+  function browserName(){
+    var u=ua();
+    if(/FBAN|FBAV|Instagram|Line\/|MicroMessenger|TikTok|Twitter|LinkedIn|; wv\)|\bwv\b/i.test(u))return 'webview';
+    if(/SamsungBrowser/i.test(u))return 'samsung';
+    if(/EdgA|EdgiOS|Edge/i.test(u))return 'edge';
+    if(/Firefox|FxiOS/i.test(u))return 'firefox';
+    if(/OPR|Opera/i.test(u))return 'opera';
+    if(/CriOS|Chrome/i.test(u) && !/EdgA|SamsungBrowser|OPR/i.test(u))return 'chrome';
+    if(/Safari/i.test(u) && !/Chrome|CriOS|Android/i.test(u))return 'safari';
+    return 'other';
+  }
+  function btn(){return document.getElementById('happyadInstallAppBtn');}
+  function guide(){return document.getElementById('happyadPwaGuide');}
+  function clearNoticeTimer(){try{if(noticeAutoTimer){clearTimeout(noticeAutoTimer);noticeAutoTimer=null;}}catch(_e){}}
+  function hide(){try{clearNoticeTimer();var b=btn();if(b)b.classList.remove('on');}catch(_e){}}
+  function hideForThisVisit(){try{noticeClosedThisVisit=true;hide();}catch(_e){hide();}}
+  function scheduleNoticeAutoHide(){
+    try{
+      clearNoticeTimer();
+      noticeAutoTimer=setTimeout(function(){hideForThisVisit();},INSTALL_NOTICE_DURATION_MS);
+    }catch(_e){}
+  }
+  function show(){
+    try{
+      if(isInstalledKnown())return hide();
+      if(noticeClosedThisVisit)return hide();
+      var b=btn();if(!b)return;
+      setButtonText();
+      b.classList.add('on');
+      scheduleNoticeAutoHide();
+    }catch(_e){}
+  }
+  function setButtonText(){
+    try{
+      var b=btn();if(!b)return;
+      var s=b.querySelector('.haInstallText small');
+      var a=b.querySelector('.haInstallAction');
+      if(readyForNativePrompt){
+        if(s)s.textContent='Touchez ici puis confirmez Installer.';
+        if(a)a.textContent='Installer';
+        return;
+      }
+      var name=browserName();
+      if(name==='webview'){
+        if(s)s.textContent='Ouvre dans le navigateur externe puis installe.';
+        if(a)a.textContent='Guide';
+      }else if(name==='samsung'){
+        if(s)s.textContent='Samsung Internet : menu ≡ puis Ajouter à écran accueil.';
+        if(a)a.textContent='Guide';
+      }else if(name==='firefox'){
+        if(s)s.textContent='Firefox : menu ⋮ puis Installer ou Ajouter à l’écran.';
+        if(a)a.textContent='Guide';
+      }else if(name==='edge'){
+        if(s)s.textContent='Edge : menu ⋯ puis Ajouter au téléphone / Installer.';
+        if(a)a.textContent='Guide';
+      }else if(isIOS()){
+        if(s)s.textContent='iPhone : Partager puis Ajouter à l’écran d’accueil.';
+        if(a)a.textContent='Guide';
+      }else{
+        if(s)s.textContent='Ouvre le guide si le bouton Installer ne sort pas.';
+        if(a)a.textContent='Guide';
+      }
+    }catch(_e){}
+  }
+  function stepsForBrowser(){
+    var name=browserName();
+    if(name==='webview')return ['<b>1.</b> Appuie sur le menu du navigateur intégré.', '<b>2.</b> Choisis “Ouvrir dans le navigateur” ou “Ouvrir avec Samsung/Chrome/Firefox”.', '<b>3.</b> Dans le navigateur externe, choisis “Installer” ou “Ajouter à l’écran d’accueil”.'];
+    if(isIOS())return ['<b>1.</b> Ouvre HAPPYAD dans Safari si possible.','<b>2.</b> Appuie sur le bouton Partager.','<b>3.</b> Choisis “Ajouter à l’écran d’accueil”, puis “Ajouter”.'];
+    if(name==='samsung')return ['<b>1.</b> Appuie sur le menu Samsung Internet en bas ou en haut.','<b>2.</b> Choisis “Ajouter page à” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme “Écran d’accueil” puis “Ajouter”.'];
+    if(name==='firefox')return ['<b>1.</b> Appuie sur le menu ⋮ de Firefox.','<b>2.</b> Choisis “Installer” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme pour créer l’icône HAPPYAD.'];
+    if(name==='edge')return ['<b>1.</b> Appuie sur le menu ⋯ de Edge.','<b>2.</b> Choisis “Ajouter au téléphone” ou “Installer cette application”.','<b>3.</b> Confirme l’installation.'];
+    if(name==='chrome')return ['<b>1.</b> Si le popup automatique apparaît, appuie sur “Installer”.','<b>2.</b> Sinon ouvre le menu ⋮ de Chrome.','<b>3.</b> Choisis “Installer l’application” ou “Ajouter à l’écran d’accueil”.'];
+    return ['<b>1.</b> Ouvre le menu de ton navigateur.','<b>2.</b> Cherche “Installer l’application” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme pour créer l’icône HAPPYAD.'];
+  }
+  function openGuide(){
+    try{
+      if(isInstalledKnown())return hide();
+      var g=guide();if(!g)return;
+      var sub=document.getElementById('happyadPwaGuideSub');
+      if(sub){
+        var name=browserName();
+        sub.textContent=(readyForNativePrompt?'Installation automatique disponible.':'Installation manuelle pour '+(name==='other'?'ce navigateur':name)+'.');
+      }
+      var ul=document.getElementById('happyadPwaGuideSteps');
+      if(ul)ul.innerHTML=stepsForBrowser().map(function(x){return '<li>'+x+'</li>';}).join('');
+      g.classList.add('on');
+      g.setAttribute('aria-hidden','false');
+    }catch(_e){}
+  }
+  function closeGuide(){try{var g=guide();if(g){g.classList.remove('on');g.setAttribute('aria-hidden','true');}}catch(_e){}}
+  function copyLink(){
+    try{
+      var link=location.origin+location.pathname;
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).catch(function(){});}
+      var b=document.getElementById('happyadPwaCopyLink');
+      if(b){var old=b.textContent;b.textContent='Lien copié';setTimeout(function(){b.textContent=old||'Copier le lien';},1400);}
+    }catch(_e){}
+  }
+
+  function alreadyInstalled(){
+    try{markInstalled();deferredPrompt=null;readyForNativePrompt=false;hide();closeGuide();}
+    catch(_e){hide();closeGuide();}
+  }
+
+  window.addEventListener('beforeinstallprompt',function(e){
+    try{e.preventDefault();deferredPrompt=e;readyForNativePrompt=true;show();}catch(_e){}
+  });
+  window.addEventListener('appinstalled',function(){markInstalled();deferredPrompt=null;readyForNativePrompt=false;hide();closeGuide();});
+
+  function clickInstall(e){
+    try{if(e){e.preventDefault();e.stopPropagation();}}catch(_e){}
+    try{
+      if(isInstalledKnown())return hide();
+      if(deferredPrompt){
+        var p=deferredPrompt;deferredPrompt=null;readyForNativePrompt=false;
+        p.prompt();
+        if(p.userChoice&&p.userChoice.then){p.userChoice.then(function(choice){if(choice&&choice.outcome==='accepted')hide();else{setButtonText();hideForThisVisit();openGuide();}}).catch(function(){setButtonText();hideForThisVisit();openGuide();});}
+        return false;
+      }
+      hideForThisVisit();
+      openGuide();
+      return false;
+    }catch(_e){hideForThisVisit();openGuide();return false;}
+  }
+
+  function bind(){
+    try{
+      var b=btn();if(b&&!b.__happyadPwaInstallV16ZA){
+        b.__happyadPwaInstallV16ZA=true;
+        b.addEventListener('click',clickInstall,true);
+      }
+      var c=document.getElementById('happyadPwaGuideClose');if(c&&!c.__happyadPwaCloseV16Z){c.__happyadPwaCloseV16Z=true;c.addEventListener('click',closeGuide,true);}
+      var cp=document.getElementById('happyadPwaCopyLink');if(cp&&!cp.__happyadPwaCopyV16Z){cp.__happyadPwaCopyV16Z=true;cp.addEventListener('click',copyLink,true);}
+      var ai=document.getElementById('happyadPwaAlreadyInstalled');if(ai&&!ai.__happyadPwaInstalledV16ZC){ai.__happyadPwaInstalledV16ZC=true;ai.addEventListener('click',alreadyInstalled,true);}
+      var g=guide();if(g&&!g.__happyadPwaBackV16Z){g.__happyadPwaBackV16Z=true;g.addEventListener('click',function(e){if(e.target===g)closeGuide();},true);}
+      if(isStandalone())hide();else setTimeout(show,700);
+    }catch(_e){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  setTimeout(bind,250);setTimeout(bind,1200);setTimeout(show,1800);
+})();
+</script>
 <!-- === HAPPYAD V480 APP SHELL / ROUTEUR INTERNE SAFE ===
      Objectif: garder index.html ouvert et afficher Profil/Notifications sans recharge complète à chaque clic.
      Les anciens liens restent utilisables si le fichier est ouvert seul. -->
@@ -11754,589 +12018,11 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 .happyadAppFrame.on{display:block!important}
 body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 #happyadAppMiniLoader{position:fixed!important;top:14px!important;right:14px!important;z-index:999999!important;width:26px!important;height:26px!important;border-radius:50%!important;border:2px solid rgba(255,255,255,.18)!important;border-top-color:#ff8a00!important;display:none!important;animation:happyadAppSpin .7s linear infinite!important;pointer-events:none!important}
-#happyadAppMiniLoader.on{display:block!important}
+#happyadAppMiniLoader.on{display:none!important}
 @keyframes happyadAppSpin{to{transform:rotate(360deg)}}
 </style>
 <div id="happyadAppShell" aria-hidden="true"></div>
 <div id="happyadAppMiniLoader" aria-hidden="true"></div>
-<script id="happyad-v492-connected-app-router">
-(function(){
-  if(window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__)return;
-  window.__HAPPYAD_V492_CONNECTED_APP_ROUTER__=true;
-
-    var SHELL_ID='happyadAppShell', LOADER_ID='happyadAppMiniLoader';
-  var DEPLOY_V='v550foundation1';
-  var pages={
-    profile:'modules/user.html?v='+DEPLOY_V,
-    profile_public:'modules/user.html?public=1&v='+DEPLOY_V,
-    video:'modules/video.html?v='+DEPLOY_V,
-    photo:'modules/photo.html?v='+DEPLOY_V,
-    publish:'modules/publish.html?v='+DEPLOY_V,
-    map:'modules/map.html?v='+DEPLOY_V,
-    boutique:'boutique.html?v='+DEPLOY_V
-  };
-  var titles={profile:'Profil HAPPYAD',profile_public:'Profil visiteur',video:'Centrale Vidéo',photo:'Centrale Photo',publish:'Publier',map:'Radar',boutique:'Boutique HAPPYAD'};
-  var frameStack=[];
-  function $(id){return document.getElementById(id)}
-  function shell(){return $(SHELL_ID)}
-  function loader(){return $(LOADER_ID)}
-  function cleanUrl(url){
-    url=String(url||'').trim();
-    if(!url)return '';
-    url=url.replace(/^\s+/,'').replace(/^\.\//,'');
-    if(url.indexOf('../')===0)url=url.replace(/^\.\.\//,'');
-    return url;
-  }
-  function rootUrl(url){
-    try{
-      url=cleanUrl(url);
-      if(!url)return '';
-      var u=new URL(url,location.href);
-      var p=u.pathname.replace(/\\/g,'/');
-      p=p.replace(/\/modules\/\.\.\//g,'/');
-      var file=p.split('/').pop();
-      var prefix='';
-      if(file==='user.html')prefix='modules/user.html';
-      else if(file==='video.html')prefix='modules/video.html';
-      else if(file==='photo.html')prefix='modules/photo.html';
-      else if(file==='publish.html')prefix='modules/publish.html';
-      else if(file==='map.html')prefix='modules/map.html';
-      else if(file==='notifications.html')prefix='modules/notifications.html';
-      else if(file==='messages.html')prefix='messages.html';
-      else if(file==='boutique.html')prefix='boutique.html';
-      else if(file==='index.html'||file==='')prefix='index.html';
-      else prefix=url;
-      return prefix+(u.search||'')+(u.hash||'');
-    }catch(e){return cleanUrl(url)}
-  }
-  function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-    function versionHtmlUrl(url){
-    url=rootUrl(url||'');
-    var p=pathOf(url);
-    if(
-      p==='modules/user.html' ||
-      p==='modules/video.html' ||
-      p==='modules/photo.html' ||
-      p==='modules/publish.html' ||
-      p==='modules/map.html' ||
-      p==='modules/notifications.html' ||
-      p==='messages.html' ||
-      p==='boutique.html'
-    ){
-      try{
-        var hash='';
-        var h=url.indexOf('#');
-        if(h>=0){hash=url.slice(h);url=url.slice(0,h);}
-        var parts=url.split('?');
-        var base=parts[0];
-        var qs=parts[1]?parts[1].split('&'):[];
-        qs=qs.filter(function(x){return x && x.split('=')[0]!=='v';});
-        qs.push('v='+DEPLOY_V);
-        return base+'?'+qs.join('&')+hash;
-      }catch(_e){}
-    }
-    return url;
-    }
-  function pageFromUrl(url){
-    var p=pathOf(url);
-    if(p==='modules/user.html'){var u=rootUrl(url);return (u.indexOf('public=1')>=0||u.indexOf('uid=')>=0||u.indexOf('profile_uid=')>=0)?'profile_public':'profile';}
-    if(p==='modules/video.html')return 'video';
-    if(p==='modules/photo.html')return 'photo';
-    if(p==='modules/publish.html')return 'publish';
-    if(p==='modules/map.html')return 'map';
-    if(p==='boutique.html')return 'boutique';
-    return '';
-  }
-  function activeFramePage(){
-    try{var root=shell();if(!root)return '';var fr=root.querySelector('.happyadAppFrame.on[data-happyad-page]');return fr?String(fr.getAttribute('data-happyad-page')||''):'';}catch(_e){return '';}
-  }
-    function rememberFrameBefore(page){
-    try{
-      var cur=activeFramePage(),curUrl='';
-
-      try{
-        var root=shell();
-        var af=root&&root.querySelector&&root.querySelector('.happyadAppFrame.on[data-happyad-page]');
-        if(af){
-          cur=String(af.getAttribute('data-happyad-page')||cur||'');
-          curUrl=String(af.getAttribute('data-happyad-src')||pages[cur]||'');
-          try{
-            var actual=rootUrl(af.contentWindow&&af.contentWindow.location&&af.contentWindow.location.href||'');
-            if(actual&&actual.indexOf('boutique.html')<0)curUrl=actual;
-          }catch(_a){}
-        }
-      }catch(_u){}
-
-      if(!cur){
-        try{
-          var sv=String(sessionStorage.getItem('HAPPYAD_ACTIVE_APP_VIEW')||'');
-          var su=String(sessionStorage.getItem('HAPPYAD_LAST_APP_URL')||'');
-          if(sv&&sv!=='boutique'&&sv!=='notifications'&&sv!=='messages')cur=sv;
-          if(!curUrl&&su&&su.indexOf('boutique.html')<0)curUrl=su;
-        }catch(_s){}
-      }
-
-      if(page==='boutique'){
-        try{
-          /* v550 foundation: Boutique est isolée. Quel que soit le point d'entrée
-             (Accueil, Mon profil, profil visiteur), son retour revient à l'accueil. */
-          var retPage='home';
-          var retUrl='index.html';
-          window.__HAPPYAD_BOUTIQUE_RETURN_V503={view:retPage,url:retUrl,t:Date.now?Date.now():(new Date()).getTime()};
-          sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503',retPage);
-          sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503',retUrl);
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-          sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-          sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-        }catch(_s){}
-      }else{
-  try{
-    if(page&&page!=='boutique'){
-      sessionStorage.setItem('HAPPYAD_LAST_NON_BOUTIQUE_VIEW_V503',page);
-      sessionStorage.setItem('HAPPYAD_LAST_NON_BOUTIQUE_URL_V503',rootUrl(pages[page]||'index.html'));
-    }
-
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-
-    /* Si on quitte Boutique vers Profil/Accueil/Video/etc, on supprime l’ancien retour boutique */
-    try{
-      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
-    }catch(_m){
-      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
-    }
-  }catch(_c){}
-      }
-
-      if(!cur||cur===page)return;
-      var item={page:cur,url:curUrl||pages[cur]||''};
-      var last=frameStack[frameStack.length-1]||null;
-      var lastPage=(typeof last==='string'?last:String(last&&last.page||''));
-      var lastUrl=(typeof last==='string'?'':String(last&&last.url||''));
-      if(lastPage!==item.page||lastUrl!==item.url)frameStack.push(item);
-      if(frameStack.length>12)frameStack=frameStack.slice(-12);
-    }catch(_e){}
-  }
-  function restorePreviousFrame(){
-  try{
-    var root=shell();if(!root)return false;
-    var cur=activeFramePage(), prev='', prevUrl='', it=null, pp='';
-
-    if(cur==='boutique'){
-  try{
-    prev=sessionStorage.getItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503')||'';
-    prevUrl=sessionStorage.getItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503')||'';
-
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-    sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-
-    try{
-      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
-    }catch(_m){
-      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
-    }
-  }catch(_s){}
-
-  if(prev==='home')return false;
-      if(prev&&prev!==cur&&!pages[prev]){
-        prev='';
-        prevUrl='';
-      }
-    }
-
-    while(!prev&&frameStack.length){
-      it=frameStack.pop();
-      pp=(typeof it==='string'?it:String(it&&it.page||''));
-      prevUrl=(typeof it==='string'?'':String(it&&it.url||''));
-      if(pp&&pp!==cur&&pages[pp]){
-        prev=pp;
-        break;
-      }
-      prev='';
-      prevUrl='';
-    }
-
-    if(!prev)return false;
-var fr=ensureFrame(prev,versionHtmlUrl(prevUrl||pages[prev]),false);if(!fr)return false;
-    root.querySelectorAll('.happyadAppFrame').forEach(function(x){
-  if(x!==fr){
-    pauseFrameMedia(x,'restore-switch');
-    x.classList.remove('on');
-
-    if(x.id==='happyadAppFrame_boutique'){
-      try{
-        x.removeAttribute('data-happyad-src');
-        x.removeAttribute('data-happyad-loading');
-        x.style.opacity='';
-        x.style.visibility='';
-        x.src='about:blank';
-      }catch(_blank){}
-    }
-  }else{
-    x.classList.remove('on');
-  }
-});
-    fr.classList.add('on');
-    root.classList.add('on');
-    root.setAttribute('aria-hidden','false');
-    document.body.classList.add('happyadAppOpen');
-    setNavActive(prev);
-    try{
-      sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW',prev);
-      sessionStorage.setItem('HAPPYAD_LAST_APP_URL',rootUrl(prevUrl||pages[prev]));
-    }catch(_s){}
-    try{
-      setTimeout(function(){
-        try{fr.contentWindow.postMessage({type:'HAPPYAD_APP_FRAME_VISIBLE',page:prev,restored:true},'*');}catch(_m){}
-      },45);
-    }catch(_v){}
-    return true;
-  }catch(_e){return false;}
-}
-  function sameFrameUrl(frame,url){
-  try{
-    var wanted=rootUrl(url||'');
-    var stored=String(frame.getAttribute('data-happyad-src')||'');
-    var actual='';
-    try{
-      actual=rootUrl(frame.contentWindow&&frame.contentWindow.location&&frame.contentWindow.location.href||'');
-    }catch(_h){actual='';}
-
-    var pending=frame.getAttribute('data-happyad-loading')==='1';
-    var page=String(frame.getAttribute('data-happyad-page')||'');
-
-    if(pending)return false;
-
-    if(actual){
-      var wantedPath=pathOf(wanted);
-      var actualPath=pathOf(actual);
-
-      if(wantedPath&&actualPath&&wantedPath!==actualPath)return false;
-
-      if(page==='profile_public')return actual===wanted;
-
-      if(actual!==wanted && stored!==wanted)return false;
-
-      return true;
-    }
-
-    return stored===wanted;
-  }catch(e){
-    return frame.getAttribute('data-happyad-src')===rootUrl(url);
-  }
-}
-  function ensureFrame(page,url,preload){
-    var root=shell();if(!root)return null;
-    url=versionHtmlUrl(url||pages[page]||'');if(!url)return null;
-    var id='happyadAppFrame_'+page;
-    var fr=$(id);
-    if(!fr){
-      fr=document.createElement('iframe');
-      fr.id=id;fr.className='happyadAppFrame';fr.setAttribute('title',titles[page]||page);fr.setAttribute('data-happyad-page',page);fr.setAttribute('loading','eager');
-      fr.addEventListener('load',function(){try{
-        /* V548: sécurité réelle — Boutique ne doit jamais rester dans une iframe profil/profil visiteur.
-           En déploiement, une navigation tardive peut finir après le retour Accueil. On vide immédiatement. */
-        try{
-          var actualLoad=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
-          if(page!=='boutique'&&pathOf(actualLoad)==='boutique.html'){
-            fr.classList.remove('on');
-            fr.removeAttribute('data-happyad-src');
-            fr.removeAttribute('data-happyad-loading');
-            fr.style.opacity='';
-            fr.style.visibility='';
-            try{fr.src='about:blank';}catch(_blankLeak){}
-            var l0=loader();if(l0)l0.classList.remove('on');
-            return;
-          }
-        }catch(_leakLoad){}
-        fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';if(fr.__happyadLoadWatch){clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=null;}var l=loader();if(l)l.classList.remove('on');installFrameBridge(fr,page);}catch(_e){}});
-      root.appendChild(fr);
-    }
-    var forceVideoPostReload=false;/* v550: ?post ne force plus le reload vidéo */
-    var staleFrameNav=false;
-    try{
-      var actualCheck=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
-      var actualPathCheck=actualCheck?pathOf(actualCheck):'';
-      var urlPathCheck=pathOf(url);
-      if(actualPathCheck&&urlPathCheck&&actualPathCheck!==urlPathCheck)staleFrameNav=true;
-if(page!=='boutique'&&actualPathCheck==='boutique.html'){
-  staleFrameNav=true;
-  try{
-    fr.classList.remove('on');
-    fr.removeAttribute('data-happyad-src');
-    fr.removeAttribute('data-happyad-loading');
-    fr.style.opacity='';
-    fr.style.visibility='';
-    fr.src='about:blank';
-  }catch(_blankProfile){}
-}
-    }catch(_stale){}
-
-if(forceVideoPostReload||staleFrameNav||!sameFrameUrl(fr,url)){
-  fr.setAttribute('data-happyad-src',url);
-  try{
-    if(page==='profile_public'||forceVideoPostReload||staleFrameNav){
-      fr.setAttribute('data-happyad-loading','1');
-      fr.style.opacity='';
-      fr.style.visibility='';
-    }else{
-      fr.removeAttribute('data-happyad-loading');
-      fr.style.opacity='';
-      fr.style.visibility='';
-    }
-  }catch(_vis){}
-      try{if(!preload){var l=loader();if(l)l.classList.add('on');}}catch(_e){}
-      try{if((page==='profile_public'||forceVideoPostReload||staleFrameNav)&&fr.contentWindow&&fr.contentWindow.location){fr.contentWindow.location.replace(url);}else{fr.src=url;}}catch(_nav){fr.src=url;}
-      try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=setTimeout(function(){try{if(fr.classList&&fr.classList.contains('on')){fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=loader();if(l)l.classList.remove('on');}}catch(_w){}},2600);}catch(_watch){}
-    }
-    return fr;
-  }
-  function setNavActive(page){
-    try{
-      document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active')});
-      var sel='a[href="index.html"]';
-      if(page==='profile')sel='a[href^="modules/user.html"]';
-      else if(page==='profile_public')sel='a[href="index.html"]';
-      else if(page==='video')sel='a[href^="modules/video.html"]';
-      else if(page==='publish')sel='a[href^="modules/publish.html"]';
-      else if(page==='boutique')sel='a[href^="boutique.html"],[data-happyad-app-route^="boutique.html"]';
-      var a=document.querySelector('.bottom '+sel);if(a)a.classList.add('active');
-    }catch(_e){}
-  }
-    function openFramePage(page,url,preload){
-    var root=shell();if(!root)return false;
-    page=page||pageFromUrl(url);if(!page||!pages[page])return false;
-    url=versionHtmlUrl(url||pages[page]);
-    var fr=ensureFrame(page,url,!!preload);if(!fr)return false;
-    if(preload)return true;
-    rememberFrameBefore(page);
-    try{if(window.happyadCloseNativeNotifications)window.happyadCloseNativeNotifications();}catch(_n){}
-    try{if(window.happyadCloseNativeChat)window.happyadCloseNativeChat();}catch(_c){}
-    root.querySelectorAll('.happyadAppFrame').forEach(function(x){if(x!==fr)pauseFrameMedia(x,'switch');x.classList.remove('on')});
-    fr.classList.add('on');root.classList.add('on');root.setAttribute('aria-hidden','false');document.body.classList.add('happyadAppOpen');
-    try{setTimeout(function(){try{fr.contentWindow.postMessage({type:'HAPPYAD_APP_FRAME_VISIBLE',page:page},'*');}catch(_m){}},45);}catch(_v){}
-    setNavActive(page);
-    try{sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW',page);sessionStorage.setItem('HAPPYAD_LAST_APP_URL',rootUrl(url||pages[page]));}catch(_s){}
-    return true;
-  }
-  function pauseFrameMedia(fr,reason){
-    try{
-      if(!fr||!fr.contentWindow)return;
-      try{if(typeof fr.contentWindow.happyadStopAllVideoAudio==='function')fr.contentWindow.happyadStopAllVideoAudio(reason||'parent');}catch(_direct){}
-      try{fr.contentWindow.postMessage({type:'HAPPYAD_PAUSE_ALL_MEDIA',reason:reason||'parent'},'*');}catch(_msg){}
-    }catch(_e){}
-  }
-  function closeFramePage(){
-  var root=shell();if(!root)return false;
-  if(restorePreviousFrame())return true;
-
-  try{
-    root.querySelectorAll('.happyadAppFrame').forEach(function(x){
-      pauseFrameMedia(x,'close');
-      x.classList.remove('on');
-    });
-  }catch(_p){}
-
-  root.classList.remove('on');
-  root.setAttribute('aria-hidden','true');
-  document.body.classList.remove('happyadAppOpen');
-
-  try{var l=loader();if(l)l.classList.remove('on');}catch(_l){}
-  setNavActive('home');
-
-  /* V532 boutique clean:
-     Quand Boutique revient à Accueil, on nettoie toute ancienne trace boutique.
-     Sinon clic Mon profil peut réouvrir Boutique puis rediriger vers Profil. */
-try{
-  sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');
-  sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
-
-  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-  sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-  sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-
-  try{
-    frameStack.length=0;
-  }catch(_fs){
-    frameStack=[];
-  }
-
-  try{
-    delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
-  }catch(_m){
-    window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
-  }
-
-  try{
-    var rc=document.getElementById('happyadAppShell');
-    if(rc){
-      rc.querySelectorAll('.happyadAppFrame').forEach(function(f){
-        try{
-          var src=String(f.getAttribute('data-happyad-src')||'');
-          var actual='';
-          try{
-            actual=rootUrl(f.contentWindow&&f.contentWindow.location&&f.contentWindow.location.href||'');
-          }catch(_a){actual='';}
-
-          var isBoutique =
-            f.id==='happyadAppFrame_boutique' ||
-            String(f.getAttribute('data-happyad-page')||'')==='boutique' ||
-            src.indexOf('boutique.html')>=0 ||
-            actual.indexOf('boutique.html')>=0;
-
-          if(isBoutique){
-            f.classList.remove('on');
-            f.removeAttribute('data-happyad-src');
-            f.removeAttribute('data-happyad-loading');
-            f.style.opacity='';
-            f.style.visibility='';
-            try{f.src='about:blank';}catch(_blank){}
-          }
-        }catch(_one){}
-      });
-    }
-  }catch(_bf){}
-}catch(_s){}
-
-  return true;
-  }
-  function openInternalUrl(url,extra){
-    url=versionHtmlUrl(url||'');
-    var p=pathOf(url);
-    if(!url||p==='index.html'||url==='#'||url==='/'){try{if(window.happyadCloseAppPage&&window.happyadCloseAppPage!==closeFramePage)return window.happyadCloseAppPage();}catch(_n){}closeFramePage();return true;}
-    if(p==='modules/notifications.html'||url.indexOf('#notifications')>=0||url.indexOf('open=notifications')>=0){try{if(window.happyadOpenNativeNotifications){window.happyadOpenNativeNotifications(url);return true;}}catch(_n){} }
-    if(p==='messages.html'){try{if(window.happyadOpenNativeChat){window.happyadOpenNativeChat(url,extra||{});return true;}}catch(_m){} }
-    var page=pageFromUrl(url);
-    if(page)return openFramePage(page,url,false);
-    return false;
-  }
-  function openInternalCurrent(url,extra){
-    try{if(window.happyadOpenInternalUrlV492&&window.happyadOpenInternalUrlV492!==openInternalUrl)return window.happyadOpenInternalUrlV492(url,extra||{});}catch(_w){}
-    return openInternalUrl(url,extra||{});
-  }
-  function installFrameBridge(fr,page){
-    try{
-      var w=fr.contentWindow,d=fr.contentDocument;if(!w||!d||d.__HAPPYAD_V492_FRAME_BRIDGED__)return;d.__HAPPYAD_V492_FRAME_BRIDGED__=true;
-      w.happyadOpenInternalUrlV492=function(url,extra){return openInternalCurrent(url,extra||{});};
-      w.happyadCloseAppPage=function(){try{if(window.happyadCloseAppPage&&window.happyadCloseAppPage!==closeFramePage)return window.happyadCloseAppPage();}catch(_n){}return closeFramePage();};
-      d.addEventListener('click',function(e){
-        try{
-          var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
-          var href=a.getAttribute('href')||'';var rt=rootUrl(href);var pp=pathOf(rt);
-          if(pp==='index.html'||href==='../index.html'||href==='index.html'||href==='/'){
-            e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();try{if(window.happyadCloseAppPage&&window.happyadCloseAppPage!==closeFramePage)return window.happyadCloseAppPage();}catch(_n){}closeFramePage();return false;
-          }
-          if(pp==='messages.html'||pp==='modules/notifications.html'||pageFromUrl(rt)){
-            e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();openInternalCurrent(rt);return false;
-          }
-        }catch(_e){}
-      },true);
-    }catch(_e){}
-  }
-
-  window.happyadOpenInternalUrlV492=openInternalUrl;
-  window.happyadOpenAppPage=function(page,url){
-    if(page==='notifications'||String(url||'').indexOf('notifications')>=0)return openInternalUrl(url||'modules/notifications.html');
-    if(page==='messages'||String(url||'').indexOf('messages.html')>=0)return openInternalUrl(url||'messages.html');
-    return openFramePage(page||pageFromUrl(url),url||pages[page],false);
-  };
-  window.happyadCloseAppPage=closeFramePage;
-
-  document.addEventListener('click',function(e){
-    try{
-      var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
-      var href=a.getAttribute('href')||'';var rt=rootUrl(href);var pp=pathOf(rt);
-      if(pp==='modules/notifications.html'||pp==='messages.html'||pageFromUrl(rt)){
-        e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();openInternalCurrent(rt);return false;
-      }
-    }catch(_e){}
-  },true);
-
-  var oldVideo=window.openLongVideo;
-  window.openLongVideo=function(id){
-    try{if(typeof happyadVideoFastOpenPayload==='function')happyadVideoFastOpenPayload(id)}catch(_fast){}
-    try{if(typeof happyadMarkVideoViewFromHome==='function')happyadMarkVideoViewFromHome(id)}catch(_view){}
-    if(openInternalCurrent('modules/video.html?post='+encodeURIComponent(id||'')))return false;
-    if(typeof oldVideo==='function')return oldVideo.apply(this,arguments);
-  };
-
-  var oldCentral=window.openHomeCentralFilter;
-  window.openHomeCentralFilter=function(f){
-    f=String(f||'').toLowerCase();
-    if(f==='video')return openInternalCurrent('modules/video.html');
-    if(f==='photo')return openInternalCurrent('modules/photo.html');
-    if(typeof oldCentral==='function')return oldCentral.apply(this,arguments);
-    try{if(typeof setFilter==='function')return setFilter(f)}catch(_e){}
-  };
-  try{document.querySelectorAll('.chip').forEach(function(btn){btn.onclick=function(){return window.openHomeCentralFilter(btn.dataset.filter);};});}catch(_chips){}
-
-  try{
-    var oldProfile=window.happyadOpenPublicProfileFromPostV417;
-    if(typeof oldProfile==='function'){
-      window.happyadOpenPublicProfileFromPostV417=function(p){
-        try{
-          p=p||{};var uid=String(p.creatorId||p.creator_id||p.user_id||p.userId||p.ownerId||p.owner_id||p.uid||'').trim();
-          if(uid){
-            try{localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify({id:uid,user_id:uid,name:p.creatorName||p.creator_name||p.display_name||p.full_name||p.name||'Utilisateur HAPPYAD',avatar:p.avatar||p.avatar_url||p.creator_avatar||p.author_avatar||'',avatar_url:p.avatar_url||p.avatar||'',badge:p.badge||p.user_badge||'',__happyadUidLocked:true,source:'v492_app_router'}));}catch(_s){}
-            return openInternalCurrent('modules/user.html?public=1&uid='+encodeURIComponent(uid)+(p.id?'&post='+encodeURIComponent(p.id):''));
-          }
-        }catch(_e){}
-        return oldProfile.apply(this,arguments);
-      };
-    }
-  }catch(_p){}
-
-  window.addEventListener('message',function(ev){try{var d=ev&&ev.data;if(d==='HAPPYAD_CLOSE_APP_PAGE'||(d&&d.type==='HAPPYAD_CLOSE_APP_PAGE')){try{if(window.happyadCloseAppPage&&window.happyadCloseAppPage!==closeFramePage)return window.happyadCloseAppPage();}catch(_n){}closeFramePage();}if(d&&d.type==='HAPPYAD_OPEN_INTERNAL_URL'&&d.url)openInternalCurrent(d.url,d.extra||{});}catch(_e){}},true);
-
-  function preload(){
-    try{openFramePage('profile','modules/user.html',true);}catch(_e){}
-    try{setTimeout(function(){openFramePage('video','modules/video.html',true);},900);}catch(_e){}
-    try{setTimeout(function(){openFramePage('photo','modules/photo.html',true);},1500);}catch(_e){}
-  }
-  if(document.readyState==='complete')setTimeout(preload,350);else window.addEventListener('load',function(){setTimeout(preload,350)},{once:true});
-
-  /* V519: installation propre depuis lien/app browser.
-     - Le bandeau reste visible pour les comptes déjà connectés quand ils ouvrent par lien/navigateur.
-     - Si le navigateur ne peut pas installer la PWA, le bouton ouvre Chrome au lieu d'afficher une alerte bloquante.
-     - Caché seulement quand HAPPYAD est déjà lancé comme application installée. */
-  var installPrompt=null, installBtn=null, installHideTimer=null;
-  function isStandalone(){try{return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}catch(e){return false;}}
-  function btn(){if(!installBtn)installBtn=document.getElementById('happyadInstallAppBtn');return installBtn;}
-  function ua(){try{return String(navigator.userAgent||'');}catch(_e){return '';}}
-  function isAndroid(){return /Android/i.test(ua());}
-  function isInAppBrowser(){var u=ua();return /FBAN|FBAV|FB_IAB|Instagram|Line|TikTok|Snapchat|WhatsApp|wv\)|; wv|Version\/\d+\.\d+ Chrome\//i.test(u);}
-  function isChromeBrowser(){var u=ua();return /Chrome\//i.test(u)&&!/EdgA|OPR|SamsungBrowser|DuckDuckGo|UCBrowser|FBAN|FBAV|FB_IAB|Instagram|Line|TikTok|Snapchat|WhatsApp|wv\)|; wv/i.test(u);}
-  function shouldShowInstall(){return !isStandalone();}
-  function placeInstall(){try{var b=btn();if(!b)return;var sponsor=document.querySelector('.sponsorStrip');if(sponsor&&sponsor.parentNode&&b.nextElementSibling!==sponsor){sponsor.parentNode.insertBefore(b,sponsor);return;}var app=document.querySelector('.app');var top=document.querySelector('.top');if(app&&top&&top.parentNode===app&&b.previousElementSibling!==top){top.insertAdjacentElement('afterend',b);}}catch(_e){}}
-  function setInstallText(main,sub,action){try{var b=btn();if(!b)return;var t=b.querySelector('.haInstallText b'),s=b.querySelector('.haInstallText small'),a=b.querySelector('.haInstallAction');if(t&&main)t.textContent=main;if(s&&sub)s.textContent=sub;if(a&&action)a.textContent=action;}catch(_e){}}
-  function setNoticeCopy(){try{if(installPrompt){setInstallText('Télécharger l’application HAPPYAD','Accès rapide, notifications et ouverture sans Chrome.','Installer');return;}if(isAndroid()&&!isChromeBrowser()){setInstallText('Ouvrir HAPPYAD dans Chrome','Installation fiable seulement depuis Chrome Android.','Chrome');return;}setInstallText('Installer HAPPYAD','Dans Chrome : menu ⋮ puis Installer l’application.','Guide');}catch(_e){}}
-  function startAutoHide(){try{clearTimeout(installHideTimer);installHideTimer=setTimeout(function(){hideInstall();},8000);}catch(_e){}}
-  function showInstall(){try{var b=btn();if(!b)return;placeInstall();if(shouldShowInstall()){setNoticeCopy();b.classList.add('on');b.removeAttribute('hidden');startAutoHide();}else hideInstall();}catch(_e){}}
-  function hideInstall(){try{clearTimeout(installHideTimer);var b=btn();if(b)b.classList.remove('on');}catch(_e){}}
-  function markInstalled(){try{localStorage.setItem('HAPPYAD_PWA_INSTALLED','1');localStorage.setItem('HAPPYAD_PWA_INSTALLED_V514','1');localStorage.setItem('HAPPYAD_PWA_INSTALLED_V515','1');localStorage.setItem('HAPPYAD_PWA_INSTALLED_V519','1');}catch(_e){}hideInstall();}
-  function chromeIntent(){try{var u=new URL(location.href);var path=(u.host+u.pathname+u.search+u.hash).replace(/^\/+/,'');return 'intent://'+path+'#Intent;scheme='+String(u.protocol||'https:').replace(':','')+';package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(u.href)+';end';}catch(_e){return location.href;}}
-  function openChrome(){try{setInstallText('Ouverture dans Chrome…','Après ouverture : menu ⋮ puis Installer l’application.','Chrome');var target=chromeIntent();if(isAndroid()){location.href=target;return true;}window.open(location.href,'_blank','noopener');return true;}catch(_e){return false;}}
-  window.addEventListener('beforeinstallprompt',function(e){try{e.preventDefault();installPrompt=e;showInstall();}catch(_e){} });
-  window.addEventListener('appinstalled',function(){installPrompt=null;markInstalled();});
-  document.addEventListener('click',function(e){try{var b=e.target&&e.target.closest&&e.target.closest('#happyadInstallAppBtn');if(!b)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();clearTimeout(installHideTimer);if(isStandalone()){markInstalled();return false;}if(installPrompt){var p=installPrompt;installPrompt=null;p.prompt();p.userChoice.then(function(choice){try{if(choice&&choice.outcome==='accepted')markInstalled();else{setInstallText('Installer HAPPYAD','Appuie encore ou ouvre Chrome ⋮ > Installer.','Installer');showInstall();}}catch(_e){showInstall();}}).catch(function(){showInstall();});}else{if(isAndroid()&&!isChromeBrowser())openChrome();else setInstallText('Installer HAPPYAD','Chrome : menu ⋮ puis Installer l’application.','Guide');showInstall();}return false;}catch(_e){}},true);
-  function scheduleInstallNotice(){try{placeInstall();if(isStandalone())markInstalled();else setTimeout(showInstall,350);}catch(_e){}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleInstallNotice,{once:true});else scheduleInstallNotice();
-  window.addEventListener('pageshow',function(){setTimeout(scheduleInstallNotice,180);});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(scheduleInstallNotice,220);});
-})();
-</script>
 
 <style id="happyad-v504-floating-bar-tap-route-css">
 /* V509: barre flottante sans couleur de clic. Les routes Vidéos/Notifications restent prioritaires. */
@@ -12385,6 +12071,27 @@ try{
   color:#111!important;
 }
 </style>
+
+<style id="happyad-v16r-video-click-fluid-css">
+/* V16R: feedback vidéo visible sans activer le bouton bas quand une carte est cliquée */
+.bottom .nav[data-happyad-bottom-video].happyadTapOrange,
+.bottom .nav[data-happyad-bottom-video].happyadBottomPressedV504,
+.bottom .nav[data-happyad-bottom-video].happyadVideoOpeningV16R{
+  background:rgba(255,138,0,.16)!important;
+  color:#ff8a00!important;
+  box-shadow:0 0 0 1px rgba(255,138,0,.24) inset,0 0 22px rgba(255,138,0,.16)!important;
+  transform:scale(.985)!important;
+}
+.miniCard.videoCard.happyadVideoCardOpeningV16R{
+  outline:2px solid rgba(255,138,0,.62)!important;
+  box-shadow:0 0 0 4px rgba(255,138,0,.10),0 14px 38px rgba(0,0,0,.45)!important;
+}
+.miniCard.videoCard.happyadVideoCardOpeningV16R .play{
+  background:rgba(255,138,0,.92)!important;
+  color:#111!important;
+  box-shadow:0 0 24px rgba(255,138,0,.45)!important;
+}
+</style>
 <script id="happyad-v504-floating-bar-video-notification-force-fix">
 (function(){
   if(window.__HAPPYAD_V504_FLOATING_BAR_VIDEO_NOTIFICATION_FORCE_FIX__)return;
@@ -12394,8 +12101,14 @@ try{
   function press(el){
     try{
       if(!el||!el.classList)return;
-      if(el.closest&&el.closest('.bottom'))return;
-      /* V509: aucun fond/couleur de clic sur la barre flottante. */
+      if(el.closest&&el.closest('.bottom')){
+        var isVideo=!!(el.matches&&el.matches('[data-happyad-bottom-video], [data-happyad-app-route*="modules/video.html"]'));
+        if(!isVideo)return;
+        el.classList.add('happyadTapOrange','happyadBottomPressedV504');
+        clearTimeout(el.__happyadBottomPressedV504T);
+        el.__happyadBottomPressedV504T=setTimeout(function(){try{el.classList.remove('happyadTapOrange','happyadBottomPressedV504');}catch(_e){}},430);
+        return;
+      }
       clearTimeout(el.__happyadBottomPressedV504T);
       el.__happyadBottomPressedV504T=setTimeout(function(){try{el.classList.remove('happyadTapOrange','happyadBottomPressedV504');}catch(_e){}},340);
     }catch(_e){}
@@ -12409,12 +12122,13 @@ try{
   function dedupe(name,ev,el){
     stop(ev); press(el);
     var t=now();
-    if(lastAction===name && (t-lastAt)<260)return true;
+    if(window.HappyNavigation&&typeof window.HappyNavigation.isBusy==='function'&&window.HappyNavigation.isBusy())return true;
+    if(lastAction===name && (t-lastAt)<1200)return true;
     lastAction=name; lastAt=t;
     return false;
   }
   function openVideo(el){
-    try{active(el);}catch(_a){}
+    try{active(el); if(el&&el.classList){el.classList.add('happyadVideoOpeningV16R');clearTimeout(el.__happyadVideoOpeningV16RT);el.__happyadVideoOpeningV16RT=setTimeout(function(){try{el.classList.remove('happyadVideoOpeningV16R');}catch(_e){}},900);}}catch(_a){}
     try{if(window.happyadCloseNativeNotifications)window.happyadCloseNativeNotifications();}catch(_n){}
     try{if(window.happyadCloseNativeChat)window.happyadCloseNativeChat();}catch(_c){}
     var ok=false;
@@ -12494,568 +12208,7 @@ try{
 })();
 </script>
 
-<script id="happyad-v520-normal-back-history-fix">
-/* V520 — Retour normal interne + bouton téléphone :
-   Accueil -> Profil / Profil visiteur -> Accueil -> sortie
-   Accueil -> Profil -> Boutique -> Profil -> Accueil -> sortie
-   Accueil -> Notifications -> Accueil -> sortie */
-(function(){
-  if(window.__HAPPYAD_V520_NORMAL_BACK_HISTORY_FIX__)return;
-  window.__HAPPYAD_V520_NORMAL_BACK_HISTORY_FIX__=true;
 
-  var FLAG='__happyadNavV520';
-  var restoring=false;
-  var opening=false;
-  var lastPushAt=0;
-
-  function now(){try{return Date.now()}catch(_e){return new Date().getTime();}}
-  function cleanUrl(url){return String(url||'').replace(/^\.\//,'');}
-  function rootUrl(url){
-    try{
-      url=cleanUrl(url||'index.html');
-      var u=new URL(url,location.href);
-      var p=u.pathname.replace(/\\/g,'/');
-      var file=p.split('/').pop();
-      var prefix='';
-      if(file==='user.html')prefix='modules/user.html';
-      else if(file==='video.html')prefix='modules/video.html';
-      else if(file==='photo.html')prefix='modules/photo.html';
-      else if(file==='publish.html')prefix='modules/publish.html';
-      else if(file==='map.html')prefix='modules/map.html';
-      else if(file==='notifications.html')prefix='modules/notifications.html';
-      else if(file==='messages.html')prefix='messages.html';
-      else if(file==='boutique.html')prefix='boutique.html';
-      else if(file==='index.html'||file==='')prefix='index.html';
-      else prefix=url;
-      return prefix+(u.search||'')+(u.hash||'');
-    }catch(_e){return cleanUrl(url)}
-  }
-  function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-    var DEPLOY_V520='v550foundation1';
-  function versionHtmlUrlV520(url){
-    url=rootUrl(url||'');
-    var p=pathOf(url);
-    if(
-      p==='modules/user.html' ||
-      p==='modules/video.html' ||
-      p==='modules/photo.html' ||
-      p==='modules/publish.html' ||
-      p==='modules/map.html' ||
-      p==='modules/notifications.html' ||
-      p==='messages.html' ||
-      p==='boutique.html'
-    ){
-      try{
-        var hash='';
-        var h=url.indexOf('#');
-        if(h>=0){hash=url.slice(h);url=url.slice(0,h);}
-        var parts=url.split('?');
-        var base=parts[0];
-        var qs=parts[1]?parts[1].split('&'):[];
-        qs=qs.filter(function(x){return x && x.split('=')[0]!=='v';});
-        qs.push('v='+DEPLOY_V520);
-        return base+'?'+qs.join('&')+hash;
-      }catch(_e){}
-    }
-    return url;
-  }
-  function viewFromUrl(url,page){
-    page=String(page||'').toLowerCase();
-    var ru=rootUrl(url||'');
-    var publicProfile=(ru.indexOf('public=1')>=0||ru.indexOf('uid=')>=0||ru.indexOf('profile_uid=')>=0) && pathOf(ru)==='modules/user.html';
-    if(publicProfile)return 'profile_public';
-    if(page==='profile_public'||page==='public_profile'||page==='visitor_profile'||page==='visiteur')return 'profile_public';
-    if(page==='profile'||page==='profil')return 'profile';
-    if(page==='boutique')return 'boutique';
-    if(page==='notifications'||page==='notification')return 'notifications';
-    if(page==='messages'||page==='message')return 'messages';
-    if(page==='video'||page==='photo'||page==='publish'||page==='map')return page;
-    var p=pathOf(url||'');
-    if(p==='modules/user.html')return 'profile';
-    if(p==='boutique.html')return 'boutique';
-    if(p==='modules/notifications.html'||String(url||'').indexOf('#notifications')>=0||String(url||'').indexOf('open=notifications')>=0)return 'notifications';
-    if(p==='messages.html')return 'messages';
-    if(p==='modules/video.html')return 'video';
-    if(p==='modules/photo.html')return 'photo';
-    if(p==='modules/publish.html')return 'publish';
-    if(p==='modules/map.html')return 'map';
-    return '';
-  }
-  function stateView(){try{var s=history.state;return s&&s[FLAG]?String(s.view||'home'):'';}catch(_e){return '';}}
-  function activeFramePage(){try{var r=document.getElementById('happyadAppShell');var f=r&&r.querySelector&&r.querySelector('.happyadAppFrame.on[data-happyad-page]');return f?String(f.getAttribute('data-happyad-page')||''):'';}catch(_e){return '';}}
-  function activeView(){
-    try{var n=document.getElementById('happyadNativeNotifications');if(n&&n.classList.contains('on'))return 'notifications';}catch(_e){}
-    try{var c=document.getElementById('happyadNativeChat');if(c&&c.classList.contains('on'))return 'messages';}catch(_e){}
-    var f=activeFramePage();return f||'home';
-  }
-  function ensureBase(){try{var s=history.state;if(!s||!s[FLAG])history.replaceState((function(o){o[FLAG]=true;return o;})({view:'home',url:'index.html',ts:now()}),'',location.href);}catch(_e){}}
-  function navState(view,url){var o={view:view||'home',url:url||'index.html',ts:now()};o[FLAG]=true;return o;}
-  function currentUrlFromState(){try{var s=history.state;return s&&s[FLAG]?String(s.url||''):'';}catch(_e){return '';}}
-  function pushView(view,url){
-    try{
-      if(restoring||opening===false&&view==='')return;
-      view=view||'home';url=versionHtmlUrlV520(url||((view==='profile')?'modules/user.html':(view==='profile_public')?'modules/user.html?public=1':(view==='boutique')?'boutique.html':(view==='notifications')?'modules/notifications.html':(view==='messages')?'messages.html':'index.html'));
-      ensureBase();
-      var next=versionHtmlUrlV520(url),cur=stateView(),curUrl=currentUrlFromState();
-      if(view==='profile'&&next.indexOf('public=1')>=0&&cur==='profile'&&curUrl&&curUrl.indexOf('public=1')<0){history.replaceState(navState(view,next),'',location.href);lastPushAt=now();return;}
-      if(view==='profile_public'&&cur==='profile_public'&&curUrl!==next){history.replaceState(navState(view,next),'',location.href);lastPushAt=now();return;}
-      if(cur===view&&curUrl===next)return;
-      if(cur===view&&now()-lastPushAt<420)return;
-      history.pushState(navState(view,next),'',location.href);
-      lastPushAt=now();
-    }catch(_e){}
-  }
-  function pauseFrame(fr,reason){try{if(fr&&fr.contentWindow){try{if(typeof fr.contentWindow.happyadStopAllVideoAudio==='function')fr.contentWindow.happyadStopAllVideoAudio(reason||'v520')}catch(_d){}try{fr.contentWindow.postMessage({type:'HAPPYAD_PAUSE_ALL_MEDIA',reason:reason||'v520'},'*')}catch(_m){}}}catch(_e){}
-  }
-  function setNav(view){
-    try{
-      document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active')});
-      var sel='a[href="index.html"]';
-      if(view==='profile')sel='a[href^="modules/user.html"],[data-happyad-app-route^="modules/user.html"]';
-      else if(view==='profile_public')sel='a[href="index.html"]';
-      else if(view==='notifications')sel='[data-native-notif-open],.notifNav,[data-happyad-bottom-notifications]';
-      else if(view==='video')sel='a[href^="modules/video.html"],[data-happyad-bottom-video]';
-      else if(view==='boutique')sel='a[href^="boutique.html"],[data-happyad-app-route^="boutique.html"]';
-      var a=document.querySelector('.bottom '+sel);if(a)a.classList.add('active');
-    }catch(_e){}
-  }
-  function closeNotificationsPure(){
-    try{var n=document.getElementById('happyadNativeNotifications');if(n){n.classList.remove('on');n.setAttribute('aria-hidden','true');n.style.display='';}}catch(_e){}
-    try{document.body.classList.remove('happyadNativeNotifOpen')}catch(_e){}
-  }
-  function closeChatPure(){try{if(window.happyadCloseNativeChat)window.happyadCloseNativeChat();}catch(_e){}}
-  function forceHome(){
-  closeNotificationsPure();closeChatPure();
-
-  try{
-    var r=document.getElementById('happyadAppShell');
-    if(r){
-      r.querySelectorAll('.happyadAppFrame').forEach(function(fr){
-        try{
-          pauseFrame(fr,'home');
-
-          var src=String(fr.getAttribute('data-happyad-src')||'');
-          var actual='';
-          try{
-            actual=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
-          }catch(_a){actual='';}
-
-          var isBoutique =
-            fr.id==='happyadAppFrame_boutique' ||
-            String(fr.getAttribute('data-happyad-page')||'')==='boutique' ||
-            src.indexOf('boutique.html')>=0 ||
-            actual.indexOf('boutique.html')>=0;
-
-          fr.classList.remove('on');
-
-          if(isBoutique){
-            fr.removeAttribute('data-happyad-src');
-            fr.removeAttribute('data-happyad-loading');
-            fr.style.opacity='';
-            fr.style.visibility='';
-            try{fr.src='about:blank';}catch(_blank){}
-          }
-        }catch(_one){}
-      });
-
-      r.classList.remove('on');
-      r.setAttribute('aria-hidden','true');
-    }
-  }catch(_e){}
-
-  try{document.body.classList.remove('happyadAppOpen')}catch(_e){}
-  try{var l=document.getElementById('happyadAppMiniLoader');if(l)l.classList.remove('on')}catch(_e){}
-
-  setNav('home');
-
-  try{
-    sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');
-    sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
-
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-    sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-
-    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
-    sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');
-  }catch(_e){}
-  }
-  function showFrame(view,url){
-    view=view||viewFromUrl(url);url=versionHtmlUrlV520(url||((view==='profile')?'modules/user.html':(view==='profile_public')?'modules/user.html?public=1':(view==='boutique')?'boutique.html':(view==='video')?'modules/video.html':(view==='photo')?'modules/photo.html':(view==='publish')?'modules/publish.html':(view==='map')?'modules/map.html':''));
-    if(!view||!url)return false;
-    closeNotificationsPure();closeChatPure();
-    var r=document.getElementById('happyadAppShell');
-    var fr=document.getElementById('happyadAppFrame_'+view);
-    if(!r||!fr){
-      try{if(baseOpenInternal)return !!baseOpenInternal(url,{source:'v520-restore'});}catch(_e){}
-      try{if(baseOpenAppPage)return !!baseOpenAppPage(view,url);}catch(_e){}
-      return false;
-    }
-    try{
-      var cur=String(fr.getAttribute('data-happyad-src')||'');
-var actual='';
-try{
-  actual=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
-}catch(_h){
-  actual='';
-}
-var forceVideoPostReload=false;/* v550: ?post ne force plus le reload vidéo */
-var staleFrameNav=false;
-var needNav=forceVideoPostReload||(cur!==url);
-
-try{
-  var curPath=pathOf(cur);
-  var urlPath=pathOf(url);
-  var actualPath=actual?pathOf(actual):'';
-
-  if(actualPath&&urlPath&&actualPath!==urlPath){needNav=true;staleFrameNav=true;}
-  if(view==='profile_public'&&actual&&actual!==url){needNav=true;staleFrameNav=true;}
-  if(view!=='boutique'&&actualPath==='boutique.html'){
-  needNav=true;
-  staleFrameNav=true;
-  try{
-    fr.classList.remove('on');
-    fr.removeAttribute('data-happyad-src');
-    fr.removeAttribute('data-happyad-loading');
-    fr.style.opacity='';
-    fr.style.visibility='';
-    fr.src='about:blank';
-  }catch(_blankProfile){}
-  }
-}catch(_cmp){}
-
-if(needNav){
-        fr.setAttribute('data-happyad-src',url);
-        try{
-    if(view==='profile_public'||forceVideoPostReload||staleFrameNav){
-    fr.setAttribute('data-happyad-loading','1');
-    fr.style.opacity='';
-    fr.style.visibility='';
-  }else{
-    fr.removeAttribute('data-happyad-loading');
-    fr.style.opacity='';
-    fr.style.visibility='';
-  }
-}catch(_vis){}
-
-try{
-  if((view==='profile_public'||forceVideoPostReload||staleFrameNav)&&fr.contentWindow&&fr.contentWindow.location){
-    fr.contentWindow.location.replace(url);
-  }else{
-    fr.src=url;
-  }
-}catch(_nav){
-  fr.src=url;
-}
-try{if(fr.__happyadLoadWatch)clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=setTimeout(function(){try{if(fr.classList&&fr.classList.contains('on')){fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';var l=document.getElementById('happyadAppMiniLoader');if(l)l.classList.remove('on');}}catch(_w){}},2600);}catch(_watch){}
-            }else if(view==='profile_public'&&fr.getAttribute('data-happyad-loading')==='1'){
-        try{fr.style.opacity='';fr.style.visibility='';}catch(_keepVisible){}
-}
-    }catch(_e){}
-    try{r.querySelectorAll('.happyadAppFrame').forEach(function(x){
-      if(x!==fr){
-        pauseFrame(x,'restore');
-        x.classList.remove('on');
-        if(x.id==='happyadAppFrame_boutique'&&view!=='boutique'){
-          try{
-            x.removeAttribute('data-happyad-src');
-            x.removeAttribute('data-happyad-loading');
-            x.style.opacity='';
-            x.style.visibility='';
-            x.src='about:blank';
-          }catch(_blank){}
-        }
-      }else{
-        x.classList.remove('on');
-      }
-    });}catch(_e){}
-    fr.classList.add('on');r.classList.add('on');r.setAttribute('aria-hidden','false');
-    try{document.body.classList.add('happyadAppOpen')}catch(_e){}
-    setNav(view);
-    try{sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW',view);sessionStorage.setItem('HAPPYAD_LAST_APP_URL',url)}catch(_e){}
-    try{setTimeout(function(){try{fr.contentWindow.postMessage({type:'HAPPYAD_APP_FRAME_VISIBLE',page:view,restored:true,source:'v520'},'*')}catch(_m){}},35)}catch(_e){}
-    return true;
-  }
-  function showNotifications(url){
-    forceHome();
-    try{if(baseOpenNativeNotifications)return !!baseOpenNativeNotifications(url||'tout');}catch(_e){}
-    try{
-      var n=document.getElementById('happyadNativeNotifications');if(!n)return false;
-      n.classList.add('on');n.setAttribute('aria-hidden','false');document.body.classList.add('happyadNativeNotifOpen');setNav('notifications');
-      try{sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','notifications')}catch(_s){}
-      return true;
-    }catch(_x){return false;}
-  }
-  function restoreTo(view,url){
-    restoring=true;
-    try{
-      view=view||'home';
-      if(view==='home')forceHome();
-      else if(view==='notifications')showNotifications(url||'tout');
-      else if(view==='messages'){try{if(baseOpenInternal)baseOpenInternal(url||'messages.html',{source:'v520-pop'});}catch(_e){}}
-      else showFrame(view,url);
-    }finally{setTimeout(function(){restoring=false;},80);}
-  }
-  function requestBack(){
-  try{
-    var sv=stateView();
-
-    /* Boutique ne doit jamais faire history.back(): on applique directement
-       la cible mémorisée pour éviter Accueil -> Boutique -> Profil en cascade. */
-    if(sv==='boutique'){
-      try{
-        if(window.happyadReturnFromBoutiqueToMainProfileV503){
-          return !!window.happyadReturnFromBoutiqueToMainProfileV503({source:'android-back-v546'});
-        }
-      }catch(_b){}
-      return false;
-    }
-
-    /* Les autres modules gardent le retour historique normal. */
-    if(sv&&sv!=='home'){
-      history.back();
-      return true;
-    }
-
-    /* Si on est déjà à l'accueil, ne pas bloquer le bouton retour téléphone. */
-    return false;
-  }catch(_e){}
-
-  return false;
-  }
-
-  ensureBase();
-
-  var baseOpenNativeNotifications=window.happyadOpenNativeNotifications;
-  if(typeof baseOpenNativeNotifications==='function'){
-    window.happyadOpenNativeNotifications=function(urlOrCat){
-      var ok=false;opening=true;
-      try{ok=!!baseOpenNativeNotifications.apply(this,arguments);}catch(_e){ok=false;}
-      opening=false;
-      if(ok&&!restoring)pushView('notifications',String(urlOrCat||'modules/notifications.html'));
-      return ok;
-    };
-  }
-
-  var baseCloseNativeNotifications=window.happyadCloseNativeNotifications;
-  if(typeof baseCloseNativeNotifications==='function'){
-    window.happyadCloseNativeNotifications=function(){
-      try{if(!restoring&&!opening&&stateView()==='notifications')return requestBack();}catch(_e){}
-      return baseCloseNativeNotifications.apply(this,arguments);
-    };
-  }
-
-  var baseNotifImmediate=window.happyadNotificationOpenImmediateV507;
-  if(typeof baseNotifImmediate==='function'){
-    window.happyadNotificationOpenImmediateV507=function(cat,el){
-      var ok=false;opening=true;
-      try{ok=!!baseNotifImmediate.apply(this,arguments);}catch(_e){ok=false;}
-      opening=false;
-      if(ok&&!restoring)pushView('notifications',String(cat||'modules/notifications.html'));
-      return ok;
-    };
-    window.happyadNotificationOpenImmediateV506=window.happyadNotificationOpenImmediateV507;
-  }
-
-  var baseNotifOneTap=window.happyadNotificationOneTapV506;
-  if(typeof baseNotifOneTap==='function'){
-    window.happyadNotificationOneTapV506=function(ev,el){
-      var out;opening=true;
-      try{out=baseNotifOneTap.apply(this,arguments);}catch(_e){out=false;}
-      opening=false;
-      if(!restoring)pushView('notifications','modules/notifications.html');
-      return out;
-    };
-  }
-
-  var baseNotifDirect=window.happyadOpenNotificationsDirectV496;
-  if(typeof baseNotifDirect==='function'){
-    window.happyadOpenNotificationsDirectV496=function(cat){
-      var ok=false;opening=true;
-      try{ok=!!baseNotifDirect.apply(this,arguments);}catch(_e){ok=false;}
-      opening=false;
-      if(ok&&!restoring)pushView('notifications',String(cat||'modules/notifications.html'));
-      return ok;
-    };
-  }
-
-  var baseOpenInternal=window.happyadOpenInternalUrlV492;
-  if(typeof baseOpenInternal==='function'){
-    window.happyadOpenInternalUrlV492=function(url,extra){
-      var v=viewFromUrl(url);var ok=false;opening=true;
-      try{ok=!!baseOpenInternal.apply(this,arguments);}catch(_e){ok=false;}
-      opening=false;
-      if(ok&&v&&!restoring)pushView(v,url);
-      return ok;
-    };
-  }
-
-  var baseOpenAppPage=window.happyadOpenAppPage;
-  if(typeof baseOpenAppPage==='function'){
-    window.happyadOpenAppPage=function(page,url){
-      var v=viewFromUrl(url,page);var ok=false;opening=true;
-      try{ok=!!baseOpenAppPage.apply(this,arguments);}catch(_e){ok=false;}
-      opening=false;
-      if(ok&&v&&!restoring)pushView(v,url||page);
-      return ok;
-    };
-  }
-
-  var baseCloseAppPage=window.happyadCloseAppPage;
-  window.happyadCloseAppPage=function(){
-    try{if(!restoring&&!opening&&stateView()&&stateView()!=='home')return requestBack();}catch(_e){}
-    try{return baseCloseAppPage?baseCloseAppPage.apply(this,arguments):forceHome();}catch(_x){forceHome();return true;}
-  };
-   function cleanupBoutiqueFrameV534(){
-  try{
-    var rc=document.getElementById('happyadAppShell');
-    if(rc){
-      rc.querySelectorAll('.happyadAppFrame').forEach(function(f){
-        try{
-          var src=String(f.getAttribute('data-happyad-src')||'');
-          var actual='';
-          try{
-            actual=rootUrl(f.contentWindow&&f.contentWindow.location&&f.contentWindow.location.href||'');
-          }catch(_a){actual='';}
-
-          var isBoutique =
-            f.id==='happyadAppFrame_boutique' ||
-            String(f.getAttribute('data-happyad-page')||'')==='boutique' ||
-            src.indexOf('boutique.html')>=0 ||
-            actual.indexOf('boutique.html')>=0;
-
-          if(isBoutique){
-            f.classList.remove('on');
-            f.removeAttribute('data-happyad-src');
-            f.removeAttribute('data-happyad-loading');
-            f.style.opacity='';
-            f.style.visibility='';
-            try{f.src='about:blank';}catch(_blank){}
-          }
-        }catch(_one){}
-      });
-    }
-  }catch(_bf){}
-   }
-
-function clearBoutiqueReturnKeysV503(){
-  try{
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_PAGE_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_ENTRY_LOCK_V499');
-    sessionStorage.removeItem('HAPPYAD_BOUTIQUE_BACK_FORCE_MAIN_PROFILE_V501');
-    sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-
-    try{
-      delete window.__HAPPYAD_BOUTIQUE_RETURN_V503;
-    }catch(_m){
-      window.__HAPPYAD_BOUTIQUE_RETURN_V503=null;
-    }
-
-    cleanupBoutiqueFrameV534();
-  }catch(_s){}
-  }
-
-  function getBoutiqueReturnTargetV503(){
-    /* v550 foundation: Boutique ne retourne plus vers profile/profile_public.
-       Une seule cible stable pour éviter les mélanges d'iframes et d'historique. */
-    try{
-      sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503','home');
-      sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503','index.html');
-    }catch(_s){}
-    return {view:'home',url:'index.html'};
-  }
-
-
-
-  function applyBoutiqueReturnTargetV503(target,poppedView){
-    /* v550 foundation: retour Boutique = Accueil direct, sans history.back, sans Profil. */
-    clearBoutiqueReturnKeysV503();
-    try{cleanupBoutiqueFrameV534();}catch(_cb){}
-    forceHome();
-    try{history.replaceState(navState('home','index.html'),'',location.href);}catch(_h){}
-    return true;
-  }
-
-
-  window.happyadReturnFromBoutiqueToMainProfileV503=function(opts){
-    opts=opts||{};
-    var target=getBoutiqueReturnTargetV503();
-
-    /* V546: retour Boutique direct. Ne jamais utiliser history.back() ici.
-       history.back() faisait d'abord revenir Accueil, puis le code restaurait Profil
-       après coup: c'est ce qui affichait Boutique/écran noir/profil ancien. */
-    try{sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');}catch(_c){}
-
-    try{
-      var now=Date.now?Date.now():(new Date()).getTime();
-      if(window.__HAPPYAD_BOUTIQUE_RETURN_LOCK_V546 && now-window.__HAPPYAD_BOUTIQUE_RETURN_LOCK_V546<900)return true;
-      window.__HAPPYAD_BOUTIQUE_RETURN_LOCK_V546=now;
-    }catch(_lock){}
-
-    return applyBoutiqueReturnTargetV503(target,'direct-v546');
-  };
-
-
-  window.addEventListener('message',function(ev){
-    try{
-      var d=ev&&ev.data;
-      if(d&&d.type==='HAPPYAD_RETURN_FROM_BOUTIQUE_TO_MAIN_PROFILE_V503'){
-        ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
-        window.happyadReturnFromBoutiqueToMainProfileV503({source:String(d.source||'boutique-v503-message')});
-        return false;
-      }
-    }catch(_e){}
-  },true);
-
-  window.addEventListener('popstate',function(ev){
-  try{
-    var pending='';
-    try{pending=sessionStorage.getItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503')||'';}catch(_p){}
-
-    if(pending){
-      var target=null;
-      try{target=JSON.parse(pending);}catch(_j){target=null;}
-      try{sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');}catch(_r){}
-
-      var s=ev&&ev.state;
-      var poppedView=(s&&s[FLAG])?String(s.view||'home'):'home';
-      applyBoutiqueReturnTargetV503(target||getBoutiqueReturnTargetV503(),poppedView);
-      return;
-    }
-
-    var s2=ev&&ev.state;
-
-    /* Si l'état appartient au routeur HAPPYAD, on restaure normalement. */
-    if(s2&&s2[FLAG]){
-      restoreTo(String(s2.view||'home'),String(s2.url||''));
-      return;
-    }
-
-    /* Si Android / navigateur veut quitter depuis l'accueil,
-       ne pas forcer restoreTo('home'). */
-    return;
-  }catch(_e){
-    return;
-  }
-},true);
-  
-  document.addEventListener('click',function(e){
-    try{
-      var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
-      var href=a.getAttribute('href')||'';
-      if(href==='index.html'||href==='/'||href==='#home'){
-        var av=activeView();
-        if(av&&av!=='home'){
-          e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-          return requestBack();
-        }
-      }
-    }catch(_e){}
-  },true);
-})();
-</script>
 <script id="happyad-v521-photo-fullscreen-normal-back-fix">
 /* V521 — Une photo ouverte en plein écran devient une vraie étape retour :
    carte photo -> page d'origine -> accueil -> sortie normale. */
@@ -13084,7 +12237,7 @@ function clearBoutiqueReturnKeysV503(){
     try{var u=clean(sessionStorage.getItem('HAPPYAD_LAST_APP_URL'));if(u&&view!=='home'&&view!=='notifications')return u;}catch(e){}
     if(view==='profile')return 'modules/user.html';
     if(view==='profile_public')return 'modules/user.html?public=1';
-    if(view==='boutique')return 'boutique.html?v=v550foundation1';
+    if(view==='boutique')return 'boutique.html?v=532';
     if(view==='notifications')return 'modules/notifications.html';
     if(view==='messages')return 'messages.html';
     if(view==='video')return 'modules/video.html';
@@ -13183,343 +12336,39 @@ function clearBoutiqueReturnKeysV503(){
 })();
 </script>
 
-<script id="happyad-v532-netlify-cache-video-return-fix">
-/* V532 — Déploiement Netlify/PWA: version forcée + retour vidéo direct.
-   Objectifs:
-   1) Les PWA déjà installées demandent la dernière version sans garder un ancien module.
-   2) Une vidéo ouverte depuis une carte (?post=...) ne repasse plus par la première vidéo au retour. */
-(function(){
-  if(window.__HAPPYAD_V532_NETLIFY_CACHE_VIDEO_RETURN_FIX__)return;
-  window.__HAPPYAD_V532_NETLIFY_CACHE_VIDEO_RETURN_FIX__=true;
-  var VERSION='v532';
-  var NAV_FLAG='__happyadNavV520';
-  var VIDEO_POST_KEY='HAPPYAD_VIDEO_POST_OPEN_V532';
-  function now(){try{return Date.now()}catch(e){return new Date().getTime();}}
-  function clean(v){return String(v==null?'':v).trim();}
-  function rootUrl(url){
-    try{
-      url=clean(url);if(!url)return '';
-      url=url.replace(/^\.\//,'').replace(/^\.\.\//,'');
-      var u=new URL(url,location.href);
-      var file=(u.pathname||'').replace(/\\/g,'/').split('/').pop();
-      var prefix='';
-      if(file==='user.html')prefix='modules/user.html';
-      else if(file==='video.html')prefix='modules/video.html';
-      else if(file==='photo.html')prefix='modules/photo.html';
-      else if(file==='publish.html')prefix='modules/publish.html';
-      else if(file==='map.html')prefix='modules/map.html';
-      else if(file==='notifications.html')prefix='modules/notifications.html';
-      else if(file==='messages.html')prefix='messages.html';
-      else if(file==='boutique.html')prefix='boutique.html';
-      else if(file==='index.html'||file==='')prefix='index.html';
-      else prefix=url;
-      return prefix+(u.search||'')+(u.hash||'');
-    }catch(_e){return clean(url)}
-  }
-  function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-  function isVideoPostUrl(url){
-    try{
-      var ru=rootUrl(url||'');
-      if(pathOf(ru)!=='modules/video.html')return false;
-      return /(?:\?|&)post=/.test(ru);
-    }catch(_e){return false;}
-  }
-  function markVideoPost(url){
-    try{if(isVideoPostUrl(url))sessionStorage.setItem(VIDEO_POST_KEY,String(now())+'|'+rootUrl(url));}catch(_e){}
-  }
-  function recentVideoPost(){
-    try{
-      var raw=sessionStorage.getItem(VIDEO_POST_KEY)||'';
-      var t=Number(raw.split('|')[0]||0);
-      return !!(t && (now()-t)<30*60*1000);
-    }catch(_e){return false;}
-  }
-  function activeFrame(){try{var r=document.getElementById('happyadAppShell');return r&&r.querySelector&&r.querySelector('.happyadAppFrame.on[data-happyad-page]');}catch(_e){return null;}}
-  function activeVideoPostOpen(){
-    try{
-      var fr=activeFrame();if(!fr)return false;
-      var page=clean(fr.getAttribute('data-happyad-page')||'');
-      if(page!=='video')return false;
-      var src=clean(fr.getAttribute('data-happyad-src')||'');
-      var actual='';
-      try{actual=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');}catch(_a){}
-      var last='';try{last=clean(sessionStorage.getItem('HAPPYAD_LAST_APP_URL')||'');}catch(_s){}
-      return isVideoPostUrl(src)||isVideoPostUrl(actual)||isVideoPostUrl(last)||recentVideoPost();
-    }catch(_e){return false;}
-  }
-  function navState(view,url){var o={view:view||'home',url:url||'index.html',ts:now()};o[NAV_FLAG]=true;return o;}
-  function pauseFrame(fr,reason){
-    try{
-      if(!fr||!fr.contentWindow)return;
-      try{if(typeof fr.contentWindow.happyadStopAllVideoAudio==='function')fr.contentWindow.happyadStopAllVideoAudio(reason||'v532')}catch(_d){}
-      try{fr.contentWindow.postMessage({type:'HAPPYAD_PAUSE_ALL_MEDIA',reason:reason||'v532'},'*')}catch(_m){}
-    }catch(_e){}
-  }
-  function forceHome(reason){
-    try{
-      var r=document.getElementById('happyadAppShell');
-      if(r){
-        r.querySelectorAll('.happyadAppFrame').forEach(function(fr){
-          try{
-            pauseFrame(fr,reason||'v545-home');
-            var src=String(fr.getAttribute('data-happyad-src')||'');
-            var actual='';
-            try{actual=rootUrl(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');}catch(_a){actual='';}
-            var isBoutique=(fr.id==='happyadAppFrame_boutique')||(String(fr.getAttribute('data-happyad-page')||'')==='boutique')||(src.indexOf('boutique.html')>=0)||(actual.indexOf('boutique.html')>=0);
-            fr.classList.remove('on');
-            if(isBoutique){
-              fr.removeAttribute('data-happyad-src');
-              fr.removeAttribute('data-happyad-loading');
-              fr.style.opacity='';
-              fr.style.visibility='';
-              try{fr.src='about:blank';}catch(_blank){}
-            }
-          }catch(_one){}
-        });
-        r.classList.remove('on');r.setAttribute('aria-hidden','true');
-      }
-    }catch(_e){}
-    try{document.body.classList.remove('happyadAppOpen')}catch(_b){}
-    try{var l=document.getElementById('happyadAppMiniLoader');if(l)l.classList.remove('on')}catch(_l){}
-    try{document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active')});var h=document.querySelector('.bottom a[href="index.html"]');if(h)h.classList.add('active');}catch(_n){}
-    try{
-      sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');
-      sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
-      sessionStorage.removeItem(VIDEO_POST_KEY);
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');
-      sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');
-      sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-      sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');
-      sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');
-    }catch(_s){}
-    try{history.replaceState(navState('home','index.html'),'',location.href);}catch(_h){}
-    return true;
-  }
 
-  try{localStorage.setItem('HAPPYAD_DEPLOY_VERSION_ACTIVE','v550foundation1');}catch(_v){}
+<!-- HAPPYAD CORE STRUCTURE V1: nouveaux maîtres ajoutés sans remplacer le design actuel -->
+<script id="happyad-core-loader-v1" src="core/state.js?v=core-structure-v1"></script>
+<script src="core/cache.js?v=core-structure-v1"></script>
+<script src="core/api.js?v=core-structure-v1"></script>
+<script src="core/auth.js?v=core-structure-v1"></script>
+<script src="core/permissions.js?v=core-structure-v1"></script>
+<script src="core/media.js?v=core-structure-v1"></script>
+<script src="core/history.js?v=core-structure-v1"></script>
+<script src="core/router.js?v=core-structure-v1"></script>
+<script src="core/bootstrap.js?v=core-structure-v1"></script>
+<!-- HAPPYAD CORE V4: registre des maîtres chargé avant les maîtres actifs/passifs -->
+<script src="core/master-registry.js?v=core-grouped-v4"></script>
 
-function refreshServiceWorker(){
-  try{
-    if(!('serviceWorker' in navigator))return;
-  }catch(_e){}
-}
-  var oldOpenInternal=window.happyadOpenInternalUrlV492;
-  if(typeof oldOpenInternal==='function'){
-    window.happyadOpenInternalUrlV492=function(url,extra){
-      markVideoPost(url);
-      return oldOpenInternal.apply(this,arguments);
-    };
-  }
-  var oldOpenApp=window.happyadOpenAppPage;
-  if(typeof oldOpenApp==='function'){
-    window.happyadOpenAppPage=function(page,url){
-      markVideoPost(url||page);
-      return oldOpenApp.apply(this,arguments);
-    };
-  }
-  var oldOpenLong=window.openLongVideo;
-  if(typeof oldOpenLong==='function'){
-    window.openLongVideo=function(id){
-      try{markVideoPost('modules/video.html?post='+encodeURIComponent(id||''));}catch(_m){}
-      return oldOpenLong.apply(this,arguments);
-    };
-  }
-  var oldClose=window.happyadCloseAppPage;
-  if(typeof oldClose==='function'){
-    window.happyadCloseAppPage=function(){
-      if(activeVideoPostOpen())return forceHome('video-post-close-v532');
-      return oldClose.apply(this,arguments);
-    };
-  }
-  window.addEventListener('popstate',function(ev){
-    try{
-      setTimeout(function(){
-        try{
-          var s=ev&&ev.state;
-          var view=s&&s[NAV_FLAG]?clean(s.view||''):'';
-          var url=s&&s[NAV_FLAG]?clean(s.url||''):'';
-          if(view==='video' && !isVideoPostUrl(url) && recentVideoPost())forceHome('video-base-pop-v532');
-        }catch(_x){}
-      },0);
-    }catch(_e){}
-  },true);
-})();
-</script>
+<style id="happyad-core-v6-black-return-guard">
+/* V6: garde noire pendant fermeture de frame, jamais blanc. */
+html,body{background:#000!important;}
+#happyadAppShell{background:#000!important;}
+.happyadAppFrame{background:#000!important;}
+</style>
+<!-- HAPPYAD CORE V10: navigation/vidéo + profil/boutique maîtres actifs, ouverture boutique profil sécurisée -->
+<script src="core/navigation-master.js?v=core-nav-v33-pwa-no-double-load-v16zc"></script>
+<script src="core/video-master.js?v=core-nav-v10"></script>
 
-
-<script id="happyad-v550-foundation-router-clean">
-(function(){
-  if(window.__HAPPYAD_V550_FOUNDATION_ROUTER_CLEAN__)return;
-  window.__HAPPYAD_V550_FOUNDATION_ROUTER_CLEAN__=true;
-  var DEPLOY_V='v550foundation1';
-  function clean(v){return String(v==null?'':v).trim();}
-  function rootUrl(url){
-    try{
-      url=clean(url).replace(/^\.\//,'').replace(/^\.\.\//,'');
-      if(!url)return '';
-      var u=new URL(url,location.href);
-      var file=(u.pathname||'').replace(/\\/g,'/').split('/').pop();
-      var prefix='';
-      if(file==='user.html')prefix='modules/user.html';
-      else if(file==='video.html')prefix='modules/video.html';
-      else if(file==='photo.html')prefix='modules/photo.html';
-      else if(file==='publish.html')prefix='modules/publish.html';
-      else if(file==='map.html')prefix='modules/map.html';
-      else if(file==='notifications.html')prefix='modules/notifications.html';
-      else if(file==='messages.html')prefix='messages.html';
-      else if(file==='boutique.html')prefix='boutique.html';
-      else if(file==='index.html'||file==='')prefix='index.html';
-      else prefix=url;
-      return prefix+(u.search||'')+(u.hash||'');
-    }catch(_e){return clean(url)}
-  }
-  function versionUrl(url){
-    url=rootUrl(url||'');
-    var hash='',h=url.indexOf('#');if(h>=0){hash=url.slice(h);url=url.slice(0,h);}
-    var parts=url.split('?'),base=parts[0],qs=new URLSearchParams(parts[1]||'');
-    if(/^(modules\/(user|video|photo|publish|map|notifications)\.html|messages\.html|boutique\.html)$/.test(base)){
-      qs.set('v',DEPLOY_V);
-      return base+'?'+qs.toString()+hash;
-    }
-    return url+hash;
-  }
-  function normalizeInternalUrl(url){
-    var ru=rootUrl(url||'');
-    try{
-      var u=new URL(ru,location.href);
-      var file=(u.pathname||'').split('/').pop();
-      if(file==='video.html'){
-        var post=u.searchParams.get('post')||'';
-        if(post){
-          try{sessionStorage.setItem('HAPPYAD_VIDEO_START_POST_V550',post);sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_s){}
-          u.searchParams.delete('post');
-        }
-        u.searchParams.set('v',DEPLOY_V);
-        return 'modules/video.html?'+u.searchParams.toString();
-      }
-      if(file==='boutique.html'){
-        try{
-          sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503','home');
-          sessionStorage.setItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503','index.html');
-          sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');
-        }catch(_s){}
-        u.searchParams.delete('return');u.searchParams.delete('returnUrl');u.searchParams.set('return','home');u.searchParams.set('v',DEPLOY_V);
-        return 'boutique.html?'+u.searchParams.toString();
-      }
-    }catch(_e){}
-    return versionUrl(ru);
-  }
-  var baseOpenInternal=window.happyadOpenInternalUrlV492;
-  if(typeof baseOpenInternal==='function'){
-    window.happyadOpenInternalUrlV492=function(url,extra){return baseOpenInternal.call(this,normalizeInternalUrl(url),extra||{});};
-  }
-  var baseOpenApp=window.happyadOpenAppPage;
-  if(typeof baseOpenApp==='function'){
-    window.happyadOpenAppPage=function(page,url){return baseOpenApp.call(this,page,normalizeInternalUrl(url||page));};
-  }
-  window.openLongVideo=function(id){
-    try{if(typeof happyadVideoFastOpenPayload==='function')happyadVideoFastOpenPayload(id)}catch(_f){}
-    try{if(typeof happyadMarkVideoViewFromHome==='function')happyadMarkVideoViewFromHome(id)}catch(_v){}
-    try{sessionStorage.setItem('HAPPYAD_VIDEO_START_POST_V550',String(id||''));sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_s){}
-    var u='modules/video.html?v='+DEPLOY_V;
-    if(window.happyadOpenInternalUrlV492)return window.happyadOpenInternalUrlV492(u,{source:'home-video-v550',postId:String(id||'')});
-    location.href=u;
-  };
-  window.happyadReturnFromBoutiqueToMainProfileV503=function(opts){
-    try{sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');}catch(_s){}
-    try{
-      var r=document.getElementById('happyadAppShell');
-      if(r){r.querySelectorAll('.happyadAppFrame').forEach(function(fr){try{fr.classList.remove('on');if((fr.id||'').indexOf('boutique')>=0||String(fr.getAttribute('data-happyad-src')||'').indexOf('boutique.html')>=0){fr.removeAttribute('data-happyad-src');fr.src='about:blank';}}catch(_e){}});r.classList.remove('on');r.setAttribute('aria-hidden','true');}
-      document.body.classList.remove('happyadAppOpen');
-      try{var l=document.getElementById('happyadAppMiniLoader');if(l)l.classList.remove('on')}catch(_l){}
-      try{document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active')});var h=document.querySelector('.bottom a[href="index.html"]');if(h)h.classList.add('active');}catch(_n){}
-      sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW','home');sessionStorage.setItem('HAPPYAD_LAST_APP_URL','index.html');
-      history.replaceState({view:'home',url:'index.html',__happyadNavV520:true},'',location.href);
-    }catch(_e){}
-    return true;
-  };
-})();
-</script>
-
-<script id="happyad-v550-debug-panel-private">
-(function(){
-  'use strict';
-  var VERSION='v550foundation1';
-  var DEBUG_KEY_OLD='HAPPYAD_DEBUG_PANEL_V547';
-  var DEBUG_KEY='HAPPYAD_DEBUG_PANEL_V549';
-  var sp;
-  try{sp=new URLSearchParams(location.search||'');}catch(_e){sp=null;}
-  var debugOn=false;
-  try{
-    debugOn=!!(sp&&sp.get('debug')==='1');
-    if(sp&&(sp.get('debug')==='0'||!debugOn)){
-      localStorage.removeItem(DEBUG_KEY_OLD);
-      localStorage.removeItem(DEBUG_KEY);
-    }
-  }catch(_e){}
-  if(!debugOn)return;
-
-  window.__HAPPYAD_DEBUG_EVENTS=window.__HAPPYAD_DEBUG_EVENTS||[];
-  function pushEvent(label,data){
-    try{
-      var a=window.__HAPPYAD_DEBUG_EVENTS;
-      a.push({t:new Date().toLocaleTimeString(),label:String(label||''),data:data||''});
-      while(a.length>14)a.shift();
-    }catch(_e){}
-  }
-  try{pushEvent('debug-start',location.href);}catch(_e){}
-
-  try{
-    window.addEventListener('message',function(ev){
-      try{var d=ev&&ev.data;if(d&&typeof d==='object')pushEvent('message',String(d.type||'object')+' '+String(d.url||d.source||''));}catch(_e){}
-    },true);
-    window.addEventListener('popstate',function(ev){try{pushEvent('popstate',JSON.stringify(ev&&ev.state||{}).slice(0,180));}catch(_e){}},true);
-    window.addEventListener('hashchange',function(){pushEvent('hashchange',location.hash||'');},true);
-    if('serviceWorker' in navigator){navigator.serviceWorker.addEventListener('controllerchange',function(){pushEvent('sw-controllerchange','controller changed');});}
-  }catch(_e){}
-
-  function short(x,n){x=String(x||'');n=n||120;return x.length>n?x.slice(0,n)+'…':x;}
-  function ss(k){try{return sessionStorage.getItem(k)||'';}catch(_e){return '';}}
-  function ls(k){try{return localStorage.getItem(k)||'';}catch(_e){return '';}}
-  function getActualFrameUrl(f){try{return f.contentWindow&&f.contentWindow.location?String(f.contentWindow.location.href||''):'';}catch(_e){return 'BLOCKED';}}
-  function frameLine(f){var cls='';try{cls=f.className||'';}catch(_e){}var on=(' '+cls+' ').indexOf(' on ')>=0?'ON':'off';return [(f.id||'frame'),'page='+(f.getAttribute('data-happyad-page')||''),'class='+on,'dataSrc='+short(f.getAttribute('data-happyad-src')||'',80),'src='+short(f.getAttribute('src')||'',80),'actual='+short(getActualFrameUrl(f),110)].join('\n  ');}
-  function findFrames(){try{return Array.prototype.slice.call(document.querySelectorAll('.happyadAppFrame, iframe[id^="happyadAppFrame"]'));}catch(_e){return [];}}
-  function collect(){
-    var frames=findFrames(),active=[];
-    frames.forEach(function(f){try{if((' '+(f.className||'')+' ').indexOf(' on ')>=0)active.push(f.id||'frame');}catch(_e){}});
-    var lines=[];
-    lines.push('VERSION: '+VERSION);
-    lines.push('TIME: '+new Date().toLocaleTimeString());
-    lines.push('URL: '+short(location.href,120));
-    lines.push('HISTORY: '+(history&&history.length));
-    lines.push('BODY_APP_OPEN: '+document.body.classList.contains('happyadAppOpen'));
-    lines.push('ACTIVE_FRAMES: '+(active.join(', ')||'none'));
-    lines.push('SS_ACTIVE_VIEW: '+ss('HAPPYAD_ACTIVE_APP_VIEW'));
-    lines.push('SS_LAST_URL: '+short(ss('HAPPYAD_LAST_APP_URL'),120));
-    lines.push('SS_RETURN_VIEW: '+ss('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503'));
-    lines.push('SS_RETURN_URL: '+short(ss('HAPPYAD_BOUTIQUE_RETURN_URL_V503'),120));
-    lines.push('SS_PENDING_RETURN: '+short(ss('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503'),120));
-    lines.push('SS_PROFILE_FAST: '+ss('HAPPYAD_PROFILE_FAST_RETURN_V1')+' / '+ss('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL'));
-    lines.push('LS_DEPLOY: '+ls('HAPPYAD_DEPLOY_VERSION_ACTIVE'));
-    lines.push('SW_CONTROLLER: '+(('serviceWorker' in navigator && navigator.serviceWorker.controller)?short(navigator.serviceWorker.controller.scriptURL,120):'none'));
-    lines.push('FRAMES:');
-    if(frames.length){frames.forEach(function(f,i){lines.push('['+(i+1)+'] '+frameLine(f));});}else{lines.push('none');}
-    lines.push('EVENTS:');
-    try{(window.__HAPPYAD_DEBUG_EVENTS||[]).slice(-10).forEach(function(e){lines.push(e.t+' '+e.label+' '+short(e.data,160));});}catch(_e){}
-    return lines.join('\n');
-  }
-  function copyText(txt){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});return;}var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}catch(_e){}}
-  function clearDebugCaches(){try{sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_VIEW_V503');sessionStorage.removeItem('HAPPYAD_BOUTIQUE_RETURN_URL_V503');sessionStorage.removeItem('HAPPYAD_PENDING_BOUTIQUE_RETURN_TARGET_V503');sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_V1');sessionStorage.removeItem('HAPPYAD_PROFILE_FAST_RETURN_ACTIVE_UNTIL');localStorage.removeItem(DEBUG_KEY_OLD);localStorage.removeItem(DEBUG_KEY);pushEvent('clear-session','boutique/profile return/debug keys removed');}catch(_e){}}
-  function build(){
-    if(document.getElementById('happyadDebugPanelV550'))return;
-    var css=document.createElement('style');css.id='happyadDebugStyleV550';css.textContent='#happyadDebugPanelV550{position:fixed;left:8px;right:8px;bottom:8px;max-height:46vh;z-index:2147483647;background:rgba(0,0,0,.88);color:#d8ffd8;border:1px solid rgba(255,122,0,.75);border-radius:12px;box-shadow:0 0 25px rgba(255,106,0,.35);font:11px/1.35 monospace;padding:8px;overflow:auto;white-space:pre-wrap;direction:ltr;text-align:left}#happyadDebugPanelV550 .dbgTop{position:sticky;top:0;background:rgba(0,0,0,.94);padding-bottom:5px;margin-bottom:5px;color:#fff;font:700 12px/1.2 Arial,sans-serif}#happyadDebugPanelV550 button{background:#ff6a00;color:#000;border:0;border-radius:8px;padding:5px 8px;margin:0 4px 4px 0;font-weight:800;font-size:11px}#happyadDebugPanelV550 .dbgBody{user-select:text;-webkit-user-select:text}#happyadDebugPanelV550.min{max-height:42px;overflow:hidden}';document.head.appendChild(css);
-    var box=document.createElement('div');box.id='happyadDebugPanelV550';box.innerHTML='<div class="dbgTop">HAPPYAD DEBUG v550 <button data-act="min">réduire</button><button data-act="copy">copier</button><button data-act="clear">clear session</button><button data-act="off">fermer</button></div><div class="dbgBody"></div>';document.body.appendChild(box);
-    box.addEventListener('click',function(ev){var act=ev.target&&ev.target.getAttribute&&ev.target.getAttribute('data-act');if(!act)return;if(act==='min')box.classList.toggle('min');if(act==='copy')copyText(collect());if(act==='clear')clearDebugCaches();if(act==='off'){try{localStorage.removeItem(DEBUG_KEY_OLD);localStorage.removeItem(DEBUG_KEY);}catch(_e){}box.remove();}});
-    function render(){try{var b=box.querySelector('.dbgBody');if(b)b.textContent=collect();}catch(_e){}}
-    render();setInterval(render,650);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
-})();
-</script>
+<!-- HAPPYAD CORE V4: regroupement passif des maîtres par module/catégorie, sans changer le design -->
+<script src="core/photo-master.js?v=core-photo-v14"></script>
+<script src="core/profile-master.js?v=core-profile-v15"></script>
+<script src="core/boutique-master.js?v=core-profile-boutique-v10"></script>
+<script src="core/cache-master.js?v=core-grouped-v4"></script>
+<script src="core/auth-master.js?v=core-grouped-v4"></script>
+<script src="core/media-master.js?v=core-grouped-v4"></script>
+<script src="core/radar-stories-master.js?v=core-grouped-v4"></script>
+<script src="core/notifications-messages-master.js?v=core-grouped-v4"></script>
+<script src="core/home-ui-master.js?v=core-grouped-v4"></script>
 
 </body></html>
