@@ -1,8 +1,8 @@
 // HAPPYAD new messages clean v2
-/* HAPPYAD V16ZU - Service worker PWA actif, nouveau système messages isolé happyad_chat_*. */
+/* HAPPYAD V16ZU - Service worker PWA actif, nouveau système messages V2D direct profil + actions réelles. */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v19-20260706-chat-actions-v2c';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v20-20260706-chat-actions-v2d';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

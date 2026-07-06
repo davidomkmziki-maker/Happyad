@@ -4232,10 +4232,10 @@
   </script>
 
 <script>
-/* HAPPYAD Messages Supabase Clean V2C — actions réelles : suppression, modification 20min, épinglage. */
+/* HAPPYAD Messages Supabase Clean V2D — direct profil, anti-doublon, actions réelles stabilisées. */
 (function(){
   'use strict';
-  window.__HAPPYAD_MESSAGES_ONEBOX_REAL__ = 'happyad-chat-clean-v2c';
+  window.__HAPPYAD_MESSAGES_ONEBOX_REAL__ = 'happyad-chat-actions-v2d';
 
   const TABLE_BOX='happyad_chat_messages';
   const TABLE_OLD=TABLE_BOX;
@@ -4365,7 +4365,7 @@
   function normalizeMessage(row,source){row=Object.assign({},row||{}); source=source||row._source_table||''; const sender=clean(row.sender_id||row.from_id||row.user_id||row.author_id||row.actor_id); const receiver=clean(row.receiver_id||row.to_id||row.recipient_id||row.target_user_id||row.owner_id); let ua=clean(row.user_a||row.user1_id||row.participant_a), ub=clean(row.user_b||row.user2_id||row.participant_b); if((!ua||!ub)&&sender&&receiver){const p=[sender,receiver].sort();ua=p[0];ub=p[1];} const cid=clean(row.conversation_id||row.thread_id||row.chat_id||row.room_id||row.id_conversation); const body=clean(row.body||row.message||row.text||row.content||row.caption); const id=clean(row.id||row.client_temp_id||row.local_id)||['m',cid,sender,receiver,row.created_at,body].join('_'); const del=row.deleted_for_all===true||row.deleted_all===true||row.is_deleted===true||clean(row.status).toLowerCase()==='deleted'; return {id:id,client_temp_id:clean(row.client_temp_id),conversation_id:cid,user_a:ua,user_b:ub,sender_id:sender,receiver_id:receiver,body:del?'':body,message_type:clean(row.message_type||row.media_type||row.type||(row.media_url?'media':'text'))||'text',media_items:row.media_items||null,file_meta:row.file_meta||null,media_url:clean(row.media_url||row.url),is_read:row.is_read===true||!!row.read_at||clean(row.status).toLowerCase()==='read',read_at:row.read_at||null,deleted_for_all:del,deleted_at:row.deleted_at||null,hidden_for_user_ids:toTextArray(row.hidden_for_user_ids||row.deleted_for_user_ids||row.hidden_for||[]),pinned_by_user_ids:toTextArray(row.pinned_by_user_ids||row.pinned_for_user_ids||row.pinned_for||[]),edited_at:clean(row.edited_at),edited_by:clean(row.edited_by),created_at:clean(row.created_at)||new Date().toISOString(),updated_at:clean(row.updated_at||row.created_at)||new Date().toISOString(),_source_table:source};}
   function messageHasMedia(m){m=m||{}; if(clean(m.media_url||m.url))return true; const mi=m.media_items; const fm=m.file_meta; function useful(v){ if(!v)return false; if(Array.isArray(v))return v.length>0; if(typeof v==='string'){const s=clean(v); return !!s && !['[]','{}','null','undefined','false'].includes(s.toLowerCase());} if(typeof v==='object')return Object.keys(v).length>0; return false;} return useful(mi)||useful(fm);}
   function isRealMessage(m){m=normalizeMessage(m,m&&m._source_table); if(hiddenForMe(m))return false; if(m.deleted_for_all)return true; return !!(clean(m.body)||messageHasMedia(m));}
-  function msgKey(m){m=normalizeMessage(m,m&&m._source_table); const id=clean(m.id); if(isUuid(id))return 'id|'+id; const temp=clean(m.client_temp_id); if(temp)return 'tmp|'+temp; const body=(m.deleted_for_all?'message supprimé':clean(m.body)).toLowerCase().replace(/\s+/g,' '); const media=clean(m.media_url)||clean(JSON.stringify(m.media_items||''))||clean(JSON.stringify(m.file_meta||'')); const s=clean(m.sender_id), r=clean(m.receiver_id); const pair=messagePair(m)||clean(m.conversation_id); const t=Math.floor((Date.parse(m.created_at)||0)/1000); return ['msg',pair,s,r,t,body,media].join('|');}
+  function msgKey(m){m=normalizeMessage(m,m&&m._source_table); const temp=clean(m.client_temp_id); if(temp)return 'tmp|'+temp; const id=clean(m.id); if(isUuid(id))return 'id|'+id; const body=(m.deleted_for_all?'message supprimé':clean(m.body)).toLowerCase().replace(/\s+/g,' '); const media=clean(m.media_url)||clean(JSON.stringify(m.media_items||''))||clean(JSON.stringify(m.file_meta||'')); const s=clean(m.sender_id), r=clean(m.receiver_id); const pair=messagePair(m)||clean(m.conversation_id); const t=Math.floor((Date.parse(m.created_at)||0)/1000); return ['msg',pair,s,r,t,body,media].join('|');}
   function pairKey(a,b){a=clean(a);b=clean(b);return a&&b?[a,b].sort().join('|'):'';}
   function convIdFor(a,b){const p=pairKey(a,b); return p?('msgbox_'+p.replace(/[^a-zA-Z0-9_.-]/g,'_')).slice(0,190):'';}
   function messagePair(m){m=normalizeMessage(m,m&&m._source_table);return pairKey(m.user_a||m.sender_id,m.user_b||m.receiver_id)||pairKey(m.sender_id,m.receiver_id);}
@@ -4391,12 +4391,13 @@
   function normalizeConversation(row){row=Object.assign({},row||{}); const me=clean(state.me&&state.me.id); const u1=clean(row.user1_id||row.user_a||row.participant_a), u2=clean(row.user2_id||row.user_b||row.participant_b); let other=clean(row._other_id||row.other_user_id||row.receiver_id||row.sender_id); if(u1===me)other=u2; else if(u2===me)other=u1; else if(!other&&u1&&u1!==me)other=u1; else if(!other&&u2&&u2!==me)other=u2; const pair=me&&other?[me,other].sort():[u1,u2].filter(Boolean).sort(); const cid=clean(row.conversation_id||row.id||row.room_id||row.chat_id||row.thread_id)||convIdFor(pair[0],pair[1]); if(!cid&&!other)return null; return {id:cid,conversation_id:cid,user_a:pair[0]||u1||me,user_b:pair[1]||u2||other,_other_id:other,other_name:clean(row.other_name||row._other_name||row.receiver_name||row.sender_name||row.name||row.full_name||row.display_name),other_avatar:publicUrl(row.other_avatar||row._other_avatar||row.receiver_avatar||row.sender_avatar||row.avatar_url||row.photo_url||row.photo),other_badge:normBadge(row.other_badge||row._other_badge||row.receiver_badge||row.sender_badge||row.badge||row.user_badge),last_message:clean(row.last_message||row.message||row.text||row.body)||'Message',last_sender_id:clean(row.last_sender_id||row.sender_id),last_message_at:clean(row.last_message_at||row.last_at||row.updated_at||row.created_at)||new Date().toISOString(),updated_at:clean(row.updated_at||row.last_message_at||row.last_at||row.created_at)||new Date().toISOString(),created_at:clean(row.created_at)||new Date().toISOString(),unread_a:Number(row.unread_a||0)||0,unread_b:Number(row.unread_b||0)||0,hidden_for_user_ids:toTextArray(row.hidden_for_user_ids||row.deleted_for_user_ids||row.hidden_for||[])};}
   function deriveConversations(messages){const me=clean(state.me&&state.me.id); const map=new Map(); (messages||[]).map(x=>normalizeMessage(x,x&&x._source_table)).filter(belongsToMe).filter(isRealMessage).sort((a,b)=>msgTime(a)-msgTime(b)).forEach(m=>{const other=clean(m.sender_id)===me?clean(m.receiver_id):clean(m.sender_id); const pk=pairKey(me,other)||m.conversation_id; if(!pk||!other||other===me)return; const old=map.get(pk)||{}; const latest=msgTime(m)>=convTime(old); const c=Object.assign({},old); c.id=clean(latest?m.conversation_id:old.id)||old.id||m.conversation_id||convIdFor(me,other); c.conversation_id=c.id; c.user_a=m.user_a||old.user_a; c.user_b=m.user_b||old.user_b; c._other_id=other||old._other_id; if(latest){c.last_message=m.deleted_for_all?'message supprimé':(clean(m.body)||'Fichier'); c.last_sender_id=m.sender_id; c.last_message_at=m.created_at; c.updated_at=m.updated_at||m.created_at; c.created_at=old.created_at||m.created_at;} if(!m.is_read&&m.receiver_id===me){ if(c.user_a===me)c.unread_a=(Number(c.unread_a)||0)+1; else c.unread_b=(Number(c.unread_b)||0)+1; } map.set(pk,c);}); return Array.from(map.values()).sort((a,b)=>convTime(b)-convTime(a));}
   function convMergeKey(c){c=normalizeConversation(c)||c||{}; return pairKey(c.user_a,c.user_b)||clean(c.conversation_id||c.id);}
-  function mergeConversations(a,b){const map=new Map(); function realIdOf(x){x=x||{}; const cid=clean(x.id||x.conversation_id); return cid&&!/^msgbox_/i.test(cid)?cid:'';} (a||[]).concat(b||[]).map(normalizeConversation).filter(Boolean).filter(c=>!hiddenForMe(c)).forEach(c=>{const k=convMergeKey(c); const old=map.get(k)||{}; const newer=convTime(c)>=convTime(old); const base=newer?Object.assign({},old,c):Object.assign({},c,old); const rid=realIdOf(c)||realIdOf(old); if(rid){base.id=rid;base.conversation_id=rid;} base.other_name=base.other_name||old.other_name||c.other_name; base.other_avatar=base.other_avatar||old.other_avatar||c.other_avatar; base.other_badge=base.other_badge||old.other_badge||c.other_badge; base._other_id=base._other_id||old._other_id||c._other_id; base.hidden_for_user_ids=toTextArray(base.hidden_for_user_ids||old.hidden_for_user_ids||c.hidden_for_user_ids); map.set(k,base);}); return Array.from(map.values()).sort((x,y)=>convTime(y)-convTime(x));}
+  function mergeConversations(a,b){const map=new Map(); function realIdOf(x){x=x||{}; const cid=clean(x.id||x.conversation_id); return cid&&!/^msgbox_/i.test(cid)?cid:'';} (a||[]).concat(b||[]).map(normalizeConversation).filter(Boolean).filter(c=>!hiddenForMe(c)).forEach(c=>{const k=convMergeKey(c); if(!k)return; const old=map.get(k)||{}; const sameOther=!old._other_id||!c._other_id||clean(old._other_id)===clean(c._other_id); const newer=convTime(c)>=convTime(old); const base=newer?Object.assign({},old,c):Object.assign({},c,old); const rid=realIdOf(c)||realIdOf(old); if(rid){base.id=rid;base.conversation_id=rid;} if(!sameOther){base.other_name=c.other_name||'';base.other_avatar=c.other_avatar||'';base.other_badge=c.other_badge||'';} else {base.other_name=base.other_name||old.other_name||c.other_name;base.other_avatar=base.other_avatar||old.other_avatar||c.other_avatar;base.other_badge=base.other_badge||old.other_badge||c.other_badge;} base._other_id=base._other_id||old._other_id||c._other_id; base.hidden_for_user_ids=toTextArray(base.hidden_for_user_ids||old.hidden_for_user_ids||c.hidden_for_user_ids); map.set(k,base);}); return Array.from(map.values()).sort((x,y)=>convTime(y)-convTime(x));}
   function unreadForMe(c){if(!c||!state.me)return 0;return Number(clean(c.user_a)===state.me.id?c.unread_a:c.unread_b)||0;}
   function updateUnread(n){n=Math.max(0,Number(n)||0); try{localStorage.setItem('HAPPYAD_UNREAD_CONVERSATIONS_COUNT_V1',String(n));localStorage.setItem('HAPPYAD_MESSAGES_BACKGROUND_READY_V1',String(Date.now()));window.dispatchEvent(new Event('happyad:messages-unread-updated'));}catch(_){} }
 
   function applyCachedConversations(){const list=deriveConversations(readCache()); if(list.length){state.conversations=mergeConversations(state.conversations,list); renderConversations(); return true;} return false;}
-  function makeRow(c){const oid=otherId(c)||c._other_id; const p=Object.assign({id:oid,user_id:oid,full_name:c.other_name||'Utilisateur HAPPYAD',_other_avatar:c.other_avatar,avatar_url:c.other_avatar,_other_badge:c.other_badge,badge:c.other_badge},state.profiles[oid]||{}); const name=profileName(p),av=profileAvatar(p),badge=profileBadge(p),unread=unreadForMe(c),preview=clean(c.last_message)||'Message'; const row=document.createElement('button'); row.className='row'+(unread?' unread':''); row.type='button'; row.dataset.conversationId=clean(c.id||c.conversation_id); row.dataset.userId=oid; row.dataset.name=name; row.innerHTML='<div class="avatar dark">'+(av?'<img src="'+esc(av)+'" alt="'+esc(name)+'">':esc(initials(name)))+'</div><div class="content"><div class="topline"><div class="name">'+esc(name)+'</div><span class="happyad-badge"></span><div class="time">'+esc(shortTime(c.updated_at||c.last_message_at||c.created_at))+'</div>'+(unread?'<span class="unread-pill">'+(unread>99?'99+':unread)+'</span>':'')+'</div><div class="previewline">'+(clean(c.last_sender_id)===clean(state.me&&state.me.id)?'<div class="checks">✓✓</div>':'')+'<div class="preview">'+esc(preview)+'</div></div></div>'; setBadge(row.querySelector('.happyad-badge'),badge); const img=row.querySelector('.avatar img'); if(img)img.onerror=function(){const a=row.querySelector('.avatar'); if(a)a.textContent=initials(name)}; row.addEventListener('click',e=>{if(Date.now()<Number(row.__happyadRealLongPressUntil||0)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return;} e.preventDefault();openConversation(c,p);},true); bindRealLongPress(row,()=>showRealConversationActions(c,row)); return row;}
+  function cachedProfileFor(oid){oid=clean(oid); const p=state.profiles&&state.profiles[oid]; if(!p||typeof p!=='object')return null; const aliases=profileAliases(p).map(clean); return aliases.includes(oid)?p:null;}
+  function makeRow(c){const oid=clean(otherId(c)||c._other_id); const p=Object.assign({id:oid,user_id:oid,uid:oid,full_name:c.other_name||'Utilisateur HAPPYAD',_other_avatar:c.other_avatar,avatar_url:c.other_avatar,_other_badge:c.other_badge,badge:c.other_badge},cachedProfileFor(oid)||{}); const name=profileName(p),av=profileAvatar(p),badge=profileBadge(p),unread=unreadForMe(c),preview=clean(c.last_message)||'Message'; const row=document.createElement('button'); row.className='row'+(unread?' unread':''); row.type='button'; row.dataset.conversationId=clean(c.id||c.conversation_id); row.dataset.userId=oid; row.dataset.name=name; row.innerHTML='<div class="avatar dark">'+(av?'<img src="'+esc(av)+'" alt="'+esc(name)+'">':esc(initials(name)))+'</div><div class="content"><div class="topline"><div class="name">'+esc(name)+'</div><span class="happyad-badge"></span><div class="time">'+esc(shortTime(c.updated_at||c.last_message_at||c.created_at))+'</div>'+(unread?'<span class="unread-pill">'+(unread>99?'99+':unread)+'</span>':'')+'</div><div class="previewline">'+(clean(c.last_sender_id)===clean(state.me&&state.me.id)?'<div class="checks">✓✓</div>':'')+'<div class="preview">'+esc(preview)+'</div></div></div>'; setBadge(row.querySelector('.happyad-badge'),badge); const img=row.querySelector('.avatar img'); if(img)img.onerror=function(){const a=row.querySelector('.avatar'); if(a)a.textContent=initials(name)}; row.addEventListener('click',e=>{if(Date.now()<Number(row.__happyadRealLongPressUntil||0)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return;} e.preventDefault();openConversation(c,p);},true); bindRealLongPress(row,()=>showRealConversationActions(c,row)); return row;}
   function renderConversations(){if(!el.conversationPanel)return; el.conversationPanel.querySelectorAll('.row').forEach(n=>n.remove()); const list=(state.conversations||[]).slice().sort((a,b)=>convTime(b)-convTime(a)); if(!list.length){if(el.emptyState){el.emptyState.textContent=state.initialSyncDone?'Aucune conversation pour le moment.':'Chargement des conversations...';el.emptyState.style.display='block';} updateUnread(0); return;} if(el.emptyState)el.emptyState.style.display='none'; list.forEach(c=>el.conversationPanel.insertBefore(makeRow(c),el.emptyState||null)); updateUnread(list.reduce((s,c)=>s+unreadForMe(c),0));}
   function setAvatarBox(box,p){if(!box)return; const name=profileName(p),av=profileAvatar(p); box.className='chat-avatar dark'; box.innerHTML=''; if(av){const img=document.createElement('img'); img.src=av; img.alt=name; img.onerror=()=>{box.textContent=initials(name)}; box.appendChild(img);} else box.textContent=initials(name);}
   function renderMessage(m){m=normalizeMessage(m,m&&m._source_table); const mine=clean(m.sender_id)===clean(state.me&&state.me.id); const msg=document.createElement('div'); msg.className='msg '+(mine?'me':'them')+(pinnedForMe(m)?' pinned':''); msg.dataset.messageId=m.id; msg.dataset.senderId=m.sender_id; msg.dataset.conversationId=m.conversation_id; msg.dataset.createdAt=m.created_at; if(clean(m.client_temp_id))msg.dataset.clientTempId=clean(m.client_temp_id); const bubble=document.createElement('div'); bubble.className='bubble'; if(m.deleted_for_all){msg.classList.add('deleted'); const txt=document.createElement('span'); txt.className='message-text'; txt.textContent='message supprimé'; bubble.appendChild(txt);} else {const txt=document.createElement('span'); txt.className='message-text'; const hasText=clean(m.body); txt.textContent=hasText|| (messageHasMedia(m)?'Fichier':''); bubble.appendChild(txt);} const meta=document.createElement('span'); meta.className='meta'; meta.textContent=(pinnedForMe(m)?'Épinglé · ':'')+shortTime(m.created_at)+(m.edited_at?' · modifié':'')+(mine?(m.is_read?' ✓✓':' ✓'):''); bubble.appendChild(meta); msg.appendChild(bubble); bindRealLongPress(msg,()=>showRealMessageActions(msg)); return msg;}
@@ -4427,6 +4428,8 @@
   }
   function meId(){return clean(state.me&&state.me.id)||myIdFromLocal();}
   function includesMe(list){const me=meId(); return !!me&&toTextArray(list).map(clean).includes(me);}
+  function arrayAddValue(list,val){val=clean(val); const arr=toTextArray(list); if(val&&!arr.includes(val))arr.push(val); return arr;}
+  function arrayRemoveValue(list,val){val=clean(val); return toTextArray(list).filter(x=>clean(x)!==val);}
   function hiddenForMe(m){m=m||{}; return includesMe(m.hidden_for_user_ids||m.deleted_for_user_ids||m.hidden_for);}
   function pinnedForMe(m){m=m||{}; return includesMe(m.pinned_by_user_ids||m.pinned_for_user_ids||m.pinned_for);}
   function sameMessage(a,b){a=normalizeMessage(a,a&&a._source_table); b=normalizeMessage(b,b&&b._source_table); const aid=clean(a.id), bid=clean(b.id), at=clean(a.client_temp_id), bt=clean(b.client_temp_id); return !!((aid&&bid&&aid===bid)||(at&&bt&&at===bt));}
@@ -4491,7 +4494,16 @@
     const cid=clean((c||{}).conversation_id||(c||{}).id), me=meId(); if(!cid||!me)return;
     status('Suppression conversation...', 'ok');
     try{await rpcRow('happyad_chat_hide_conversation_for_me',{p_conversation_id:cid,p_user_id:me});}
-    catch(e){console.warn('[happyad-chat-v2c] hide conversation',e); status('Suppression impossible. Exécute le SQL V2C.', 'error'); quiet(2200); return;}
+    catch(e){
+      console.warn('[happyad-chat-v2d] hide conversation rpc fallback',e);
+      try{
+        const next=arrayAddValue((c||{}).hidden_for_user_ids,me);
+        const r1=await state.client.from(TABLE_CONV).update({hidden_for_user_ids:next,updated_at:new Date().toISOString()}).eq('id',cid);
+        if(r1&&r1.error)throw r1.error;
+        const r2=await state.client.from(TABLE_BOX).update({hidden_for_user_ids:next,updated_at:new Date().toISOString()}).eq('conversation_id',cid);
+        if(r2&&r2.error)throw r2.error;
+      }catch(e2){console.warn('[happyad-chat-v2d] hide conversation fallback',e2); status('Suppression impossible. Exécute le SQL V2D.', 'error'); quiet(2200); return;}
+    }
     state.conversations=(state.conversations||[]).filter(x=>clean(x.id||x.conversation_id)!==cid);
     removeMessagesFromLocal(m=>clean(m.conversation_id)===cid);
     if(activeCid()===cid)closeChat();
@@ -4503,30 +4515,46 @@
   }
   async function hideMessageForMe(m){
     m=normalizeMessage(m,m&&m._source_table); if(!isUuid(m.id)){status('Message pas encore synchronisé.', 'error');quiet(1600);return;}
-    status('Suppression message...', 'ok');
-    try{await rpcRow('happyad_chat_hide_message_for_me',{p_message_id:m.id,p_user_id:meId()});}
-    catch(e){console.warn('[happyad-chat-v2c] hide message',e); status('Suppression impossible. Exécute le SQL V2C.', 'error'); quiet(2200); return;}
+    status('Suppression message...', 'ok'); let row=null;
+    try{row=await rpcRow('happyad_chat_hide_message_for_me',{p_message_id:m.id,p_user_id:meId()});}
+    catch(e){
+      console.warn('[happyad-chat-v2d] hide message rpc fallback',e);
+      try{const next=arrayAddValue(m.hidden_for_user_ids,meId()); const r=await state.client.from(TABLE_BOX).update({hidden_for_user_ids:next,updated_at:new Date().toISOString()}).eq('id',m.id).select('*').single(); if(r&&r.error)throw r.error; row=r&&r.data;}
+      catch(e2){console.warn('[happyad-chat-v2d] hide message fallback',e2); status('Suppression impossible. Exécute le SQL V2D.', 'error'); quiet(2200); return;}
+    }
     removeMessagesFromLocal(x=>sameMessage(x,m)); renderMessages(activeCid()); status('Message supprimé pour vous.', 'ok'); quiet(1000);
   }
   async function deleteMessageForAll(m){
     m=normalizeMessage(m,m&&m._source_table); if(!isUuid(m.id)){status('Message pas encore synchronisé.', 'error');quiet(1600);return;}
-    status('Suppression pour tous...', 'ok');
-    try{const row=await rpcRow('happyad_chat_delete_message_for_all',{p_message_id:m.id,p_user_id:meId()}); if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
-    catch(e){console.warn('[happyad-chat-v2c] delete all',e); status('Suppression impossible. Exécute le SQL V2C.', 'error'); quiet(2200); return;}
+    status('Suppression pour tous...', 'ok'); let row=null;
+    try{row=await rpcRow('happyad_chat_delete_message_for_all',{p_message_id:m.id,p_user_id:meId()}); if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
+    catch(e){
+      console.warn('[happyad-chat-v2d] delete all rpc fallback',e);
+      try{const r=await state.client.from(TABLE_BOX).update({deleted_for_all:true,body:null,media_items:null,file_meta:null,media_url:null,deleted_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',m.id).eq('sender_id',meId()).select('*').single(); if(r&&r.error)throw r.error; row=r&&r.data; if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
+      catch(e2){console.warn('[happyad-chat-v2d] delete all fallback',e2); status('Suppression impossible. Exécute le SQL V2D.', 'error'); quiet(2200); return;}
+    }
     renderMessages(activeCid()); refresh(false).catch(()=>{}); status('Message supprimé pour tous.', 'ok'); quiet(1000);
   }
   async function togglePinMessage(m){
     m=normalizeMessage(m,m&&m._source_table); if(!isUuid(m.id)){status('Message pas encore synchronisé.', 'error');quiet(1600);return;}
-    const next=!pinnedForMe(m); status(next?'Épinglage...':'Désépinglage...', 'ok');
-    try{const row=await rpcRow('happyad_chat_pin_message',{p_message_id:m.id,p_user_id:meId(),p_pin:next}); if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
-    catch(e){console.warn('[happyad-chat-v2c] pin',e); status('Épinglage impossible. Exécute le SQL V2C.', 'error'); quiet(2200); return;}
+    const next=!pinnedForMe(m); status(next?'Épinglage...':'Désépinglage...', 'ok'); let row=null;
+    try{row=await rpcRow('happyad_chat_pin_message',{p_message_id:m.id,p_user_id:meId(),p_pin:next}); if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
+    catch(e){
+      console.warn('[happyad-chat-v2d] pin rpc fallback',e);
+      try{const arr=next?arrayAddValue(m.pinned_by_user_ids,meId()):arrayRemoveValue(m.pinned_by_user_ids,meId()); const r=await state.client.from(TABLE_BOX).update({pinned_by_user_ids:arr,updated_at:new Date().toISOString()}).eq('id',m.id).select('*').single(); if(r&&r.error)throw r.error; row=r&&r.data; if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
+      catch(e2){console.warn('[happyad-chat-v2d] pin fallback',e2); status('Épinglage impossible. Exécute le SQL V2D.', 'error'); quiet(2200); return;}
+    }
     renderMessages(activeCid()); status(next?'Message épinglé.':'Message désépinglé.', 'ok'); quiet(1000);
   }
   async function editMessageReal(m,newBody){
     m=normalizeMessage(m,m&&m._source_table); newBody=clean(newBody); if(!newBody)return; if(!canEditMessage(m)){status('Modification possible seulement pendant 20 minutes.', 'error'); quiet(2000); return;} if(!isUuid(m.id)){status('Message pas encore synchronisé.', 'error');quiet(1600);return;}
-    status('Modification...', 'ok');
-    try{const row=await rpcRow('happyad_chat_edit_message',{p_message_id:m.id,p_user_id:meId(),p_body:newBody}); if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
-    catch(e){console.warn('[happyad-chat-v2c] edit',e); status('Modification impossible. Exécute le SQL V2C.', 'error'); quiet(2200); return;}
+    status('Modification...', 'ok'); let row=null;
+    try{row=await rpcRow('happyad_chat_edit_message',{p_message_id:m.id,p_user_id:meId(),p_body:newBody}); if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
+    catch(e){
+      console.warn('[happyad-chat-v2d] edit rpc fallback',e);
+      try{const r=await state.client.from(TABLE_BOX).update({body:newBody,edited_at:new Date().toISOString(),edited_by:meId(),updated_at:new Date().toISOString()}).eq('id',m.id).eq('sender_id',meId()).select('*').single(); if(r&&r.error)throw r.error; row=r&&r.data; if(row)replaceLocalMessage(Object.assign({_source_table:TABLE_BOX},row));}
+      catch(e2){console.warn('[happyad-chat-v2d] edit fallback',e2); status('Modification impossible. Exécute le SQL V2D.', 'error'); quiet(2200); return;}
+    }
     renderMessages(activeCid()); refresh(false).catch(()=>{}); status('Message modifié.', 'ok'); quiet(1000);
   }
   function openEditMessageSheet(m){
@@ -4693,6 +4721,7 @@
       if(a&&a!==me)oid=a; else if(b&&b!==me)oid=b;
     }
     if(!oid){status('Conversation introuvable.', 'error'); quiet(1400); return false;}
+    if(!me){status('Connexion en cours...', 'ok');}
     if(me&&oid===me){status('Impossible d’ouvrir un message avec vous-même.', 'error'); quiet(1400); return false;}
     const pair=me&&oid?[me,oid].sort():[clean(c.user_a||c.user1_id),clean(c.user_b||c.user2_id)].filter(Boolean).sort();
     let cid=clean(c.conversation_id||c.id||c.room_id||c.chat_id||c.thread_id)||convIdFor(pair[0]||me, pair[1]||oid);
@@ -4753,8 +4782,8 @@
       /* Ne pas effacer HAPPYAD_OPEN_CHAT_PROFILE ici : il peut servir à une conversation ouverte depuis la liste. */
     }catch(_){}
     const pair=me&&oid?[me,oid].sort():['',''];
-    let cid=await resolveConversationId(prof,clean(target.conversation_id),{create:false,fast:true}).catch(()=>clean(target.conversation_id));
-    if(!cid)cid=convIdFor(me,oid);
+    // V2D: ouverture immédiate depuis profil visiteur. On n'attend plus les requêtes Supabase avant d'afficher le chat.
+    let cid=clean(target.conversation_id)||convIdFor(me,oid);
     const conv={id:cid,conversation_id:cid,user_a:pair[0],user_b:pair[1],_other_id:oid,other_name:profileName(prof),other_avatar:profileAvatar(prof),other_badge:profileBadge(prof),last_message:'',updated_at:new Date().toISOString(),created_at:new Date().toISOString(),_direct_profile_open:true};
     state.conversations=mergeConversations(state.conversations,[conv]);
     renderConversations();
@@ -4790,18 +4819,14 @@
   });
   function directAppendOutgoingBubble(m){
     try{
-      if(!el.chatBody)return false;
       m=normalizeMessage(m,m&&m._source_table);
-      const temp=clean(m.client_temp_id);
-      if(temp&&Array.from(el.chatBody.querySelectorAll('[data-client-temp-id]')).some(n=>n.dataset.clientTempId===temp))return true;
-      const node=renderMessage(m);
-      const day=el.chatBody.querySelector('.day');
-      if(!day)el.chatBody.innerHTML='<div class="day">Aujourd’hui</div>';
-      el.chatBody.appendChild(node);
-      bindRealLongPress(node,()=>showRealMessageActions(node));
-      setTimeout(()=>{try{el.chatBody.scrollTop=el.chatBody.scrollHeight;}catch(_){ }},20);
-      return true;
-    }catch(e){console.warn('[happyad-chat-v2] direct append',e);return false;}
+      const temp=clean(m.client_temp_id), id=clean(m.id);
+      if(!el.chatBody)return false;
+      if(temp&&el.chatBody.querySelector('[data-client-temp-id="'+CSS.escape(temp)+'"]'))return true;
+      if(id&&el.chatBody.querySelector('[data-message-id="'+CSS.escape(id)+'"]'))return true;
+      // V2D: l'affichage officiel passe par renderMessages() pour éviter les bulles doublées.
+      return false;
+    }catch(e){return false;}
   }
   function activeOrFallbackTarget(){
     let other=state.activeOther||{};
@@ -4840,7 +4865,6 @@
     state.conversations=mergeConversations(state.conversations,deriveConversations([local]));
     renderConversations();
     renderMessages(displayCid);
-    directAppendOutgoingBubble(local);
 
     if(!state.client){status('Message visible localement. Supabase non disponible.', 'error');quiet(1600);return true;}
 
@@ -4857,7 +4881,6 @@
         state.conversations=mergeConversations(state.conversations,deriveConversations([local]));
         renderConversations();
         renderMessages(cid);
-        directAppendOutgoingBubble(local);
       }
 
       const payload={
@@ -4881,11 +4904,11 @@
 
       if(saved){
         const row=Object.assign({_source_table:TABLE_BOX,client_temp_id:temp},saved,{conversation_id:clean(saved.conversation_id)||cid,user_a:clean(saved.user_a)||pair[0],user_b:clean(saved.user_b)||pair[1],sender_id:clean(saved.sender_id)||me,receiver_id:clean(saved.receiver_id)||rid,body:clean(saved.body||saved.message||saved.text)||text});
-        rememberPendingLocal(row);
+        removeMessagesFromLocal(x=>sameMessage(x,row));
         mergeCache([row]);
         state.conversations=mergeConversations(state.conversations,deriveConversations([row]));
         renderConversations();
-        if(state.activeConversation&&clean(state.activeConversation._other_id)===rid){const rcid=clean(state.activeConversation.conversation_id||state.activeConversation.id)||cid; renderMessages(rcid); directAppendOutgoingBubble(row);}
+        if(state.activeConversation&&clean(state.activeConversation._other_id)===rid){const rcid=clean(state.activeConversation.conversation_id||state.activeConversation.id)||cid; renderMessages(rcid);}
       }
 
       // Mise à jour de l'aperçu sans casser si certaines colonnes n'existent pas.
@@ -4988,7 +5011,7 @@
     try{
       var u=new URL(location.href);
       ['direct','target_id','user_id','uid','to','receiver_id','recipient_id','conversation_id','cid','open_ts','name','user','display_name','username','handle','avatar','avatar_url','photo','badge','user_badge'].forEach(function(k){u.searchParams.delete(k)});
-      if(!u.searchParams.get('v'))u.searchParams.set('v','chat-actions-v2c');
+      if(!u.searchParams.get('v'))u.searchParams.set('v','chat-actions-v2d');
       history.replaceState(null,'','messages.html'+(u.search||''));
     }catch(_){ }
   }
@@ -5010,7 +5033,7 @@
     try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadCloseNativeChat==='function'){window.parent.happyadCloseNativeChat();closed=true;}}catch(_){ }
     try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_CLOSE_NATIVE_CHAT',source:'messages-back-v8'},'*');closed=true;}}catch(_){ }
     try{if(window.top&&window.top!==window){window.top.postMessage({type:'HAPPYAD_CLOSE_NATIVE_CHAT',source:'messages-back-v8'},'*');closed=true;}}catch(_){ }
-    if(!closed){try{location.href='index.html?v=chat-actions-v2c';}catch(_){ }}
+    if(!closed){try{location.href='index.html?v=chat-actions-v2d';}catch(_){ }}
     return false;
   }
   function onThreadBack(e){stop(e);return forceShowList();}

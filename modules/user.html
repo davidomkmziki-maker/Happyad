@@ -3746,7 +3746,7 @@ function mapPost(r,ap){
       }catch(_s){}
       var url=new URL('../messages.html',location.href);
       url.searchParams.set('direct','1');url.searchParams.set('target_id',uid);url.searchParams.set('user_id',uid);url.searchParams.set('to',uid);
-      url.searchParams.set('name',name); if(prof.username)url.searchParams.set('username',prof.username); if(prof.avatar_url)url.searchParams.set('avatar',prof.avatar_url); if(prof.badge)url.searchParams.set('badge',prof.badge); url.searchParams.set('from','profile'); url.searchParams.set('native','1'); url.searchParams.set('v','profile-direct-v7-send-text');
+      url.searchParams.set('name',name); if(prof.username)url.searchParams.set('username',prof.username); if(prof.avatar_url)url.searchParams.set('avatar',prof.avatar_url); if(prof.badge)url.searchParams.set('badge',prof.badge); url.searchParams.set('from','profile'); url.searchParams.set('native','1'); url.searchParams.set('v','profile-direct-v8-direct-open');
       var localUrl='messages.html'+url.search;
       try{
         if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenNativeChat==='function'){
@@ -3769,7 +3769,7 @@ function mapPost(r,ap){
       try{
         var appUrl=new URL('../index.html',location.href);
         appUrl.searchParams.set('open','messages');appUrl.searchParams.set('direct','1');appUrl.searchParams.set('target_id',uid);appUrl.searchParams.set('user_id',uid);appUrl.searchParams.set('to',uid);appUrl.searchParams.set('name',name);
-        if(prof.username)appUrl.searchParams.set('username',prof.username); if(prof.avatar_url)appUrl.searchParams.set('avatar',prof.avatar_url); if(prof.badge)appUrl.searchParams.set('badge',prof.badge); appUrl.searchParams.set('v','profile-direct-v7-send-text');
+        if(prof.username)appUrl.searchParams.set('username',prof.username); if(prof.avatar_url)appUrl.searchParams.set('avatar',prof.avatar_url); if(prof.badge)appUrl.searchParams.set('badge',prof.badge); appUrl.searchParams.set('v','profile-direct-v8-direct-open');
         location.href=appUrl.href;
       }catch(_loc){location.href=url.href;}
     }catch(e){try{location.href='../index.html?open=messages'}catch(_e){}}
