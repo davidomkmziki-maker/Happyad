@@ -93,20 +93,37 @@
   };
 
   window.openProductSellerMessage = function(productId){
-    try{ if(typeof oldOpenMsg==='function') return oldOpenMsg(productId); }catch(e){}
-    var p = productById(productId);
+    const p = productById(productId);
+    if(!p){ toastSafe('Produit introuvable'); return false; }
+    if(isOwner(p)){ toastSafe('C’est votre produit'); return false; }
+    if(typeof oldOpenMsg === 'function'){
+      try{
+        const oldResult = oldOpenMsg(productId);
+        // V416: si l'ancien pont renvoie false à cause d'un profil générique/stale,
+        // on continue vers le pont propre au lieu de bloquer le bouton.
+        if(oldResult !== false) return oldResult;
+      }catch(e){ console.warn('[HAPPYAD V110] message vendeur ancien pont', e); }
+    }
     try{
-      var seller = p ? {
-        id: productSellerId(p), user_id: productSellerId(p), uid: productSellerId(p),
-        name: productSellerName(p) || 'Vendeur HAPPYAD', full_name: productSellerName(p) || 'Vendeur HAPPYAD',
-        avatar_url: clean(p.seller_avatar || p.sellerAvatar || p.avatar_url || p.avatar || ''),
-        badge: clean(p.seller_badge || p.sellerBadge || p.badge || p.user_badge || '')
-      } : {};
-      localStorage.setItem('HAPPYAD_OPEN_CHAT_PROFILE', JSON.stringify(seller));
-      var url = 'messages.html' + (seller.id ? '?user_id=' + encodeURIComponent(seller.id) : '');
+      const profile = {
+        id: productSellerId(p),
+        user_id: productSellerId(p),
+        name: productSellerName(p) || 'Vendeur HAPPYAD',
+        full_name: productSellerName(p) || 'Vendeur HAPPYAD',
+        avatar_url: clean(p.avatar || p.avatar_url || p.sellerAvatar || p.seller_avatar || ''),
+        badge: clean(p.badge || p.sellerBadge || p.seller_badge || '')
+      };
+      localStorage.setItem('HAPPYAD_OPEN_CHAT_PROFILE', JSON.stringify(profile));
+      localStorage.setItem('HAPPYAD_OPEN_CHAT_NAME', profile.name || 'Vendeur HAPPYAD');
+      localStorage.setItem('HAPPYAD_LAST_BOUTIQUE_CHAT_PROFILE', JSON.stringify(profile));
+      let url = 'messages.html?source=boutique&product=' + encodeURIComponent(p.id) + '&user=' + encodeURIComponent(profile.name || 'Vendeur HAPPYAD');
+      if(profile.id) url += '&user_id=' + encodeURIComponent(profile.id);
       window.location.href = url;
-    }catch(e){ try{window.location.href='messages.html';}catch(_e){} }
-    return true;
+      return true;
+    }catch(e){
+      toastSafe('Message vendeur indisponible');
+      return false;
+    }
   };
 
   function detailProduct(){
