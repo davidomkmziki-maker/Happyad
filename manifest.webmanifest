@@ -2,7 +2,7 @@
   "name": "HAPPYAD",
   "short_name": "HAPPYAD",
   "description": "HAPPYAD – réseau social, marketplace, notifications rapides et installation PWA.",
-  "start_url": "./index.html?source=pwa&v=16zj",
+  "start_url": "./index.html?source=pwa&v=chat-actions-v2c",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -93,19 +93,7 @@
     {
       "name": "Notifications",
       "short_name": "Notifications",
-      "url": "./index.html?v=16zj#notifications",
-      "icons": [
-        {
-          "src": "./icons/happyad-icon-v535center1-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Messages",
-      "short_name": "Messages",
-      "url": "./index.html?v=16zj#messages",
+      "url": "./index.html?v=chat-actions-v2c#notifications",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -117,7 +105,7 @@
     {
       "name": "Vidéos",
       "short_name": "Vidéos",
-      "url": "./index.html?app=video&v=16zj",
+      "url": "./index.html?app=video&v=chat-actions-v2c",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -129,7 +117,7 @@
     {
       "name": "Mon profil",
       "short_name": "Profil",
-      "url": "./index.html?app=profile&v=16zj",
+      "url": "./index.html?app=profile&v=chat-actions-v2c",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
