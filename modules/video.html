@@ -758,52 +758,8 @@ async function happyadCurrentActorProfileForNotif(){
 }
 function happyadMediaOwnerIdForNotif(p){return String((p&&(p.creatorId||p.user_id||p.ownerId||p.userId||p.author_id||p.creator_id||p.authorId))||'').trim();}
 async function happyadResolveMediaOwnerIdForNotif(p){var oid=happyadMediaOwnerIdForNotif(p); if(oid)return oid; try{var c=happyadSb&&happyadSb(); if(c&&p&&p.id){var r=await c.from('happyad_posts').select('user_id,creator_id,owner_id,author_id').eq('id',String(p.id)).maybeSingle();var d=r&&r.data||{};return String(d.user_id||d.creator_id||d.owner_id||d.author_id||'').trim();}}catch(_e){} return '';}
-async function happyadCreateNotificationSafe(opts){
-  opts=opts||{};
-  try{
-    var c=happyadSb&&happyadSb(); if(!c) return false;
-    var actor=await happyadCurrentActorProfileForNotif();
-    var recipient=String(opts.user_id||opts.recipient_id||opts.to_user_id||opts.owner_id||'').trim();
-    if(!recipient || (actor.id&&String(recipient)===String(actor.id)))return false;
-    var now=new Date().toISOString();
-    var extra={actor_name:actor.name||'',actor_avatar:actor.avatar||'',actor_badge:actor.badge||'',category:String(opts.category||opts.type||'systeme'),real_type:String(opts.type||opts.category||'systeme'),target_type:String(opts.target_type||''),target_id:String(opts.target_id||''),post_id:opts.post_id?String(opts.post_id):'',content_type:String(opts.content_type||''),comment_text:String(opts.comment_text||'')};
-    var row={user_id:recipient,recipient_id:recipient,actor_id:actor.id||null,type:String(opts.type||'systeme'),title:String(opts.title||'Notification HAPPYAD'),body:String(opts.body||opts.text||''),target_type:String(opts.target_type||''),target_id:String(opts.target_id||''),post_id:opts.post_id?String(opts.post_id):null,extra:extra,is_read:false,created_at:now};
-    var tries=[row,{user_id:row.user_id,recipient_id:row.user_id,actor_id:row.actor_id,type:row.type,title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:row.extra,created_at:now},{user_id:row.user_id,recipient_id:row.user_id,actor_id:row.actor_id,type:row.type,title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,created_at:now},{user_id:row.user_id,actor_id:row.actor_id,type:'systeme',title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:Object.assign({},row.extra||{},{category:row.type,real_type:row.type}),is_read:false,created_at:now},{user_id:row.user_id,actor_id:row.actor_id,type:'systeme',title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:Object.assign({},row.extra||{},{category:row.type,real_type:row.type}),created_at:now}];
-
-    async function happyadInsertOrUpdateUniqueNotification(row,tries){
-      var uniqueTypes={like:true,favoris:true,favorite:true,fav:true,abonne:true,abonnes:true,follow:true,share:true,partage:true};
-      var t=String(row.type||'').toLowerCase();
-      var isUnique=!!uniqueTypes[t] || String(row.extra&&row.extra.category||'').toLowerCase()==='likes' || String(row.extra&&row.extra.category||'').toLowerCase()==='favoris';
-      if(isUnique){
-        var pid=String(row.post_id||row.target_id||'').trim();
-        var q=null;
-        try{
-          q=c.from('happyad_notifications').select('id').eq('user_id',row.user_id).eq('actor_id',row.actor_id).eq('type',row.type).limit(1);
-          if(pid) q=q.or('post_id.eq.'+pid+',target_id.eq.'+pid);
-          var ex=await q.maybeSingle();
-          if(ex && ex.data && ex.data.id){
-            var up=await c.from('happyad_notifications').update({title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:row.extra,is_read:false,created_at:row.created_at}).eq('id',ex.data.id);
-            if(!up.error)return true;
-          }
-        }catch(_find){}
-      }
-      for(var i=0;i<tries.length;i++){try{var r=await c.from('happyad_notifications').insert(tries[i]); if(!r.error)return true;}catch(_e){}}
-      return false;
-    }
-    return await happyadInsertOrUpdateUniqueNotification(row,tries);
-  }catch(e){console.warn('happyad notify failed',e)}
-  return false;
-}
-async function happyadNotifyMediaAction(type,extraText){
-  try{
-    if(!post||!post.id)return;
-    var nt=type==='fav'||type==='favorite'?'favoris':String(type||'like');
-    var label=nt==='commentaire'?'a commenté votre publication':nt==='favoris'?'a ajouté votre publication aux favoris':'a aimé votre publication';
-    if(extraText)label+=' : '+String(extraText).slice(0,120);
-    var rid=await happyadResolveMediaOwnerIdForNotif(post);
-    await happyadCreateNotificationSafe({user_id:rid,type:nt,category:nt,title:'Nouvelle interaction',body:label,text:label,comment_text:(nt==='commentaire'?String(extraText||''):''),target_type:'video',target_id:post.id,post_id:post.id,content_type:'video'});
-  }catch(e){console.warn('notify media action',e)}
-}
+async function happyadCreateNotificationSafe(){return false;}
+async function happyadNotifyMediaAction(){return false;}
 
 
 async function resolveVideoCommentAuthor(){
@@ -1439,7 +1395,7 @@ $('commentList').onclick=e=>{const prof=e.target.closest('[data-comment-profile]
   window.happyadGuestViewOnlyToast=toast;
   function blockedNode(target){
     if(!target||!target.closest)return null;
-    return target.closest('[data-card-act="like"],[data-card-act="fav"],[data-card-act="share"],[data-profile-act="like"],[data-profile-act="fav"],[data-profile-act="share"],#publicFollowBtn,#publicMessageBtn,#hsvLike,#hsvReply,#hsvShare,#sendComment,.cLike,.cReply,.slideTopRepost,.act[data-act="like"],.act[data-act="fav"],.act[data-act="share"],.act[data-act="repost"],[data-act="repost"]');
+    return target.closest('[data-card-act="like"],[data-card-act="fav"],[data-card-act="share"],[data-profile-act="like"],[data-profile-act="fav"],[data-profile-act="share"],#publicFollowBtn,#hsvLike,#hsvReply,#hsvShare,#sendComment,.cLike,.cReply,.slideTopRepost,.act[data-act="like"],.act[data-act="fav"],.act[data-act="share"],.act[data-act="repost"],[data-act="repost"]');
   }
   document.addEventListener('click',function(e){
     var n=blockedNode(e.target); if(!n)return;
@@ -1584,7 +1540,7 @@ function pauseOne(v,manual){
       if(p==='index.html'||p==='/index.html'||href==='../index.html'||href==='index.html'||href==='/'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close();return false;
       }
-      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'||p==='messages.html'||p==='notifications.html'||p==='modules/notifications.html'){
+      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();send(c);return false;
       }
     }catch(_e){}

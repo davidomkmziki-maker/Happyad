@@ -50,7 +50,7 @@
         <div class="clientInfoItem"><span>Réception</span><b>${o.deliveryEtaAt?fmtDateTime(o.deliveryEtaAt):'À confirmer'}</b></div>
         <div class="clientInfoItem"><span>Téléphone</span><b>${phone}</b></div>
       </div>
-      <div class="clientActionRow"><button class="btn dark" onclick="closePaymentPopup();show('messages')">Message client</button><button class="btn" onclick="closePaymentPopup();openResolutionChat('${o.id}','seller','Ouvrir dossier')">Ouvrir dossier</button></div>`;
+      <div class="clientActionRow"></div>`;
     overlay.classList.add('show');
     try{hydrateIcons(sheet)}catch(e){}
   };
@@ -78,9 +78,9 @@
       const statusCls=completed?'done':(cancel?'cancel':'');
       const proofDisabled=(completed||waiting||cancel)?'disabled':'';
       const readonly=(completed||cancel)?'readonly':'';
-      const money=completed?`<div class="adminNotice"><span data-ico="shield"></span><span>Argent reçu : ${safeAmount(o.sellerAmountK||o.totalK)}.</span></div>`:(waiting?`<div class="adminNotice"><span data-ico="message"></span><span>Notification envoyée au client.</span></div>`:'');
-      const cancelBox=cancel?`<div class="sellerCancelledBox">Annulation demandée</div><div class="orderButtons oneBtn"><button class="btn problem" onclick="openResolutionChat('${o.id}','seller','Annulation')">Ouvrir dossier</button></div>`:'';
-      const buttons=completed?'':(cancel?'':`<div class="orderButtons"><button class="btn cancel" onclick="openClientProfile('${o.id}')">Ouvrir profil client</button><button class="btn problem" onclick="openResolutionChat('${o.id}','seller','Ouvrir dossier')">Ouvrir dossier</button></div><button class="btn ${waiting?'dark':''}" style="width:100%;margin-top:10px" onclick="sellerValidateDelivery('${o.id}')" ${waiting?'disabled':''}>${waiting?'Preuve envoyée':'Valider livraison'}</button>`);
+      const money=completed?`<div class="adminNotice"><span data-ico="shield"></span><span>Argent reçu : ${safeAmount(o.sellerAmountK||o.totalK)}.</span></div>`:(waiting?`<div class="adminNotice"><span data-ico="message"></span><span>Preuve envoyée au client.</span></div>`:'');
+      const cancelBox=cancel?`<div class="sellerCancelledBox">Annulation demandée</div>`:'';
+      const buttons=completed?'':(cancel?'':`<div class="orderButtons"><button class="btn cancel" onclick="openClientProfile('${o.id}')">Ouvrir profil client</button></div><button class="btn ${waiting?'dark':''}" style="width:100%;margin-top:10px" onclick="sellerValidateDelivery('${o.id}')" ${waiting?'disabled':''}>${waiting?'Preuve envoyée':'Valider livraison'}</button>`);
       const claimBadge=(o.claimOpen&&!completed&&!cancel)?`<div class="claimOpenBadge seller">Revendication ouverte</div>`:'';
       return `<div class="sellerOrderCard"><div class="sellerOrderTop"><div class="mini">${typeof icon==='function'?icon('bag','ico'):''}</div><div style="flex:1"><b>${o.product}</b><span>${o.id} · ${safeAmount(o.totalK)}</span><div class="deliveryStatus ${statusCls}">${statusText}</div></div></div>${sellerMeta(o)}<div class="deliveryProofBox ${o.sellerDelivered?'show':''}" id="proof-${o.id}"><textarea placeholder="Preuve de livraison" ${readonly}>${o.proof||''}</textarea><div class="proofPhotoActions"><label class="proofPick" for="proofFile-${o.id}">${typeof icon==='function'?icon('image','icoMini'):''} Photo</label><label class="proofPick" for="proofCam-${o.id}">${typeof icon==='function'?icon('camera','icoMini'):''} Caméra</label></div><input class="hiddenFile" id="proofFile-${o.id}" type="file" accept="image/*" onchange="handleProofPhoto('${o.id}',this)" ${proofDisabled}><input class="hiddenFile" id="proofCam-${o.id}" type="file" accept="image/*" capture="environment" onchange="handleProofPhoto('${o.id}',this)" ${proofDisabled}><div class="${o.proofPhotoUrl?'proofPreview show':'proofPreview'}" id="proofPreview-${o.id}">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<span>${o.proofPhotoName||'Aucune photo'}</span></div></div>${money}${cancelBox}${claimBadge}${buttons}</div>`;
     }).join('');

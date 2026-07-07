@@ -109,12 +109,12 @@
     if(!o){toast('Commande introuvable');return;}
     ensureOrderMeta(o);
     if(!canCancel(o)){
-      openResolutionChat(o.id,'client','Annulation');
+      toast('Ancien centre de résolution supprimé');
       toast('Annulation automatique impossible');
       return;
     }
     if(!isWithinCancelWindow(o)){
-      openResolutionChat(o.id,'client','Annulation');
+      toast('Ancien centre de résolution supprimé');
       toast('Annulation automatique fermée après 30 min');
       return;
     }
@@ -139,7 +139,7 @@
     addThread(o,'seller','Le vendeur signale que la livraison était déjà partie.');
     addThread(o,'support','Remboursement bloqué. Dossier en vérification.');
     renderSellerOrders(); renderCart();
-    openResolutionChat(o.id,'seller','Déjà expédié');
+    toast('Ancien centre de résolution supprimé');
   };
 
   window.renderCart = function(){
@@ -154,11 +154,11 @@
       const cancelBlock=(canCancel(o) && !o.cancelRequested) ? `<button class="btn cancel" onclick="requestCancelOrder('${o.id}')">Annuler commande</button>` : '';
       const cancelInfo=o.cancelRequested&&!o.refunded?`<div class="refundHoldBox">${o.refundBlocked?'Remboursement bloqué · vérification en cours':'Annulation demandée · remboursement en attente 2h'}</div>`:'';
       const proof=o.sellerDelivered&&!completed?`<div class="confirmReceiveBox"><div class="confirmWarn">Validez seulement après réception réelle.</div>${o.proofVisible?`<div class="clientProof">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<b>Preuve de livraison</b><br>${o.proof||'Livraison déclarée'}</div>`:''}<button class="btn" style="width:100%" onclick="confirmReceivedStep1('${o.id}')">J’ai reçu la commande</button></div>`:'';
-      const claim=canClaim?`<div class="orderButtons"><button class="btn problem" onclick="openResolutionChat('${o.id}','client','Je n’ai pas reçu')">Je n’ai pas reçu</button><button class="btn cancel" onclick="openResolutionChat('${o.id}','client','Revendication')">Revendication</button></div>`:'';
+      const claim=canClaim?``:'';
       const rating=completed?(typeof ratingBox==='function'?ratingBox(o):'<div class="deliveryStatus done">Terminée</div>'):'';
-      return `<div class="cartLine"><span>${o.product} × ${o.qty}</span><b>${formatBoutiqueAmount(o.totalK)}</b></div><div class="deliveryStatus ${completed?'done':''}">${statusLabel(o)}</div>${cancelInfo}${proof}${rating}<div class="orderButtons ${cancelBlock?'':'one'}">${cancelBlock}<button class="btn cancel" onclick="show('messages')">Message vendeur</button></div>${claim}`;
+      return `<div class="cartLine"><span>${o.product} × ${o.qty}</span><b>${formatBoutiqueAmount(o.totalK)}</b></div><div class="deliveryStatus ${completed?'done':''}">${statusLabel(o)}</div>${cancelInfo}${proof}${rating}<div class="orderButtons ${cancelBlock?'':'one'}">${cancelBlock}</div>${claim}`;
     }).join('')}</div>`:'';
-    document.getElementById('cartRows').innerHTML=cartItems.length?`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Commande sécurisée</b></div></div><div class="card">${cartItems.map(item=>{const p=item.product;return `<div class="row"><div class="mini">${icon('bag','ico')}</div><div class="rowInfo"><b>${p.name}</b><span><span class="cartSellerLine">${sellerProfile(p.seller).displayName} ${badgeSvg(p.seller)}</span><br>${p.price}</span><div class="small">Quantité : ${item.qty}</div></div><button class="circleBtn" onclick="event.stopPropagation();decreaseCart(${p.id})">−</button><b>${item.qty}</b><button class="circleBtn" onclick="event.stopPropagation();addCart(${p.id})">+</button><button class="circleBtn danger" onclick="event.stopPropagation();removeCart(${p.id})">${icon('trash','icoMini')}</button></div>`}).join('')}<div class="cartLine"><span>Sous-total</span><b>${totalText}</b></div><div class="cartLine"><span>Total</span><b class="total">${totalText}</b></div><br><button class="btn" style="width:100%" onclick="show('messages')">${icon('message','icoMini')} Message vendeur</button><br><br><button class="btn" style="width:100%" onclick="openPaymentPopup()">Continuer le paiement</button></div>${ordersHtml}`:`${ordersHtml||'<div class="card empty">Aucun article dans le panier.</div>'}`;
+    document.getElementById('cartRows').innerHTML=cartItems.length?`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Commande sécurisée</b></div></div><div class="card">${cartItems.map(item=>{const p=item.product;return `<div class="row"><div class="mini">${icon('bag','ico')}</div><div class="rowInfo"><b>${p.name}</b><span><span class="cartSellerLine">${sellerProfile(p.seller).displayName} ${badgeSvg(p.seller)}</span><br>${p.price}</span><div class="small">Quantité : ${item.qty}</div></div><button class="circleBtn" onclick="event.stopPropagation();decreaseCart(${p.id})">−</button><b>${item.qty}</b><button class="circleBtn" onclick="event.stopPropagation();addCart(${p.id})">+</button><button class="circleBtn danger" onclick="event.stopPropagation();removeCart(${p.id})">${icon('trash','icoMini')}</button></div>`}).join('')}<div class="cartLine"><span>Sous-total</span><b>${totalText}</b></div><div class="cartLine"><span>Total</span><b class="total">${totalText}</b></div><br><br><button class="btn" style="width:100%" onclick="openPaymentPopup()">Continuer le paiement</button></div>${ordersHtml}`:`${ordersHtml||'<div class="card empty">Aucun article dans le panier.</div>'}`;
     hydrateIcons(document.getElementById('cartRows')); updatePublicPreviewRating();
   };
 
@@ -173,9 +173,9 @@
       const cancelPending=o.cancelRequested&&!completed;
       const statusText=completed?'Validé':(cancelPending?'Annulation':'À livrer');
       const disabled=(completed||waiting||cancelPending)?'disabled':'';
-      const money=completed?`<div class="adminNotice"><span data-ico="shield"></span><span>Argent reçu : ${formatBoutiqueAmount(o.sellerAmountK||o.totalK)}.</span></div>`:(waiting?`<div class="adminNotice"><span data-ico="message"></span><span>Notification envoyée au client.</span></div>`:'');
-      const cancelBox=cancelPending?`<div class="refundHoldBox">${o.refundBlocked?'Remboursement bloqué · vérification':'Annulation client · remboursement en attente 2h'}</div><div class="orderButtons"><button class="btn problem" onclick="sellerAlreadyShipped('${o.id}')">Déjà expédié</button><button class="btn cancel" onclick="openResolutionChat('${o.id}','seller','Annulation')">Ouvrir dossier</button></div>`:'';
-      const claimButtons=completed?'':`<div class="orderButtons"><button class="btn cancel" onclick="openResolutionChat('${o.id}','seller','Difficulté livraison')">Difficulté</button><button class="btn problem" onclick="openResolutionChat('${o.id}','seller','Ouvrir dossier')">Ouvrir dossier</button></div>`;
+      const money=completed?`<div class="adminNotice"><span data-ico="shield"></span><span>Argent reçu : ${formatBoutiqueAmount(o.sellerAmountK||o.totalK)}.</span></div>`:(waiting?`<div class="adminNotice"><span data-ico="message"></span><span>Preuve envoyée au client.</span></div>`:'');
+      const cancelBox=cancelPending?`<div class="refundHoldBox">${o.refundBlocked?'Remboursement bloqué · vérification':'Annulation client · remboursement en attente 2h'}</div><div class="orderButtons"><button class="btn problem" onclick="sellerAlreadyShipped('${o.id}')">Déjà expédié</button></div>`:'';
+      const claimButtons=completed?'':``;
       return `<div class="sellerOrderCard"><div class="sellerOrderTop"><div class="mini">${icon('bag','ico')}</div><div style="flex:1"><b>${o.product}</b><span>${o.id} · ${formatBoutiqueAmount(o.totalK)}</span><div class="deliveryStatus ${completed?'done':''}">${statusText}</div></div></div><div class="deliveryProofBox ${o.sellerDelivered?'show':''}" id="proof-${o.id}"><textarea placeholder="Preuve de livraison" ${completed||cancelPending?'readonly':''}>${o.proof||''}</textarea><div class="proofPhotoActions"><label class="proofPick" for="proofFile-${o.id}">${icon('image','icoMini')} Photo</label><label class="proofPick" for="proofCam-${o.id}">${icon('camera','icoMini')} Caméra</label></div><input class="hiddenFile" id="proofFile-${o.id}" type="file" accept="image/*" onchange="handleProofPhoto('${o.id}',this)" ${completed||waiting||cancelPending?'disabled':''}><input class="hiddenFile" id="proofCam-${o.id}" type="file" accept="image/*" capture="environment" onchange="handleProofPhoto('${o.id}',this)" ${completed||waiting||cancelPending?'disabled':''}><div class="${o.proofPhotoUrl?'proofPreview show':'proofPreview'}" id="proofPreview-${o.id}">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<span>${o.proofPhotoName||'Aucune photo'}</span></div></div>${money}${cancelBox}${o.claimOpen&&!completed?`<div class="claimOpenBadge seller">Revendication ouverte</div>`:''}${claimButtons}<button class="btn ${completed?'dark':''}" style="width:100%;margin-top:10px" onclick="sellerValidateDelivery('${o.id}')" ${disabled}>${completed?'Validé':(waiting?'Preuve envoyée':'Valider livraison')}</button></div>`;
     }).join(''); hydrateIcons(box);
   };

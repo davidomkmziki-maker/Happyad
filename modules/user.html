@@ -892,23 +892,6 @@ button#closeEditProfile,
 #editPanel{position:fixed!important; z-index:10001!important;}
 #profileEditBackdrop{z-index:10000!important;}
 </style>
-
-
-<style id="happyad-profile-message-pref-css">
-.settingSelect{
-  max-width:170px;
-  background:#151b25;
-  color:#fff;
-  border:1px solid #303642;
-  border-radius:999px;
-  padding:8px 10px;
-  font-size:11px;
-  font-weight:1000;
-  outline:none;
-}
-</style>
-
-
 <script id="happyad-no-demo-posts-cleaner-v63">
 (function(){
   var POST_KEY='HAPPYAD_PUBLISH_POSTS_V2';
@@ -1161,7 +1144,22 @@ body.happyadPublicCreatorProfile .profileBoutiqueBtn{opacity:.92!important;}
 body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending::before{content:""!important;display:none!important}
 body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending{background-color:rgba(255,255,255,.025)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)!important}
 </style>
-</head>
+
+<style id="happyad-v612-public-message-button">
+.publicCreatorActions{display:flex!important;gap:8px!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;margin:8px 0 12px!important}
+.publicCreatorActions .messageBtn{border:0!important;border-radius:999px!important;padding:10px 16px!important;font-weight:1000!important;background:linear-gradient(135deg,#0f8fff,#00c3ff)!important;color:#fff!important;box-shadow:0 8px 22px rgba(0,140,255,.22)!important;min-width:112px!important}
+.publicCreatorActions .messageBtn:active{transform:scale(.97)!important}
+</style>
+<style id="happyad-v616-public-message-buttons">
+/* HAPPYAD V616 — boutons profil visiteur lisibles et anti-clic profil */
+.publicCreatorActions{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;margin:14px auto 18px!important;width:100%!important;max-width:390px!important;flex-wrap:nowrap!important;position:relative!important;z-index:30!important;pointer-events:auto!important}
+.publicCreatorActions button{height:52px!important;min-width:142px!important;border-radius:999px!important;padding:0 18px!important;font-size:16px!important;font-weight:1000!important;letter-spacing:-.2px!important;border:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;-webkit-tap-highlight-color:transparent!important;pointer-events:auto!important;cursor:pointer!important}
+.publicCreatorActions .followBtn{background:linear-gradient(135deg,#ff9f18,#ff5c00)!important;color:#120900!important;box-shadow:0 12px 30px rgba(255,111,0,.28)!important}
+.publicCreatorActions .followBtn.on{background:linear-gradient(135deg,#172336,#0d1524)!important;color:#fff!important;border:1px solid rgba(255,255,255,.12)!important}
+.publicCreatorActions .messageBtn{background:linear-gradient(135deg,#008cff,#00d4ff)!important;color:#fff!important;box-shadow:0 14px 34px rgba(0,174,255,.38)!important;border:1px solid rgba(255,255,255,.14)!important;text-shadow:0 1px 3px rgba(0,0,0,.28)!important}
+.publicCreatorActions .messageBtn:active,.publicCreatorActions .followBtn:active{transform:scale(.97)!important}
+@media(max-width:390px){.publicCreatorActions{gap:10px!important;max-width:340px!important}.publicCreatorActions button{height:49px!important;min-width:132px!important;font-size:15px!important;padding:0 14px!important}}
+</style></head>
 <body>
 <a id="realBackToCentral" href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;text-decoration:none;color:#fff;font-size:28px;font-weight:900;background:linear-gradient(135deg,rgba(255,138,0,.22),rgba(255,75,34,.10));border:1px solid rgba(255,138,0,.45)">‹</a>
 
@@ -1287,8 +1285,6 @@ body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending{background-
       <h3>🌍 Confidentialité</h3>
       <div class="settingRow"><div><b>Compte public</b><br><span>Les visiteurs peuvent voir le profil.</span></div><button class="settingSwitch on" data-switch></button></div>
       <div class="settingRow"><div><b>Autoriser commentaires</b><br><span>Les visiteurs peuvent commenter.</span></div><button class="settingSwitch on" data-switch></button></div>
-      <div class="settingRow"><div><b>Autoriser messages</b><br><span>Les visiteurs peuvent envoyer un message.</span></div><button class="settingSwitch on" data-switch></button></div>
-      <div class="settingRow"><div><b>Préférence messages</b><br><span>Choisir qui peut envoyer message ou demande.</span></div><select id="profileMessagePreference" class="settingSelect"><option>Tout le monde</option><option>Abonnés uniquement</option><option>Demandes uniquement</option><option>Personne</option></select></div>
       <div class="settingRow"><div><b>Afficher abonnements</b><br><span>Visibilité des comptes suivis.</span></div><button class="settingSwitch" data-switch></button></div>
     </div>
 
@@ -1341,7 +1337,6 @@ body.happyadPublicCreatorProfile #avatarPreview.happyadAvatarPending{background-
       <div class="fullStat"><b id="stPendingOrders">0</b><span>Commandes en attente</span><div class="trend down">À traiter</div></div>
       <div class="fullStat"><b id="stRewardPaid">0</b><span>Payé — programme récompense</span><div class="trend neutral">Récompense</div></div>
       <div class="fullStat"><b id="stRewardPending">0</b><span>Récompense en attente</span><div class="trend neutral">À payer</div></div>
-      <div class="fullStat"><b id="stMessages">0</b><span>Messages reçus</span><div class="trend neutral">Contact</div></div>
       <div class="fullStat"><b id="stReports">0</b><span>Signalements</span><div class="trend neutral">Sécurité</div></div>
     </div>
   </div>
@@ -1447,7 +1442,6 @@ const UserStore = {
       pendingOrders:0,
       rewardPaid:0,
       rewardPending:0,
-      messages:0,
       reports:0
     }
   },
@@ -1578,7 +1572,6 @@ function renderFullStats(){
   stPendingOrders.textContent=a.pendingOrders||0;
   stRewardPaid.textContent=money(a.rewardPaid||0);
   stRewardPending.textContent=money(a.rewardPending||0);
-  stMessages.textContent=a.messages||0;
   stReports.textContent=a.reports||0;
   setTrend(stVisitorsTrend,calcPercent(a.visitorsWeek,a.visitorsLastWeek));
   setTrend(stOrdersTrend,calcPercent(a.orders,a.ordersLastWeek));
@@ -1979,44 +1972,7 @@ async function happyadProfileAuthUser(){
 async function loadProfileLikeFromSupabase(postId,contentType){const c=happyadSb();if(!c||!postId)return null;try{const user=await happyadProfileAuthUser();const keepLike=happyadProfileGetPendingAction(postId,'like');const countReq=await c.from('happyad_content_actions').select('post_id',{count:'exact',head:true}).eq('post_id',String(postId)).eq('content_type',contentType).eq('action_type','like').eq('liked',true);if(countReq.error)throw countReq.error;let liked=false;if(user){const mine=await c.from('happyad_content_actions').select('liked').eq('post_id',String(postId)).eq('content_type',contentType).eq('action_type','like').eq('user_id',user.id).maybeSingle();if(!mine.error&&mine.data)liked=!!mine.data.liked;}const a=getHappyAction(postId);if(keepLike){a.likes=Number(keepLike.count||0);a.like=!!keepLike.on;}else{a.likes=Number(countReq.count||0);a.like=liked;}setHappyAction(postId,a);return a;}catch(e){console.warn('happyad profile like load',e);return null}}
 async function toggleProfileActionSupabase(postId,contentType,actionType,nextValue){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadProfileAuthUser();if(!user)throw new Error('Connecte-toi pour enregistrer cette action');const id=String(postId);if(actionType==='share'){const ins=await c.from('happyad_content_actions').upsert({post_id:id,content_id:id,content_type:contentType,action_type:'share',user_id:user.id,liked:true},{onConflict:'post_id,content_type,action_type,user_id'});if(ins.error)throw ins.error;}else{const safeActionType=(actionType==='fav'?'favorite':actionType);const row={post_id:id,content_id:id,content_type:contentType,action_type:safeActionType,user_id:user.id,liked:!!nextValue};const up=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(up.error)throw up.error;}try{localStorage.setItem('HAPPYAD_ACTION_FAST_SYNC_V1',JSON.stringify({id:id,t:Date.now()}));}catch(e){}setTimeout(function(){syncProfileActionsBackground(profileVisiblePosts()).catch(function(){});},0);return getHappyAction(id)}
 async function toggleProfileLikeSupabase(postId,contentType,nextLiked){return toggleProfileActionSupabase(postId,contentType,'like',nextLiked)}
-async function happyadNotifyProfilePostAction(p,type,extraText){
-  try{
-    var c=supaClient&&supaClient(); if(!c||!p||!p.id)return false;
-    var me=currentLoggedUser&&currentLoggedUser(); if(!me||!me.id)return false;
-    var owner=String(p.creatorId||p.user_id||p.ownerId||p.userId||p.author_id||'').trim();
-    if(!owner||String(owner)===String(me.id))return false;
-    var now=new Date().toISOString();
-    var actorName=String(me.name||me.full_name||me.display_name||'Utilisateur HAPPYAD');
-    var actorAvatar=String(me.avatar||me.avatar_url||me.photo_url||'');
-    var actorBadge=String(me.badge||me.userBadge||me.verifiedBadge||'');
-    var label=type==='commentaire'?'a commenté votre publication':(type==='favoris'||type==='fav')?'a ajouté votre publication aux favoris':'a aimé votre publication';
-    if(extraText)label+=' : '+String(extraText).slice(0,120);
-    var extra={actor_name:actorName,actor_avatar:actorAvatar,actor_badge:actorBadge,category:String(type||'systeme')};
-    var row={user_id:owner,recipient_id:owner,actor_id:String(me.id),type:type==='fav'?'favoris':String(type||'systeme'),title:'Nouvelle interaction',body:label,target_type:'post',target_id:String(p.id),post_id:String(p.id),extra:extra,is_read:false,created_at:now};
-    var tries=[row,{user_id:row.user_id,recipient_id:row.user_id,actor_id:row.actor_id,type:row.type,title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:row.extra,created_at:now},{user_id:row.user_id,recipient_id:row.user_id,actor_id:row.actor_id,type:row.type,title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,created_at:now},{user_id:row.user_id,actor_id:row.actor_id,type:'systeme',title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:Object.assign({},row.extra||{},{category:row.type,real_type:row.type}),is_read:false,created_at:now},{user_id:row.user_id,actor_id:row.actor_id,type:'systeme',title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:Object.assign({},row.extra||{},{category:row.type,real_type:row.type}),created_at:now}];
-    async function happyadInsertOrUpdateUniqueNotificationProfile(row,tries){
-      var uniqueTypes={like:true,favoris:true,favorite:true,fav:true,abonne:true,abonnes:true,follow:true,share:true,partage:true};
-      var t=String(row.type||'').toLowerCase();
-      if(uniqueTypes[t]){
-        var pid=String(row.post_id||row.target_id||'').trim();
-        try{
-          var q=c.from('happyad_notifications').select('id').eq('user_id',row.user_id).eq('actor_id',row.actor_id).eq('type',row.type).limit(1);
-          if(pid) q=q.or('post_id.eq.'+pid+',target_id.eq.'+pid);
-          var ex=await q.maybeSingle();
-          if(ex&&ex.data&&ex.data.id){
-            var up=await c.from('happyad_notifications').update({title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,post_id:row.post_id,extra:row.extra,is_read:false,created_at:row.created_at}).eq('id',ex.data.id);
-            if(!up.error)return true;
-          }
-        }catch(_find){}
-      }
-      for(var i=0;i<tries.length;i++){try{var r=await c.from('happyad_notifications').insert(tries[i]); if(!r.error)return true;}catch(_e){}}
-      return false;
-    }
-    return await happyadInsertOrUpdateUniqueNotificationProfile(row,tries);
-  }catch(e){console.warn('profile post notification failed',e)}
-  return false;
-}
-
+async function happyadNotifyProfilePostAction(){return false;}
 
 // ═══════════════════════════════════════════════════════
 // ACTIONS PROFIL — cache immédiat + Supabase arrière-plan + Realtime
@@ -3683,7 +3639,7 @@ function mapPost(r,ap){
   }catch(e){}finally{if(fb)fb.disabled=false;}}
   function bumpOwnFollowingLocal(next){try{var u=own();var base=Number(u.following||0);u.following=Math.max(0,base+(next?1:-1));localStorage.setItem(USER_KEY,JSON.stringify(u));if(window.stFollowing)stFollowing.textContent=compact(u.following)}catch(e){}}
   async function togglePublicFollow(ap,fb){var me=meProfile(), mid=clean(me.id||me.user_id||me.uid||me.uuid||ownId()), cid=uidOf(ap); if(!mid){askAuth();return} if(!cid){try{toast('Profil créateur introuvable')}catch(e){} return} if(String(mid)===String(cid)){try{toast('Impossible de vous abonner à vous-même')}catch(e){} return} var c=sb(); if(!c){try{toast('Supabase non chargé')}catch(e){} return} fb=fb||document.getElementById('publicFollowBtn'); if(!fb)return; fb.disabled=true; var realOn=false,next=false; try{var uiOn=fb.classList.contains('on'); realOn=await remoteIsFollowing(ap,me); if(uiOn!==realOn){setFollowButton(fb,realOn);await loadFollowCounts(ap);return;} next=!realOn; if(next){var ins=await c.from('happyad_follows').upsert({follower_id:mid,creator_id:cid,created_at:new Date().toISOString()},{onConflict:'follower_id,creator_id'}); if(ins&&ins.error)throw ins.error;}else{var del=await c.from('happyad_follows').delete().eq('follower_id',mid).eq('creator_id',cid); if(del&&del.error)throw del.error;} setFollowButton(fb,next); var fs=follows(), k=followKey(ap); if(next)fs[k]={id:cid,user_id:cid,name:nameOf(ap),handle:handleOf(ap),avatar:avatarOf(ap),at:Date.now(),by:mid}; else delete fs[k]; saveFollows(fs); bumpOwnFollowingLocal(next); await loadFollowCounts(ap); await refreshPublicFollowState(ap); try{if(window.happyadRefreshOwnSupabaseFollowCounts)window.happyadRefreshOwnSupabaseFollowCounts(true)}catch(e){} }catch(err){setFollowButton(fb,realOn);try{await loadFollowCounts(ap);toast('Abonnement non enregistré : '+(err.message||err));}catch(e){} }finally{fb.disabled=false}}
-  function bindPublicActions(ap){setTimeout(function(){var fb=document.getElementById('publicFollowBtn'), mb=document.getElementById('publicMessageBtn'); if(fb){var cached=readFollowStateCache(ap);if(cached&&cached.known&&(Date.now()-Number(cached.at||0)<86400000))setFollowButton(fb,!!cached.on);else if(localIsFollowing(ap))setFollowButton(fb,true);else setFollowButtonPending(fb);fb.onclick=function(e){e.preventDefault();e.stopPropagation();togglePublicFollow(ap,fb);return false;};} if(mb){mb.onclick=function(e){e.preventDefault();e.stopPropagation();openMessage(ap);return false;};} refreshPublicFollowState(ap);},0)}
+  function bindPublicActions(ap){setTimeout(function(){var fb=document.getElementById('publicFollowBtn'); var mb=document.getElementById('publicMessageBtn'); if(mb&&!mb.__happyadMessageV613){mb.__happyadMessageV613=true;mb.onclick=function(e){e.preventDefault();e.stopPropagation();try{if(typeof window.happyadPublicMessageOpenV613==='function')return window.happyadPublicMessageOpenV613(ap);}catch(_m){}try{if(typeof openPublicMessage==='function')return openPublicMessage(ap);}catch(_x){}return false;};} if(fb){var cached=readFollowStateCache(ap);if(cached&&cached.known&&(Date.now()-Number(cached.at||0)<86400000))setFollowButton(fb,!!cached.on);else if(localIsFollowing(ap))setFollowButton(fb,true);else setFollowButtonPending(fb);fb.onclick=function(e){e.preventDefault();e.stopPropagation();togglePublicFollow(ap,fb);return false;};} refreshPublicFollowState(ap);},0)}
   function publicProfileLoadingOneCardHTML(){
     return '<div class="happyadPublicProfileLoadingCard" aria-hidden="true"><div class="happyadPublicProfileLoadingTop"><div class="happyadPublicProfileLoadingAvatar"></div><div class="happyadPublicProfileLoadingLines"><div class="happyadPublicProfileLoadingLine long"></div><div class="happyadPublicProfileLoadingLine short"></div></div></div><div class="happyadPublicProfileLoadingMedia"></div><div class="happyadPublicProfileLoadingBody"><div class="happyadPublicProfileLoadingLine long"></div><div class="happyadPublicProfileLoadingLine short"></div></div><div class="happyadPublicProfileLoadingActions"></div></div>';
   }
@@ -3713,13 +3669,6 @@ function mapPost(r,ap){
     if(typeof getPublishMedia==='function'){
       getPublishMedia(p.id).then(function(m){if(m&&m.blob){var u=URL.createObjectURL(m.blob);box.classList.remove('hpvMediaLoading');box.innerHTML=video?'<video class="hpvStableVideo hpvReady" src="'+safeUrl(u)+'" muted playsinline preload="metadata"></video>':'<img src="'+safeUrl(u)+'" alt="">'}else{box.classList.remove('hpvMediaLoading');box.innerHTML='Média introuvable'}}).catch(function(){box.classList.remove('hpvMediaLoading');box.innerHTML='Erreur média'});
     }else{box.classList.remove('hpvMediaLoading');box.innerHTML='Média introuvable'}
-  }
-  function openMessage(ap){
-    var id=uidOf(ap); if(!id||sameOwn(id)){try{toast('Impossible de vous envoyer un message à vous-même')}catch(e){} return;}
-    var name=nameOf(ap); try{localStorage.setItem('HAPPYAD_OPEN_CHAT_NAME',name);localStorage.setItem('HAPPYAD_OPEN_CHAT_PROFILE',JSON.stringify(ap||{}))}catch(e){}
-    var url='../messages.html?user='+encodeURIComponent(name)+'&user_id='+encodeURIComponent(id);
-    try{if(window.parent&&window.parent!==window&&window.parent.happyadOpenNativeChat){window.parent.happyadOpenNativeChat(url,{user:name,name:name,user_id:id,avatar:avatarOf(ap),badge:badgeOf(ap)});return;}}catch(_chat){}
-    location.href=url;
   }
   function draw(ap,posts,loading){
   ap = ap || {};
@@ -3836,7 +3785,7 @@ function mapPost(r,ap){
 
   var action = sameOwn(uidOf(ap))
     ? '<div class="publicCreatorActions selfProfileActions"></div>'
-    : '<div class="publicCreatorActions"><button class="followBtn '+(already?'on':'')+'" type="button" id="publicFollowBtn" data-follow-loading="'+(!followKnown?'1':'0')+'">'+followLabel+'</button><button class="messageBtn" type="button" id="publicMessageBtn">Message</button></div>';
+    : '<div class="publicCreatorActions"><button class="followBtn '+(already?'on':'')+'" type="button" id="publicFollowBtn" data-follow-loading="'+(!followKnown?'1':'0')+'">'+followLabel+'</button><button class="messageBtn" type="button" id="publicMessageBtn" data-public-message="1" onclick="event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();try{return window.happyadPublicMessageOpenV613&&window.happyadPublicMessageOpenV613();}catch(e){}return false;">Message</button></div>';
 
   if(loading && !grouped.length){
     if(!box.querySelector('.profilePost,.happyadPublicProfileLoadingCards')){
@@ -6715,98 +6664,34 @@ body.happyadPublicCreatorProfile .profileDelete{display:none!important}
   async function remoteFollowCounts(ap,me){var c=supaClient(), out={followers:null,following:null}; if(!c)return out; try{if(ap&&ap.id){var a=await c.from('happyad_follows').select('creator_id',{count:'exact',head:true}).eq('creator_id',ap.id); if(!a.error)out.followers=Number(a.count||0);}}catch(e){} try{if(ap&&ap.id){var b=await c.from('happyad_follows').select('follower_id',{count:'exact',head:true}).eq('follower_id',ap.id); if(!b.error)out.following=Number(b.count||0);}}catch(e){} return out}
   async function refreshPublicFollowState(ap){var me=currentLoggedUser(); var fb=document.getElementById('publicFollowBtn'); var wasDisabled=!!(fb&&fb.disabled); try{if(fb&&localIsFollowing(ap)){fb.classList.add('on');fb.textContent='✓ Abonné';} if(fb)fb.disabled=true; var counts=await remoteFollowCounts(ap,me); var cc={}; if(counts.followers!==null){cc.followers=Number(counts.followers); if(window.sFollowers)sFollowers.textContent=happyadCompactCount(counts.followers);} if(counts.following!==null){cc.following=Number(counts.following); if(window.sFollowing)sFollowing.textContent=happyadCompactCount(counts.following);} if(Object.keys(cc).length)saveFollowCountCache(ap,cc); if(me&&me.id){var on=await remoteIsFollowing(ap,me); if(fb){fb.classList.toggle('on',on); fb.textContent=on?'✓ Abonné':'S’abonner';} var fs=follows(), k=followKey(ap); if(on)fs[k]={id:ap.id||'',name:ap.name||'',handle:ap.handle||'',at:Date.now(),by:me.id||''}; else delete fs[k]; saveFollows(fs);}}catch(e){}finally{if(fb)fb.disabled=wasDisabled;}}
 
-  async function happyadNotifyFollowSafe(ap){
-    try{
-      var c=supaClient(); if(!c||!ap||!ap.id)return false;
-      var me=currentLoggedUser(); if(!me||!me.id||String(me.id)===String(ap.id))return false;
-      var now=new Date().toISOString();
-      var actorName=String(me.name||me.full_name||me.display_name||'Utilisateur HAPPYAD');
-      var actorAvatar=String(me.avatar||me.avatar_url||me.photo_url||'');
-      var actorBadge=String(me.badge||me.userBadge||me.verifiedBadge||'');
-      var extra={actor_name:actorName,actor_avatar:actorAvatar,actor_badge:actorBadge,category:'abonnes'};
-      var row={user_id:String(ap.id),recipient_id:String(ap.id),actor_id:String(me.id),type:'abonne',title:'Nouvel abonné',body:'a commencé à vous suivre',target_type:'profile',target_id:String(me.id),extra:extra,is_read:false,created_at:now};
-      var tries=[row,{user_id:row.user_id,recipient_id:row.user_id,actor_id:row.actor_id,type:row.type,title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,extra:row.extra,created_at:now},{user_id:row.user_id,recipient_id:row.user_id,actor_id:row.actor_id,type:row.type,title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,created_at:now}];
-      async function happyadInsertOrUpdateUniqueFollowNotification(row,tries){
-        try{
-          var ex=await c.from('happyad_notifications').select('id').eq('user_id',row.user_id).eq('actor_id',row.actor_id).eq('type',row.type).limit(1).maybeSingle();
-          if(ex&&ex.data&&ex.data.id){
-            var up=await c.from('happyad_notifications').update({title:row.title,body:row.body,target_type:row.target_type,target_id:row.target_id,extra:row.extra,is_read:false,created_at:row.created_at}).eq('id',ex.data.id);
-            if(!up.error)return true;
-          }
-        }catch(_find){}
-        for(var i=0;i<tries.length;i++){try{var r=await c.from('happyad_notifications').insert(tries[i]); if(!r.error)return true;}catch(_e){}}
-        return false;
-      }
-      return await happyadInsertOrUpdateUniqueFollowNotification(row,tries);
-    }catch(e){console.warn('follow notification failed',e)}
-    return false;
-  }
-
-  function isFollowing(ap){return localIsFollowing(ap);}
-  function creatorDisplay(ap){return String((ap&&ap.name)||'Créateur HAPPYAD');}
-  function sameProfileId(a,b){a=String(a||'').trim();b=String(b||'').trim();return !!a&&!!b&&a===b;}
-  function profileIsMe(ap){
-  try{
-    if(!ap) return false;
-
-    if(localStorage.getItem("HAPPYAD_SESSION_ACTIVE") !== "1"){
-      return false;
-    }
-
-    var authUid = String(localStorage.getItem("HAPPYAD_AUTH_UID") || "").trim();
-    if(!authUid) return false;
-    if(authUid.startsWith("local_")) return false;
-    if(authUid.startsWith("logged_out_")) return false;
-
-    var apIds = [
-      ap.id,
-      ap.user_id,
-      ap.uid,
-      ap.uuid,
-      ap.auth_id,
-      ap.creator_id,
-      ap.owner_id
-    ].map(function(x){
-      return String(x || "").trim();
-    }).filter(Boolean);
-
-    for(var i = 0; i < apIds.length; i++){
-      if(apIds[i] === authUid) return true;
-    }
-
-    return false;
-  }catch(e){
-    return false;
-  }
-}
-  function addCreatorButtonsHTML(ap){if(profileIsMe(ap))return '<div class="publicCreatorActions selfProfileActions"></div>';var on=isFollowing(ap);return '<div class="publicCreatorActions"><button class="followBtn '+(on?'on':'')+'" type="button" id="publicFollowBtn">'+(on?'✓ Abonné':'S’abonner')+'</button><button class="messageBtn" type="button" id="publicMessageBtn">Message</button></div>';}
+  async function happyadNotifyFollowSafe(){return false;}
+  function addCreatorButtonsHTML(ap){if(profileIsMe(ap))return '<div class="publicCreatorActions selfProfileActions"></div>';var on=isFollowing(ap);return '<div class="publicCreatorActions"><button class="followBtn '+(on?'on':'')+'" type="button" id="publicFollowBtn">'+(on?'✓ Abonné':'S’abonner')+'</button><button class="messageBtn" type="button" id="publicMessageBtn" data-public-message="1" onclick="event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();try{return window.happyadPublicMessageOpenV613&&window.happyadPublicMessageOpenV613();}catch(e){}return false;">Message</button></div>';}
   function bumpOwnFollowingLocal(next){try{var u=currentLoggedUser(); if(!u||!u.id)return; var fc=readOwnFollowCountCache(u); var base=(fc.following!==undefined&&fc.following!==null)?Number(fc.following):Number(u.following||0); var n=Math.max(0,base+(next?1:-1)); u.following=n; localStorage.setItem(USER_KEY,JSON.stringify(u)); saveOwnFollowCountCache(u,{following:n}); if(window.stFollowing)stFollowing.textContent=happyadCompactCount(n); try{var ap=JSON.parse(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'null'); if(ap&&String(ap.id||'')===String(u.id||'')&&window.sFollowing)sFollowing.textContent=happyadCompactCount(n);}catch(_e){} }catch(e){}}
+  function openPublicMessage(ap){
+    try{
+      var me=currentLoggedUser&&currentLoggedUser();
+      if(!me||!me.id){askAuth&&askAuth();return false;}
+      if(!ap||!ap.id){try{toast('Profil introuvable');}catch(_e){}return false;}
+      var qs='mode=direct&origin=visitor_profile&to='+encodeURIComponent(ap.id||'')+
+        '&name='+encodeURIComponent(ap.name||ap.full_name||ap.display_name||'Utilisateur HAPPYAD')+
+        '&avatar='+encodeURIComponent(ap.avatar||ap.avatar_url||'')+
+        '&badge='+encodeURIComponent(ap.badge||ap.user_badge||'');
+      var url='messages.html?'+qs;
+      try{sessionStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(ap.id||''));}catch(_s){}
+      if(window.parent&&window.parent!==window&&window.parent.happyadOpenInternalUrlV492){window.parent.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v614',page:'messages'});return false;}
+      if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v614',page:'messages'});return false;}
+      location.href=(location.pathname.indexOf('/modules/')>-1?'../':'')+url;
+    }catch(e){try{toast('Message indisponible : '+((e&&e.message)||e));}catch(_x){}}
+    return false;
+  }
   function bindCreatorButtons(ap){
     setTimeout(function(){
-      var fb=document.getElementById('publicFollowBtn'), mb=document.getElementById('publicMessageBtn');
+      var fb=document.getElementById('publicFollowBtn');
+      var mb=document.getElementById('publicMessageBtn');
+      if(mb&&!mb.__happyadMessageV612){mb.__happyadMessageV612=true;mb.onclick=function(e){e.preventDefault();e.stopPropagation();return openPublicMessage(ap);};}
       if(profileIsMe(ap)){ if(fb)fb.style.display='none'; if(mb)mb.style.display='none'; return; }
       refreshPublicFollowState(ap);
       if(fb)fb.onclick=async function(e){e.preventDefault();e.stopPropagation();var me=currentLoggedUser(); if(!me){askAuth();return;} if(!ap||!ap.id){try{toast('Profil créateur introuvable');}catch(_e){} return;} var c=supaClient(); if(!c){try{toast('Supabase non chargé');}catch(_e){} return;} fb.disabled=true; var realOn=false,next=false; try{var uiOn=fb.classList.contains('on'); realOn=await remoteIsFollowing(ap,me); if(uiOn!==realOn){fb.classList.toggle('on',realOn);fb.textContent=realOn?'✓ Abonné':'S’abonner';await refreshPublicFollowState(ap);return;} next=!realOn; if(next){var ins=await c.from('happyad_follows').upsert({follower_id:me.id,creator_id:ap.id,created_at:new Date().toISOString()},{onConflict:'follower_id,creator_id'}); if(ins.error)throw ins.error; try{happyadNotifyFollowSafe(ap);}catch(_n){}}else{var del=await c.from('happyad_follows').delete().eq('follower_id',me.id).eq('creator_id',ap.id); if(del.error)throw del.error;} fb.classList.toggle('on',next); fb.textContent=next?'✓ Abonné':'S’abonner'; var fs=follows(), k=followKey(ap); if(next)fs[k]={id:ap.id||'',name:ap.name||'',handle:ap.handle||'',at:Date.now(),by:me.id||''}; else delete fs[k]; saveFollows(fs); bumpOwnFollowingLocal(next); await refreshPublicFollowState(ap); try{if(window.happyadRefreshOwnSupabaseFollowCounts)window.happyadRefreshOwnSupabaseFollowCounts(true);}catch(_e){} }catch(err){fb.classList.toggle('on',realOn); fb.textContent=realOn?'✓ Abonné':'S’abonner'; try{await refreshPublicFollowState(ap); toast('Abonnement non enregistré : '+(err.message||err));}catch(_e){} }finally{fb.disabled=false;} };
-      if(mb)mb.onclick=function(e){
-        e.preventDefault();e.stopPropagation();
-        var me=currentLoggedUser(); if(!me){askAuth();return;} if(profileIsMe(ap)){try{toast('Impossible de vous envoyer un message à vous-même');}catch(_e){} return;}
-        try{
-          var KEY='HAPPYAD_NOTIF_CHAT_COMPACT_V2', CHATKEY='HAPPYAD_CHAT_MESSAGES_V2';
-          var name=creatorDisplay(ap);
-          var ns=JSON.parse(localStorage.getItem(KEY)||'[]'); if(!Array.isArray(ns))ns=[];
-          var existing=ns.find(function(n){return n&&n.cat==='messages'&&String(n.from)===String(name);});
-          if(!existing){
-            ns.unshift({id:Date.now()+Math.random(),cat:'messages',from:name,title:'Conversation',text:'Ouvrir la conversation avec '+name+'.',time:'Maintenant',unread:false,avatar:initials(name)});
-          }
-          localStorage.setItem(KEY,JSON.stringify(ns));
-          var ch=JSON.parse(localStorage.getItem(CHATKEY)||'{}')||{}; ch[name]=ch[name]||[]; localStorage.setItem(CHATKEY,JSON.stringify(ch));
-          localStorage.setItem('HAPPYAD_OPEN_CHAT_NAME',name);
-          try{localStorage.setItem('HAPPYAD_OPEN_CHAT_PROFILE',JSON.stringify(ap||{}));}catch(__e){}
-        }catch(_e){}
-        var url='../messages.html?user='+encodeURIComponent(name)+'&user_id='+encodeURIComponent((ap&&(ap.id||ap.user_id||ap.uid||ap.uuid||ap.auth_id))||'');
-        try{if(window.parent&&window.parent!==window&&window.parent.happyadOpenNativeChat){window.parent.happyadOpenNativeChat(url,{user:name,name:name,user_id:(ap&&(ap.id||ap.user_id||ap.uid||ap.uuid||ap.auth_id))||'',avatar:avatarOf(ap),badge:badgeOf(ap)});return;}}catch(_chat){}
-        location.href=url;
-      };
     },0);
   }
   async function fetchCreatorPosts(ap){
@@ -8943,7 +8828,7 @@ async function saveRemote(id,on){
   window.happyadGuestViewOnlyToast=toast;
   function blockedNode(target){
     if(!target||!target.closest)return null;
-    return target.closest('[data-card-act="like"],[data-card-act="fav"],[data-card-act="share"],[data-profile-act="like"],[data-profile-act="fav"],[data-profile-act="share"],#publicFollowBtn,#publicMessageBtn,#hsvLike,#hsvReply,#hsvShare,#sendComment,.cLike,.cReply,.slideTopRepost,.act[data-act="like"],.act[data-act="fav"],.act[data-act="share"],.act[data-act="repost"],[data-act="repost"]');
+    return target.closest('[data-card-act="like"],[data-card-act="fav"],[data-card-act="share"],[data-profile-act="like"],[data-profile-act="fav"],[data-profile-act="share"],#publicFollowBtn,#hsvLike,#hsvReply,#hsvShare,#sendComment,.cLike,.cReply,.slideTopRepost,.act[data-act="like"],.act[data-act="fav"],.act[data-act="share"],.act[data-act="repost"],[data-act="repost"]');
   }
   document.addEventListener('click',function(e){
     var n=blockedNode(e.target); if(!n)return;
@@ -10385,7 +10270,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
       if(p==='index.html'||p==='/index.html'||href==='../index.html'||href==='index.html'||href==='/'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close();return false;
       }
-if(p==='user.html'||p==='modules/user.html'||p==='boutique.html'||p==='modules/boutique.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'||p==='messages.html'||p==='notifications.html'||p==='modules/notifications.html'){
+if(p==='user.html'||p==='modules/user.html'||p==='boutique.html'||p==='modules/boutique.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();send(c);return false;
       }
     }catch(_e){}
@@ -10547,7 +10432,7 @@ if(p==='user.html'||p==='modules/user.html'||p==='boutique.html'||p==='modules/b
   document.addEventListener('click',function(e){
     if(hasRealAccount()) return;
     var t=e.target; if(!t) return;
-    var protectedTap=t.closest && t.closest('#openSettings,#openStats,[data-open-edit],button[data-action],a[href*="publish"],a[href*="notifications"]');
+    var protectedTap=t.closest && t.closest('#openSettings,#openStats,[data-open-edit],button[data-action],a[href*="publish"]');
     if(protectedTap){ e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation(); openAuth(); return false; }
   },true);
   function hardLogoutLocal(){
@@ -13732,5 +13617,75 @@ body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!import
   wrapOpen();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wrapOpen,{once:true});
   setTimeout(wrapOpen,200);setTimeout(wrapOpen,900);setTimeout(wrapOpen,1800);
+})();
+</script>
+
+
+<script id="happyad-public-message-open-v613">
+(function(){
+  if(window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V613__)return;
+  window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V613__=true;
+  function clean(v){return String(v==null?'':v).trim();}
+  function isGenericName(v){var n=clean(v).toLowerCase();return !n||n==='utilisateur happyad'||n==='happyad'||n==='profil'||n==='chargement profil...';}
+  function readProfile(){
+    var ap=null;
+    try{ap=JSON.parse(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'null')||null;}catch(e){}
+    if(!ap)ap={};
+    try{
+      var qs=new URLSearchParams(location.search||'');
+      var uid=clean(qs.get('uid')||qs.get('profile_uid')||qs.get('user_id')||'');
+      if(uid){ap.id=ap.id||uid;ap.user_id=ap.user_id||uid;}
+    }catch(e){}
+    try{
+      var domName=clean((document.getElementById('profileName')||{}).textContent||'');
+      if(!isGenericName(domName)){ap.name=domName;ap.full_name=domName;ap.display_name=domName;}
+    }catch(e){}
+    try{
+      var av=document.getElementById('avatarPreview');
+      var bg=String((av&&av.style&&av.style.backgroundImage)||'');
+      var m=bg.match(/url\(["']?(.*?)["']?\)/);
+      var img=clean((av&&av.dataset&&(av.dataset.stableAvatar||av.dataset.avatar))||'')||clean(m&&m[1]||'');
+      if(img){ap.avatar=img;ap.avatar_url=img;}
+    }catch(e){}
+    return ap;
+  }
+  function me(){
+    var keys=['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','happyad_user','happyad_current_user','happyad_auth_user','user'];
+    for(var i=0;i<keys.length;i++){
+      try{var raw=localStorage.getItem(keys[i])||sessionStorage.getItem(keys[i]);if(!raw)continue;var o=JSON.parse(raw);var roots=[o,o.user,o.profile,o.currentUser,o.session&&o.session.user,o.data&&o.data.user].filter(Boolean);for(var j=0;j<roots.length;j++){var r=roots[j];var id=clean(r.id||r.user_id||r.uid||r.uuid);if(id)return {id:id};}}catch(e){}
+    }
+    try{var x=clean(localStorage.getItem('HAPPYAD_AUTH_UID')||'');if(x)return {id:x};}catch(e){}
+    return null;
+  }
+  window.happyadPublicMessageOpenV613=function(ap){
+    try{
+      ap=ap||readProfile();
+      var uid=clean(ap.id||ap.user_id||ap.uid||ap.uuid);
+      if(!uid){try{toast('Profil introuvable');}catch(_t){}return false;}
+      var m=me();
+      if(!m||!m.id){try{if(typeof askAuth==='function')askAuth();else toast('Connecte-toi pour envoyer un message');}catch(_a){}return false;}
+      if(clean(m.id)===uid){try{toast('Impossible de vous envoyer un message à vous-même');}catch(_s){}return false;}
+      var name=clean(ap.name||ap.full_name||ap.display_name||ap.username)||'Utilisateur HAPPYAD';
+      var avatar=clean(ap.avatar||ap.avatar_url||ap.photo_url||'');
+      var badge=clean(ap.badge||ap.user_badge||'');
+      var handle=clean(ap.handle||ap.username||'');
+      try{var directProfile={id:uid,user_id:uid,name:name,full_name:name,display_name:name,username:handle,handle:handle,avatar:avatar,avatar_url:avatar,badge:badge,user_badge:badge,at:Date.now()};sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));}catch(_dp){}
+      var qs='mode=direct&origin=visitor_profile&to='+encodeURIComponent(uid)+'&name='+encodeURIComponent(name)+'&username='+encodeURIComponent(handle)+'&avatar='+encodeURIComponent(avatar)+'&badge='+encodeURIComponent(badge);
+      var url='messages.html?'+qs;
+      try{sessionStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(uid));}catch(_e){}
+      try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v614',page:'messages'});return false;}}catch(_pp){}
+      try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v614',page:'messages'});return false;}}catch(_o){}
+      try{if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,source:'profile-visitor-message-v615'},'*');return false;}}catch(_p){}
+      location.href=(location.pathname.indexOf('/modules/')>-1?'../':'')+url;
+    }catch(e){try{toast('Message indisponible : '+((e&&e.message)||e));}catch(_x){}}
+    return false;
+  };
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('#publicMessageBtn,.messageBtn[data-public-message="1"]');
+    if(!b)return;
+    e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    window.happyadPublicMessageOpenV613(readProfile());
+    return false;
+  },true);
 })();
 </script>

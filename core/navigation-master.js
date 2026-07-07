@@ -28,9 +28,8 @@
     photo:'modules/photo.html',
     publish:'modules/publish.html',
     map:'modules/map.html',
-    notifications:'modules/notifications.html',
-    messages:'messages.html',
-    boutique:'boutique.html'
+    boutique:'boutique.html',
+    messages:'messages.html'
   };
 
   function clean(v){return String(v==null?'':v).trim().replace(/^\.\//,'');}
@@ -90,12 +89,11 @@
     if(page==='profile')title='Mon profil';
     else if(page==='profile_public')title='Profil';
     else if(page==='boutique')title='Boutique';
-    else if(page==='messages')title='Messages';
-    else if(page==='notifications')title='Notifications';
     else if(page==='video')title='Vidéos';
     else if(page==='photo')title='Photos';
     else if(page==='publish')title='Publication';
     else if(page==='map')title='Carte';
+    else if(page==='messages')title='Messages';
     var top='<div class="haSkTop"><div class="haSkBack"></div><div class="haSkTitle"></div></div>';
     var profileTop='<div class="haSkProfileIdentity"><div class="haSkAvatar haSkAvatarCenter"><i></i></div><div class="haSkNameLine"></div><div class="haSkHandleLine"></div></div>';
     if(page==='boutique'){
@@ -177,9 +175,8 @@
       else if(file==='photo.html')prefix='modules/photo.html';
       else if(file==='publish.html')prefix='modules/publish.html';
       else if(file==='map.html')prefix='modules/map.html';
-      else if(file==='notifications.html')prefix='modules/notifications.html';
-      else if(file==='messages.html')prefix='messages.html';
       else if(file==='boutique.html')prefix='boutique.html';
+      else if(file==='messages.html')prefix='messages.html';
       else if(file==='index.html'||file==='')prefix='index.html';
       return prefix+(u.search||'')+(u.hash||'');
     }catch(_e){return url;}
@@ -198,9 +195,8 @@
     if(p==='modules/photo.html')return 'photo';
     if(p==='modules/publish.html')return 'publish';
     if(p==='modules/map.html')return 'map';
-    if(p==='modules/notifications.html')return 'notifications';
-    if(p==='messages.html')return 'messages';
     if(p==='boutique.html')return 'boutique';
+    if(p==='messages.html')return 'messages';
     return 'home';
   }
   function hasPost(url){try{var u=new URL(rootUrl(url),location.href);return !!(u.searchParams.get('post')||u.searchParams.get('id'));}catch(_e){return /[?&](post|id)=/.test(rootUrl(url));}}
@@ -387,14 +383,13 @@
       var hash=String(u.hash||'').replace(/^#/,'').trim().toLowerCase();
       var key=app||hash;
       if(!key)return null;
-      if(key==='notifications')return {view:'notifications',url:'modules/notifications.html',source:'url'};
-      if(key==='messages')return {view:'messages',url:'messages.html',source:'url'};
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/user.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
       if(key==='boutique')return {view:'boutique',url:'boutique.html',source:'url'};
+      if(key==='messages'||key==='message'||key==='msg')return {view:'messages',url:'messages.html?mode=list&origin=home',source:'url'};
     }catch(_e){}
     return null;
   }
@@ -417,9 +412,8 @@
       else if(page==='photo')sel='a[href^="modules/photo.html"]';
       else if(page==='profile')sel='a[href^="modules/user.html"]';
       else if(page==='publish')sel='a[href^="modules/publish.html"]';
-      else if(page==='notifications')sel='a[href^="modules/notifications.html"]';
-      else if(page==='messages')sel='a[href^="messages.html"]';
       else if(page==='boutique')sel='a[href^="boutique.html"],[data-happyad-app-route^="boutique.html"]';
+      else if(page==='messages')sel='[data-happyad-bottom-message="1"],[data-happyad-app-route^="messages.html"]';
       var a=document.querySelector('.bottom '+sel);if(a)a.classList.add('active');
     }catch(_e){}
   }
@@ -436,7 +430,7 @@
     return false;
   }
   function isSoftOpenPage(page,url){return page&&page!=='home'&&!isNoSkeletonPage(page,url);}
-  function isHeavySoftPage(page){return page==='profile'||page==='profile_public'||page==='boutique'||page==='messages'||page==='notifications'||page==='publish'||page==='map'||page==='video'||page==='photo';}
+  function isHeavySoftPage(page){return page==='profile'||page==='profile_public'||page==='boutique'||page==='publish'||page==='map'||page==='video'||page==='photo';}
   function isDirectMediaPage(page){return page==='video';}
   function prefetchUrl(url){
     try{
@@ -456,8 +450,6 @@
         try{prefetchUrl('modules/user.html');}catch(_p1){}
         try{setTimeout(function(){prefetchUrl('modules/video.html');},260);}catch(_pv){}
         try{setTimeout(function(){prefetchUrl('boutique.html');},520);}catch(_p2){}
-        try{setTimeout(function(){prefetchUrl('messages.html');},900);}catch(_p3){}
-        try{setTimeout(function(){prefetchUrl('modules/notifications.html');},1300);}catch(_p4){}
       };
       if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:2200});
       else setTimeout(run,1600);
@@ -476,7 +468,6 @@
     if(page==='video')return hasPost(activeUrl)?120:180;
     if(page==='profile'||page==='profile_public')return 1250;
     if(page==='boutique')return 1100;
-    if(page==='messages'||page==='notifications')return 850;
     return 620;
   }
   function maxSkeletonMs(page){
@@ -484,7 +475,6 @@
     if(page==='video')return hasPost(activeUrl)?1150:900;
     if(page==='profile'||page==='profile_public')return 7200;
     if(page==='boutique')return 6500;
-    if(page==='messages'||page==='notifications')return 5200;
     return 4300;
   }
   function frameLooksReady(fr,page){
@@ -496,7 +486,7 @@
       if(!txt&&!(d.images&&d.images.length)&&!d.querySelector('video,.reel,#videoFeed,.videoFeed,.centralVideo,.happyadVideo'))return false;
       if(page==='profile'||page==='profile_public'){
         var hasProfileNode=!!(d.querySelector('.profileHeader,.profileTop,.profileCard,#profilePostsList,#publicCreatorPosts,.profilePosts,.publicProfile,.profilePost'));
-        var hasRealWords=/(publications|posts|abonnés|abonnements|j’aime|j\'aime|message|abonné|s’abonner|s\'abonner|modifier)/.test(txt);
+        var hasRealWords=/(publications|posts|abonnés|abonnements|j’aime|j\'aime|abonné|s’abonner|s\'abonner|modifier)/.test(txt);
         var onlyLoading=/(chargement profil|chargement du profil|profil en chargement|aucun compte connecté|préparation|loading)/.test(txt)&&!hasRealWords;
         return (hasProfileNode||hasRealWords)&&!onlyLoading;
       }
@@ -505,10 +495,6 @@
         var hasShopWords=/(boutique|panier|produit|produits|catégorie|acheter|support|commande)/.test(txt);
         var shopLoading=/(chargement|préparation|loading)/.test(txt)&&!hasShopWords;
         return (hasShopNode||hasShopWords)&&!shopLoading;
-      }
-      if(page==='messages'||page==='notifications'){
-        var blocked=/(chargement|loading|préparation)/.test(txt)&&txt.length<80;
-        return !blocked;
       }
       if(page==='video'){
         /* V16R: la centrale vidéo doit apparaître vite. On attend seulement que le document ne soit plus vide,
