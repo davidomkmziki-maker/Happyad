@@ -2965,7 +2965,7 @@
           if(happyadMsgSupabase) return happyadMsgSupabase;
           if(window.happyadSupabase){happyadMsgSupabase=window.happyadSupabase;return happyadMsgSupabase;}
           if(window.supabase && window.supabase.createClient){
-            happyadMsgSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL, window.HAPPYAD_SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+            happyadMsgSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL, window.HAPPYAD_SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-txjjyhupbejgjcianrmr-auth-token'}});
             window.happyadSupabase=happyadMsgSupabase;
             return happyadMsgSupabase;
           }
@@ -3919,7 +3919,10 @@
           return;
         }
         try{
-          const r=await msgTimeout(c.from('happyad_msg_my_conversations').select('*').order('last_message_at',{ascending:false,nullsFirst:false}),7500,null);
+          let r=await happyadMsgRpc('happyad_msg_get_my_conversations',{},8200,[]);
+          if(!r || r.error || r.__timeout){
+            r=await msgTimeout(c.from('happyad_msg_my_conversations').select('*').order('last_message_at',{ascending:false,nullsFirst:false}),7500,null);
+          }
           if(r && r.__timeout){
             const again=readConversationPairsCache();
             if(again.length)renderConversationPairs(again,'Aucune conversation.', {silent:true});
@@ -3944,8 +3947,13 @@
             } else if(hard){
               happyadMsgLoadedOnce=true;
             } else {
-              setEmptyConversations('Chargement conversations...');
-              setTimeout(function(){happyadMsgHardInboxSync({force:true,showEmptyWhenDone:true});},650);
+              const realSessionId=await happyadMsgAuthSessionId();
+              if(!realSessionId){
+                setEmptyConversations('Session message non connectée. Reconnecte-toi puis rouvre Messages.');
+              }else{
+                setEmptyConversations('Chargement conversations...');
+                setTimeout(function(){happyadMsgHardInboxSync({force:true,showEmptyWhenDone:true});},650);
+              }
             }
             return;
           }
@@ -4055,7 +4063,10 @@
         const c=msgClient();
         if(!c){if(!cached.length&&!hasDomMessages)setChatLoading('Connexion messages indisponible.');return;}
         try{
-          const r=await msgTimeout(c.from('happyad_msg_my_messages').select('*').eq('conversation_id',conversationId).order('created_at',{ascending:true}),5200,null);
+          let r=await happyadMsgRpc('happyad_msg_get_my_messages',{p_conversation_id:conversationId},8200,null);
+          if(!r || r.error || r.__timeout){
+            r=await msgTimeout(c.from('happyad_msg_my_messages').select('*').eq('conversation_id',conversationId).order('created_at',{ascending:true}),5200,null);
+          }
           if(loadSeq !== happyadMsgMessageLoadSeq || activeConversationId !== conversationId) return;
           if(!r) throw new Error('messages_timeout');
           if(r.error) throw r.error;
@@ -4425,6 +4436,34 @@
         }catch(e){console.warn('HAPPYAD MSG recent list sync',e);}finally{happyadMsgRecentListSyncRunning=false;}
       }
 
+
+      async function happyadMsgRpc(name, args, ms, fallback){
+        try{
+          const c=msgClient();
+          if(!c || !c.rpc) return {data:fallback||null,error:{message:'rpc_unavailable'}};
+          const r=await msgTimeout(c.rpc(name,args||{}), ms||5200, fallback||null);
+          return r||{data:fallback||null,error:{message:'rpc_empty_response'}};
+        }catch(e){return {data:fallback||null,error:e};}
+      }
+      async function happyadMsgAuthSessionId(){
+        try{
+          const c=msgClient();
+          if(c&&c.auth&&c.auth.getSession){
+            const s=await msgTimeout(c.auth.getSession(),2200,null);
+            const id=cleanMsg(s&&s.data&&s.data.session&&s.data.session.user&&s.data.session.user.id);
+            if(id)return id;
+          }
+        }catch(e){}
+        try{
+          const c=msgClient();
+          if(c&&c.auth&&c.auth.getUser){
+            const r=await msgTimeout(c.auth.getUser(),2200,null);
+            const id=cleanMsg(r&&r.data&&r.data.user&&r.data.user.id);
+            if(id)return id;
+          }
+        }catch(e){}
+        return '';
+      }
       async function msgAuthUserIdFast(){
         try{
           const c=msgClient();
