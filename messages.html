@@ -3936,7 +3936,7 @@
           let serverPairs=conversationPairsFromServer(list,profiles).map(function(pair){try{if(activeConversationId && cleanMsg((pair.item||{}).conversation_id)===cleanMsg(activeConversationId)){pair.item=Object.assign({},pair.item,{unread_count:0});}}catch(e){} return pair;});
           let pairs=mergeConversationPairsForStableList(backupBefore, serverPairs);
           if(!serverPairs.length && !pairs.length){
-            const hard=await happyadMsgHardInboxSync({force:true,fast:true,showEmptyWhenDone:false});
+            const hard=await happyadMsgHardInboxSync({force:true,fast:false,showEmptyWhenDone:false});
             const backup=readConversationPairsCache();
             if(backup.length){
               renderConversationPairs(backup,'Chargement conversations...', {silent:true});
@@ -4572,7 +4572,7 @@
               .or(q)
               .order('created_at',{ascending:false})
               .limit(80),
-            options.fast?1200:2200,
+            options.fast?4500:6500,
             []
           );
           const unreadMap=await unreadMapPromise;
@@ -4670,69 +4670,51 @@
         }catch(e){setTimeout(function(){setupInboxRealtime(true);},1800);}
       }
       async function setupRealtime(force){
-        const c=msgClient();if(!c||!c.channel)return;
+        /* HAPPYAD MSG V632 — realtime léger: ne plus écouter toutes les tables globalement.
+           Le canal filtré par mon uid dans setupInboxRealtime suffit pour mes messages.
+           Cela réduit fortement Disk IO/Reatime et évite que chaque téléphone écoute tous les messages du site. */
         try{
-          if(force && happyadMsgRealtime){try{await c.removeChannel(happyadMsgRealtime);}catch(_e){} happyadMsgRealtime=null; happyadMsgRealtimeReady=false;}
-          if(happyadMsgRealtime && happyadMsgRealtimeReady)return;
-          let token='';
-          try{
-            const s=await msgTimeout(c.auth.getSession(),1800,null);
-            token=s&&s.data&&s.data.session&&s.data.session.access_token||'';
-            if(token && c.realtime && typeof c.realtime.setAuth==='function') c.realtime.setAuth(token);
-          }catch(_e){}
-          const u=await msgUser().catch(function(){return null;});
-          const channelName='happyad-msg-v1b-center-'+cleanMsg((u&&u.id)||msgCurrentUserCacheId()||'user');
-          happyadMsgRealtime=c.channel(channelName)
-            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_conversations'},refreshSoon)
-            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_conversation_members'},refreshSoon)
-            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_messages'},handleRealtimeMessageEvent)
-            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_receipts'},refreshSoon)
-            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_attachments'},refreshSoon)
-            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_deletes'},refreshSoon)
-            .subscribe(function(status){
-              happyadMsgRealtimeReady = status === 'SUBSCRIBED';
-              if(status === 'SUBSCRIBED') setupInboxRealtime(false);
-              if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){
-                happyadMsgRealtimeReady=false;
-                setTimeout(function(){setupRealtime(true);},2200);
-              }
-            });
-        }catch(e){setTimeout(function(){setupRealtime(true);},2600);}
+          await setupInboxRealtime(!!force);
+          happyadMsgRealtimeReady=true;
+        }catch(e){
+          happyadMsgRealtimeReady=false;
+          setTimeout(function(){setupRealtime(true);},8000);
+        }
       }
       function startMessagePolling(){
         try{if(happyadMsgPollTimer)clearInterval(happyadMsgPollTimer);}catch(e){}
         try{if(happyadMsgFastListPollTimer)clearInterval(happyadMsgFastListPollTimer);}catch(e){}
         try{if(happyadMsgInvisibleListTimer)clearInterval(happyadMsgInvisibleListTimer);}catch(e){}
+        /* HAPPYAD MSG V632 — anti Disk IO: les anciens intervalles 650ms/1200ms/2600ms forçaient
+           trop de lectures Supabase. Maintenant realtime d'abord, polling seulement en sécurité. */
         happyadMsgInvisibleListTimer=setInterval(function(){
           try{
-            // Actualisation invisible permanente de la liste: pas de redraw complet, seulement la ligne concernée.
+            if(document.hidden)return;
             happyadMsgHardInboxSync({force:true,fast:true});
             pulseInboxListNow({force:true});
-            invisibleListRefresh({force:true});
           }catch(e){}
-        },650);
+        },15000);
         happyadMsgFastListPollTimer=setInterval(function(){
           try{
+            if(document.hidden)return;
             pulseInboxListNow({force:true});
-            invisibleListRefresh({force:true});
             syncRecentRawMessagesForList({force:true});
             if(!happyadMsgInboxRealtimeReady) setupInboxRealtime(true);
           }catch(e){}
-        },1200);
+        },22000);
         happyadMsgPollTimer=setInterval(function(){
           try{
             if(document.hidden)return;
             happyadMsgPollTick++;
-            pulseInboxListNow({force:true});
             syncRecentMessagesForList({silent:true});
-            if(happyadMsgPollTick%5===0) loadConversations({silent:true});
+            if(happyadMsgPollTick%2===0) loadConversations({silent:true});
             if(activeConversationId && !chatView.classList.contains('hidden')) loadMessages(activeConversationId,{silent:true});
             if(!happyadMsgRealtimeReady) setupRealtime(true);
             if(!happyadMsgInboxRealtimeReady) setupInboxRealtime(true);
           }catch(e){}
-        },2600);
-        try{document.addEventListener('visibilitychange',function(){if(!document.hidden){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentRawMessagesForList({force:true});syncRecentMessagesForList({force:true});loadConversations({silent:true});setupInboxRealtime(true);}},false);}catch(e){}
-        try{window.addEventListener('focus',function(){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentRawMessagesForList({force:true});},false);}catch(e){}
+        },30000);
+        try{document.addEventListener('visibilitychange',function(){if(!document.hidden){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});loadConversations({silent:true});setupInboxRealtime(true);}},false);}catch(e){}
+        try{window.addEventListener('focus',function(){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});setupInboxRealtime(true);},false);}catch(e){}
       }
       function bootMessages(){
         try{cleanupOldUnreadIdsForList();}catch(e){}
