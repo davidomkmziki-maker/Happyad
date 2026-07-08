@@ -102,7 +102,7 @@ html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!
 
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
-<link rel="manifest" href="manifest.webmanifest?v=16zj">
+<link rel="manifest" href="manifest.webmanifest?v=647pwa">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -6929,7 +6929,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=640msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=647pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
