@@ -4872,44 +4872,20 @@ async function saveRemote(id,on){
   window.__HAPPYAD_V491_PWA_APP_LAUNCHER__=true;
 
   function registerServiceWorker(){
-  try{ if(window.__HAPPYAD_PWA_DISABLED__)return;
-    if(!('serviceWorker' in navigator))return;
-    if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
-
-    /* V16ZF : plus de reload automatique sur controllerchange.
-       Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
-
-    navigator.serviceWorker.register('./service-worker.js?v=648pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
-      try{reg.update();}catch(_e){}
-
-      try{
-        if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
-      }catch(_w){}
-
-      try{
-        if(navigator.serviceWorker.controller){
-          navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
-        }
-      }catch(_m){}
-
-      try{
-        reg.addEventListener('updatefound',function(){
-          var nw=reg.installing;
-          if(!nw)return;
-          nw.addEventListener('statechange',function(){
-            try{
-              if(nw.state==='installed' && navigator.serviceWorker.controller){
-                nw.postMessage({type:'HAPPYAD_SKIP_WAITING'});
-              }
-            }catch(_s){}
-          });
-        });
-      }catch(_u){}
-    }).catch(function(e){
-      try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}
-    });
-  }catch(e){}
-}
+    try{
+      if(window.__HAPPYAD_PWA_DISABLED__)return;
+      if(!('serviceWorker' in navigator))return;
+      if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
+      navigator.serviceWorker.register('./service-worker.js',{scope:'./',updateViaCache:'none'}).then(function(reg){
+        try{if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_w){}
+        try{
+          if(navigator.serviceWorker.controller){
+            navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
+          }
+        }catch(_m){}
+      }).catch(function(e){try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}});
+    }catch(e){}
+  }
   function tryOpenLaunchView(){ return; }
 
   registerServiceWorker();

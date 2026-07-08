@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="fr"><head>
-<script id="happyad-v648-pwa-early-install-capture">
+<script id="happyad-v649-pwa-early-install-capture">
 (function(){
   'use strict';
-  if(window.__HAPPYAD_V648_PWA_EARLY_INSTALL_CAPTURE__)return;
-  window.__HAPPYAD_V648_PWA_EARLY_INSTALL_CAPTURE__=true;
+  if(window.__HAPPYAD_V649_PWA_EARLY_INSTALL_CAPTURE__)return;
+  window.__HAPPYAD_V649_PWA_EARLY_INSTALL_CAPTURE__=true;
   window.__HAPPYAD_EARLY_INSTALL_PROMPT__=window.__HAPPYAD_EARLY_INSTALL_PROMPT__||null;
   window.addEventListener('beforeinstallprompt',function(e){
     try{
@@ -122,7 +122,7 @@ html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!
 
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
-<link rel="manifest" href="manifest.webmanifest?v=648pwa">
+<link rel="manifest" href="manifest.webmanifest?v=649pwa">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -6942,44 +6942,20 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   window.__HAPPYAD_V491_PWA_APP_LAUNCHER__=true;
 
   function registerServiceWorker(){
-  try{ if(window.__HAPPYAD_PWA_DISABLED__)return;
-    if(!('serviceWorker' in navigator))return;
-    if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
-
-    /* V16ZF : plus de reload automatique sur controllerchange.
-       Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
-
-    navigator.serviceWorker.register('./service-worker.js?v=648pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
-      try{reg.update();}catch(_e){}
-
-      try{
-        if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
-      }catch(_w){}
-
-      try{
-        if(navigator.serviceWorker.controller){
-          navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
-        }
-      }catch(_m){}
-
-      try{
-        reg.addEventListener('updatefound',function(){
-          var nw=reg.installing;
-          if(!nw)return;
-          nw.addEventListener('statechange',function(){
-            try{
-              if(nw.state==='installed' && navigator.serviceWorker.controller){
-                nw.postMessage({type:'HAPPYAD_SKIP_WAITING'});
-              }
-            }catch(_s){}
-          });
-        });
-      }catch(_u){}
-    }).catch(function(e){
-      try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}
-    });
-  }catch(e){}
-}
+    try{
+      if(window.__HAPPYAD_PWA_DISABLED__)return;
+      if(!('serviceWorker' in navigator))return;
+      if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
+      navigator.serviceWorker.register('./service-worker.js',{scope:'./',updateViaCache:'none'}).then(function(reg){
+        try{if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_w){}
+        try{
+          if(navigator.serviceWorker.controller){
+            navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
+          }
+        }catch(_m){}
+      }).catch(function(e){try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}});
+    }catch(e){}
+  }
   function tryOpenLaunchView(){ return; }
 
   registerServiceWorker();
@@ -8647,7 +8623,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 
 
 <!-- === HAPPYAD V492 — APPLICATION CONNECTÉE / ROUTEUR CENTRAL PHOTO-VIDÉO-PROFIL === -->
-<style id="happyad-v648-pwa-install-direct-master-style">
+<style id="happyad-v649-pwa-install-stable-master-style">
 #happyadInstallAppBtn{position:fixed!important;left:50%!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 10px)!important;bottom:auto!important;z-index:1000008!important;width:min(496px,calc(100% - 22px))!important;max-width:496px!important;margin:0!important;display:none!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;border:1px solid rgba(255,138,0,.46)!important;background:linear-gradient(180deg,rgba(21,23,30,.98),rgba(6,7,11,.985))!important;color:#fff!important;border-radius:22px!important;padding:10px 11px!important;font:900 12px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;box-shadow:0 16px 38px rgba(0,0,0,.54),0 0 0 1px rgba(255,255,255,.05) inset!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;opacity:0!important;transform:translate(-50%,-12px)!important;transition:opacity .22s ease,transform .22s ease!important;text-align:left!important;touch-action:manipulation!important;cursor:pointer!important}
 #happyadInstallAppBtn.on{display:grid!important;opacity:1!important;transform:translate(-50%,0)!important}
 #happyadInstallAppBtn .haInstallIcon{width:42px!important;height:42px!important;border-radius:15px!important;display:grid!important;place-items:center!important;background:#000!important;color:#fff!important;font-size:0!important;box-shadow:0 10px 24px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.14) inset!important;flex:0 0 auto!important;overflow:hidden!important}
@@ -8675,195 +8651,46 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 </style>
 <button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Disponible avec Chrome, Samsung, Edge, Brave, Firefox...</small></span><span class="haInstallAction">Installer</span></button>
 <div id="happyadPwaGuide" aria-hidden="true"><div class="haPwaBox" role="dialog" aria-modal="true" aria-label="Installation HAPPYAD"><div class="haPwaTop"><img class="haPwaLogo" src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""><span class="haPwaTitle"><b>Installer HAPPYAD</b><small id="happyadPwaGuideSub">Choisis ton navigateur puis suis les étapes.</small></span></div><ul class="haPwaSteps" id="happyadPwaGuideSteps"><li><b>1.</b> Ouvre le menu du navigateur.</li><li><b>2.</b> Choisis “Installer l’application” ou “Ajouter à l’écran d’accueil”.</li><li><b>3.</b> Confirme avec “Installer” ou “Ajouter”.</li></ul><div class="haPwaBtns"><button type="button" class="haPwaBtn" id="happyadPwaGuideClose">Fermer</button><button type="button" class="haPwaBtn" id="happyadPwaAlreadyInstalled">Déjà installé</button><button type="button" class="haPwaBtn primary" id="happyadPwaCopyLink">Copier le lien</button></div><div class="haPwaNote">Si HAPPYAD est déjà installé, ouvre l’icône de l’application. La notification d’installation sera cachée automatiquement.</div></div></div>
-<script id="happyad-v648-pwa-install-direct-master">
+<script id="happyad-v649-pwa-install-stable-master">
 (function(){
   'use strict';
-  if(window.__HAPPYAD_V648_PWA_INSTALL_DIRECT_MASTER__)return;
-  window.__HAPPYAD_V648_PWA_INSTALL_DIRECT_MASTER__=true;
+  if(window.__HAPPYAD_V649_PWA_INSTALL_STABLE_MASTER__)return;
+  window.__HAPPYAD_V649_PWA_INSTALL_STABLE_MASTER__=true;
   window.__HAPPYAD_PWA_DISABLED__=false;
 
   var deferredPrompt=null;
   var readyForNativePrompt=false;
   var INSTALLED_KEY='HAPPYAD_PWA_INSTALLED_V16ZA';
-  var INSTALL_NOTICE_DURATION_MS=10000;
   var noticeClosedThisVisit=false;
   var noticeAutoTimer=null;
 
-  function isStandalone(){
-    try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(_e){return false;}
-  }
-  function markInstalled(){try{localStorage.setItem(INSTALLED_KEY,'1');}catch(_e){}}
-  function clearInstalledMark(){try{localStorage.removeItem(INSTALLED_KEY);}catch(_e){}}
-  function isInstalledKnown(){
-    try{if(isStandalone()){markInstalled();return true;}}catch(_e){}
-    try{return localStorage.getItem(INSTALLED_KEY)==='1';}catch(_e2){return false;}
-  }
   function ua(){try{return String(navigator.userAgent||'');}catch(_e){return '';}}
-  function isAndroid(){return /Android/i.test(ua());}
+  function isStandalone(){try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(_e){return false;}}
   function isIOS(){return /iPhone|iPad|iPod/i.test(ua()) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);}
-  function browserName(){
-    var u=ua();
-    if(/FBAN|FBAV|Instagram|Line\/|MicroMessenger|TikTok|Twitter|LinkedIn|; wv\)|\bwv\b/i.test(u))return 'webview';
-    if(/SamsungBrowser/i.test(u))return 'samsung';
-    if(/EdgA|EdgiOS|Edge/i.test(u))return 'edge';
-    if(/Firefox|FxiOS/i.test(u))return 'firefox';
-    if(/OPR|Opera/i.test(u))return 'opera';
-    if(/CriOS|Chrome/i.test(u) && !/EdgA|SamsungBrowser|OPR/i.test(u))return 'chrome';
-    if(/Safari/i.test(u) && !/Chrome|CriOS|Android/i.test(u))return 'safari';
-    return 'other';
-  }
+  function browserName(){var u=ua();if(/FBAN|FBAV|Instagram|Line\/|MicroMessenger|TikTok|Twitter|LinkedIn|; wv\)|\bwv\b/i.test(u))return 'webview';if(/SamsungBrowser/i.test(u))return 'samsung';if(/EdgA|EdgiOS|Edge/i.test(u))return 'edge';if(/Firefox|FxiOS/i.test(u))return 'firefox';if(/OPR|Opera/i.test(u))return 'opera';if(/CriOS|Chrome/i.test(u)&&!/EdgA|SamsungBrowser|OPR/i.test(u))return 'chrome';if(/Safari/i.test(u)&&!/Chrome|CriOS|Android/i.test(u))return 'safari';return 'other';}
   function btn(){return document.getElementById('happyadInstallAppBtn');}
   function guide(){return document.getElementById('happyadPwaGuide');}
+  function markInstalled(){try{localStorage.setItem(INSTALLED_KEY,'1');}catch(_e){}}
+  function clearInstalledMark(){try{localStorage.removeItem(INSTALLED_KEY);}catch(_e){}}
+  function isInstalledKnown(){try{if(isStandalone()){markInstalled();return true;}}catch(_e){}try{return localStorage.getItem(INSTALLED_KEY)==='1';}catch(_e2){return false;}}
   function clearNoticeTimer(){try{if(noticeAutoTimer){clearTimeout(noticeAutoTimer);noticeAutoTimer=null;}}catch(_e){}}
   function hide(){try{clearNoticeTimer();var b=btn();if(b)b.classList.remove('on');}catch(_e){}}
-  function hideForThisVisit(){try{noticeClosedThisVisit=true;hide();}catch(_e){hide();}}
-  function takeEarlyPrompt(){
-    try{
-      if(!deferredPrompt && window.__HAPPYAD_EARLY_INSTALL_PROMPT__){
-        deferredPrompt=window.__HAPPYAD_EARLY_INSTALL_PROMPT__;
-        readyForNativePrompt=true;
-      }
-      return !!deferredPrompt;
-    }catch(_e){return !!deferredPrompt;}
-  }
-  function scheduleNoticeAutoHide(){
-    try{
-      clearNoticeTimer();
-      noticeAutoTimer=setTimeout(function(){hideForThisVisit();},INSTALL_NOTICE_DURATION_MS);
-    }catch(_e){}
-  }
-  function show(){
-    try{
-      takeEarlyPrompt();
-      if(isInstalledKnown())return hide();
-      if(noticeClosedThisVisit)return hide();
-      var b=btn();if(!b)return;
-      setButtonText();
-      b.classList.add('on');
-      scheduleNoticeAutoHide();
-    }catch(_e){}
-  }
-  function setButtonText(){
-    try{
-      takeEarlyPrompt();
-      var b=btn();if(!b)return;
-      var s=b.querySelector('.haInstallText small');
-      var a=b.querySelector('.haInstallAction');
-      if(readyForNativePrompt){
-        if(s)s.textContent='Touchez ici puis confirmez Installer.';
-        if(a)a.textContent='Installer';
-        return;
-      }
-      var name=browserName();
-      if(name==='webview'){
-        if(s)s.textContent='Ouvre dans le navigateur externe puis installe.';
-        if(a)a.textContent='Guide';
-      }else if(name==='samsung'){
-        if(s)s.textContent='Samsung Internet : menu ≡ puis Ajouter à écran accueil.';
-        if(a)a.textContent='Guide';
-      }else if(name==='firefox'){
-        if(s)s.textContent='Firefox : menu ⋮ puis Installer ou Ajouter à l’écran.';
-        if(a)a.textContent='Guide';
-      }else if(name==='edge'){
-        if(s)s.textContent='Edge : menu ⋯ puis Ajouter au téléphone / Installer.';
-        if(a)a.textContent='Guide';
-      }else if(isIOS()){
-        if(s)s.textContent='iPhone : Partager puis Ajouter à l’écran d’accueil.';
-        if(a)a.textContent='Guide';
-      }else{
-        if(s)s.textContent='Appuie pour installer. Si Chrome ne propose pas, le guide s’ouvre.';
-        if(a)a.textContent='Installer';
-      }
-    }catch(_e){}
-  }
-  function stepsForBrowser(){
-    var name=browserName();
-    if(name==='webview')return ['<b>1.</b> Appuie sur le menu du navigateur intégré.', '<b>2.</b> Choisis “Ouvrir dans le navigateur” ou “Ouvrir avec Samsung/Chrome/Firefox”.', '<b>3.</b> Dans le navigateur externe, choisis “Installer” ou “Ajouter à l’écran d’accueil”.'];
-    if(isIOS())return ['<b>1.</b> Ouvre HAPPYAD dans Safari si possible.','<b>2.</b> Appuie sur le bouton Partager.','<b>3.</b> Choisis “Ajouter à l’écran d’accueil”, puis “Ajouter”.'];
-    if(name==='samsung')return ['<b>1.</b> Appuie sur le menu Samsung Internet en bas ou en haut.','<b>2.</b> Choisis “Ajouter page à” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme “Écran d’accueil” puis “Ajouter”.'];
-    if(name==='firefox')return ['<b>1.</b> Appuie sur le menu ⋮ de Firefox.','<b>2.</b> Choisis “Installer” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme pour créer l’icône HAPPYAD.'];
-    if(name==='edge')return ['<b>1.</b> Appuie sur le menu ⋯ de Edge.','<b>2.</b> Choisis “Ajouter au téléphone” ou “Installer cette application”.','<b>3.</b> Confirme l’installation.'];
-    if(name==='chrome')return ['<b>1.</b> Si le popup automatique apparaît, appuie sur “Installer”.','<b>2.</b> Sinon ouvre le menu ⋮ de Chrome.','<b>3.</b> Choisis “Installer l’application” ou “Ajouter à l’écran d’accueil”.'];
-    return ['<b>1.</b> Ouvre le menu de ton navigateur.','<b>2.</b> Cherche “Installer l’application” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme pour créer l’icône HAPPYAD.'];
-  }
-  function openGuide(){
-    try{
-      takeEarlyPrompt();
-      if(readyForNativePrompt)return clickInstall(null);
-      if(isInstalledKnown())return hide();
-      var g=guide();if(!g)return;
-      var sub=document.getElementById('happyadPwaGuideSub');
-      if(sub){
-        var name=browserName();
-        sub.textContent=(readyForNativePrompt?'Installation automatique disponible.':'Installation manuelle pour '+(name==='other'?'ce navigateur':name)+'.');
-      }
-      var ul=document.getElementById('happyadPwaGuideSteps');
-      if(ul)ul.innerHTML=stepsForBrowser().map(function(x){return '<li>'+x+'</li>';}).join('');
-      g.classList.add('on');
-      g.setAttribute('aria-hidden','false');
-    }catch(_e){}
-  }
+  function hideForThisVisit(){noticeClosedThisVisit=true;hide();}
   function closeGuide(){try{var g=guide();if(g){g.classList.remove('on');g.setAttribute('aria-hidden','true');}}catch(_e){}}
-  function copyLink(){
-    try{
-      var link=location.origin+location.pathname;
-      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).catch(function(){});}
-      var b=document.getElementById('happyadPwaCopyLink');
-      if(b){var old=b.textContent;b.textContent='Lien copié';setTimeout(function(){b.textContent=old||'Copier le lien';},1400);}
-    }catch(_e){}
-  }
-
-  function alreadyInstalled(){
-    try{markInstalled();deferredPrompt=null;readyForNativePrompt=false;hide();closeGuide();}
-    catch(_e){hide();closeGuide();}
-  }
-
-  window.addEventListener('beforeinstallprompt',function(e){
-    try{e.preventDefault();window.__HAPPYAD_EARLY_INSTALL_PROMPT__=e;deferredPrompt=e;readyForNativePrompt=true;noticeClosedThisVisit=false;closeGuide();show();}catch(_e){}
-  },true);
-  window.addEventListener('happyad:pwa-install-ready',function(){
-    try{takeEarlyPrompt();readyForNativePrompt=!!deferredPrompt;noticeClosedThisVisit=false;closeGuide();show();}catch(_e){}
-  });
+  function takeEarlyPrompt(){try{if(!deferredPrompt&&window.__HAPPYAD_EARLY_INSTALL_PROMPT__){deferredPrompt=window.__HAPPYAD_EARLY_INSTALL_PROMPT__;readyForNativePrompt=true;}return !!deferredPrompt;}catch(_e){return !!deferredPrompt;}}
+  function setButtonText(){try{var b=btn();if(!b)return;var s=b.querySelector('.haInstallText small');var a=b.querySelector('.haInstallAction');takeEarlyPrompt();if(readyForNativePrompt){if(s)s.textContent='Installation prête : appuie puis confirme Installer.';if(a)a.textContent='Installer';return;}var name=browserName();if(name==='chrome'){if(s)s.textContent='Préparation de l’installation… attends le bouton Installer.';if(a)a.textContent='...';return;}if(name==='samsung'){if(s)s.textContent='Samsung Internet : menu ≡ puis Ajouter à écran accueil.';if(a)a.textContent='Guide';return;}if(name==='firefox'){if(s)s.textContent='Firefox : menu ⋮ puis Installer ou Ajouter à l’écran.';if(a)a.textContent='Guide';return;}if(name==='edge'){if(s)s.textContent='Edge : menu ⋯ puis Ajouter au téléphone / Installer.';if(a)a.textContent='Guide';return;}if(isIOS()){if(s)s.textContent='iPhone : Partager puis Ajouter à l’écran d’accueil.';if(a)a.textContent='Guide';return;}if(s)s.textContent='Ouvre le menu du navigateur pour installer.';if(a)a.textContent='Guide';}catch(_e){}}
+  function show(){try{takeEarlyPrompt();if(isInstalledKnown()||noticeClosedThisVisit)return hide();var b=btn();if(!b)return;setButtonText();var name=browserName();if(readyForNativePrompt||name!=='chrome'){b.classList.add('on');}else{b.classList.remove('on');setTimeout(function(){try{takeEarlyPrompt();if(readyForNativePrompt)show();}catch(_e){}},1400);}}catch(_e){}}
+  function stepsForBrowser(){var name=browserName();if(name==='webview')return ['<b>1.</b> Ouvre cette page dans Chrome ou Samsung Internet.', '<b>2.</b> Attends que le bouton Installer apparaisse.', '<b>3.</b> Confirme l’installation.'];if(isIOS())return ['<b>1.</b> Ouvre HAPPYAD dans Safari.','<b>2.</b> Appuie sur Partager.','<b>3.</b> Choisis “Ajouter à l’écran d’accueil”.'];if(name==='samsung')return ['<b>1.</b> Appuie sur le menu Samsung Internet.','<b>2.</b> Choisis “Ajouter page à” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme “Écran d’accueil”.'];if(name==='firefox')return ['<b>1.</b> Appuie sur le menu ⋮ de Firefox.','<b>2.</b> Choisis “Installer” ou “Ajouter à l’écran d’accueil”.','<b>3.</b> Confirme.'];if(name==='edge')return ['<b>1.</b> Appuie sur le menu ⋯ de Edge.','<b>2.</b> Choisis “Ajouter au téléphone” ou “Installer cette application”.','<b>3.</b> Confirme.'];return ['<b>1.</b> Ouvre le menu ⋮ du navigateur.','<b>2.</b> Choisis “Installer l’application”.','<b>3.</b> Confirme “Installer”.'];}
+  function openGuide(){try{takeEarlyPrompt();if(readyForNativePrompt)return clickInstall(null);if(isInstalledKnown())return hide();var g=guide();if(!g)return;var sub=document.getElementById('happyadPwaGuideSub');if(sub)sub.textContent='Installation manuelle seulement si le popup natif n’est pas disponible.';var ul=document.getElementById('happyadPwaGuideSteps');if(ul)ul.innerHTML=stepsForBrowser().map(function(x){return '<li>'+x+'</li>';}).join('');g.classList.add('on');g.setAttribute('aria-hidden','false');}catch(_e){}}
+  function copyLink(){try{var link=location.origin+location.pathname;if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(link).catch(function(){});var b=document.getElementById('happyadPwaCopyLink');if(b){var old=b.textContent;b.textContent='Lien copié';setTimeout(function(){b.textContent=old||'Copier le lien';},1400);}}catch(_e){}}
+  function alreadyInstalled(){try{markInstalled();deferredPrompt=null;readyForNativePrompt=false;hide();closeGuide();}catch(_e){hide();closeGuide();}}
+  window.addEventListener('beforeinstallprompt',function(e){try{e.preventDefault();clearInstalledMark();window.__HAPPYAD_EARLY_INSTALL_PROMPT__=e;deferredPrompt=e;readyForNativePrompt=true;noticeClosedThisVisit=false;closeGuide();show();}catch(_e){}},true);
+  window.addEventListener('happyad:pwa-install-ready',function(){try{takeEarlyPrompt();readyForNativePrompt=!!deferredPrompt;noticeClosedThisVisit=false;closeGuide();show();}catch(_e){}});
   window.addEventListener('appinstalled',function(){markInstalled();deferredPrompt=null;readyForNativePrompt=false;hide();closeGuide();});
-
-  function clickInstall(e){
-    try{if(e){e.preventDefault();e.stopPropagation();}}catch(_e){}
-    try{
-      takeEarlyPrompt();
-      if(isInstalledKnown())return hide();
-      if(deferredPrompt){
-        var p=deferredPrompt;deferredPrompt=null;window.__HAPPYAD_EARLY_INSTALL_PROMPT__=null;readyForNativePrompt=false;
-        closeGuide();
-        p.prompt();
-        if(p.userChoice&&p.userChoice.then){p.userChoice.then(function(choice){if(choice&&choice.outcome==='accepted')hide();else{setButtonText();hideForThisVisit();openGuide();}}).catch(function(){setButtonText();hideForThisVisit();openGuide();});}
-        return false;
-      }
-      var b=btn(), small=b&&b.querySelector('.haInstallText small'), act=b&&b.querySelector('.haInstallAction');
-      if(small)small.textContent='Préparation de l’installation... réessaie dans 2 secondes.';
-      if(act)act.textContent='Installer';
-      noticeClosedThisVisit=false;
-      setTimeout(function(){try{takeEarlyPrompt();if(deferredPrompt){show();}else{hideForThisVisit();openGuide();}}catch(_e2){hideForThisVisit();openGuide();}},2200);
-      return false;
-    }catch(_e){hideForThisVisit();openGuide();return false;}
-  }
-
-  function bind(){
-    try{
-      var b=btn();if(b&&!b.__happyadPwaInstallV16ZA){
-        b.__happyadPwaInstallV16ZA=true;
-        b.addEventListener('click',clickInstall,true);
-      }
-      var c=document.getElementById('happyadPwaGuideClose');if(c&&!c.__happyadPwaCloseV16Z){c.__happyadPwaCloseV16Z=true;c.addEventListener('click',closeGuide,true);}
-      var cp=document.getElementById('happyadPwaCopyLink');if(cp&&!cp.__happyadPwaCopyV16Z){cp.__happyadPwaCopyV16Z=true;cp.addEventListener('click',copyLink,true);}
-      var ai=document.getElementById('happyadPwaAlreadyInstalled');if(ai&&!ai.__happyadPwaInstalledV16ZF){ai.__happyadPwaInstalledV16ZF=true;ai.addEventListener('click',alreadyInstalled,true);}
-      var g=guide();if(g&&!g.__happyadPwaBackV16Z){g.__happyadPwaBackV16Z=true;g.addEventListener('click',function(e){if(e.target===g)closeGuide();},true);}
-      takeEarlyPrompt();
-      if(isStandalone())hide();else setTimeout(show,700);
-    }catch(_e){}
-  }
-
+  function clickInstall(e){try{if(e){e.preventDefault();e.stopPropagation();}}catch(_e){}try{takeEarlyPrompt();if(isInstalledKnown())return hide();if(deferredPrompt){var p=deferredPrompt;deferredPrompt=null;window.__HAPPYAD_EARLY_INSTALL_PROMPT__=null;readyForNativePrompt=false;closeGuide();p.prompt();if(p.userChoice&&p.userChoice.then){p.userChoice.then(function(choice){if(choice&&choice.outcome==='accepted'){hide();}else{hideForThisVisit();}}).catch(function(){hideForThisVisit();});}return false;}var name=browserName();if(name==='chrome'){var b=btn(), small=b&&b.querySelector('.haInstallText small'), act=b&&b.querySelector('.haInstallAction');if(small)small.textContent='Chrome prépare encore l’installation. Réessaie dans quelques secondes ou utilise le menu ⋮.';if(act)act.textContent='...';setTimeout(show,1800);return false;}openGuide();return false;}catch(_e){openGuide();return false;}}
+  function bind(){try{var b=btn();if(b&&!b.__happyadPwaInstallV649){b.__happyadPwaInstallV649=true;b.addEventListener('click',clickInstall,true);}var c=document.getElementById('happyadPwaGuideClose');if(c&&!c.__happyadPwaCloseV649){c.__happyadPwaCloseV649=true;c.addEventListener('click',closeGuide,true);}var cp=document.getElementById('happyadPwaCopyLink');if(cp&&!cp.__happyadPwaCopyV649){cp.__happyadPwaCopyV649=true;cp.addEventListener('click',copyLink,true);}var ai=document.getElementById('happyadPwaAlreadyInstalled');if(ai&&!ai.__happyadPwaInstalledV649){ai.__happyadPwaInstalledV649=true;ai.addEventListener('click',alreadyInstalled,true);}var g=guide();if(g&&!g.__happyadPwaBackV649){g.__happyadPwaBackV649=true;g.addEventListener('click',function(e){if(e.target===g)closeGuide();},true);}takeEarlyPrompt();if(isStandalone())hide();else setTimeout(show,700);}catch(_e){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  setTimeout(bind,250);setTimeout(bind,1200);setTimeout(show,1800);
+  setTimeout(bind,250);setTimeout(bind,1400);setTimeout(show,2600);setTimeout(show,5200);
 })();
 </script>
 <!-- === HAPPYAD V480 APP SHELL / ROUTEUR INTERNE SAFE ===
