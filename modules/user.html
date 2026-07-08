@@ -3639,7 +3639,7 @@ function mapPost(r,ap){
   }catch(e){}finally{if(fb)fb.disabled=false;}}
   function bumpOwnFollowingLocal(next){try{var u=own();var base=Number(u.following||0);u.following=Math.max(0,base+(next?1:-1));localStorage.setItem(USER_KEY,JSON.stringify(u));if(window.stFollowing)stFollowing.textContent=compact(u.following)}catch(e){}}
   async function togglePublicFollow(ap,fb){var me=meProfile(), mid=clean(me.id||me.user_id||me.uid||me.uuid||ownId()), cid=uidOf(ap); if(!mid){askAuth();return} if(!cid){try{toast('Profil créateur introuvable')}catch(e){} return} if(String(mid)===String(cid)){try{toast('Impossible de vous abonner à vous-même')}catch(e){} return} var c=sb(); if(!c){try{toast('Supabase non chargé')}catch(e){} return} fb=fb||document.getElementById('publicFollowBtn'); if(!fb)return; fb.disabled=true; var realOn=false,next=false; try{var uiOn=fb.classList.contains('on'); realOn=await remoteIsFollowing(ap,me); if(uiOn!==realOn){setFollowButton(fb,realOn);await loadFollowCounts(ap);return;} next=!realOn; if(next){var ins=await c.from('happyad_follows').upsert({follower_id:mid,creator_id:cid,created_at:new Date().toISOString()},{onConflict:'follower_id,creator_id'}); if(ins&&ins.error)throw ins.error;}else{var del=await c.from('happyad_follows').delete().eq('follower_id',mid).eq('creator_id',cid); if(del&&del.error)throw del.error;} setFollowButton(fb,next); var fs=follows(), k=followKey(ap); if(next)fs[k]={id:cid,user_id:cid,name:nameOf(ap),handle:handleOf(ap),avatar:avatarOf(ap),at:Date.now(),by:mid}; else delete fs[k]; saveFollows(fs); bumpOwnFollowingLocal(next); await loadFollowCounts(ap); await refreshPublicFollowState(ap); try{if(window.happyadRefreshOwnSupabaseFollowCounts)window.happyadRefreshOwnSupabaseFollowCounts(true)}catch(e){} }catch(err){setFollowButton(fb,realOn);try{await loadFollowCounts(ap);toast('Abonnement non enregistré : '+(err.message||err));}catch(e){} }finally{fb.disabled=false}}
-  function bindPublicActions(ap){setTimeout(function(){var fb=document.getElementById('publicFollowBtn'); var mb=document.getElementById('publicMessageBtn'); if(mb&&!mb.__happyadMessageV613){mb.__happyadMessageV613=true;mb.onclick=function(e){e.preventDefault();e.stopPropagation();try{if(typeof window.happyadPublicMessageOpenV613==='function')return window.happyadPublicMessageOpenV613(ap);}catch(_m){}try{if(typeof openPublicMessage==='function')return openPublicMessage(ap);}catch(_x){}return false;};} if(fb){var cached=readFollowStateCache(ap);if(cached&&cached.known&&(Date.now()-Number(cached.at||0)<86400000))setFollowButton(fb,!!cached.on);else if(localIsFollowing(ap))setFollowButton(fb,true);else setFollowButtonPending(fb);fb.onclick=function(e){e.preventDefault();e.stopPropagation();togglePublicFollow(ap,fb);return false;};} refreshPublicFollowState(ap);},0)}
+  function bindPublicActions(ap){setTimeout(function(){var fb=document.getElementById('publicFollowBtn'); var mb=document.getElementById('publicMessageBtn'); if(mb){var __uid=uidOf(ap);mb.__happyadMessageV613=true;mb.dataset.publicMessage='1';mb.dataset.recipientUid=__uid||'';mb.dataset.messageUid=__uid||'';mb.onclick=function(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();try{var locked=Object.assign({},ap||{});if(__uid){locked.id=__uid;locked.user_id=__uid;locked.uid=__uid;locked.__happyadUidLocked=true;}if(typeof window.happyadPublicMessageOpenV613==='function')return window.happyadPublicMessageOpenV613(locked,e&&e.currentTarget);}catch(_m){}try{if(typeof openPublicMessage==='function')return openPublicMessage(ap);}catch(_x){}return false;};} if(fb){var cached=readFollowStateCache(ap);if(cached&&cached.known&&(Date.now()-Number(cached.at||0)<86400000))setFollowButton(fb,!!cached.on);else if(localIsFollowing(ap))setFollowButton(fb,true);else setFollowButtonPending(fb);fb.onclick=function(e){e.preventDefault();e.stopPropagation();togglePublicFollow(ap,fb);return false;};} refreshPublicFollowState(ap);},0)}
   function publicProfileLoadingOneCardHTML(){
     return '<div class="happyadPublicProfileLoadingCard" aria-hidden="true"><div class="happyadPublicProfileLoadingTop"><div class="happyadPublicProfileLoadingAvatar"></div><div class="happyadPublicProfileLoadingLines"><div class="happyadPublicProfileLoadingLine long"></div><div class="happyadPublicProfileLoadingLine short"></div></div></div><div class="happyadPublicProfileLoadingMedia"></div><div class="happyadPublicProfileLoadingBody"><div class="happyadPublicProfileLoadingLine long"></div><div class="happyadPublicProfileLoadingLine short"></div></div><div class="happyadPublicProfileLoadingActions"></div></div>';
   }
@@ -3785,7 +3785,7 @@ function mapPost(r,ap){
 
   var action = sameOwn(uidOf(ap))
     ? '<div class="publicCreatorActions selfProfileActions"></div>'
-    : '<div class="publicCreatorActions"><button class="followBtn '+(already?'on':'')+'" type="button" id="publicFollowBtn" data-follow-loading="'+(!followKnown?'1':'0')+'">'+followLabel+'</button><button class="messageBtn" type="button" id="publicMessageBtn" data-public-message="1" onclick="event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();try{return window.happyadPublicMessageOpenV613&&window.happyadPublicMessageOpenV613();}catch(e){}return false;">Message</button></div>';
+    : '<div class="publicCreatorActions"><button class="followBtn '+(already?'on':'')+'" type="button" id="publicFollowBtn" data-follow-loading="'+(!followKnown?'1':'0')+'">'+followLabel+'</button><button class="messageBtn" type="button" id="publicMessageBtn" data-public-message="1" data-recipient-uid="'+esc(uidOf(ap))+'" data-message-uid="'+esc(uidOf(ap))+'" onclick="event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();try{return window.happyadPublicMessageOpenV613&&window.happyadPublicMessageOpenV613(null,this);}catch(e){}return false;">Message</button></div>';
 
   if(loading && !grouped.length){
     if(!box.querySelector('.profilePost,.happyadPublicProfileLoadingCards')){
@@ -6665,7 +6665,7 @@ body.happyadPublicCreatorProfile .profileDelete{display:none!important}
   async function refreshPublicFollowState(ap){var me=currentLoggedUser(); var fb=document.getElementById('publicFollowBtn'); var wasDisabled=!!(fb&&fb.disabled); try{if(fb&&localIsFollowing(ap)){fb.classList.add('on');fb.textContent='✓ Abonné';} if(fb)fb.disabled=true; var counts=await remoteFollowCounts(ap,me); var cc={}; if(counts.followers!==null){cc.followers=Number(counts.followers); if(window.sFollowers)sFollowers.textContent=happyadCompactCount(counts.followers);} if(counts.following!==null){cc.following=Number(counts.following); if(window.sFollowing)sFollowing.textContent=happyadCompactCount(counts.following);} if(Object.keys(cc).length)saveFollowCountCache(ap,cc); if(me&&me.id){var on=await remoteIsFollowing(ap,me); if(fb){fb.classList.toggle('on',on); fb.textContent=on?'✓ Abonné':'S’abonner';} var fs=follows(), k=followKey(ap); if(on)fs[k]={id:ap.id||'',name:ap.name||'',handle:ap.handle||'',at:Date.now(),by:me.id||''}; else delete fs[k]; saveFollows(fs);}}catch(e){}finally{if(fb)fb.disabled=wasDisabled;}}
 
   async function happyadNotifyFollowSafe(){return false;}
-  function addCreatorButtonsHTML(ap){if(profileIsMe(ap))return '<div class="publicCreatorActions selfProfileActions"></div>';var on=isFollowing(ap);return '<div class="publicCreatorActions"><button class="followBtn '+(on?'on':'')+'" type="button" id="publicFollowBtn">'+(on?'✓ Abonné':'S’abonner')+'</button><button class="messageBtn" type="button" id="publicMessageBtn" data-public-message="1" onclick="event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();try{return window.happyadPublicMessageOpenV613&&window.happyadPublicMessageOpenV613();}catch(e){}return false;">Message</button></div>';}
+  function addCreatorButtonsHTML(ap){if(profileIsMe(ap))return '<div class="publicCreatorActions selfProfileActions"></div>';var on=isFollowing(ap);return '<div class="publicCreatorActions"><button class="followBtn '+(on?'on':'')+'" type="button" id="publicFollowBtn">'+(on?'✓ Abonné':'S’abonner')+'</button><button class="messageBtn" type="button" id="publicMessageBtn" data-public-message="1" data-recipient-uid="'+esc(uidOf(ap))+'" data-message-uid="'+esc(uidOf(ap))+'" onclick="event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();try{return window.happyadPublicMessageOpenV613&&window.happyadPublicMessageOpenV613(null,this);}catch(e){}return false;">Message</button></div>';}
   function bumpOwnFollowingLocal(next){try{var u=currentLoggedUser(); if(!u||!u.id)return; var fc=readOwnFollowCountCache(u); var base=(fc.following!==undefined&&fc.following!==null)?Number(fc.following):Number(u.following||0); var n=Math.max(0,base+(next?1:-1)); u.following=n; localStorage.setItem(USER_KEY,JSON.stringify(u)); saveOwnFollowCountCache(u,{following:n}); if(window.stFollowing)stFollowing.textContent=happyadCompactCount(n); try{var ap=JSON.parse(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'null'); if(ap&&String(ap.id||'')===String(u.id||'')&&window.sFollowing)sFollowing.textContent=happyadCompactCount(n);}catch(_e){} }catch(e){}}
   function openPublicMessage(ap){
     try{
@@ -10347,6 +10347,11 @@ if(p==='user.html'||p==='modules/user.html'||p==='boutique.html'||p==='modules/b
 
 
 
+<!-- HAPPYAD V640: ancien chemin message profil visiteur supprimé pour éviter mélange de profil. -->
+
+
+
+
 </body>
 
 <!-- === V116E LOGOUT REAL CLICK FIX — only logout button action === -->
@@ -13621,71 +13626,87 @@ body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!import
 </script>
 
 
-<script id="happyad-public-message-open-v613">
+
+<script id="happyad-public-message-open-v640-path-master">
 (function(){
-  if(window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V613__)return;
-  window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V613__=true;
+  'use strict';
+  window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V640_PATH_MASTER__=true;
   function clean(v){return String(v==null?'':v).trim();}
-  function isGenericName(v){var n=clean(v).toLowerCase();return !n||n==='utilisateur happyad'||n==='happyad'||n==='profil'||n==='chargement profil...';}
-  function readProfile(){
-    var ap=null;
-    try{ap=JSON.parse(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'null')||null;}catch(e){}
-    if(!ap)ap={};
-    try{
-      var qs=new URLSearchParams(location.search||'');
-      var uid=clean(qs.get('uid')||qs.get('profile_uid')||qs.get('user_id')||'');
-      if(uid){ap.id=ap.id||uid;ap.user_id=ap.user_id||uid;}
-    }catch(e){}
-    try{
-      var domName=clean((document.getElementById('profileName')||{}).textContent||'');
-      if(!isGenericName(domName)){ap.name=domName;ap.full_name=domName;ap.display_name=domName;}
-    }catch(e){}
-    try{
-      var av=document.getElementById('avatarPreview');
-      var bg=String((av&&av.style&&av.style.backgroundImage)||'');
-      var m=bg.match(/url\(["']?(.*?)["']?\)/);
-      var img=clean((av&&av.dataset&&(av.dataset.stableAvatar||av.dataset.avatar))||'')||clean(m&&m[1]||'');
-      if(img){ap.avatar=img;ap.avatar_url=img;}
-    }catch(e){}
+  function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v));}
+  function generic(v){var n=clean(v).toLowerCase();return !n||n==='utilisateur happyad'||n==='happyad'||n==='profil'||n==='chargement profil...'||n==='aucun compte connecté';}
+  function toastMsg(t){try{if(typeof toast==='function')toast(t);else if(typeof toast2==='function')toast2(t);else alert(t);}catch(e){}}
+  function safeJson(raw){try{return JSON.parse(raw||'{}')||{};}catch(e){return {};}}
+  function sb(){try{return window.happyadSupabase||((window.supabase&&window.supabase.createClient)?(window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-txjjyhupbejgjcianrmr-auth-token'}})):null);}catch(e){return null;}}
+  function params(){try{return new URLSearchParams(location.search||'');}catch(e){return {get:function(){return '';}};}}
+  function urlUid(){var q=params();return clean(q.get('uid')||q.get('user_id')||q.get('profile_uid')||q.get('auth_id')||q.get('auth_uid')||q.get('owner_id')||q.get('creator_id')||'');}
+  function firstUuid(o){o=o||{};var arr=[o.auth_uid,o.auth_id,o.message_uid,o.user_id,o.uid,o.uuid,o.owner_id,o.creator_id,o.id];for(var i=0;i<arr.length;i++){if(isUuid(arr[i]))return clean(arr[i]);}return '';}
+  function idMatchesUrl(id, url){id=clean(id);url=clean(url);return !url || !id || id===url;}
+  function activeProfileStrict(){
+    var u=urlUid();
+    var ap={};
+    try{var ram=window.__HAPPYAD_ACTIVE_PROFILE_RAM||null;if(ram&&(!u||firstUuid(ram)===u))ap=Object.assign({},ram);}catch(e){}
+    if(!firstUuid(ap)){try{var ls=safeJson(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||sessionStorage.getItem('HAPPYAD_ACTIVE_PROFILE'));if(ls&&(!u||firstUuid(ls)===u))ap=Object.assign({},ls);}catch(e){}}
+    if(u){ap.id=u;ap.user_id=u;ap.uid=u;ap.auth_id=ap.auth_id&&ap.auth_id===u?ap.auth_id:u;ap.auth_uid=ap.auth_uid&&ap.auth_uid===u?ap.auth_uid:u;ap.__happyadUidLocked=true;}
+    try{var n=clean((document.getElementById('profileName')||{}).textContent||'');if(!generic(n)){ap.name=n;ap.full_name=n;ap.display_name=n;}}catch(e){}
+    try{var av=document.getElementById('avatarPreview');var bg=String((av&&av.style&&av.style.backgroundImage)||'');var m=bg.match(/url\(["']?(.*?)["']?\)/);var img=clean((av&&av.dataset&&(av.dataset.stableAvatar||av.dataset.avatar))||'')||clean((m&&m[1])||'');if(img){ap.avatar=img;ap.avatar_url=img;}}catch(e){}
     return ap;
   }
-  function me(){
-    var keys=['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','happyad_user','happyad_current_user','happyad_auth_user','user'];
-    for(var i=0;i<keys.length;i++){
-      try{var raw=localStorage.getItem(keys[i])||sessionStorage.getItem(keys[i]);if(!raw)continue;var o=JSON.parse(raw);var roots=[o,o.user,o.profile,o.currentUser,o.session&&o.session.user,o.data&&o.data.user].filter(Boolean);for(var j=0;j<roots.length;j++){var r=roots[j];var id=clean(r.id||r.user_id||r.uid||r.uuid);if(id)return {id:id};}}catch(e){}
-    }
-    try{var x=clean(localStorage.getItem('HAPPYAD_AUTH_UID')||'');if(x)return {id:x};}catch(e){}
-    return null;
+  function targetFromButton(btn){try{return clean(btn&&btn.dataset&&(btn.dataset.recipientUid||btn.dataset.messageUid||btn.dataset.uid||btn.dataset.userId)||'');}catch(e){return '';}}
+  function masterTarget(btn, ap){
+    var u=urlUid();
+    var b=targetFromButton(btn);
+    if(isUuid(u))return u;
+    if(isUuid(b))return b;
+    try{if(typeof window.happyadResolvePublicProfileOwnerUid==='function'){var r=clean(window.happyadResolvePublicProfileOwnerUid());if(isUuid(r))return r;}}catch(e){}
+    var a=firstUuid(ap||{}); if(isUuid(a))return a;
+    return '';
   }
-  window.happyadPublicMessageOpenV613=function(ap){
+  function readMeLocal(){try{var keys=['HAPPYAD_AUTH_UID','HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','happyad_user','happyad_current_user','happyad_auth_user','user'];for(var i=0;i<keys.length;i++){var k=keys[i];if(k==='HAPPYAD_AUTH_UID'){var x=clean(localStorage.getItem(k)||sessionStorage.getItem(k)||'');if(isUuid(x))return {id:x};continue;}var raw=localStorage.getItem(k)||sessionStorage.getItem(k);if(!raw)continue;var o=safeJson(raw);var roots=[o,o.user,o.profile,o.currentUser,o.session&&o.session.user,o.data&&o.data.user].filter(Boolean);for(var j=0;j<roots.length;j++){var id=firstUuid(roots[j]);if(id)return {id:id};}}}catch(e){}return null;}
+  async function readMe(){var m=readMeLocal();try{var c=sb();if(c&&c.auth&&c.auth.getUser){var r=await Promise.race([c.auth.getUser(),new Promise(function(resolve){setTimeout(function(){resolve(null);},900);})]);var id=clean(r&&r.data&&r.data.user&&r.data.user.id);if(isUuid(id))m={id:id};}}catch(e){}return m;}
+  function cachePublicProfile(uid,p){try{uid=clean(uid);if(!isUuid(uid))return;p=Object.assign({},p||{},{id:uid,user_id:uid,uid:uid,__happyadUidLocked:true,at:Date.now()});window.__HAPPYAD_ACTIVE_PROFILE_RAM=p;localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(p));localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid,JSON.stringify(p));}catch(e){}}
+  async function rpcResolve(uid){
+    uid=clean(uid); if(!isUuid(uid))return '';
+    var c=sb(); if(!c)return uid;
+    try{var r=await Promise.race([c.rpc('happyad_msg_resolve_profile_message_uid',{p_profile_id:uid}),new Promise(function(resolve){setTimeout(function(){resolve(null);},1200);})]);var d=clean(r&&r.data||'');if(r&&!r.error&&isUuid(d))return d;}catch(e){}
+    async function one(t,col){try{var r=await Promise.race([c.from(t).select('*').eq(col,uid).limit(1),new Promise(function(resolve){setTimeout(function(){resolve(null);},900);})]);var row=r&&!r.error&&r.data&&r.data[0];if(row){var id=firstUuid(row);if(isUuid(id)){cachePublicProfile(id,row);return id;}}}catch(e){}return '';}
+    var tables=['profiles','happyad_profiles'], cols=['auth_uid','auth_id','user_id','uid','uuid','id'];
+    for(var ti=0;ti<tables.length;ti++){for(var ci=0;ci<cols.length;ci++){var got=await one(tables[ti],cols[ci]);if(got)return got;}}
+    return uid;
+  }
+  function saveAndOpen(uid,p){
+    p=p||{}; uid=clean(uid);
+    var name=clean(p.name||p.full_name||p.display_name||p.username)||'Utilisateur HAPPYAD';
+    var handle=clean(p.handle||p.username||'');
+    var avatar=clean(p.avatar||p.avatar_url||p.photo_url||'');
+    var badge=clean(p.badge||p.user_badge||p.badge_type||'');
+    var directProfile={id:uid,user_id:uid,auth_id:uid,auth_uid:uid,name:name,full_name:name,display_name:name,username:handle,handle:handle,avatar:avatar,avatar_url:avatar,badge:badge,user_badge:badge,at:Date.now(),source:'visitor_profile_v640_path'};
+    try{sessionStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_PROFILE');localStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_PROFILE');sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID',uid);localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID',uid);sessionStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(uid));}catch(e){}
+    var url='messages.html?mode=direct&origin=visitor_profile&strict=1&to='+encodeURIComponent(uid)+'&v=640';
+    try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v640-path',page:'messages'});return false;}}catch(e){}
+    try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v640-path',page:'messages'});return false;}}catch(e){}
+    try{if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,source:'profile-visitor-message-v640-path'},'*');return false;}}catch(e){}
+    location.href=(location.pathname.indexOf('/modules/')>-1?'../':'')+url;
+    return false;
+  }
+  window.happyadPublicMessageOpenV613=async function(ap,btn){
     try{
-      ap=ap||readProfile();
-      var uid=clean(ap.id||ap.user_id||ap.uid||ap.uuid);
-      if(!uid){try{toast('Profil introuvable');}catch(_t){}return false;}
-      var m=me();
-      if(!m||!m.id){try{if(typeof askAuth==='function')askAuth();else toast('Connecte-toi pour envoyer un message');}catch(_a){}return false;}
-      if(clean(m.id)===uid){try{toast('Impossible de vous envoyer un message à vous-même');}catch(_s){}return false;}
-      var name=clean(ap.name||ap.full_name||ap.display_name||ap.username)||'Utilisateur HAPPYAD';
-      var avatar=clean(ap.avatar||ap.avatar_url||ap.photo_url||'');
-      var badge=clean(ap.badge||ap.user_badge||'');
-      var handle=clean(ap.handle||ap.username||'');
-      try{var directProfile={id:uid,user_id:uid,name:name,full_name:name,display_name:name,username:handle,handle:handle,avatar:avatar,avatar_url:avatar,badge:badge,user_badge:badge,at:Date.now()};sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));}catch(_dp){}
-      var qs='mode=direct&origin=visitor_profile&to='+encodeURIComponent(uid)+'&name='+encodeURIComponent(name)+'&username='+encodeURIComponent(handle)+'&avatar='+encodeURIComponent(avatar)+'&badge='+encodeURIComponent(badge);
-      var url='messages.html?'+qs;
-      try{sessionStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(uid));}catch(_e){}
-      try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v614',page:'messages'});return false;}}catch(_pp){}
-      try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v614',page:'messages'});return false;}}catch(_o){}
-      try{if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,source:'profile-visitor-message-v615'},'*');return false;}}catch(_p){}
-      location.href=(location.pathname.indexOf('/modules/')>-1?'../':'')+url;
-    }catch(e){try{toast('Message indisponible : '+((e&&e.message)||e));}catch(_x){}}
-    return false;
+      ap=Object.assign({},activeProfileStrict(),ap||{});
+      var raw=masterTarget(btn,ap);
+      if(!isUuid(raw)){toastMsg('Profil visiteur introuvable : UID absent.');return false;}
+      var me=await readMe();
+      if(!me||!isUuid(me.id)){try{if(typeof askAuth==='function')askAuth();else toastMsg('Connecte-toi pour envoyer un message');}catch(e){}return false;}
+      var uid=await rpcResolve(raw);
+      if(!isUuid(uid)){toastMsg('Ce profil n’a pas encore un vrai identifiant message Supabase.');return false;}
+      if(clean(me.id)===uid){toastMsg('Impossible de vous envoyer un message à vous-même');return false;}
+      ap.id=uid;ap.user_id=uid;ap.uid=uid;ap.__happyadUidLocked=true;
+      cachePublicProfile(uid,ap);
+      return saveAndOpen(uid,ap);
+    }catch(e){toastMsg('Message indisponible : '+((e&&e.message)||e));return false;}
   };
-  document.addEventListener('click',function(e){
-    var b=e.target&&e.target.closest&&e.target.closest('#publicMessageBtn,.messageBtn[data-public-message="1"]');
-    if(!b)return;
-    e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    window.happyadPublicMessageOpenV613(readProfile());
-    return false;
-  },true);
+  function stampButtons(){try{var ap=activeProfileStrict();var uid=masterTarget(null,ap);document.querySelectorAll('#publicMessageBtn,.messageBtn[data-public-message="1"],[data-public-message="1"]').forEach(function(b){if(isUuid(uid)){b.dataset.recipientUid=uid;b.dataset.messageUid=uid;}b.dataset.publicMessage='1';});}catch(e){}}
+  document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('#publicMessageBtn,.messageBtn[data-public-message="1"],[data-public-message="1"]');if(!b)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();window.happyadPublicMessageOpenV613(null,b);return false;},true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',stampButtons,{once:true});else stampButtons();
+  try{new MutationObserver(stampButtons).observe(document.documentElement,{childList:true,subtree:true});}catch(e){setInterval(stampButtons,1500);}
 })();
 </script>
+

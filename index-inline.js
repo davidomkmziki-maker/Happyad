@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="fr"><head>
-<script id="happyad-v274-logout-landing-guard">
+
 (function(){
   try{
     var qs=String(location.search||'');
@@ -68,8 +67,8 @@
     }
   }catch(e){}
 })();
-</script>
-<script id="happyad-v16zj-boot-route-mask">
+
+
 (function(){
   try{
     var view='',url='';
@@ -94,162 +93,8 @@
     }
   }catch(_e){}
 })();
-</script>
-<style id="happyad-v16zj-boot-route-mask-style">
-html.happyadBootRestoringPageV16ZJ body{background:#000!important;}
-html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!important;}
-</style>
-
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
-<!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
-<link rel="manifest" href="manifest.webmanifest?v=16zj">
-<meta name="theme-color" content="#000000">
-<meta name="color-scheme" content="dark">
-<meta name="application-name" content="HAPPYAD">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="HAPPYAD">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/happyad-icon-v535center1-192.png?v=536reset1">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/happyad-icon-v535center1-180.png?v=536reset1">
-<link rel="apple-touch-icon" sizes="192x192" href="icons/happyad-icon-v535center1-192.png?v=536reset1">
-<style>
-:root{--bg:#030303;--card:#11151d;--line:#2a303b;--muted:#aeb3c0;--orange:#ff8a00;--orange2:#ff4b22}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:#030303;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}body{max-width:520px;margin:auto;min-height:100dvh;background:radial-gradient(circle at 18% -10%,rgba(255,138,0,.22),transparent 32%),linear-gradient(180deg,#07080b,#020202 72%)}
-.app{min-height:100dvh;padding:0 12px 96px}.top{position:sticky;top:0;z-index:80;margin:0 -12px;padding:10px 12px;background:rgba(4,5,8,.96);border-bottom:1px solid rgba(255,138,0,.14)}.topRow{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}.round{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#11151d;color:#fff;font-size:22px;display:grid;place-items:center;text-decoration:none}.back{background:linear-gradient(135deg,rgba(255,138,0,.22),rgba(255,75,34,.10));border-color:rgba(255,138,0,.45)}.title{text-align:center;font-size:24px;font-weight:1000;letter-spacing:-1px}.title b{color:var(--orange)}.sub{display:block;color:var(--muted);font-size:11px;font-weight:900;margin-top:2px}.head{display:flex;justify-content:space-between;align-items:flex-end;margin:16px 0 10px}h1{margin:0;font-size:28px;letter-spacing:-1px}.count{color:#ffb15d;font-weight:1000}.chips{display:flex;gap:8px;overflow:auto;padding:4px 0 12px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip{white-space:nowrap;border:1px solid #252b35;background:#11151d;color:#d7dbe5;border-radius:14px;padding:10px 14px;font-size:12px;font-weight:1000}.chip.on{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-color:transparent}.feedGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.miniCard{background:#11151d;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.28);position:relative}.miniCard.videoCard{cursor:pointer}.miniCard.videoCard .miniMedia{height:190px}.miniCard.videoCard .miniMedia video{object-fit:contain}.cardOverlay{position:absolute;right:7px;top:78px;display:grid;gap:7px;z-index:4}.cardAct{width:31px;min-height:31px;border-radius:999px;background:rgba(0,0,0,.42);backdrop-filter:blur(7px);display:grid;place-items:center;color:#fff;font-size:13px;font-weight:1000;padding:3px}.cardAct small{font-size:8px;line-height:1;color:#fff}.happyadVideoViewsBadge{position:absolute;right:7px;bottom:7px;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;font-size:11px;font-weight:1000;z-index:8;color:#fff;backdrop-filter:none!important;display:inline-flex;align-items:center;gap:4px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.95)}.happyadVideoViewsBadge:before{content:"";width:14px;height:9px;border:1.8px solid #fff;border-radius:70% 70% 70% 70%/80% 80% 80% 80%;display:inline-block;box-sizing:border-box;filter:drop-shadow(0 1px 2px rgba(0,0,0,.95))}.happyadVideoViewsBadge:after{content:"";position:absolute;left:5.3px;top:50%;width:3.8px;height:3.8px;margin-top:-1.9px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.95)}.videoHint{position:absolute;left:7px;top:46px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 7px;font-size:8px;font-weight:1000;z-index:5;color:#fff}.miniTop{height:34px;display:flex;align-items:center;gap:6px;padding:7px 8px;background:rgba(255,255,255,.035)}.avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--orange),#2434ff);display:grid;place-items:center;font-size:12px;font-weight:1000;flex:0 0 auto}.creator{min-width:0;line-height:1.05}.creator b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.creator span{display:block;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time{margin-left:auto;color:#c4c8d2;font-size:9px;white-space:nowrap}.miniMedia{height:150px;background:#050609;display:grid;place-items:center;overflow:hidden;position:relative}.miniMedia img,.miniMedia video{width:100%;height:100%;object-fit:cover}.miniMedia img.happyadCropImg{max-width:none;max-height:none;will-change:transform;transform-origin:center center}.miniMedia video{background:#000}.play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.86);color:#000;display:grid;place-items:center;font-size:20px;font-weight:1000;pointer-events:none}.badge{position:absolute;left:7px;bottom:7px;background:#0f9e55;color:#fff;border-radius:5px;padding:3px 6px;font-size:8px;font-weight:1000}.miniBody{padding:7px}.miniTitle{font-size:13px;font-weight:1000;line-height:1.08;min-height:22px}.miniMeta{color:#d4d7df;font-size:11px;margin-top:3px;line-height:1.1;min-height:18px}.miniActions{display:flex;gap:7px;align-items:center;margin-top:4px;color:#d8dbe4;font-size:11px;font-weight:900}.actionBtn{border:0;background:transparent;color:#d8dbe4;font:inherit;font-weight:1000;padding:3px 0;display:inline-flex;align-items:center;gap:3px}.actionBtn.on{color:#ff315f}.actionBtn.fav.on{color:#ff315f}.actionBtn small{font-size:11px;font-weight:1000}.miniActions .heart{color:#ff315f}.empty{min-height:42dvh;display:grid;place-items:center;text-align:center;color:#aeb3c0}.empty b{display:block;color:#fff;font-size:22px;margin-bottom:6px}.btn{display:inline-block;margin-top:12px;text-decoration:none;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-radius:16px;padding:12px 16px;font-weight:1000}.bottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:100;width:min(496px,calc(100% - 22px));display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:rgba(13,15,20,.96);border:1px solid #2a2f3a;border-radius:24px;padding:7px 5px;box-shadow:0 13px 40px rgba(0,0,0,.62)}.nav{text-decoration:none;text-align:center;color:#a8abb4;font-size:10px;font-weight:1000}.nav{position:relative}.nav .ico{display:block;font-size:20px;margin-bottom:2px}.navBadge{position:absolute;top:-5px;right:13px;min-width:17px;height:17px;border-radius:999px;background:#ff375f;color:#fff;font-size:10px;font-weight:1000;display:none;place-items:center;padding:0 5px;border:2px solid #0d0f14}.nav.active{color:var(--orange)}.plus{width:50px;height:50px;border-radius:50%;margin:-28px auto 0;background:linear-gradient(135deg,var(--orange),var(--orange2));display:grid;place-items:center;color:#111;font-size:32px;box-shadow:0 0 26px rgba(255,138,0,.5)}
-@media(max-width:360px){.miniMedia{height:132px}.chip{padding:9px 12px}.title{font-size:22px}}
-
-.sponsorStrip{margin:4px 0 6px;border:1px solid rgba(255,138,0,.35);border-radius:16px;overflow:hidden;background:linear-gradient(135deg,rgba(255,138,0,.16),rgba(255,75,34,.07),rgba(255,255,255,.035));height:110px;display:flex;align-items:stretch;position:relative;box-shadow:0 10px 22px rgba(0,0,0,.20)}
-.sponsorTrack{width:100%;height:100%;display:block}
-.sponsorAd{width:100%;height:100%;display:grid;grid-template-columns:55% 45%;align-items:stretch;background:transparent;border:0;border-radius:0;padding:0;color:#fff;overflow:hidden;text-align:left}
-.sponsorAd b{color:#ffd21a}
-.sponsorThumb{width:100%;height:100%;border-radius:0;background:#050609;overflow:hidden;display:grid;place-items:center}
-.sponsorThumb img{width:100%;height:100%;object-fit:cover;transform:scale(1.02)}
-.sponsorThumb video{width:100%;height:100%;object-fit:contain;background:#000;transform:none}
-.sponsorText{min-width:0;line-height:1.08;padding:10px 10px 8px;display:flex;flex-direction:column;justify-content:center;gap:3px;background:linear-gradient(90deg,rgba(0,0,0,.18),rgba(0,0,0,.02))}
-.sponsorText b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:1000}
-.sponsorText small{display:block;color:#d7dbe5;font-size:10px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sponsorText .sponsorMeta{color:#9aa1b3;font-size:9px;font-weight:800}.sponsorDescWrap{height:26px;overflow:hidden;position:relative}.sponsorDesc{display:block;font-size:10px;color:#d7dbe5;animation:sponsorScroll 8s linear infinite}@keyframes sponsorScroll{0%{transform:translateY(100%)}100%{transform:translateY(-100%)}}
-.sponsorLabel{display:none}
-.section{margin:7px 0 9px}.sectionHead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 4px}.sectionTitle{color:#ffd21a;font-size:13px;font-weight:1000;text-transform:lowercase;letter-spacing:.2px}.seeMore{border:0;background:transparent;color:#ffd21a;font-size:11px;font-weight:1000;padding:2px 0}.hScroller{display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:2px;scrollbar-width:none}.hScroller::-webkit-scrollbar{display:none}.hScroller .miniCard{flex:0 0 47%;scroll-snap-align:start}.hScroller .miniMedia{height:132px}.hScroller .videoCard .miniMedia{height:132px}.sectionEmpty{color:#aeb3c0;font-size:12px;padding:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px}.feedGrid .miniCard{min-width:0}
-@media(max-width:360px){.hScroller .miniCard{flex-basis:48%}.sponsorStrip{height:72px}}
-
-.happyBadgeMark{position:relative!important;display:inline-block!important;width:14px!important;height:14px!important;margin-left:4px!important;vertical-align:-2px!important;overflow:visible!important;font-size:0!important;line-height:1!important;clip-path:polygon(50% 0%,58% 12%,71% 6%,76% 20%,91% 22%,88% 38%,100% 50%,88% 62%,91% 78%,76% 80%,71% 94%,58% 88%,50% 100%,42% 88%,29% 94%,24% 80%,9% 78%,12% 62%,0% 50%,12% 38%,9% 22%,24% 20%,29% 6%,42% 12%)!important}
-.happyBadgeMark:before{content:''!important;position:absolute!important;inset:0!important;clip-path:inherit!important;z-index:0!important}
-.happyBadgeMark:after{content:'✓'!important;position:absolute!important;top:50%!important;left:50%!important;transform:translate(-50%,-52%)!important;color:#fff!important;font-size:9px!important;font-weight:1000!important;line-height:1!important;text-shadow:0 0 3px rgba(255,255,255,.75)!important;z-index:1!important}
-.happyBadgeMark.violet:before{background:linear-gradient(135deg,#e9d5ff,#c084fc,#9333ea)!important;box-shadow:0 0 3px rgba(147,51,234,.45),0 0 8px rgba(109,40,217,.25)!important}
-.happyBadgeMark.bleu:before,.happyBadgeMark.blue:before{background:linear-gradient(135deg,#6fd4ff,#38b6ff,#0090ff)!important;box-shadow:0 0 3px rgba(79,195,255,.45),0 0 8px rgba(0,120,255,.25)!important}
-.miniTop .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
-#adminAccessBtn,#ownerAdminAccessBtn{display:none!important}
-
-/* V114 — Home officiel: rectangle dynamique, Radar Pour Toi, lives, recherche simple */
-.topRow{grid-template-columns:44px 1fr 44px!important}.searchRound{background:#11151d!important;border-color:rgba(255,255,255,.14)!important}.searchIcon{width:21px;height:21px;display:block}.searchIcon svg{width:100%;height:100%;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.bellLineIcon{width:22px;height:22px;margin:0 auto 2px;display:block}.bellLineIcon svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.sponsorStrip{height:132px!important;margin:6px 0 10px!important;border-radius:22px!important;border-color:rgba(255,138,0,.38)!important;background:#07090d!important}.sponsorAd{grid-template-columns:58% 42%!important;border-radius:22px!important;background:#07090d!important}.sponsorThumb{border-radius:22px 0 0 22px!important}.sponsorThumb img{object-fit:cover!important}.sponsorThumb video{object-fit:cover!important}.sponsorText{position:relative;padding:14px 14px!important;background:linear-gradient(90deg,rgba(0,0,0,.34),rgba(0,0,0,.86) 42%,rgba(0,0,0,.96))!important}.sponsorText:before{content:"";position:absolute;left:-34px;top:0;width:58px;height:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.72),rgba(0,0,0,.96));pointer-events:none}.sponsorText b{font-size:16px!important;color:#ffd21a!important}.sponsorText small{font-size:12px!important;color:#fff!important}.sponsorText .sponsorMeta{font-size:11px!important;color:#d9dde8!important}.sponsorDescWrap{height:38px!important}.sponsorDesc{font-size:11px!important;line-height:1.35!important}.sponsorLiveDot{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-size:10px;font-weight:1000;color:#e9edf7}.sponsorLiveDot i{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px rgba(255,138,0,.75)}
-.chips{gap:7px!important;padding:3px 0 9px!important}.chip{height:36px!important;padding:8px 13px!important;border-radius:15px!important;font-size:11px!important;display:inline-flex;align-items:center}.homeSearchPanel{display:none;margin:4px 0 10px}.homeSearchPanel.on{display:block}.homeSearchInput{width:100%;height:40px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:#11151d;color:#fff;padding:0 14px;font-weight:900;outline:none}.radarBlock{margin:6px 0 12px}.radarHead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}.radarTitle{font-size:14px;font-weight:1000;color:#fff;letter-spacing:.1px}.radarTitle b{color:#ffd21a}.mapLite{border:1px solid rgba(255,138,0,.45);background:rgba(255,138,0,.08);color:#ffd21a;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:1000;text-decoration:none}.radarRow{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 2px 2px}.radarRow::-webkit-scrollbar{display:none}.radarItem{flex:0 0 82px;text-align:center;color:#fff;text-decoration:none}.radarAvatar{width:62px;height:62px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--orange),#ff315f,#7b35ff,#26d76d,var(--orange));position:relative;box-shadow:0 8px 20px rgba(0,0,0,.35)}.radarAvatar img,.radarAvatar .radarInitial{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#11151d;object-fit:cover;font-size:22px;font-weight:1000}.radarAvatar.add{background:conic-gradient(from 0deg,rgba(255,138,0,.2),var(--orange),rgba(255,138,0,.2));border:1px dashed rgba(255,138,0,.9);display:grid;place-items:center;padding:0}.radarAvatar.add span{font-size:34px;color:var(--orange);line-height:1}.radarAvatar.live{background:conic-gradient(from 0deg,var(--orange),#ff2b2b,var(--orange),#ff2b2b,var(--orange));animation:happyLivePulse 1.35s ease-in-out infinite;box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 24px rgba(255,75,34,.44)}@keyframes happyLivePulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 22px rgba(255,75,34,.35)}50%{transform:scale(1.055);box-shadow:0 0 0 8px rgba(255,138,0,0),0 0 30px rgba(255,75,34,.62)}}.liveBadge{position:absolute;top:-5px;left:50%;transform:translateX(-50%);background:#ff2e2e;color:#fff;border-radius:6px;padding:2px 5px;font-size:8px;font-weight:1000;border:1px solid rgba(255,255,255,.18)}.typeDot{position:absolute;right:2px;bottom:2px;width:12px;height:12px;border-radius:50%;background:#26d76d;border:2px solid #080a0f}.typeDot.video{background:#ff2e2e}.typeDot.product{background:#20b8ff}.typeDot.service{background:#26d76d}.typeDot.event{background:#ffd21a}.radarName{font-size:10px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.radarMeta{font-size:9px;color:#cbd0db;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.liveSection .sectionTitle{text-transform:uppercase;color:#fff}.liveSection .sectionTitle:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff2e2e;margin-right:6px;box-shadow:0 0 10px rgba(255,46,46,.8)}.miniCard.isLive:before{content:"LIVE";position:absolute;left:8px;top:43px;z-index:7;background:#ff2e2e;color:#fff;border-radius:6px;padding:3px 6px;font-size:8px;font-weight:1000}.quickPostSheet{position:fixed;inset:0;z-index:130;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}.quickPostSheet.on{display:flex}.quickPostBox{width:min(460px,calc(100% - 24px));margin-bottom:84px;background:#11151d;border:1px solid rgba(255,138,0,.28);border-radius:22px;padding:12px;box-shadow:0 22px 55px rgba(0,0,0,.7)}.quickPostBox b{display:block;margin:2px 4px 10px;font-size:15px}.quickPostGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quickPostBtn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);color:#fff;border-radius:16px;padding:13px 10px;font-weight:1000;text-decoration:none;text-align:center}.quickPostBtn.orange{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-color:transparent}.quickPostClose{margin-top:8px;width:100%;border:0;background:transparent;color:#aeb3c0;font-weight:1000;padding:10px}
-@media(max-width:360px){.sponsorStrip{height:118px!important}.radarItem{flex-basis:76px}.radarAvatar{width:56px;height:56px}.chip{font-size:10px!important;padding:7px 11px!important}}
 
 
-/* === HAPPYAD V115 LOGIC CLEAN FIX ===
-   - Stories = uniquement mode story
-   - En direct = uniquement contenus live/direct
-   - Publicité haut : description lisible sans coupure
-   - Catégories plus fines
-*/
-.chips{gap:6px!important;padding:2px 0 7px!important}
-.chip{height:30px!important;padding:6px 10px!important;border-radius:12px!important;font-size:10px!important;line-height:1!important;min-width:auto!important}
-.sponsorStrip{height:136px!important}
-.sponsorAd{grid-template-columns:56% 44%!important}
-.sponsorText{padding:10px 11px!important;gap:4px!important;justify-content:center!important;overflow:hidden!important}
-.sponsorText b{font-size:15px!important;line-height:1.05!important;white-space:nowrap!important;max-width:100%!important}
-.sponsorText small{font-size:11px!important;line-height:1.12!important;white-space:nowrap!important}
-.sponsorText .sponsorMeta{font-size:10px!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.sponsorDescWrap{height:auto!important;max-height:34px!important;overflow:hidden!important}
-.sponsorDesc{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;font-size:10px!important;line-height:1.2!important;animation:none!important;transform:none!important;overflow:hidden!important}
-.sponsorLiveDot{font-size:9px!important;margin-top:1px!important}
-.radarAvatar.live{animation:happyadLivePulse 1.15s ease-in-out infinite!important;border-color:#ff8a00!important;box-shadow:0 0 0 3px rgba(255,138,0,.25),0 0 18px rgba(255,138,0,.85)!important}
-@keyframes happyadLivePulse{0%,100%{box-shadow:0 0 0 2px rgba(255,138,0,.30),0 0 10px rgba(255,138,0,.6)}50%{box-shadow:0 0 0 6px rgba(255,138,0,.08),0 0 23px rgba(255,138,0,1)}}
-
-
-/* V171: date/time moved beside publication title; top row is only owner name + badge */
-.miniTop .time{display:none!important}
-.miniTitleRow{display:flex!important;align-items:flex-start!important;gap:6px!important;width:100%!important}
-.miniTitleRow .miniTitle{flex:1 1 auto!important;min-width:0!important;margin:0!important}
-.miniTitleRow .miniPostDate{flex:0 0 auto!important;margin-top:1px!important;max-width:44%!important;text-align:right!important;font-size:9px!important;color:#9aa1b3!important;font-weight:850!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-
-/* HAPPYAD V206 - vidéo accueil full carré: poster + vidéo remplissent le cadre */
-.miniCard.videoCard .miniMedia video,
-.miniCard.videoCard .miniMedia img.happyadVideoPoster{
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:cover!important;
-  background:#050609!important;
-}
-
-/* HAPPYAD V329: description intelligente 2 lignes + prix orange */
-.miniDesc{
-  color:#f1f3f7!important;
-  font-size:15px!important;
-  line-height:1.18!important;
-  margin-top:6px!important;
-  display:-webkit-box!important;
-  -webkit-line-clamp:2!important;
-  -webkit-box-orient:vertical!important;
-  overflow:hidden!important;
-  overflow-wrap:anywhere!important;
-}
-.miniSeeMore{
-  border:0!important;
-  background:transparent!important;
-  color:#ff8a00!important;
-  font-size:13px!important;
-  font-weight:1000!important;
-  padding:3px 0 0!important;
-  margin:0!important;
-}
-.miniPrice{
-  color:#ff8a00!important;
-  font-size:16px!important;
-  font-weight:1000!important;
-  line-height:1.05!important;
-  margin-top:4px!important;
-}
-.miniBody .miniMeta{
-  color:#aeb3c0!important;
-  font-size:14px!important;
-  line-height:1.1!important;
-  margin-top:5px!important;
-}
-@media(max-width:390px){
-  .miniDesc{font-size:14px!important;line-height:1.16!important;margin-top:5px!important}
-  .miniSeeMore{font-size:12px!important}
-  .miniPrice{font-size:15px!important}
-  .miniBody .miniMeta{font-size:13px!important}
-}
-
-
-/* HAPPYAD V332 HOME TIMELINE + ALBUM CAROUSEL
-   Accueil: une seule ligne verticale mélangée, cartes presque full width.
-   Albums photos: une seule carte avec défilement horizontal et actions communes. */
-#list.homeTimeline{display:flex!important;flex-direction:column!important;gap:18px!important;padding:0 8px 92px!important}
-#list.homeTimeline .miniCard{width:100%!important;max-width:none!important;min-width:0!important;flex:none!important;border-radius:20px!important}
-#list.homeTimeline .miniMedia{height:auto!important;min-height:340px!important;max-height:none!important;background:#05070a!important}
-#list.homeTimeline .miniMedia>img{width:100%!important;height:auto!important;min-height:340px!important;object-fit:cover!important;display:block!important}
-#list.homeTimeline .videoCard .miniMedia{height:430px!important}
-#list.homeTimeline .miniBody{padding:11px 14px 12px!important}
-#list.homeTimeline .miniActions{padding:8px 18px 14px!important}
-.happyadAlbumCarousel{position:relative;width:100%;overflow:hidden;background:#05070a}
-.happyadAlbumTrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none}
-.happyadAlbumTrack::-webkit-scrollbar{display:none}
-.happyadAlbumSlide{flex:0 0 100%;scroll-snap-align:center;min-height:340px;display:grid;place-items:center;background:#05070a}
-.happyadAlbumSlide img{width:100%;height:auto;min-height:340px;object-fit:cover;display:block}
-.happyadAlbumCounter{position:absolute;right:10px;top:10px;z-index:5;background:rgba(0,0,0,.58);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 9px;font-size:11px;font-weight:1000;backdrop-filter:blur(8px)}
-.happyadAlbumHint{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(0,0,0,.45);color:#fff;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900;opacity:.86}
-</style>
-<script id="happyad-no-demo-posts-cleaner-v63">
 (function(){
   var POST_KEY='HAPPYAD_PUBLISH_POSTS_V2';
   var ACTION_KEY='HAPPYAD_VIDEO_ACTIONS_V1';
@@ -289,835 +134,9 @@ html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!
     }
   }catch(e){}
 })();
-</script>
 
-<style id="happyad-v67-verification-reminder-css">
-.happyVerifyReminder{margin:10px 0 12px;border:1px solid rgba(255,191,24,.35);background:linear-gradient(135deg,rgba(255,191,24,.16),rgba(255,138,0,.07));border-radius:18px;padding:12px;color:#ffe3a3;font-weight:900;line-height:1.35;box-shadow:0 10px 24px rgba(0,0,0,.20)}
-.happyVerifyReminder b{display:block;color:#fff;font-size:14px;margin-bottom:3px}.happyVerifyReminder a{display:inline-block;margin-top:8px;text-decoration:none;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-radius:999px;padding:8px 11px;font-weight:1000;font-size:12px}
+window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
 
-/* V114 — Home officiel: rectangle dynamique, Radar Pour Toi, lives, recherche simple */
-.topRow{grid-template-columns:44px 1fr 44px!important}.searchRound{background:#11151d!important;border-color:rgba(255,255,255,.14)!important}.searchIcon{width:21px;height:21px;display:block}.searchIcon svg{width:100%;height:100%;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.bellLineIcon{width:22px;height:22px;margin:0 auto 2px;display:block}.bellLineIcon svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.sponsorStrip{height:132px!important;margin:6px 0 10px!important;border-radius:22px!important;border-color:rgba(255,138,0,.38)!important;background:#07090d!important}.sponsorAd{grid-template-columns:58% 42%!important;border-radius:22px!important;background:#07090d!important}.sponsorThumb{border-radius:22px 0 0 22px!important}.sponsorThumb img{object-fit:cover!important}.sponsorThumb video{object-fit:cover!important}.sponsorText{position:relative;padding:14px 14px!important;background:linear-gradient(90deg,rgba(0,0,0,.34),rgba(0,0,0,.86) 42%,rgba(0,0,0,.96))!important}.sponsorText:before{content:"";position:absolute;left:-34px;top:0;width:58px;height:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.72),rgba(0,0,0,.96));pointer-events:none}.sponsorText b{font-size:16px!important;color:#ffd21a!important}.sponsorText small{font-size:12px!important;color:#fff!important}.sponsorText .sponsorMeta{font-size:11px!important;color:#d9dde8!important}.sponsorDescWrap{height:38px!important}.sponsorDesc{font-size:11px!important;line-height:1.35!important}.sponsorLiveDot{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-size:10px;font-weight:1000;color:#e9edf7}.sponsorLiveDot i{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px rgba(255,138,0,.75)}
-.chips{gap:7px!important;padding:3px 0 9px!important}.chip{height:36px!important;padding:8px 13px!important;border-radius:15px!important;font-size:11px!important;display:inline-flex;align-items:center}.homeSearchPanel{display:none;margin:4px 0 10px}.homeSearchPanel.on{display:block}.homeSearchInput{width:100%;height:40px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:#11151d;color:#fff;padding:0 14px;font-weight:900;outline:none}.radarBlock{margin:6px 0 12px}.radarHead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}.radarTitle{font-size:14px;font-weight:1000;color:#fff;letter-spacing:.1px}.radarTitle b{color:#ffd21a}.mapLite{border:1px solid rgba(255,138,0,.45);background:rgba(255,138,0,.08);color:#ffd21a;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:1000;text-decoration:none}.radarRow{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 2px 2px}.radarRow::-webkit-scrollbar{display:none}.radarItem{flex:0 0 82px;text-align:center;color:#fff;text-decoration:none}.radarAvatar{width:62px;height:62px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--orange),#ff315f,#7b35ff,#26d76d,var(--orange));position:relative;box-shadow:0 8px 20px rgba(0,0,0,.35)}.radarAvatar img,.radarAvatar .radarInitial{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#11151d;object-fit:cover;font-size:22px;font-weight:1000}.radarAvatar.add{background:conic-gradient(from 0deg,rgba(255,138,0,.2),var(--orange),rgba(255,138,0,.2));border:1px dashed rgba(255,138,0,.9);display:grid;place-items:center;padding:0}.radarAvatar.add span{font-size:34px;color:var(--orange);line-height:1}.radarAvatar.live{background:conic-gradient(from 0deg,var(--orange),#ff2b2b,var(--orange),#ff2b2b,var(--orange));animation:happyLivePulse 1.35s ease-in-out infinite;box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 24px rgba(255,75,34,.44)}@keyframes happyLivePulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 22px rgba(255,75,34,.35)}50%{transform:scale(1.055);box-shadow:0 0 0 8px rgba(255,138,0,0),0 0 30px rgba(255,75,34,.62)}}.liveBadge{position:absolute;top:-5px;left:50%;transform:translateX(-50%);background:#ff2e2e;color:#fff;border-radius:6px;padding:2px 5px;font-size:8px;font-weight:1000;border:1px solid rgba(255,255,255,.18)}.typeDot{position:absolute;right:2px;bottom:2px;width:12px;height:12px;border-radius:50%;background:#26d76d;border:2px solid #080a0f}.typeDot.video{background:#ff2e2e}.typeDot.product{background:#20b8ff}.typeDot.service{background:#26d76d}.typeDot.event{background:#ffd21a}.radarName{font-size:10px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.radarMeta{font-size:9px;color:#cbd0db;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.liveSection .sectionTitle{text-transform:uppercase;color:#fff}.liveSection .sectionTitle:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff2e2e;margin-right:6px;box-shadow:0 0 10px rgba(255,46,46,.8)}.miniCard.isLive:before{content:"LIVE";position:absolute;left:8px;top:43px;z-index:7;background:#ff2e2e;color:#fff;border-radius:6px;padding:3px 6px;font-size:8px;font-weight:1000}.quickPostSheet{position:fixed;inset:0;z-index:130;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}.quickPostSheet.on{display:flex}.quickPostBox{width:min(460px,calc(100% - 24px));margin-bottom:84px;background:#11151d;border:1px solid rgba(255,138,0,.28);border-radius:22px;padding:12px;box-shadow:0 22px 55px rgba(0,0,0,.7)}.quickPostBox b{display:block;margin:2px 4px 10px;font-size:15px}.quickPostGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quickPostBtn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);color:#fff;border-radius:16px;padding:13px 10px;font-weight:1000;text-decoration:none;text-align:center}.quickPostBtn.orange{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-color:transparent}.quickPostClose{margin-top:8px;width:100%;border:0;background:transparent;color:#aeb3c0;font-weight:1000;padding:10px}
-@media(max-width:360px){.sponsorStrip{height:118px!important}.radarItem{flex-basis:76px}.radarAvatar{width:56px;height:56px}.chip{font-size:10px!important;padding:7px 11px!important}}
-
-</style>
-
-<style id="happyad-v79-final-stability-css">
-#adminAccessBtn,#ownerAdminAccessBtn,.floatingAdminBtn,.adminFloating{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-.miniCard{background:#11151d!important;border:1px solid var(--line)!important}
-.miniTop{display:flex!important;background:rgba(255,255,255,.035)!important;visibility:visible!important;opacity:1!important}
-.miniBody{display:block!important;background:#11151d!important;visibility:visible!important;opacity:1!important}
-.miniMedia{background:#050609!important}
-.hScroller .miniCard.videoCard .miniMedia{height:132px!important}
-.feedGrid .miniCard.videoCard .miniMedia{height:190px!important}
-.miniCard.videoCard{background:#11151d!important;background-image:none!important}
-.creator b .happyBadgeMark{display:inline-block!important}
-
-/* V114 — Home officiel: rectangle dynamique, Radar Pour Toi, lives, recherche simple */
-.topRow{grid-template-columns:44px 1fr 44px!important}.searchRound{background:#11151d!important;border-color:rgba(255,255,255,.14)!important}.searchIcon{width:21px;height:21px;display:block}.searchIcon svg{width:100%;height:100%;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.bellLineIcon{width:22px;height:22px;margin:0 auto 2px;display:block}.bellLineIcon svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.sponsorStrip{height:132px!important;margin:6px 0 10px!important;border-radius:22px!important;border-color:rgba(255,138,0,.38)!important;background:#07090d!important}.sponsorAd{grid-template-columns:58% 42%!important;border-radius:22px!important;background:#07090d!important}.sponsorThumb{border-radius:22px 0 0 22px!important}.sponsorThumb img{object-fit:cover!important}.sponsorThumb video{object-fit:cover!important}.sponsorText{position:relative;padding:14px 14px!important;background:linear-gradient(90deg,rgba(0,0,0,.34),rgba(0,0,0,.86) 42%,rgba(0,0,0,.96))!important}.sponsorText:before{content:"";position:absolute;left:-34px;top:0;width:58px;height:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.72),rgba(0,0,0,.96));pointer-events:none}.sponsorText b{font-size:16px!important;color:#ffd21a!important}.sponsorText small{font-size:12px!important;color:#fff!important}.sponsorText .sponsorMeta{font-size:11px!important;color:#d9dde8!important}.sponsorDescWrap{height:38px!important}.sponsorDesc{font-size:11px!important;line-height:1.35!important}.sponsorLiveDot{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-size:10px;font-weight:1000;color:#e9edf7}.sponsorLiveDot i{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px rgba(255,138,0,.75)}
-.chips{gap:7px!important;padding:3px 0 9px!important}.chip{height:36px!important;padding:8px 13px!important;border-radius:15px!important;font-size:11px!important;display:inline-flex;align-items:center}.homeSearchPanel{display:none;margin:4px 0 10px}.homeSearchPanel.on{display:block}.homeSearchInput{width:100%;height:40px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:#11151d;color:#fff;padding:0 14px;font-weight:900;outline:none}.radarBlock{margin:6px 0 12px}.radarHead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}.radarTitle{font-size:14px;font-weight:1000;color:#fff;letter-spacing:.1px}.radarTitle b{color:#ffd21a}.mapLite{border:1px solid rgba(255,138,0,.45);background:rgba(255,138,0,.08);color:#ffd21a;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:1000;text-decoration:none}.radarRow{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 2px 2px}.radarRow::-webkit-scrollbar{display:none}.radarItem{flex:0 0 82px;text-align:center;color:#fff;text-decoration:none}.radarAvatar{width:62px;height:62px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--orange),#ff315f,#7b35ff,#26d76d,var(--orange));position:relative;box-shadow:0 8px 20px rgba(0,0,0,.35)}.radarAvatar img,.radarAvatar .radarInitial{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#11151d;object-fit:cover;font-size:22px;font-weight:1000}.radarAvatar.add{background:conic-gradient(from 0deg,rgba(255,138,0,.2),var(--orange),rgba(255,138,0,.2));border:1px dashed rgba(255,138,0,.9);display:grid;place-items:center;padding:0}.radarAvatar.add span{font-size:34px;color:var(--orange);line-height:1}.radarAvatar.live{background:conic-gradient(from 0deg,var(--orange),#ff2b2b,var(--orange),#ff2b2b,var(--orange));animation:happyLivePulse 1.35s ease-in-out infinite;box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 24px rgba(255,75,34,.44)}@keyframes happyLivePulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 22px rgba(255,75,34,.35)}50%{transform:scale(1.055);box-shadow:0 0 0 8px rgba(255,138,0,0),0 0 30px rgba(255,75,34,.62)}}.liveBadge{position:absolute;top:-5px;left:50%;transform:translateX(-50%);background:#ff2e2e;color:#fff;border-radius:6px;padding:2px 5px;font-size:8px;font-weight:1000;border:1px solid rgba(255,255,255,.18)}.typeDot{position:absolute;right:2px;bottom:2px;width:12px;height:12px;border-radius:50%;background:#26d76d;border:2px solid #080a0f}.typeDot.video{background:#ff2e2e}.typeDot.product{background:#20b8ff}.typeDot.service{background:#26d76d}.typeDot.event{background:#ffd21a}.radarName{font-size:10px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.radarMeta{font-size:9px;color:#cbd0db;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.liveSection .sectionTitle{text-transform:uppercase;color:#fff}.liveSection .sectionTitle:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff2e2e;margin-right:6px;box-shadow:0 0 10px rgba(255,46,46,.8)}.miniCard.isLive:before{content:"LIVE";position:absolute;left:8px;top:43px;z-index:7;background:#ff2e2e;color:#fff;border-radius:6px;padding:3px 6px;font-size:8px;font-weight:1000}.quickPostSheet{position:fixed;inset:0;z-index:130;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}.quickPostSheet.on{display:flex}.quickPostBox{width:min(460px,calc(100% - 24px));margin-bottom:84px;background:#11151d;border:1px solid rgba(255,138,0,.28);border-radius:22px;padding:12px;box-shadow:0 22px 55px rgba(0,0,0,.7)}.quickPostBox b{display:block;margin:2px 4px 10px;font-size:15px}.quickPostGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quickPostBtn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);color:#fff;border-radius:16px;padding:13px 10px;font-weight:1000;text-decoration:none;text-align:center}.quickPostBtn.orange{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-color:transparent}.quickPostClose{margin-top:8px;width:100%;border:0;background:transparent;color:#aeb3c0;font-weight:1000;padding:10px}
-@media(max-width:360px){.sponsorStrip{height:118px!important}.radarItem{flex-basis:76px}.radarAvatar{width:56px;height:56px}.chip{font-size:10px!important;padding:7px 11px!important}}
-
-</style>
-<link rel="preconnect" href="https://txjjyhupbejgjcianrmr.supabase.co" crossorigin>
-<link rel="dns-prefetch" href="//txjjyhupbejgjcianrmr.supabase.co">
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-
-<style id="happyad-v408-home-slow-loading-signal-style">
-/* HAPPYAD V408 — Accueil: signal de chargement plus lent et sans clignotement agressif.
-   Le carré reste stable pendant que Supabase et les photos arrivent. */
-#list.happyadHomeBootSkeleton{
-  margin-left:calc(50% - 50vw)!important;
-  margin-right:calc(50% - 50vw)!important;
-  display:block!important;
-}
-#list.happyadHomeBootSkeleton .happyadSkeletonCard{
-  width:100vw!important;
-  border-left:0!important;
-  border-right:0!important;
-  border-radius:20px!important;
-  background:#0d1118!important;
-  overflow:hidden!important;
-  pointer-events:none!important;
-  box-shadow:0 8px 22px rgba(0,0,0,.20)!important;
-  margin:0 0 14px!important;
-}
-.happyadSkeletonTop{height:44px;display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(255,255,255,.028)}
-.happyadSkeletonAvatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(90deg,#111722,#18202d,#111722);background-size:320% 100%;animation:happyadSkel 2.85s ease-in-out infinite}
-.happyadSkeletonLines{flex:1;display:grid;gap:6px}.happyadSkeletonLine{height:8px;border-radius:999px;background:linear-gradient(90deg,#111722,#18202d,#111722);background-size:320% 100%;animation:happyadSkel 2.85s ease-in-out infinite}.happyadSkeletonLine.short{width:42%}.happyadSkeletonLine.long{width:72%}
-.happyadSkeletonMedia{width:100%;aspect-ratio:1/1;background:linear-gradient(90deg,#05070a,#0f1520,#05070a);background-size:320% 100%;animation:happyadSkel 2.85s ease-in-out infinite;display:grid;place-items:center;position:relative}
-.happyadSkeletonMedia:after{content:"";width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,138,0,.18);box-shadow:0 0 22px rgba(255,138,0,.10);animation:happyadSlowSignal 2.6s ease-in-out infinite}
-.happyadSkeletonBody{padding:9px 14px 12px;display:grid;gap:8px}.happyadSkeletonActions{height:28px;margin:0 14px 12px;border-radius:999px;background:linear-gradient(90deg,#0f1520,#17202c,#0f1520);background-size:320% 100%;animation:happyadSkel 2.85s ease-in-out infinite}
-@keyframes happyadSkel{0%{background-position:260% 0}100%{background-position:-260% 0}}
-@keyframes happyadSlowSignal{0%,100%{opacity:.45;transform:scale(.96)}50%{opacity:.82;transform:scale(1.04)}}
-@media(max-width:390px){#list.happyadHomeBootSkeleton .happyadSkeletonCard{border-radius:18px!important}}
-@media(prefers-reduced-motion:reduce){.happyadSkeletonAvatar,.happyadSkeletonLine,.happyadSkeletonMedia,.happyadSkeletonActions,.happyadSkeletonMedia:after{animation:none!important}}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
-<style id="happyad-v107-hide-home-count">#postCount{display:none!important}
-/* V114 — Home officiel: rectangle dynamique, Radar Pour Toi, lives, recherche simple */
-.topRow{grid-template-columns:44px 1fr 44px!important}.searchRound{background:#11151d!important;border-color:rgba(255,255,255,.14)!important}.searchIcon{width:21px;height:21px;display:block}.searchIcon svg{width:100%;height:100%;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.bellLineIcon{width:22px;height:22px;margin:0 auto 2px;display:block}.bellLineIcon svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.sponsorStrip{height:132px!important;margin:6px 0 10px!important;border-radius:22px!important;border-color:rgba(255,138,0,.38)!important;background:#07090d!important}.sponsorAd{grid-template-columns:58% 42%!important;border-radius:22px!important;background:#07090d!important}.sponsorThumb{border-radius:22px 0 0 22px!important}.sponsorThumb img{object-fit:cover!important}.sponsorThumb video{object-fit:cover!important}.sponsorText{position:relative;padding:14px 14px!important;background:linear-gradient(90deg,rgba(0,0,0,.34),rgba(0,0,0,.86) 42%,rgba(0,0,0,.96))!important}.sponsorText:before{content:"";position:absolute;left:-34px;top:0;width:58px;height:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.72),rgba(0,0,0,.96));pointer-events:none}.sponsorText b{font-size:16px!important;color:#ffd21a!important}.sponsorText small{font-size:12px!important;color:#fff!important}.sponsorText .sponsorMeta{font-size:11px!important;color:#d9dde8!important}.sponsorDescWrap{height:38px!important}.sponsorDesc{font-size:11px!important;line-height:1.35!important}.sponsorLiveDot{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-size:10px;font-weight:1000;color:#e9edf7}.sponsorLiveDot i{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px rgba(255,138,0,.75)}
-.chips{gap:7px!important;padding:3px 0 9px!important}.chip{height:36px!important;padding:8px 13px!important;border-radius:15px!important;font-size:11px!important;display:inline-flex;align-items:center}.homeSearchPanel{display:none;margin:4px 0 10px}.homeSearchPanel.on{display:block}.homeSearchInput{width:100%;height:40px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:#11151d;color:#fff;padding:0 14px;font-weight:900;outline:none}.radarBlock{margin:6px 0 12px}.radarHead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}.radarTitle{font-size:14px;font-weight:1000;color:#fff;letter-spacing:.1px}.radarTitle b{color:#ffd21a}.mapLite{border:1px solid rgba(255,138,0,.45);background:rgba(255,138,0,.08);color:#ffd21a;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:1000;text-decoration:none}.radarRow{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 2px 2px}.radarRow::-webkit-scrollbar{display:none}.radarItem{flex:0 0 82px;text-align:center;color:#fff;text-decoration:none}.radarAvatar{width:62px;height:62px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--orange),#ff315f,#7b35ff,#26d76d,var(--orange));position:relative;box-shadow:0 8px 20px rgba(0,0,0,.35)}.radarAvatar img,.radarAvatar .radarInitial{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#11151d;object-fit:cover;font-size:22px;font-weight:1000}.radarAvatar.add{background:conic-gradient(from 0deg,rgba(255,138,0,.2),var(--orange),rgba(255,138,0,.2));border:1px dashed rgba(255,138,0,.9);display:grid;place-items:center;padding:0}.radarAvatar.add span{font-size:34px;color:var(--orange);line-height:1}.radarAvatar.live{background:conic-gradient(from 0deg,var(--orange),#ff2b2b,var(--orange),#ff2b2b,var(--orange));animation:happyLivePulse 1.35s ease-in-out infinite;box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 24px rgba(255,75,34,.44)}@keyframes happyLivePulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 22px rgba(255,75,34,.35)}50%{transform:scale(1.055);box-shadow:0 0 0 8px rgba(255,138,0,0),0 0 30px rgba(255,75,34,.62)}}.liveBadge{position:absolute;top:-5px;left:50%;transform:translateX(-50%);background:#ff2e2e;color:#fff;border-radius:6px;padding:2px 5px;font-size:8px;font-weight:1000;border:1px solid rgba(255,255,255,.18)}.typeDot{position:absolute;right:2px;bottom:2px;width:12px;height:12px;border-radius:50%;background:#26d76d;border:2px solid #080a0f}.typeDot.video{background:#ff2e2e}.typeDot.product{background:#20b8ff}.typeDot.service{background:#26d76d}.typeDot.event{background:#ffd21a}.radarName{font-size:10px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.radarMeta{font-size:9px;color:#cbd0db;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.liveSection .sectionTitle{text-transform:uppercase;color:#fff}.liveSection .sectionTitle:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff2e2e;margin-right:6px;box-shadow:0 0 10px rgba(255,46,46,.8)}.miniCard.isLive:before{content:"LIVE";position:absolute;left:8px;top:43px;z-index:7;background:#ff2e2e;color:#fff;border-radius:6px;padding:3px 6px;font-size:8px;font-weight:1000}.quickPostSheet{position:fixed;inset:0;z-index:130;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}.quickPostSheet.on{display:flex}.quickPostBox{width:min(460px,calc(100% - 24px));margin-bottom:84px;background:#11151d;border:1px solid rgba(255,138,0,.28);border-radius:22px;padding:12px;box-shadow:0 22px 55px rgba(0,0,0,.7)}.quickPostBox b{display:block;margin:2px 4px 10px;font-size:15px}.quickPostGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quickPostBtn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);color:#fff;border-radius:16px;padding:13px 10px;font-weight:1000;text-decoration:none;text-align:center}.quickPostBtn.orange{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-color:transparent}.quickPostClose{margin-top:8px;width:100%;border:0;background:transparent;color:#aeb3c0;font-weight:1000;padding:10px}
-@media(max-width:360px){.sponsorStrip{height:118px!important}.radarItem{flex-basis:76px}.radarAvatar{width:56px;height:56px}.chip{font-size:10px!important;padding:7px 11px!important}}
-
-</style>
-
-<style id="happyad-v5-avatar-circle-display-fix">
-/* V5 — correction affichage avatar cercle sur tous les téléphones */
-#avatarPreview,
-.haAvatarPreview,
-.avatar,
-.miniAvatar,
-.commentAvatarSmall{
-  aspect-ratio:1/1!important;
-  border-radius:50%!important;
-  background-size:cover!important;
-  background-position:center!important;
-  background-repeat:no-repeat!important;
-  flex:0 0 auto!important;
-}
-.miniTop .avatar,
-.creatorPill .avatar,
-.miniAvatar,
-.commentAvatarSmall,
-.haAvatarPreview{
-  overflow:hidden!important;
-}
-.avatar>img,
-.miniAvatar>img,
-.commentAvatarSmall>img,
-.haAvatarPreview>img{
-  width:100%!important;
-  height:100%!important;
-  min-width:100%!important;
-  min-height:100%!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  border-radius:50%!important;
-  display:block!important;
-}
-#avatarPreview{
-  overflow:visible!important;
-}
-#avatarPreview .plus{
-  border-radius:50%!important;
-  z-index:2!important;
-}
-
-/* V114 — Home officiel: rectangle dynamique, Radar Pour Toi, lives, recherche simple */
-.topRow{grid-template-columns:44px 1fr 44px!important}.searchRound{background:#11151d!important;border-color:rgba(255,255,255,.14)!important}.searchIcon{width:21px;height:21px;display:block}.searchIcon svg{width:100%;height:100%;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.bellLineIcon{width:22px;height:22px;margin:0 auto 2px;display:block}.bellLineIcon svg{width:100%;height:100%;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.sponsorStrip{height:132px!important;margin:6px 0 10px!important;border-radius:22px!important;border-color:rgba(255,138,0,.38)!important;background:#07090d!important}.sponsorAd{grid-template-columns:58% 42%!important;border-radius:22px!important;background:#07090d!important}.sponsorThumb{border-radius:22px 0 0 22px!important}.sponsorThumb img{object-fit:cover!important}.sponsorThumb video{object-fit:cover!important}.sponsorText{position:relative;padding:14px 14px!important;background:linear-gradient(90deg,rgba(0,0,0,.34),rgba(0,0,0,.86) 42%,rgba(0,0,0,.96))!important}.sponsorText:before{content:"";position:absolute;left:-34px;top:0;width:58px;height:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.72),rgba(0,0,0,.96));pointer-events:none}.sponsorText b{font-size:16px!important;color:#ffd21a!important}.sponsorText small{font-size:12px!important;color:#fff!important}.sponsorText .sponsorMeta{font-size:11px!important;color:#d9dde8!important}.sponsorDescWrap{height:38px!important}.sponsorDesc{font-size:11px!important;line-height:1.35!important}.sponsorLiveDot{display:inline-flex;align-items:center;gap:6px;margin-top:2px;font-size:10px;font-weight:1000;color:#e9edf7}.sponsorLiveDot i{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px rgba(255,138,0,.75)}
-.chips{gap:7px!important;padding:3px 0 9px!important}.chip{height:36px!important;padding:8px 13px!important;border-radius:15px!important;font-size:11px!important;display:inline-flex;align-items:center}.homeSearchPanel{display:none;margin:4px 0 10px}.homeSearchPanel.on{display:block}.homeSearchInput{width:100%;height:40px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:#11151d;color:#fff;padding:0 14px;font-weight:900;outline:none}.radarBlock{margin:6px 0 12px}.radarHead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}.radarTitle{font-size:14px;font-weight:1000;color:#fff;letter-spacing:.1px}.radarTitle b{color:#ffd21a}.mapLite{border:1px solid rgba(255,138,0,.45);background:rgba(255,138,0,.08);color:#ffd21a;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:1000;text-decoration:none}.radarRow{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 2px 2px}.radarRow::-webkit-scrollbar{display:none}.radarItem{flex:0 0 82px;text-align:center;color:#fff;text-decoration:none}.radarAvatar{width:62px;height:62px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--orange),#ff315f,#7b35ff,#26d76d,var(--orange));position:relative;box-shadow:0 8px 20px rgba(0,0,0,.35)}.radarAvatar img,.radarAvatar .radarInitial{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#11151d;object-fit:cover;font-size:22px;font-weight:1000}.radarAvatar.add{background:conic-gradient(from 0deg,rgba(255,138,0,.2),var(--orange),rgba(255,138,0,.2));border:1px dashed rgba(255,138,0,.9);display:grid;place-items:center;padding:0}.radarAvatar.add span{font-size:34px;color:var(--orange);line-height:1}.radarAvatar.live{background:conic-gradient(from 0deg,var(--orange),#ff2b2b,var(--orange),#ff2b2b,var(--orange));animation:happyLivePulse 1.35s ease-in-out infinite;box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 24px rgba(255,75,34,.44)}@keyframes happyLivePulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,138,0,.55),0 0 22px rgba(255,75,34,.35)}50%{transform:scale(1.055);box-shadow:0 0 0 8px rgba(255,138,0,0),0 0 30px rgba(255,75,34,.62)}}.liveBadge{position:absolute;top:-5px;left:50%;transform:translateX(-50%);background:#ff2e2e;color:#fff;border-radius:6px;padding:2px 5px;font-size:8px;font-weight:1000;border:1px solid rgba(255,255,255,.18)}.typeDot{position:absolute;right:2px;bottom:2px;width:12px;height:12px;border-radius:50%;background:#26d76d;border:2px solid #080a0f}.typeDot.video{background:#ff2e2e}.typeDot.product{background:#20b8ff}.typeDot.service{background:#26d76d}.typeDot.event{background:#ffd21a}.radarName{font-size:10px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.radarMeta{font-size:9px;color:#cbd0db;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.liveSection .sectionTitle{text-transform:uppercase;color:#fff}.liveSection .sectionTitle:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff2e2e;margin-right:6px;box-shadow:0 0 10px rgba(255,46,46,.8)}.miniCard.isLive:before{content:"LIVE";position:absolute;left:8px;top:43px;z-index:7;background:#ff2e2e;color:#fff;border-radius:6px;padding:3px 6px;font-size:8px;font-weight:1000}.quickPostSheet{position:fixed;inset:0;z-index:130;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}.quickPostSheet.on{display:flex}.quickPostBox{width:min(460px,calc(100% - 24px));margin-bottom:84px;background:#11151d;border:1px solid rgba(255,138,0,.28);border-radius:22px;padding:12px;box-shadow:0 22px 55px rgba(0,0,0,.7)}.quickPostBox b{display:block;margin:2px 4px 10px;font-size:15px}.quickPostGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quickPostBtn{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);color:#fff;border-radius:16px;padding:13px 10px;font-weight:1000;text-decoration:none;text-align:center}.quickPostBtn.orange{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;border-color:transparent}.quickPostClose{margin-top:8px;width:100%;border:0;background:transparent;color:#aeb3c0;font-weight:1000;padding:10px}
-@media(max-width:360px){.sponsorStrip{height:118px!important}.radarItem{flex-basis:76px}.radarAvatar{width:56px;height:56px}.chip{font-size:10px!important;padding:7px 11px!important}}
-
-</style>
-
-<style id="happyad-v116-final-logic-css">
-/* V116: boutons plus fins + description pub lisible */
-.chips{gap:6px!important;padding:2px 0 7px!important}
-.chip{height:28px!important;min-height:28px!important;padding:5px 10px!important;border-radius:12px!important;font-size:10px!important;line-height:1!important}
-.sponsorText{padding-left:32px!important;padding-right:12px!important}
-.sponsorText:before{left:-28px!important;width:54px!important}
-.sponsorDescWrap{height:46px!important;overflow:hidden!important}
-.sponsorDesc{font-size:11px!important;line-height:1.28!important;display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;animation:none!important;transform:none!important}
-@media(max-width:360px){.chip{height:26px!important;min-height:26px!important;padding:4px 9px!important;font-size:9.5px!important}.sponsorText{padding-left:26px!important}}
-</style>
-
-<style id="happyad-v170-home-card-time-fix">
-/* V170 — Accueil: cartes adaptatives + vraie durée/date publication */
-.miniBody{padding:7px!important;display:flex!important;flex-direction:column!important;min-height:88px!important}
-.miniTitle{min-height:auto!important;line-height:1.12!important;word-break:break-word!important;overflow-wrap:anywhere!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
-.miniMeta{min-height:auto!important;line-height:1.16!important;word-break:break-word!important;overflow-wrap:anywhere!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
-.miniPostDate{margin-top:5px!important;color:#9aa1b3!important;font-size:9.5px!important;font-weight:850!important;line-height:1.15!important;min-height:13px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.miniActions{margin-top:5px!important}
-.time{font-size:9px!important;max-width:62px!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:right!important}
-.sponsorStrip{height:136px!important}
-.sponsorAd{grid-template-columns:58% 42%!important}
-.sponsorText{padding:12px 12px!important;gap:4px!important;justify-content:center!important;overflow:hidden!important;min-width:0!important}
-.sponsorText b{font-size:15px!important;line-height:1.08!important;white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;text-overflow:ellipsis!important;word-break:break-word!important}
-.sponsorText small,.sponsorText .sponsorMeta{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.sponsorDescWrap{height:auto!important;max-height:36px!important;overflow:hidden!important}
-.sponsorDesc{animation:none!important;transform:none!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;line-height:1.2!important;word-break:break-word!important}
-@media(max-width:360px){.miniBody{min-height:92px!important}.miniPostDate{font-size:9px!important}.time{max-width:54px!important}.sponsorStrip{height:128px!important}.sponsorAd{grid-template-columns:55% 45%!important}.sponsorText{padding:10px 9px!important}.sponsorText b{font-size:14px!important}.sponsorDesc{font-size:9.5px!important}}
-</style>
-
-<style id="happyad-v173-sponsor-layout-fix">
-/* V173 - Sponsor/ad card alignment fix only */
-.sponsorStrip{
-  height:128px!important;
-  margin:6px 0 12px!important;
-  border-radius:22px!important;
-  overflow:hidden!important;
-  background:#07090d!important;
-}
-.sponsorTrack{
-  width:100%!important;
-  height:100%!important;
-}
-.sponsorAd{
-  width:100%!important;
-  height:100%!important;
-  display:grid!important;
-  grid-template-columns:42% 58%!important;
-  align-items:stretch!important;
-  overflow:hidden!important;
-  border-radius:22px!important;
-  background:#07090d!important;
-}
-.sponsorThumb{
-  width:100%!important;
-  height:100%!important;
-  min-width:0!important;
-  overflow:hidden!important;
-  border-radius:22px 0 0 22px!important;
-}
-.sponsorThumb img,.sponsorThumb video{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  display:block!important;
-}
-.sponsorText{
-  position:relative!important;
-  z-index:1!important;
-  min-width:0!important;
-  height:100%!important;
-  padding:12px 14px!important;
-  display:flex!important;
-  flex-direction:column!important;
-  justify-content:center!important;
-  gap:4px!important;
-  overflow:hidden!important;
-  background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.96))!important;
-  line-height:1.15!important;
-}
-.sponsorText:before{
-  content:none!important;
-  display:none!important;
-}
-.sponsorText b{
-  display:-webkit-box!important;
-  -webkit-line-clamp:2!important;
-  -webkit-box-orient:vertical!important;
-  white-space:normal!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  max-width:100%!important;
-  font-size:16px!important;
-  line-height:1.08!important;
-  color:#ffd21a!important;
-  word-break:break-word!important;
-}
-.sponsorText small{
-  display:block!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  max-width:100%!important;
-  font-size:12px!important;
-  line-height:1.1!important;
-  color:#ffffff!important;
-}
-.sponsorDescWrap{
-  height:auto!important;
-  max-height:34px!important;
-  overflow:hidden!important;
-  position:relative!important;
-}
-.sponsorDesc{
-  display:-webkit-box!important;
-  -webkit-line-clamp:2!important;
-  -webkit-box-orient:vertical!important;
-  overflow:hidden!important;
-  animation:none!important;
-  transform:none!important;
-  white-space:normal!important;
-  text-overflow:ellipsis!important;
-  font-size:11px!important;
-  line-height:1.22!important;
-  color:#d7dbe5!important;
-  word-break:break-word!important;
-}
-.sponsorText .sponsorMeta{
-  display:block!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  max-width:100%!important;
-  font-size:10px!important;
-  line-height:1.1!important;
-  color:#d9dde8!important;
-}
-.sponsorLiveDot{
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:6px!important;
-  margin-top:1px!important;
-  font-size:10px!important;
-  line-height:1!important;
-}
-@media(max-width:360px){
-  .sponsorStrip{height:120px!important}
-  .sponsorAd{grid-template-columns:40% 60%!important}
-  .sponsorText{padding:10px 11px!important;gap:3px!important}
-  .sponsorText b{font-size:14px!important}
-  .sponsorText small{font-size:10.5px!important}
-  .sponsorDesc{font-size:10px!important;line-height:1.16!important}
-  .sponsorDescWrap{max-height:30px!important}
-}
-</style>
-
-<style id="happyad-radar-name-long-fix-v174">
-/* V174: stabilise les noms longs dans RADAR sans toucher aux cartes publications */
-.radarItem{flex:0 0 82px!important;max-width:82px!important;min-width:82px!important;text-align:center!important;}
-.radarName{width:82px!important;max-width:82px!important;margin:0 auto!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:2px!important;font-size:9px!important;line-height:1.05!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
-.radarName .happyBadgeMark{width:12px!important;height:12px!important;flex:0 0 12px!important;margin-left:1px!important;vertical-align:-1px!important;}
-.radarMeta{max-width:82px!important;margin-left:auto!important;margin-right:auto!important;}
-@media(max-width:360px){.radarItem{flex-basis:76px!important;max-width:76px!important;min-width:76px!important}.radarName{width:76px!important;max-width:76px!important;font-size:8.5px!important}.radarName .happyBadgeMark{width:11px!important;height:11px!important;flex-basis:11px!important}}
-</style>
-
-<style id="happyad-v204-home-fluid-css">
-/* V204: garde la boîte média stable pendant le chargement vidéo pour éviter noir/clignotement */
-.miniMedia{contain:layout paint;transform:translateZ(0)}
-.miniMedia video.happyadVideoLoading{opacity:0}
-.miniMedia video.happyadVideoReady{opacity:1;transition:opacity .16s ease}
-.miniMedia .happyadVideoFallback{position:absolute;inset:0;display:grid;place-items:center;background:#050609;color:#fff;font-weight:1000;font-size:26px}
-.miniMedia img.happyadVideoPoster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#050609;z-index:1}
-.miniMedia video.happyadVideoLoading{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.miniMedia video.happyadVideoReady{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
-.miniMedia .play{z-index:3}
-</style>
-
-<style id="happyad-v220-counts-no-overflow">
-/* V220 : compteurs likes/commentaires/partages/favoris compacts et sans debordement */
-.miniActions,.profileActions{
-  display:flex!important;
-  align-items:center!important;
-  gap:4px!important;
-  width:100%!important;
-  max-width:100%!important;
-  overflow:hidden!important;
-  white-space:nowrap!important;
-}
-.miniActions .actionBtn,.profileActions .profileAct{
-  flex:0 1 auto!important;
-  min-width:0!important;
-  max-width:34%!important;
-  overflow:hidden!important;
-  text-overflow:clip!important;
-  white-space:nowrap!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:2px!important;
-  padding-left:0!important;
-  padding-right:0!important;
-  line-height:1.05!important;
-}
-.miniActions .actionBtn small,.profileActions .profileAct small{
-  display:inline-block!important;
-  min-width:0!important;
-  max-width:42px!important;
-  overflow:hidden!important;
-  text-overflow:clip!important;
-  white-space:nowrap!important;
-  font-size:11px!important;
-  line-height:1!important;
-  font-variant-numeric:tabular-nums!important;
-}
-.miniActions .actionBtn.fav,.profileActions .profileAct.fav{
-  margin-left:auto!important;
-  flex:0 1 auto!important;
-  max-width:30%!important;
-}
-@media(max-width:360px){
-  .miniActions,.profileActions{gap:3px!important;font-size:10px!important}
-  .miniActions .actionBtn,.profileActions .profileAct{gap:1px!important;font-size:10px!important}
-  .miniActions .actionBtn small,.profileActions .profileAct small{font-size:10px!important;max-width:34px!important}
-}
-</style>
-
-<style id="happyad-v300-home-card-like-spacing-reference">
-/* V300 — Accueil: carte + actions espacées comme la référence envoyée. */
-.miniCard{border-radius:22px!important;background:#090c12!important;border:1px solid rgba(255,255,255,.10)!important;box-shadow:0 16px 36px rgba(0,0,0,.38)!important;overflow:hidden!important}
-.hScroller{gap:14px!important;padding:0 0 8px!important}
-.hScroller .miniCard{flex:0 0 min(430px,86vw)!important;scroll-snap-align:start!important}
-.feedGrid{display:flex!important;gap:14px!important;overflow-x:auto!important;scroll-snap-type:x proximity!important;padding-bottom:8px!important;scrollbar-width:none!important}
-.feedGrid::-webkit-scrollbar{display:none!important}
-.feedGrid .miniCard{flex:0 0 min(430px,86vw)!important;scroll-snap-align:start!important}
-.miniTop{height:68px!important;padding:13px 16px!important;gap:12px!important;background:#090c12!important}
-.avatar{width:45px!important;height:45px!important;font-size:18px!important}
-.creator b{font-size:18px!important;line-height:1.05!important;letter-spacing:-.3px!important}
-.creator span{font-size:14px!important;line-height:1.1!important;color:#aeb3c0!important;margin-top:3px!important}
-.miniMedia,.hScroller .miniMedia,.miniCard.videoCard .miniMedia,.hScroller .videoCard .miniMedia{height:auto!important;aspect-ratio:1/1!important;background:#050609!important}
-.miniMedia img,.miniMedia video{object-fit:cover!important}
-.miniBody{padding:16px 16px 14px!important;min-height:132px!important;background:#090c12!important}
-.miniTitle{font-size:22px!important;line-height:1.05!important;font-weight:1000!important;letter-spacing:-.4px!important;-webkit-line-clamp:1!important}
-.miniMeta{font-size:17px!important;line-height:1.1!important;color:#aeb3c0!important;margin-top:5px!important;-webkit-line-clamp:1!important}
-.miniActions{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:0!important;width:100%!important;margin-top:18px!important;overflow:visible!important;white-space:nowrap!important;color:#fff!important}
-.miniActions .actionBtn{border:0!important;background:transparent!important;color:#e8ebf2!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;min-width:0!important;max-width:none!important;flex:0 0 auto!important;font-size:0!important;line-height:1!important;overflow:visible!important}
-.miniActions .actionBtn.fav{margin-left:0!important;max-width:none!important}
-.miniActions .actionBtn small{font-size:16px!important;line-height:1!important;font-weight:900!important;color:#dfe3ec!important;max-width:46px!important;overflow:hidden!important;text-overflow:ellipsis!important;font-variant-numeric:tabular-nums!important}
-.haLineIcon{width:24px!important;height:24px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 24px!important}
-.haLineIcon svg{width:24px!important;height:24px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-.actionBtn.on,.actionBtn[data-card-act="like"].on{color:#ff315f!important}
-.actionBtn.on .haLikeIcon svg{stroke:#ff315f!important}
-.miniPostDate{margin-top:12px!important;font-size:14px!important;color:#969dac!important;font-weight:850!important}
-.videoHint,.cardOverlay{display:none!important}
-.happyadVideoViewsBadge{right:12px!important;bottom:12px!important;font-size:13px!important}
-@media(max-width:390px){.hScroller .miniCard,.feedGrid .miniCard{flex-basis:86vw!important}.miniTop{height:62px!important;padding:11px 14px!important}.avatar{width:40px!important;height:40px!important}.creator b{font-size:16px!important}.creator span{font-size:13px!important}.miniBody{padding:14px!important}.miniTitle{font-size:20px!important}.miniMeta{font-size:16px!important}.miniActions{margin-top:16px!important}.haLineIcon{width:22px!important;height:22px!important;flex-basis:22px!important}.haLineIcon svg{width:22px!important;height:22px!important}.miniActions .actionBtn{gap:6px!important}.miniActions .actionBtn small{font-size:15px!important;max-width:38px!important}}
-</style>
-
-<style id="happyad-v301-actions-outside-date-topright">
-/* V301 — Accueil: réactions hors du cadre et âge en haut à droite, sans toucher aux autres blocs. */
-.feedGrid .miniCard,.hScroller .miniCard{background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;border-radius:0!important}
-.miniCardFrame{border-radius:22px!important;background:#090c12!important;border:1px solid rgba(255,255,255,.10)!important;box-shadow:0 16px 36px rgba(0,0,0,.38)!important;overflow:hidden!important}
-.miniTop{position:relative!important}
-.miniTop .miniPostDate{margin-left:auto!important;margin-top:0!important;font-size:13px!important;color:#aeb3c0!important;font-weight:900!important;white-space:nowrap!important;align-self:flex-start!important;padding-top:2px!important}
-.miniBody{min-height:72px!important;padding-bottom:16px!important}
-.miniActions{background:transparent!important;border:0!important;box-shadow:none!important;margin:0!important;padding:11px 24px 0!important}
-.hScroller .miniCard,.feedGrid .miniCard{padding-bottom:6px!important}
-@media(max-width:390px){.miniTop .miniPostDate{font-size:12px!important}.miniActions{padding:10px 21px 0!important}.miniBody{min-height:68px!important}}
-</style>
-
-
-<style id="happyad-v302-video-card-like-photo-fix">
-/* V302 — Accueil: les cartes vidéo utilisent exactement le même cadre média que les photos. */
-.miniCard.videoCard .miniCardFrame{
-  display:block!important;
-  width:100%!important;
-}
-.miniCard.videoCard .miniTop,
-.miniCard.videoCard .miniMedia,
-.miniCard.videoCard .miniBody{
-  display:block!important;
-  width:100%!important;
-  max-width:100%!important;
-  min-width:100%!important;
-  box-sizing:border-box!important;
-  float:none!important;
-}
-.miniCard.videoCard .miniTop{
-  display:flex!important;
-}
-.miniCard.videoCard .miniMedia,
-.hScroller .miniCard.videoCard .miniMedia,
-.feedGrid .miniCard.videoCard .miniMedia{
-  height:auto!important;
-  aspect-ratio:1/1!important;
-  position:relative!important;
-  overflow:hidden!important;
-  background:#050609!important;
-}
-.miniCard.videoCard .miniMedia img,
-.miniCard.videoCard .miniMedia video,
-.miniCard.videoCard .miniMedia img.happyadVideoPoster,
-.miniCard.videoCard .miniMedia video.happyadVideoLoading,
-.miniCard.videoCard .miniMedia video.happyadVideoReady{
-  position:absolute!important;
-  inset:0!important;
-  display:block!important;
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:cover!important;
-  background:#050609!important;
-}
-.miniCard.videoCard .play,
-.miniCard.videoCard .happyadVideoViewsBadge{
-  position:absolute!important;
-  z-index:5!important;
-}
-</style>
-
-
-<style id="happyad-v303-compact-height-small-actions-fix">
-/* V303 — Accueil compact premium: hauteur réduite sans changer la largeur + réactions plus discrètes. */
-.hScroller .miniCard,
-.feedGrid .miniCard{
-  flex-basis:min(430px,86vw)!important;
-  padding-bottom:2px!important;
-}
-.miniCardFrame{
-  border-radius:21px!important;
-  box-shadow:0 12px 28px rgba(0,0,0,.34)!important;
-}
-.miniTop{
-  height:56px!important;
-  padding:8px 14px!important;
-  gap:10px!important;
-  align-items:center!important;
-}
-.avatar{
-  width:38px!important;
-  height:38px!important;
-  font-size:15px!important;
-  flex:0 0 38px!important;
-}
-.creator b{
-  font-size:16px!important;
-  line-height:1!important;
-  letter-spacing:-.25px!important;
-}
-.creator span{
-  font-size:13px!important;
-  line-height:1!important;
-  margin-top:2px!important;
-}
-.miniTop .miniPostDate{
-  font-size:12px!important;
-  line-height:1!important;
-  padding-top:1px!important;
-  opacity:.88!important;
-}
-.miniMedia,
-.hScroller .miniMedia,
-.feedGrid .miniMedia,
-.miniCard.videoCard .miniMedia,
-.hScroller .videoCard .miniMedia,
-.feedGrid .videoCard .miniMedia{
-  height:auto!important;
-  aspect-ratio:1/.88!important;
-}
-.miniBody{
-  min-height:58px!important;
-  padding:10px 14px 11px!important;
-}
-.miniTitle{
-  font-size:20px!important;
-  line-height:1!important;
-  letter-spacing:-.35px!important;
-}
-.miniMeta{
-  font-size:15px!important;
-  line-height:1!important;
-  margin-top:4px!important;
-}
-.miniActions{
-  padding:8px 28px 0!important;
-  margin:0!important;
-  opacity:.88!important;
-  filter:none!important;
-}
-.bottom .nav.active{color:var(--orange)!important;}
-.bottom .nav.happyadTapOrange.active,
-.bottom .nav.happyadBottomPressedV504.active,
-.bottom .nav.active:active{color:var(--orange)!important;}
-
-.miniActions .actionBtn{
-  gap:5px!important;
-  color:#d8dde8!important;
-}
-.miniActions .actionBtn small{
-  font-size:14px!important;
-  line-height:1!important;
-  font-weight:850!important;
-  color:#d8dde8!important;
-  max-width:36px!important;
-}
-.haLineIcon{
-  width:20px!important;
-  height:20px!important;
-  flex:0 0 20px!important;
-}
-.haLineIcon svg{
-  width:20px!important;
-  height:20px!important;
-  stroke-width:2!important;
-}
-.actionBtn.on,
-.actionBtn[data-card-act="like"].on{
-  color:#ff315f!important;
-  opacity:1!important;
-}
-.actionBtn.on .haLikeIcon svg{
-  stroke:#ff315f!important;
-}
-.happyadVideoViewsBadge{
-  right:10px!important;
-  bottom:10px!important;
-  font-size:12px!important;
-}
-@media(max-width:390px){
-  .miniTop{height:52px!important;padding:7px 13px!important;gap:9px!important}
-  .avatar{width:36px!important;height:36px!important;flex-basis:36px!important}
-  .creator b{font-size:15px!important}
-  .creator span{font-size:12px!important}
-  .miniMedia,.hScroller .miniMedia,.feedGrid .miniMedia,.miniCard.videoCard .miniMedia{aspect-ratio:1/.86!important}
-  .miniBody{min-height:54px!important;padding:9px 13px 10px!important}
-  .miniTitle{font-size:19px!important}
-  .miniMeta{font-size:14px!important;margin-top:3px!important}
-  .miniActions{padding:7px 25px 0!important}
-  .haLineIcon{width:19px!important;height:19px!important;flex-basis:19px!important}
-  .haLineIcon svg{width:19px!important;height:19px!important}
-  .miniActions .actionBtn{gap:4px!important}
-  .miniActions .actionBtn small{font-size:13px!important;max-width:32px!important}
-}
-</style>
-
-
-
-<style id="happyad-v304-final-7percent-height-fix">
-/* V304 — Finition accueil: -7% hauteur sans toucher la largeur. */
-.hScroller .miniCard,
-.feedGrid .miniCard{
-  flex-basis:min(430px,86vw)!important;
-  padding-bottom:1px!important;
-}
-.miniCardFrame{
-  border-radius:21px!important;
-}
-.miniTop{
-  height:50px!important;
-  min-height:50px!important;
-  padding:6px 13px!important;
-  gap:8px!important;
-}
-.avatar{
-  width:35px!important;
-  height:35px!important;
-  flex-basis:35px!important;
-}
-.creator b{
-  font-size:15px!important;
-  line-height:.98!important;
-}
-.creator span{
-  font-size:12px!important;
-  line-height:.98!important;
-  margin-top:1px!important;
-}
-.miniTop .miniPostDate{
-  font-size:11.5px!important;
-  line-height:1!important;
-  padding-top:0!important;
-}
-.miniMedia,
-.hScroller .miniMedia,
-.feedGrid .miniMedia,
-.miniCard.videoCard .miniMedia{
-  height:auto!important;
-  aspect-ratio:1/.93!important;
-}
-.miniBody{
-  min-height:50px!important;
-  padding:8px 14px 9px!important;
-}
-.miniTitle{
-  font-size:19px!important;
-  line-height:1!important;
-  margin:0!important;
-}
-.miniMeta{
-  font-size:14.5px!important;
-  line-height:1!important;
-  margin-top:2px!important;
-}
-.miniActions{
-  padding:5px 24px 0!important;
-  margin:0!important;
-}
-.haLineIcon,
-.haLineIcon svg{
-  width:21px!important;
-  height:21px!important;
-}
-.haLineIcon{flex-basis:21px!important}
-.miniActions .actionBtn{gap:5px!important}
-.miniActions .actionBtn small{font-size:14px!important;line-height:1!important}
-.sectionTitle{margin-top:7px!important;margin-bottom:6px!important}
-@media(max-width:390px){
-  .miniTop{height:48px!important;min-height:48px!important;padding:6px 12px!important}
-  .avatar{width:34px!important;height:34px!important;flex-basis:34px!important}
-  .creator b{font-size:14.5px!important}
-  .creator span{font-size:11.5px!important}
-  .miniTop .miniPostDate{font-size:11px!important}
-  .miniMedia,.hScroller .miniMedia,.feedGrid .miniMedia,.miniCard.videoCard .miniMedia{aspect-ratio:1/.92!important}
-  .miniBody{min-height:48px!important;padding:8px 13px 8px!important}
-  .miniTitle{font-size:18.5px!important}
-  .miniMeta{font-size:14px!important;margin-top:2px!important}
-  .miniActions{padding:5px 20px 0!important}
-  .haLineIcon,.haLineIcon svg{width:20px!important;height:20px!important}
-  .haLineIcon{flex-basis:20px!important}
-  .miniActions .actionBtn small{font-size:13.5px!important}
-}
-</style>
-
-
-
-<style id="happyad-v325-avatar-round-fav-inside-fix">
-/* V325 — Finition demandée: avatar carte accueil parfaitement rond + favoris sans collision avec la carte suivante. */
-.miniTop .avatar,
-.feedGrid .miniTop .avatar,
-.hScroller .miniTop .avatar{
-  width:34px!important;
-  height:34px!important;
-  min-width:34px!important;
-  min-height:34px!important;
-  flex:0 0 34px!important;
-  aspect-ratio:1/1!important;
-  border-radius:50%!important;
-  overflow:hidden!important;
-  display:grid!important;
-  place-items:center!important;
-  line-height:1!important;
-  box-sizing:border-box!important;
-}
-.miniTop .avatar img,
-.feedGrid .miniTop .avatar img,
-.hScroller .miniTop .avatar img{
-  width:100%!important;
-  height:100%!important;
-  min-width:100%!important;
-  min-height:100%!important;
-  border-radius:50%!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  display:block!important;
-}
-/* Les actions restent dans la largeur de leur propre carte: le favori ne touche plus le j'aime de la carte suivante. */
-.feedGrid,
-.hScroller{
-  gap:16px!important;
-}
-.feedGrid .miniCard,
-.hScroller .miniCard{
-  box-sizing:border-box!important;
-  overflow:visible!important;
-}
-.miniActions{
-  box-sizing:border-box!important;
-  width:100%!important;
-  max-width:100%!important;
-  padding:7px 14px 0!important;
-  margin:0!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:space-between!important;
-  gap:0!important;
-  overflow:hidden!important;
-}
-.miniActions .actionBtn{
-  flex:0 1 auto!important;
-  min-width:0!important;
-  max-width:20%!important;
-  justify-content:center!important;
-  overflow:hidden!important;
-}
-.miniActions .actionBtn.fav{
-  margin-left:0!important;
-  padding-right:0!important;
-  transform:translateX(-2px)!important;
-}
-.miniActions .actionBtn small{
-  max-width:28px!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-}
-@media(max-width:390px){
-  .feedGrid,.hScroller{gap:16px!important}
-  .miniActions{padding:7px 12px 0!important}
-  .miniActions .actionBtn{max-width:19%!important}
-  .miniActions .actionBtn.fav{transform:translateX(-3px)!important}
-  .miniActions .actionBtn small{max-width:24px!important}
-}
-</style>
-
-
-<style id="happyad-v333-fullwidth-topfocus-counter-fix">
-/* HAPPYAD V333 — Accueil plein largeur + photos focalisées vers le haut + compteur album clair */
-#list.homeTimeline{
-  margin-left:calc(50% - 50vw)!important;
-  margin-right:calc(50% - 50vw)!important;
-  padding:0 0 96px!important;
-  gap:18px!important;
-}
-#list.homeTimeline .miniCard{
-  width:100vw!important;
-  max-width:none!important;
-  margin-left:0!important;
-  margin-right:0!important;
-  border-radius:22px!important;
-}
-#list.homeTimeline .miniCardFrame{
-  border-radius:22px!important;
-  overflow:hidden!important;
-}
-#list.homeTimeline .miniMedia,
-#list.homeTimeline .happyadAlbumCarousel,
-#list.homeTimeline .happyadAlbumTrack,
-#list.homeTimeline .happyadAlbumSlide{
-  width:100%!important;
-}
-#list.homeTimeline .miniMedia{
-  height:clamp(430px,132vw,620px)!important;
-  min-height:430px!important;
-  max-height:620px!important;
-  overflow:hidden!important;
-  background:#05070a!important;
-}
-#list.homeTimeline .videoCard .miniMedia{
-  height:clamp(430px,132vw,620px)!important;
-}
-#list.homeTimeline .miniMedia>img,
-#list.homeTimeline .happyadAlbumSlide img,
-#list.homeTimeline .miniMedia img.happyadCropImg{
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:cover!important;
-  object-position:center 12%!important;
-  transform:none!important;
-  display:block!important;
-}
-#list.homeTimeline .happyadAlbumSlide{
-  height:clamp(430px,132vw,620px)!important;
-  min-height:430px!important;
-  max-height:620px!important;
-  overflow:hidden!important;
-}
-#list.homeTimeline .happyadAlbumCounter{
-  right:12px!important;
-  top:12px!important;
-  padding:5px 10px!important;
-  font-size:12px!important;
-  background:rgba(0,0,0,.64)!important;
-  border:1px solid rgba(255,255,255,.18)!important;
-  box-shadow:0 6px 16px rgba(0,0,0,.35)!important;
-}
-#list.homeTimeline .happyadAlbumHint{display:none!important}
-#list.homeTimeline .miniActions{
-  padding:10px 24px 16px!important;
-  justify-content:space-between!important;
-}
-#list.homeTimeline .miniBody{
-  padding:13px 18px 14px!important;
-}
-@media(max-width:390px){
-  #list.homeTimeline .miniMedia,
-  #list.homeTimeline .videoCard .miniMedia,
-  #list.homeTimeline .happyadAlbumSlide{
-    height:clamp(410px,134vw,590px)!important;
-    min-height:410px!important;
-  }
-}
-</style>
-
-<style id="happyad-v471-clean-home-no-old-promo">
-/* HAPPYAD V471 corrigé: garder le carré publicité visible; cacher seulement les anciens boutons filtres.
-   Le DOM des filtres reste présent pour les anciens scripts, mais il ne s'affiche plus à l'ouverture/retour. */
-.chips{display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;max-height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;pointer-events:none!important}
-.sponsorStrip{display:flex!important;visibility:visible!important;pointer-events:auto!important}
-
-</style>
-<script id="happyad-v493-early-video-profile-app-guard">
 (function(){
   if(window.__HAPPYAD_V493_EARLY_VIDEO_PROFILE_APP_GUARD__)return;
   window.__HAPPYAD_V493_EARLY_VIDEO_PROFILE_APP_GUARD__=true;
@@ -1174,32 +193,8 @@ html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!
   window.happyadOpenVideoProfileRouteV493=open;
   if(document.readyState==='complete')setTimeout(flush,80);else window.addEventListener('DOMContentLoaded',function(){setTimeout(flush,80)},{once:true});
 })();
-</script>
-
-<style id="happyad-v495-black-status-css">
-html,body{background-color:#000!important;color-scheme:dark!important;}
-@media (display-mode: standalone){html,body{background:#000!important;} .top{background:rgba(0,0,0,.98)!important;}}
-</style>
-
-<style id="happyad-v517-real-app-icon-style">
-/* V517 : icône PWA réelle fournie par le client, dessin légèrement épaissi, fond noir strict. */
-html{background:#000!important;}
-#happyadInstallAppBtn .haInstallIcon{background:#000!important;overflow:hidden!important;color:transparent!important;}
-#happyadInstallAppBtn .haInstallIcon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;border-radius:inherit!important;}
-</style>
-
-<style id="happyad-fixed-radar-admin-css">
-.sponsorStrip .happyadFixedRadarAd{display:block!important;grid-template-columns:none!important;padding:0!important;background:#000!important;overflow:hidden!important;border-radius:25px!important}
-.sponsorStrip .happyadFixedRadarAd .sponsorThumb{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;background:#000!important;border-radius:25px!important;overflow:hidden!important}
-.sponsorStrip .happyadFixedRadarAd img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#000!important}
-</style>
 
 
-
-<style id="happyad-v612-message-nav-svg-css">
-.bottom .nav[data-happyad-bottom-message] .ico{height:22px;display:block;margin-bottom:2px}.bottom .nav[data-happyad-bottom-message] svg{stroke:currentColor}.bottom .nav[data-happyad-bottom-message].active{color:var(--orange)!important}
-</style>
-</head><body><div class="app"><div class="top"><div class="topRow"><a class="round back" href="index.html">‹</a><div class="title">HAPPY<b>AD</b><span class="sub">Connecte · Découvre · Vends</span></div><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, un service, un produit..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Produit">Produits</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><div id="list" class="feedGrid"></div><div class="bottom"><a class="nav active" href="index.html"><span class="ico">⌂</span>Explorer</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="modules/video.html" data-happyad-bottom-video="1" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/video.html');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('video','modules/video.html');return false;}}catch(e){}return false;"><span class="ico">▶</span>Vidéos</a><a class="nav" href="modules/publish.html"><div class="plus">+</div>Publier</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="messages.html?mode=list&origin=home" data-happyad-bottom-message="1" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('messages.html?mode=list&origin=home');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('messages','messages.html?mode=list&origin=home');return false;}}catch(e){}return false;"><span class="ico"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:22px;height:22px;display:block;margin:0 auto 2px"><path d="M5.2 6.4c0-1.25 1.02-2.27 2.27-2.27h9.06c1.25 0 2.27 1.02 2.27 2.27v6.12c0 1.25-1.02 2.27-2.27 2.27h-5.18l-4.43 3.34c-.53.4-1.28.02-1.28-.64v-2.7h-.44c-1.25 0-2.27-1.02-2.27-2.27V6.4Z" stroke="currentColor" stroke-width="2.05" stroke-linejoin="round"/><path d="M8.05 8.75h7.9M8.05 11.65h5.75" stroke="currentColor" stroke-width="2.05" stroke-linecap="round"/></svg></span>Messages</a><a class="nav" href="javascript:void(0)" data-happyad-app-route="modules/user.html" onclick="try{if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/user.html');return false;}if(window.happyadOpenAppPage){window.happyadOpenAppPage('profile','modules/user.html');return false;}}catch(e){}return false;"><span class="ico">👤</span>Compte</a></div></div><script>
 
 let ALL_POSTS=[],HAPPYAD_STORIES_ITEMS=[],currentFilter='all',happyadPostsLoading=true;
 /* HAPPYAD V493 — Accueil complet: affichage rapide, puis synchronisation de toutes les publications en arrière-plan. */
@@ -3706,8 +2701,8 @@ document.querySelectorAll('.chip').forEach(btn=>{btn.onclick=()=>openHomeCentral
     }
   }catch(e){}
 })();
-</script>
-<script id="happyad-close-edit-final-fix">
+
+
 document.addEventListener('click',function(e){
   if(e.target && e.target.id==='closeEditProfile'){
     try{
@@ -3719,10 +2714,8 @@ document.addEventListener('click',function(e){
     }catch(err){}
   }
 });
-</script>
 
 
-<script id="happyad-v67-daily-verification-reminder">
 (function(){
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   function today(){return new Date().toISOString().slice(0,10)}
@@ -3746,9 +2739,8 @@ document.addEventListener('click',function(e){
   document.addEventListener('DOMContentLoaded',show);
   setTimeout(show,300);
 })();
-</script>
 
-<script id="happyad-v78-home-stability-sync">
+
 (function(){
  const USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
  const URL=window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co';
@@ -3760,15 +2752,11 @@ document.addEventListener('click',function(e){
  function removeFloatingAdmin(){document.querySelectorAll('#adminAccessBtn,#ownerAdminAccessBtn,.floatingAdminBtn,.adminFloating').forEach(x=>x.remove());}
  document.addEventListener('DOMContentLoaded',function(){removeFloatingAdmin();sync();setTimeout(removeFloatingAdmin,400);setTimeout(removeFloatingAdmin,900);});setTimeout(sync,900);
 })();
-</script>
 
-<script id="happyad-v79-remove-home-admin-final">
+
 (function(){function rm(){document.querySelectorAll('#adminAccessBtn,#ownerAdminAccessBtn,.floatingAdminBtn,.adminFloating').forEach(x=>x.remove())}document.addEventListener('DOMContentLoaded',rm);setTimeout(rm,300);setTimeout(rm,700);setTimeout(rm,900);})();
-</script>
 
 
-<!-- === V116G AUTH STATE REPAIR — only fix false guest after real login === -->
-<script id="happyad-v116g-auth-state-repair">
 (function(){
   if(window.__HAPPYAD_V116G_AUTH_REPAIR__) return;
   window.__HAPPYAD_V116G_AUTH_REPAIR__=true;
@@ -3794,10 +2782,8 @@ document.addEventListener('click',function(e){
   setTimeout(repair,100);
   setTimeout(repair,800);
 })();
-</script>
 
-<!-- === V116F GUEST MODE GUARD — point 2 only === -->
-<script id="happyad-v116f-guest-mode-guard-home">
+
 (function(){
   if(window.__HAPPYAD_V116F_GUEST_GUARD__) return;
   window.__HAPPYAD_V116F_GUEST_GUARD__=true;
@@ -3832,10 +2818,8 @@ document.addEventListener('click',function(e){
   document.addEventListener('click',protectHomeClick,true);
   window.happyadHasRealAccountV116F=hasRealAccount;
 })();
-</script>
 
 
-<script id="happyad-v121-radar-story-viewer-fix">
 (function(){
   function esc2(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]});}
   function isRadarStoryItem(p){
@@ -3949,10 +2933,8 @@ document.addEventListener('click',function(e){
     }
   }catch(e){}
 })();
-</script>
 
-<!-- === HAPPYAD V144: happyad_stories = SOURCE UNIQUE RADAR + PROFIL === -->
-<script id="happyad-v144-happyad-stories-only">
+
 (function(){
  if(window.__HAPPYAD_V144_STORIES_ONLY__)return; window.__HAPPYAD_V144_STORIES_ONLY__=true;
  function sb(){try{return (typeof happyadSb==='function')?happyadSb():((window.happyadSupabase)||(window.supabase&&window.supabase.createClient?window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null));}catch(e){return null}}
@@ -3972,12 +2954,8 @@ document.addEventListener('click',function(e){
  var oldRadar=window.openRadarPost;
  window.openRadarPost=function(p){if(p&&(String(p.mode||p.type||p.category||'').toLowerCase()==='story'||p.__storyTable==='happyad_stories')){if(oldOpen)return oldOpen(p);}return oldRadar?oldRadar(p):false;};
 })();
-</script>
 
 
-
-<!-- === HAPPYAD V145: happyad_stories UNIQUE + PAS DE CACHE ANCIEN + BADGE PROFIL PRIORITAIRE === -->
-<script id="happyad-v145-stories-clean-single-source">
 (function(){
  if(window.__HAPPYAD_V145_SINGLE_SOURCE__)return; window.__HAPPYAD_V145_SINGLE_SOURCE__=true;
  function sb(){try{return typeof happyadSb==='function'?happyadSb():null}catch(e){return null}}
@@ -4022,12 +3000,8 @@ function stableStoryCache(){
  window.openRadarPost=function(p){ if(p&&(String(p.mode||p.type||p.category||'').toLowerCase()==='story'||p.__storyTable==='happyad_stories'||p.isRadar===true))return window.openHappyadStoryViewer(p); try{if(typeof openLongVideo==='function'&&String(p&&p.kind||p&&p.mediaType||'').indexOf('video')>=0)return openLongVideo(p.id); if(typeof openLongPhoto==='function')return openLongPhoto(p.id);}catch(e){} };
  setTimeout(async function(){try{await window.fetchRadarItems(); if(typeof renderRadarHome==='function')renderRadarHome();}catch(e){}},150);
 })();
-</script>
 
 
-
-<!-- === HAPPYAD V154 POINT7: RADAR STORY 24H + BADGE DIRECT STABLE === -->
-<script id="happyad-v154-point7-radar-story-badge-stable-fix">
 (function(){
   if(window.__HAPPYAD_V154_POINT7_RADAR_BADGE_STABLE__)return; window.__HAPPYAD_V154_POINT7_RADAR_BADGE_STABLE__=true;
   var AUTHOR_CACHE_KEY='HAPPYAD_AUTHOR_PROFILE_CACHE_V1';
@@ -4122,10 +3096,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   }
   setTimeout(function(){bootRadarStable();},20);
 })();
-</script>
 
 
-<script id="happyad-v154-point8-final-badge-no-flicker-guard">
 (function(){
   if(window.__HAPPYAD_V154_POINT8_FINAL_BADGE_GUARD__)return; window.__HAPPYAD_V154_POINT8_FINAL_BADGE_GUARD__=true;
   var KEY='HAPPYAD_AUTHOR_PROFILE_CACHE_V1';
@@ -4140,20 +3112,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   var oldRender=window.renderRadarHome;
   if(typeof oldRender==='function')window.renderRadarHome=function(){try{window.HAPPYAD_STORIES_ITEMS=(window.HAPPYAD_STORIES_ITEMS||[]).map(merge);remember(window.HAPPYAD_STORIES_ITEMS);}catch(e){}return oldRender.apply(this,arguments)};
 })();
-</script>
 
 
-
-<!-- === HAPPYAD V181: STORY VIEWED RING FINAL SYNC === -->
-<style id="happyad-v181-story-ring-final-css">
-/* Vu = seul le contour devient gris, l'image reste normale */
-.radarAvatar.seen{background:#6b7280!important;opacity:1!important;filter:none!important;box-shadow:0 0 0 4px rgba(107,114,128,.18)!important;}
-.radarAvatar.seen img,.radarAvatar.seen video,.radarAvatar.seen .radarInitial{filter:none!important;opacity:1!important;}
-/* Interface story ouverte: la story est déjà vue, donc contour gris partout */
-#happyStoryViewer .hsvAvatar,#happyProfileStoryViewer .hpsAvatar{border-color:#6b7280!important;box-shadow:0 0 0 3px rgba(107,114,128,.18)!important;}
-#happyStoryViewer .hsvAvatar img,#happyProfileStoryViewer .hpsAvatar img{filter:none!important;opacity:1!important;}
-</style>
-<script id="happyad-v181-story-ring-final-js">
 (function(){
   if(window.__HAPPYAD_V181_STORY_RING_FINAL__)return; window.__HAPPYAD_V181_STORY_RING_FINAL__=true;
   function sb(){try{return typeof happyadSb==='function'?happyadSb():null}catch(e){return null}}
@@ -4178,11 +3138,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   window.addEventListener('focus',function(){setTimeout(refreshHome,220);});
   setTimeout(refreshHome,220);
 })();
-</script>
 
 
-<!-- === HAPPYAD V182: FAST PROFILE STORY OPEN + NO RADAR SEEN FLICKER === -->
-<script id="happyad-v182-fast-story-no-flicker-js">
 (function(){
   if(window.__HAPPYAD_V182_FAST_STORY_NO_FLICKER__)return; window.__HAPPYAD_V182_FAST_STORY_NO_FLICKER__=true;
   function sid(p){return String((p&&(p.id||p.story_id||p.sourceId||p.source_id))||'')}
@@ -4194,11 +3151,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   var oldFetch=window.fetchRadarItems;
   if(typeof oldFetch==='function'&&!oldFetch.__v182){window.fetchRadarItems=async function(){var arr=await oldFetch.apply(this,arguments).catch(function(){return window.HAPPYAD_STORIES_ITEMS||[]});arr=mergeSeen(arr||[]);window.HAPPYAD_STORIES_ITEMS=arr;try{localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(arr));}catch(e){}return arr;};window.fetchRadarItems.__v182=true;}
 })();
-</script>
 
 
-<!-- === HAPPYAD V187 STORY FULLSCREEN SCROLL UNLOCK FIX === -->
-<script id="happyad-v187-story-fullscreen-scroll-unlock-fix">
 (function(){
   if(window.__HAPPYAD_V187_STORY_FULLSCREEN_SCROLL_UNLOCK__)return;
   window.__HAPPYAD_V187_STORY_FULLSCREEN_SCROLL_UNLOCK__=true;
@@ -4233,17 +3187,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
     }catch(e){}
   },true);
 })();
-</script>
 
 
-<!-- === HAPPYAD V188 STORY OPTIONS + SIMPLE DESCRIPTION FIX === -->
-<style id="happyad-v188-story-desc-simple-css">
-#happyStoryViewer .hsvClose,#happyStoryViewer .hsvMore{font-size:21px!important}
-#happyStoryViewer .hsvCaption{position:absolute!important;left:0!important;right:0!important;bottom:76px!important;z-index:7!important;padding:0 22px 6px!important;background:transparent!important;background-image:none!important;text-shadow:none!important;box-shadow:none!important;font-weight:750!important;font-size:16px!important;line-height:1.28!important;color:#fff!important;max-height:43px!important;overflow:hidden!important;white-space:normal!important;display:block!important;pointer-events:auto!important}
-#happyStoryViewer .hsvCaption.expanded{max-height:150px!important;overflow:auto!important}
-#happyStoryViewer .hsvSeeMore{position:absolute!important;left:22px!important;bottom:52px!important;z-index:8!important;border:0!important;background:transparent!important;color:#fff!important;font-weight:900!important;font-size:13px!important;padding:0!important;text-shadow:none!important;box-shadow:none!important}
-</style>
-<script id="happyad-v188-story-options-desc-sync-fix">
 (function(){
   if(window.__HAPPYAD_V188_STORY_OPTIONS_DESC_SYNC__)return; window.__HAPPYAD_V188_STORY_OPTIONS_DESC_SYNC__=true;
   function $(id){return document.getElementById(id)}
@@ -4265,25 +3210,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   function applyCaptionSeeMore(){var cap=$('hsvCaption');if(!cap)return;var box=$('happyStoryViewer');if(!box)return;var old=box.querySelector('.hsvSeeMore');if(old)old.remove();cap.classList.remove('expanded');var txt=(cap.textContent||'').trim();if(txt.length>85||cap.scrollHeight>cap.clientHeight+4){var btn=document.createElement('button');btn.type='button';btn.className='hsvSeeMore';btn.textContent='Voir plus';btn.onclick=function(e){e.preventDefault();e.stopPropagation();var on=!cap.classList.contains('expanded');cap.classList.toggle('expanded',on);btn.textContent=on?'Voir moins':'Voir plus'};var card=box.querySelector('.hsvCard')||box;card.appendChild(btn)}}
   var mo=new MutationObserver(function(){setTimeout(applyCaptionSeeMore,30)});function start(){try{mo.observe(document.body,{childList:true,subtree:true,characterData:true});applyCaptionSeeMore()}catch(e){}} if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
-</script>
 
 
-<!-- === HAPPYAD V189 STORY OWNER VIEWS + VISITOR REPLY FIX === -->
-<style id="happyad-v189-story-owner-views-css">
-#happyStoryViewer .hsvViews{position:absolute!important;left:22px!important;right:auto!important;bottom:124px!important;z-index:9!important;display:none!important;align-items:center!important;gap:6px!important;color:#fff!important;background:transparent!important;border:0!important;padding:0!important;font-size:13px!important;font-weight:850!important;line-height:1!important;text-shadow:none!important;box-shadow:none!important;cursor:pointer!important;user-select:none!important}
-#happyStoryViewer .hsvViews.on{display:flex!important}
-#happyStoryViewer .hsvViews .eye{width:18px!important;height:12px!important;border:2px solid currentColor!important;border-radius:50%/60%!important;display:inline-block!important;position:relative!important;box-sizing:border-box!important;opacity:.98!important}
-#happyStoryViewer .hsvViews .eye:after{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:4px!important;height:4px!important;background:currentColor!important;border-radius:50%!important;transform:translate(-50%,-50%)!important}
-#happyStoryViewersModal{position:fixed!important;inset:0!important;z-index:1000005!important;background:rgba(0,0,0,.58)!important;display:flex!important;align-items:flex-end!important;justify-content:center!important;font-family:system-ui,-apple-system,Segoe UI,sans-serif!important;color:#fff!important}
-#happyStoryViewersModal .hsvmCard{width:min(96vw,480px)!important;max-height:72vh!important;background:#0b0f17!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:24px 24px 0 0!important;overflow:auto!important;box-shadow:0 -24px 70px rgba(0,0,0,.5)!important;padding:16px!important}
-#happyStoryViewersModal .hsvmHead{display:flex!important;align-items:center!important;justify-content:space-between!important;font-weight:950!important;font-size:18px!important;margin-bottom:12px!important}
-#happyStoryViewersModal .hsvmClose{border:0!important;border-radius:50%!important;width:36px!important;height:36px!important;background:rgba(255,255,255,.12)!important;color:#fff!important;font-size:22px!important;font-weight:900!important}
-#happyStoryViewersModal .hsvmRow{display:flex!important;align-items:center!important;gap:10px!important;padding:10px 2px!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
-#happyStoryViewersModal .hsvmAv{width:48px!important;height:48px!important;min-width:48px!important;max-width:48px!important;flex:0 0 48px!important;border-radius:999px!important;border:2px solid rgba(255,255,255,.48)!important;background:#0b0f17!important;padding:3px!important;box-sizing:border-box!important;overflow:visible!important;display:flex!important;align-items:center!important;justify-content:center!important;-webkit-appearance:none!important;appearance:none!important;outline:0!important;line-height:1!important;color:#fff!important}
-#happyStoryViewersModal .hsvmAv img{width:100%!important;height:100%!important;display:block!important;border-radius:999px!important;object-fit:cover!important;overflow:hidden!important;background:#111827!important}
-#happyStoryViewersModal .hsvmName{font-weight:900!important;font-size:15px!important}.hsvmSub{font-size:12px!important;color:#b8c0cf!important;margin-top:2px!important}
-</style>
-<script id="happyad-v189-story-owner-views-reply-fix">
 (function(){
   if(window.__HAPPYAD_V189_OWNER_VIEWS_REPLY__)return;window.__HAPPYAD_V189_OWNER_VIEWS_REPLY__=true;
   function $(id){return document.getElementById(id)}
@@ -4310,12 +3238,8 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   document.addEventListener('happyad:story-opened',function(){setTimeout(apply,60)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
-</script>
 
 
-
-<!-- === HAPPYAD V262 SAFE MULTI-STORY ONE ICON ONLY === -->
-<script id="happyad-v262-safe-multi-story-one-icon-only">
 (function(){
   if(window.__HAPPYAD_V262_MULTI_STORY_SAFE__)return; window.__HAPPYAD_V262_MULTI_STORY_SAFE__=true;
   function $(id){return document.getElementById(id)}
@@ -4856,44 +3780,8 @@ if(like)like.onclick=function(e){
   window.renderRadarHome=function(){var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}var old=$('homeRadarBlock');if(old)old.remove();var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});list=list.slice(0,14);var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" href="modules/map.html">⌖ Voir sur la carte</a></div><div class="radarRow"></div>';var row=block.querySelector('.radarRow');var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);list.forEach(function(g){var p=g.first,av=renderAvatar(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(name))+'</span>')+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">Story '+g.items.length+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn)});chips.insertAdjacentElement('afterend',block)};
   setTimeout(function(){try{if(typeof window.fetchRadarItems==='function'){Promise.resolve(window.fetchRadarItems()).then(function(){try{window.renderRadarHome()}catch(e){}})}else window.renderRadarHome()}catch(e){}},250);
 })();
-</script>
 
 
-<!-- HAPPYAD V263: FIX VISUEL UNIQUEMENT - petit nombre multi-story sur avatar radar -->
-<style id="happyad-v263-radar-story-count-visual-fix">
-.radarAvatar{position:relative!important;overflow:visible!important}
-.radarAvatar .radarStoryCount{
-  position:absolute!important;
-  right:-2px!important;
-  top:-2px!important;
-  width:18px!important;
-  min-width:18px!important;
-  height:18px!important;
-  padding:0!important;
-  border-radius:999px!important;
-  background:#ff8a00!important;
-  color:#fff!important;
-  border:2px solid #07080d!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  font-size:10px!important;
-  line-height:1!important;
-  font-weight:1000!important;
-  box-shadow:0 2px 8px rgba(0,0,0,.45)!important;
-  z-index:6!important;
-  pointer-events:none!important;
-  margin:0!important;
-  transform:none!important;
-}
-</style>
-
-<style id="happyad-v266-story-like-heart-css">
-#happyStoryViewersModal .hsvmLikeHeart{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-left:7px!important;color:#ff4fa3!important;font-size:17px!important;line-height:1!important;text-shadow:0 0 8px rgba(255,79,163,.45)!important;vertical-align:middle!important}
-#happyStoryViewer #hsvLike.on{color:#ff4fa3!important}
-</style>
-
-<script id="happyad-v268-story-like-per-story-no-flicker">
 (function(){
   if(window.__HAPPYAD_V268_STORY_LIKE_PER_STORY__)return;window.__HAPPYAD_V268_STORY_LIKE_PER_STORY__=true;
   var KEY='HAPPYAD_STORY_LIKES_BY_STORY_V1';
@@ -4993,30 +3881,8 @@ async function saveRemote(id,on){
   document.addEventListener('happyad:story-opened',function(){setTimeout(install,30);setTimeout(install,180);});
   window.happyadStoryLikePerStoryNoFlicker=install;
 })();
-</script>
 
 
-
-<!-- HAPPYAD V272: Story opening rotation clean line + real age everywhere -->
-<style id="happyad-v272-story-age-loader-css">
-@keyframes happyadStoryOpenSpin{to{transform:rotate(360deg)}}
-.radarRow{padding-top:8px!important;overflow-x:auto!important;overflow-y:visible!important}
-.radarItem{overflow:visible!important}
-.radarAvatar{overflow:visible!important;box-shadow:none!important}
-.radarAvatar.happyadStoryPreparing{
-  background:conic-gradient(from 0deg,#ff8a00 0 72deg,rgba(255,138,0,.18) 72deg 105deg,rgba(255,255,255,.10) 105deg 360deg)!important;
-  animation:happyadStoryOpenSpin .82s linear infinite!important;
-  box-shadow:none!important;
-}
-.radarAvatar.happyadStoryPreparing img,
-.radarAvatar.happyadStoryPreparing .radarInitial,
-.radarAvatar.happyadStoryPreparing .typeDot,
-.radarAvatar.happyadStoryPreparing .radarStoryCount{
-  animation:happyadStoryOpenSpin .82s linear infinite reverse!important;
-}
-.radarAvatar.happyadStoryPreparing::after{display:none!important;content:none!important}
-</style>
-<script id="happyad-v272-story-age-loader-js">
 (function(){
   if(window.__HAPPYAD_V272_STORY_AGE_LOADER__)return; window.__HAPPYAD_V272_STORY_AGE_LOADER__=true;
   function $(id){return document.getElementById(id)}
@@ -5098,9 +3964,8 @@ async function saveRemote(id,on){
   setTimeout(function(){try{if(typeof window.fetchRadarItems==='function'){Promise.resolve(window.fetchRadarItems()).then(function(){try{window.renderRadarHome()}catch(e){}})}else window.renderRadarHome()}catch(e){}},180);
   setInterval(function(){try{window.renderRadarHome();updateViewerAge()}catch(e){}},180000);
 })();
-</script>
 
-<script id="happyad-v225-story-fullscreen-photo-fit-final">
+
 (function(){
   if(window.__HAPPYAD_V225_STORY_FULLSCREEN_PHOTO_FIT__) return;
   window.__HAPPYAD_V225_STORY_FULLSCREEN_PHOTO_FIT__ = true;
@@ -5213,12 +4078,8 @@ async function saveRemote(id,on){
 
   installCss();
 })();
-</script>
 
 
-
-<!-- === HAPPYAD V228 STORY FULLSCREEN BACK HARD UNLOCK FIX === -->
-<script id="happyad-v228-story-fullscreen-back-hard-unlock-fix">
 (function(){
   if(window.__HAPPYAD_V228_STORY_FULLSCREEN_BACK_HARD_UNLOCK__) return;
   window.__HAPPYAD_V228_STORY_FULLSCREEN_BACK_HARD_UNLOCK__ = true;
@@ -5293,10 +4154,8 @@ async function saveRemote(id,on){
   window.addEventListener('pageshow',unlock,true);
   window.addEventListener('popstate',function(){setTimeout(hardClose,0);},true);
 })();
-</script>
 
 
-<script id="HAPPYAD_GLOBAL_REAL_PRESENCE_FIX">
 (function(){
   function clean(v){return (v==null?'':String(v)).trim();}
   function safeJson(v,d){try{return JSON.parse(v||'');}catch(e){return d;}}
@@ -5321,170 +4180,8 @@ async function saveRemote(id,on){
   document.addEventListener('visibilitychange',function(){if(!document.hidden) pulse();},true);
   window.addEventListener('focus',pulse,true);
 })();
-</script>
 
 
-<style id="happyad-v335-video-views-pill-inside-fix">
-/* HAPPYAD V335 — badge vues mieux placé et assez large pour 999K / 1M / 1MD */
-.happyadVideoViewsBadge{
-  position:absolute!important;
-  right:18px!important;
-  bottom:18px!important;
-  z-index:12!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:6px!important;
-  min-width:58px!important;
-  max-width:96px!important;
-  height:34px!important;
-  padding:0 12px!important;
-  box-sizing:border-box!important;
-  border-radius:999px!important;
-  background:rgba(0,0,0,.58)!important;
-  border:1px solid rgba(255,255,255,.18)!important;
-  color:#fff!important;
-  font-size:15px!important;
-  font-weight:1000!important;
-  line-height:1!important;
-  letter-spacing:.1px!important;
-  font-variant-numeric:tabular-nums!important;
-  white-space:nowrap!important;
-  overflow:visible!important;
-  text-shadow:0 1px 3px rgba(0,0,0,.75)!important;
-  backdrop-filter:blur(8px)!important;
-  -webkit-backdrop-filter:blur(8px)!important;
-}
-.happyadVideoViewsBadge:before{
-  content:""!important;
-  width:18px!important;
-  height:12px!important;
-  flex:0 0 18px!important;
-  border:2px solid currentColor!important;
-  border-radius:50%/60%!important;
-  display:inline-block!important;
-  box-sizing:border-box!important;
-  position:relative!important;
-  filter:none!important;
-}
-.happyadVideoViewsBadge:after{
-  content:""!important;
-  position:absolute!important;
-  left:23px!important;
-  top:50%!important;
-  width:5px!important;
-  height:5px!important;
-  margin:0!important;
-  transform:translate(-50%,-50%)!important;
-  border-radius:50%!important;
-  background:currentColor!important;
-  box-shadow:none!important;
-}
-@media(max-width:380px){
-  .happyadVideoViewsBadge{
-    right:14px!important;
-    bottom:16px!important;
-    min-width:54px!important;
-    max-width:90px!important;
-    height:32px!important;
-    padding:0 10px!important;
-    font-size:14px!important;
-  }
-  .happyadVideoViewsBadge:after{left:21px!important}
-}
-</style>
-
-
-<style id="happyad-v345-home-album-counter-actions-fix">
-/* HAPPYAD V345 — Accueil: compteur album stable + actions un peu vers la gauche */
-#list.homeTimeline .happyadAlbumTrack{
-  overflow:visible!important;
-  scroll-snap-type:none!important;
-  scroll-behavior:auto!important;
-  overscroll-behavior-x:contain!important;
-  touch-action:pan-y!important;
-}
-#list.homeTimeline .happyadAlbumSlide{
-  flex:0 0 100%!important;
-  min-width:100%!important;
-}
-#list.homeTimeline .miniActions,
-.feedGrid .miniActions,
-.hScroller .miniActions{
-  display:grid!important;
-  grid-template-columns:repeat(5,minmax(0,1fr))!important;
-  padding-left:8px!important;
-  padding-right:30px!important;
-  gap:0!important;
-  overflow:visible!important;
-  box-sizing:border-box!important;
-}
-#list.homeTimeline .miniActions .actionBtn,
-.feedGrid .miniActions .actionBtn,
-.hScroller .miniActions .actionBtn{
-  display:inline-flex!important;
-  width:100%!important;
-  min-width:0!important;
-  max-width:100%!important;
-  justify-content:center!important;
-  transform:translateX(-5px)!important;
-  gap:4px!important;
-  overflow:visible!important;
-}
-#list.homeTimeline .miniActions .actionBtn.fav,
-.feedGrid .miniActions .actionBtn.fav,
-.hScroller .miniActions .actionBtn.fav{
-  display:inline-flex!important;
-  transform:translateX(-10px)!important;
-}
-#list.homeTimeline .miniActions .actionBtn small,
-.feedGrid .miniActions .actionBtn small,
-.hScroller .miniActions .actionBtn small{
-  max-width:42px!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-}
-@media(max-width:390px){
-  #list.homeTimeline .miniActions,.feedGrid .miniActions,.hScroller .miniActions{padding-left:6px!important;padding-right:34px!important}
-  #list.homeTimeline .miniActions .actionBtn,.feedGrid .miniActions .actionBtn,.hScroller .miniActions .actionBtn{transform:translateX(-6px)!important;gap:3px!important}
-  #list.homeTimeline .miniActions .actionBtn.fav,.feedGrid .miniActions .actionBtn.fav,.hScroller .miniActions .actionBtn.fav{transform:translateX(-13px)!important}
-  #list.homeTimeline .miniActions .actionBtn small,.feedGrid .miniActions .actionBtn small,.hScroller .miniActions .actionBtn small{max-width:38px!important}
-}
-</style>
-
-<style id="happyad-v346-home-album-no-black-fix">
-/* V346 — Accueil album: le parent coupe l'affichage, pas le track.
-   Cela évite l'écran noir à partir de la 2e photo après translateX. */
-#list.homeTimeline .happyadAlbumCarousel{overflow:hidden!important;}
-#list.homeTimeline .happyadAlbumTrack{
-  display:flex!important;
-  overflow:visible!important;
-  width:100%!important;
-  min-width:100%!important;
-  scroll-snap-type:none!important;
-  touch-action:pan-y!important;
-}
-#list.homeTimeline .happyadAlbumSlide{
-  flex:0 0 100%!important;
-  width:100%!important;
-  min-width:100%!important;
-}
-</style>
-
-<style id="happyad-v409-home-buy-boutique-style">
-/* V409 — bouton Acheter visible seulement sur publication mode Boutique. */
-.happyadBuyPostBtn{width:100%;height:40px;margin:8px 0 0;border:0;border-radius:14px;background:linear-gradient(135deg,#ff8a00,#ff5a1f);color:#111;font-size:13px;font-weight:1000;letter-spacing:.1px;box-shadow:0 8px 20px rgba(255,138,0,.22);display:flex;align-items:center;justify-content:center;touch-action:manipulation}
-.happyadBuyPostBtn:active{transform:scale(.985)}
-#list.homeTimeline .happyadBuyPostBtn{max-width:260px;margin-left:auto;margin-right:auto}
-</style>
-
-<style id="happyad-v410-home-buy-hidden-central-only">
-/* V410: le bouton Acheter ne s'affiche plus sur les cartes d'accueil. Il reste réservé au viewer central. */
-#list .happyadBuyPostBtn,[data-home-buy]{display:none!important;visibility:hidden!important;pointer-events:none!important}
-</style>
-
-<script id="happyad-v426-guest-view-only-no-write">
 (function(){
   if(window.__HAPPYAD_V426_GUEST_VIEW_ONLY_NO_WRITE__)return;
   window.__HAPPYAD_V426_GUEST_VIEW_ONLY_NO_WRITE__=true;
@@ -5587,621 +4284,8 @@ async function saveRemote(id,on){
   }
   applyWraps(); setTimeout(applyWraps,0); setTimeout(applyWraps,600);
 })();
-</script>
 
-<style id="happyad-v428-smart-search-fullscreen-style">
-/* HAPPYAD V428 — Recherche fullscreen: profils + publications filtrés dès chaque lettre. */
-html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:100%!important}
-.haSearchOverlay{position:fixed;inset:0;z-index:99999;background:#06080d;display:none;align-items:stretch;justify-content:center;padding:0!important;overflow:hidden!important;color:#fff}
-.haSearchOverlay.on{display:flex!important}
-.haSearchBox{width:min(680px,100%);height:100dvh;max-height:100dvh;background:linear-gradient(180deg,#101722 0%,#090d14 100%);border:0;border-radius:0;box-shadow:none;padding:0!important;color:#fff;display:flex;flex-direction:column;overflow:hidden}
-.haSearchTop{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#101722 0%,#101722 78%,rgba(16,23,34,.92) 100%);padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;border-bottom:1px solid rgba(255,255,255,.09);box-shadow:0 8px 22px rgba(0,0,0,.22)}
-.haSearchHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.haSearchHead b{display:block;font-size:26px;font-weight:1000;letter-spacing:-.8px;line-height:1.02}.haSearchHead span{display:block;margin-top:4px;color:#aeb6c5;font-size:12px;font-weight:800;line-height:1.25}.haSearchClose{width:50px;height:50px;border-radius:50%;border:0;background:#29313f;color:#fff;font-size:34px;font-weight:1000;line-height:1;flex:0 0 auto}.haSearchInput{width:100%;height:52px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:#06090f;color:#fff;outline:none;padding:0 15px;font-size:16px;font-weight:1000;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}.haSearchHint{color:#aeb6c5;font-size:11.5px;font-weight:800;line-height:1.35;margin:9px 4px 0}.haSearchResults{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 86px);scrollbar-width:thin}.haSearchSection{margin-top:12px}.haSearchSectionTitle{position:sticky;top:0;z-index:1;background:linear-gradient(180deg,#0b1018 0%,rgba(11,16,24,.94) 100%);font-size:13px;font-weight:1000;color:#ffd21a;text-transform:uppercase;letter-spacing:.4px;margin:0 -2px 8px;padding:7px 2px 8px}.haSearchCount{color:#8f99aa;font-size:11px;text-transform:none;letter-spacing:0;margin-left:5px}.haSearchProfileList,.haSearchPostList{display:flex;flex-direction:column;gap:8px}.haSearchUser,.haSearchPost{width:100%;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);color:#fff;border-radius:18px;padding:8px 10px;margin:0;text-align:left;min-height:62px;box-sizing:border-box}.haSearchUser:active,.haSearchPost:active{transform:scale(.992)}.haSearchAvatar{width:48px;height:48px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#ff8a00,#2434ff 52%,#ff4ed3);display:grid;place-items:center;flex:0 0 auto;overflow:hidden}.haSearchAvatar img,.haSearchAvatar span{width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:center;background:#11151d;display:grid;place-items:center;font-size:18px;font-weight:1000;color:#fff}.haSearchUserText,.haSearchPostText{min-width:0;flex:1}.haSearchUserText b,.haSearchPostText b{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.05}.haSearchUserText span,.haSearchPostText span{display:block;margin-top:4px;color:#aeb6c5;font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.haSearchUser em{font-style:normal;background:linear-gradient(135deg,#ffcf21,#ff7a00);color:#111;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:1000;flex:0 0 auto}.haSearchThumb{width:50px;height:50px;border-radius:14px;background:#05070b;overflow:hidden;position:relative;display:grid;place-items:center;color:#fff;font-weight:1000;flex:0 0 auto}.haSearchThumb img{width:100%;height:100%;object-fit:cover;object-position:center}.haSearchThumbVideo{position:absolute;z-index:2;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.26);font-size:18px;text-shadow:0 2px 8px #000}.haSearchEmpty,.haSearchLoading{border:1px dashed rgba(255,255,255,.12);border-radius:16px;padding:14px;color:#aeb6c5;font-size:12px;font-weight:800;text-align:center;background:rgba(255,255,255,.025);line-height:1.35}.haSearchMiniNote{font-size:11px;color:#8f99aa;font-weight:800;margin:3px 2px 8px;line-height:1.3}
-@media(min-width:720px){.haSearchBox{border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08)}}
-@media(max-width:390px){.haSearchTop{padding-left:12px;padding-right:12px}.haSearchHead b{font-size:24px}.haSearchClose{width:48px;height:48px}.haSearchResults{padding-left:10px;padding-right:10px}.haSearchUser,.haSearchPost{border-radius:16px;padding:7px 8px;gap:9px;min-height:58px}.haSearchAvatar{width:44px;height:44px}.haSearchThumb{width:46px;height:46px}.haSearchUserText b,.haSearchPostText b{font-size:13.5px}.haSearchUser em{padding:7px 10px}}
-</style>
 
-<style id="happyad-v430-search-simple-clean-avatar-css">
-/* V430 — Recherche: interface plus légère + avatars bien centrés dans le cercle */
-#happyadSmartSearchV427 .haSearchHead span,
-#happyadSmartSearchV427 .haSearchHint,
-#happyadSmartSearchV427 .haSearchMiniHelp,
-#happyadSmartSearchV427 .haSearchInfo,
-#happyadSmartSearchV427 .haSearchSubText,
-#happyadSmartSearchV427 .haSearchCount,
-#happyadSmartSearchV427 .haSearchSectionTitle small,
-#happyadSmartSearchV427 .haSearchSectionTitle em{
-  display:none!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead{
-  margin-bottom:14px!important;
-  padding-bottom:10px!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead b{
-  font-size:30px!important;
-  line-height:1.05!important;
-}
-
-#happyadSmartSearchV427 .haSearchInputWrap{
-  padding-bottom:12px!important;
-}
-
-#happyadSmartSearchV427 .haSearchSectionTitle{
-  display:block!important;
-  margin:14px 0 10px!important;
-  padding:0!important;
-  background:transparent!important;
-  color:#ffd21a!important;
-  font-size:15px!important;
-  font-weight:1000!important;
-  letter-spacing:.25px!important;
-}
-
-#happyadSmartSearchV427 .haSearchSectionTitle::after,
-#happyadSmartSearchV427 .haSearchSectionTitle .count,
-#happyadSmartSearchV427 .haSearchSectionTitle [class*="count"],
-#happyadSmartSearchV427 .haSearchSectionTitle [class*="Count"]{
-  display:none!important;
-  content:""!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText span{
-  display:block!important;
-  color:#aeb6c5!important;
-  font-size:12px!important;
-  font-weight:900!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-
-/* Enlever le mot "" gardé dans certains rendus */
-#happyadSmartSearchV427 .haSearchUserText span{
-  max-width:100%!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar{
-  width:60px!important;
-  height:60px!important;
-  min-width:60px!important;
-  flex:0 0 60px!important;
-  border-radius:50%!important;
-  padding:3px!important;
-  overflow:hidden!important;
-  box-sizing:border-box!important;
-  background:conic-gradient(from 0deg,#ff8a00,#7b35ff,#2434ff,#ff8a00)!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar img,
-#happyadSmartSearchV427 .haSearchAvatar span{
-  width:100%!important;
-  height:100%!important;
-  border-radius:50%!important;
-  display:block!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  background:#11151d!important;
-  overflow:hidden!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar span{
-  display:grid!important;
-  place-items:center!important;
-  font-size:22px!important;
-  font-weight:1000!important;
-  color:#fff!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser{
-  min-height:auto!important;
-}
-
-#happyadSmartSearchV427 .haSearchEmpty{
-  font-size:12px!important;
-}
-</style>
-
-<style id="happyad-v431-search-loading-visible-css">
-/* V431 — Recherche: ne jamais laisser la zone publications vide pendant le chargement */
-#happyadSmartSearchV427 .haSearchEmpty,
-#happyadSmartSearchV427 .haSearchLoading{
-  min-height:54px!important;
-  display:grid!important;
-  place-items:center!important;
-  color:#aeb6c5!important;
-  font-size:13px!important;
-  font-weight:900!important;
-  line-height:1.25!important;
-}
-
-#happyadSmartSearchV427 .haSearchLoadingText{
-  border:1px dashed rgba(255,255,255,.13)!important;
-  border-radius:16px!important;
-  min-height:54px!important;
-  display:grid!important;
-  place-items:center!important;
-  color:#aeb6c5!important;
-  font-size:13px!important;
-  font-weight:900!important;
-  background:rgba(255,255,255,.025)!important;
-}
-</style>
-
-<style id="happyad-v432-search-fast-compact-css">
-/* V432 — Recherche rapide, compacte, 4 profils d'abord + Voir plus */
-#happyadSmartSearchV427 .haSearchBox{
-  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px calc(env(safe-area-inset-bottom,0px) + 76px)!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead{
-  margin-bottom:8px!important;
-  padding-bottom:6px!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead b{
-  font-size:25px!important;
-  line-height:1.02!important;
-  letter-spacing:-.55px!important;
-}
-
-#happyadSmartSearchV427 .haSearchClose{
-  width:48px!important;
-  height:48px!important;
-  font-size:32px!important;
-}
-
-#happyadSmartSearchV427 .haSearchInputWrap{
-  top:66px!important;
-  padding:2px 0 8px!important;
-}
-
-#happyadSmartSearchV427 .haSearchInput{
-  height:48px!important;
-  border-radius:16px!important;
-  font-size:14px!important;
-  padding:0 13px!important;
-}
-
-#happyadSmartSearchV427 .haSearchResults{
-  padding-top:2px!important;
-  padding-bottom:30px!important;
-}
-
-#happyadSmartSearchV427 .haSearchSection{
-  margin-top:10px!important;
-}
-
-#happyadSmartSearchV427 .haSearchSectionTitle{
-  font-size:13px!important;
-  margin:10px 0 8px!important;
-  letter-spacing:.2px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUsersGrid{
-  display:flex!important;
-  flex-direction:column!important;
-  gap:8px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser,
-#happyadSmartSearchV427 .haSearchPost{
-  border-radius:17px!important;
-  padding:9px 10px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser{
-  min-height:auto!important;
-  flex-direction:row!important;
-  align-items:center!important;
-  gap:10px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserTop{
-  flex:1 1 auto!important;
-  min-width:0!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserBottom{
-  width:auto!important;
-  flex:0 0 auto!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar{
-  width:52px!important;
-  height:52px!important;
-  min-width:52px!important;
-  flex:0 0 52px!important;
-  padding:3px!important;
-  border-radius:50%!important;
-  overflow:hidden!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar img,
-#happyadSmartSearchV427 .haSearchAvatar span{
-  width:100%!important;
-  height:100%!important;
-  border-radius:50%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  overflow:hidden!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText b,
-#happyadSmartSearchV427 .haSearchPostText b{
-  font-size:14px!important;
-  line-height:1.05!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText span,
-#happyadSmartSearchV427 .haSearchPostText span{
-  font-size:11px!important;
-  line-height:1.15!important;
-  margin-top:3px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser em{
-  padding:8px 12px!important;
-  font-size:10.5px!important;
-}
-
-#happyadSmartSearchV427 .haSearchThumb{
-  width:50px!important;
-  height:50px!important;
-  border-radius:13px!important;
-}
-
-#happyadSmartSearchV427 .haSearchMoreBtn{
-  width:100%!important;
-  border:0!important;
-  margin:6px 0 2px!important;
-  padding:11px 12px!important;
-  border-radius:16px!important;
-  background:rgba(255,138,0,.13)!important;
-  color:#ffd21a!important;
-  font-size:12px!important;
-  font-weight:1000!important;
-}
-
-#happyadSmartSearchV427.haSearchExpanded .haSearchMoreBtn{
-  display:none!important;
-}
-
-#happyadSmartSearchV427 .haSearchEmpty,
-#happyadSmartSearchV427 .haSearchLoading,
-#happyadSmartSearchV427 .haSearchLoadingText{
-  min-height:44px!important;
-  font-size:12px!important;
-  padding:10px!important;
-}
-
-@media(max-width:390px){
-  #happyadSmartSearchV427 .haSearchHead b{font-size:23px!important}
-  #happyadSmartSearchV427 .haSearchInputWrap{top:62px!important}
-  #happyadSmartSearchV427 .haSearchInput{font-size:13px!important}
-}
-</style>
-
-<style id="happyad-v433-search-final-fast-no-bottom-css">
-/* V433 — Recherche finale: plus rapide visuellement + bas libre sans grand bloc noir */
-#happyadSmartSearchV427{
-  background:rgba(5,8,13,.78)!important;
-  backdrop-filter:blur(8px)!important;
-}
-
-#happyadSmartSearchV427 .haSearchBox{
-  min-height:100dvh!important;
-  height:100dvh!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  border:0!important;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 14px calc(env(safe-area-inset-bottom,0px) + 10px)!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead{
-  margin-bottom:6px!important;
-  padding-bottom:4px!important;
-  background:transparent!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead b{
-  font-size:24px!important;
-  line-height:1!important;
-}
-
-#happyadSmartSearchV427 .haSearchClose{
-  width:46px!important;
-  height:46px!important;
-  font-size:30px!important;
-  background:#263040!important;
-}
-
-#happyadSmartSearchV427 .haSearchInputWrap{
-  position:relative!important;
-  top:auto!important;
-  z-index:2!important;
-  background:transparent!important;
-  padding:4px 0 8px!important;
-}
-
-#happyadSmartSearchV427 .haSearchInput{
-  height:45px!important;
-  font-size:13px!important;
-  border-radius:16px!important;
-}
-
-#happyadSmartSearchV427 .haSearchResults{
-  flex:0 1 auto!important;
-  overflow:auto!important;
-  padding:0 0 6px!important;
-  max-height:calc(100dvh - 160px)!important;
-  background:transparent!important;
-}
-
-#happyadSmartSearchV427 .haSearchSection{
-  margin-top:9px!important;
-}
-
-#happyadSmartSearchV427 .haSearchSectionTitle{
-  margin:8px 0 7px!important;
-  font-size:13px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUsersGrid,
-#happyadSmartSearchV427 .haSearchPostsList{
-  gap:7px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser,
-#happyadSmartSearchV427 .haSearchPost{
-  padding:8px 10px!important;
-  border-radius:16px!important;
-  background:rgba(18,24,34,.88)!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar{
-  width:50px!important;
-  height:50px!important;
-  min-width:50px!important;
-  flex-basis:50px!important;
-}
-
-#happyadSmartSearchV427 .haSearchThumb{
-  width:48px!important;
-  height:48px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText b,
-#happyadSmartSearchV427 .haSearchPostText b{
-  font-size:13.5px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText span,
-#happyadSmartSearchV427 .haSearchPostText span{
-  font-size:10.5px!important;
-}
-
-#happyadSmartSearchV427 .haSearchBottomFreeSpace{
-  display:none!important;
-}
-</style>
-
-<style id="happyad-v434-search-posts-fast-free-bottom-css">
-/* V434 — Publications directes depuis cache/local + aucun bloc vide en bas */
-#happyadSmartSearchV427 .haSearchSection.isEmptyPosts,
-#happyadSmartSearchV427 .haSearchEmptyPosts,
-#happyadSmartSearchV427 .haSearchEmpty:empty{
-  display:none!important;
-}
-
-#happyadSmartSearchV427 .haSearchResults{
-  max-height:calc(100dvh - 150px)!important;
-  padding-bottom:0!important;
-}
-
-#happyadSmartSearchV427 .haSearchBox{
-  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important;
-}
-
-#happyadSmartSearchV427 .haSearchPost{
-  background:rgba(18,24,34,.88)!important;
-}
-
-#happyadSmartSearchV427 .haSearchPostsList{
-  margin-bottom:0!important;
-  padding-bottom:0!important;
-}
-</style>
-
-<style id="happyad-v435-search-header-full-posts-direct-css">
-/* V435 — Recherche: haut plein horizontal + publications directes sans bloc chargement */
-#happyadSmartSearchV427{
-  inset:0!important;
-  padding:0!important;
-  background:rgba(0,0,0,.72)!important;
-  backdrop-filter:blur(8px)!important;
-  overflow:hidden!important;
-  align-items:stretch!important;
-}
-
-#happyadSmartSearchV427.on{
-  display:flex!important;
-}
-
-#happyadSmartSearchV427 .haSearchBox{
-  width:100vw!important;
-  max-width:none!important;
-  height:100dvh!important;
-  min-height:100dvh!important;
-  margin:0!important;
-  border:0!important;
-  border-radius:0!important;
-  box-shadow:none!important;
-  background:transparent!important;
-  padding:0 0 calc(env(safe-area-inset-bottom,0px) + 6px)!important;
-  overflow:hidden!important;
-  display:flex!important;
-  flex-direction:column!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead,
-#happyadSmartSearchV427 .haSearchInputWrap{
-  width:100vw!important;
-  box-sizing:border-box!important;
-  background:#0f1520!important;
-  border-bottom:1px solid rgba(255,255,255,.08)!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead{
-  padding:calc(env(safe-area-inset-top,0px) + 14px) 22px 10px!important;
-  margin:0!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:space-between!important;
-}
-
-#happyadSmartSearchV427 .haSearchHead b{
-  font-size:23px!important;
-  line-height:1!important;
-  letter-spacing:-.45px!important;
-}
-
-#happyadSmartSearchV427 .haSearchClose{
-  width:46px!important;
-  height:46px!important;
-  min-width:46px!important;
-  border-radius:50%!important;
-  background:#263040!important;
-  color:#fff!important;
-  font-size:30px!important;
-  line-height:1!important;
-}
-
-#happyadSmartSearchV427 .haSearchInputWrap{
-  position:relative!important;
-  top:auto!important;
-  z-index:5!important;
-  padding:8px 22px 12px!important;
-}
-
-#happyadSmartSearchV427 .haSearchInput{
-  width:100%!important;
-  height:44px!important;
-  border-radius:16px!important;
-  font-size:13px!important;
-  padding:0 13px!important;
-  background:#05080e!important;
-}
-
-#happyadSmartSearchV427 .haSearchResults{
-  flex:1 1 auto!important;
-  max-height:none!important;
-  overflow:auto!important;
-  padding:12px 14px 0!important;
-  background:transparent!important;
-}
-
-#happyadSmartSearchV427 .haSearchSection{
-  margin:0 0 12px!important;
-  padding:0!important;
-  background:transparent!important;
-}
-
-#happyadSmartSearchV427 .haSearchSectionTitle{
-  margin:2px 0 8px!important;
-  padding:0!important;
-  font-size:13px!important;
-  color:#ffd21a!important;
-  background:transparent!important;
-}
-
-#happyadSmartSearchV427 .haSearchUsersGrid,
-#happyadSmartSearchV427 .haSearchPostsList{
-  display:flex!important;
-  flex-direction:column!important;
-  gap:7px!important;
-  margin:0!important;
-  padding:0!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser,
-#happyadSmartSearchV427 .haSearchPost{
-  width:100%!important;
-  min-height:auto!important;
-  padding:8px 10px!important;
-  border-radius:16px!important;
-  background:rgba(18,24,34,.88)!important;
-  border:1px solid rgba(255,255,255,.08)!important;
-}
-
-#happyadSmartSearchV427 .haSearchUser{
-  flex-direction:row!important;
-  align-items:center!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserTop{
-  flex:1 1 auto!important;
-  min-width:0!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserBottom{
-  width:auto!important;
-  flex:0 0 auto!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar{
-  width:50px!important;
-  height:50px!important;
-  min-width:50px!important;
-  flex-basis:50px!important;
-  padding:3px!important;
-  overflow:hidden!important;
-  border-radius:50%!important;
-}
-
-#happyadSmartSearchV427 .haSearchAvatar img,
-#happyadSmartSearchV427 .haSearchAvatar span{
-  width:100%!important;
-  height:100%!important;
-  border-radius:50%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  overflow:hidden!important;
-}
-
-#happyadSmartSearchV427 .haSearchThumb{
-  width:48px!important;
-  height:48px!important;
-  min-width:48px!important;
-  border-radius:13px!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText b,
-#happyadSmartSearchV427 .haSearchPostText b{
-  font-size:13.5px!important;
-  line-height:1.08!important;
-}
-
-#happyadSmartSearchV427 .haSearchUserText span,
-#happyadSmartSearchV427 .haSearchPostText span{
-  font-size:10.5px!important;
-  line-height:1.15!important;
-}
-
-#happyadSmartSearchV427 .haSearchEmpty,
-#happyadSmartSearchV427 .haSearchLoading,
-#happyadSmartSearchV427 .haSearchLoadingText{
-  display:none!important;
-}
-
-#happyadSmartSearchV427 .haSearchNoPosts{
-  display:none!important;
-}
-</style>
-
-
-<script id="happyad-v435-search-header-full-posts-direct-js">
 /* V435 — Override final recherche: posts depuis cache direct + haut plein largeur. */
 (function(){
   var ROOT_ID='happyadSmartSearchV427';
@@ -6529,27 +4613,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   setTimeout(install,350);
   window.happyadOpenSmartSearchV435=open;
 })();
-</script>
 
 
-<style id="happyad-v437-posts-only-css">
-/* V437 — Correction uniquement publications recherche */
-#happyadSmartSearchV427 .haSearchPost .haSearchThumb img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  border-radius:13px!important;
-}
-#happyadSmartSearchV427 .haSearchPostsList{
-  margin-bottom:0!important;
-  padding-bottom:0!important;
-}
-</style>
-
-
-
-<script id="happyad-v456-global-media-stop-cleanup">
 (function(){
   if(window.__HAPPYAD_V456_GLOBAL_MEDIA_STOP__)return;
   window.__HAPPYAD_V456_GLOBAL_MEDIA_STOP__=true;
@@ -6616,10 +4681,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     }
   },true);
 })();
-</script>
 
 
-<script id="happyad-v438-home-private-post-filter-js">
 (function(){
   if(window.__HAPPYAD_V438_HOME_PRIVATE_FILTER__)return;window.__HAPPYAD_V438_HOME_PRIVATE_FILTER__=true;
   function ids(){try{var a=JSON.parse(localStorage.getItem('HAPPYAD_PRIVATE_POST_IDS_V1')||'[]');return Array.isArray(a)?a.map(String):[]}catch(e){return []}}
@@ -6628,64 +4691,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   function rawPrivate(p){p=p||{};var s=String(p.visibility||p.privacy||p.audience||p.status||'').toLowerCase();return ids().indexOf(String(p.id||p.post_id||''))>=0||p.is_private===true||p.private===true||s==='private'||s==='privé'||s==='prive'||!!p.private_at||!!p.privated_at}
   window.happyadHomePostHiddenForPrivacyV438=function(p){var me=uid(),own=owner(p);return !!(rawPrivate(p)&&(!me||!own||String(me)!==String(own)))};
 })();
-</script>
 
 
-
-<!-- HAPPYAD V475 — fullscreen album horizontal natif fluide -->
-<style id="happyad-v475-home-fullscreen-album-native-css">
-#happyadHomePhotoFullscreen,
-#happyadHomePhotoFullscreen .haHomeFsCard,
-#happyadHomePhotoFullscreen .haHomeFsMedia{
-  touch-action:auto!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsMedia{
-  display:block!important;
-  overflow:hidden!important;
-  background:#000!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAlbumTrack{
-  width:100%!important;
-  height:100%!important;
-  display:flex!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  scroll-snap-type:x mandatory!important;
-  scroll-behavior:auto!important;
-  -webkit-overflow-scrolling:touch!important;
-  touch-action:pan-x pinch-zoom!important;
-  scrollbar-width:none!important;
-  overscroll-behavior-x:contain!important;
-  overscroll-behavior-y:none!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAlbumTrack::-webkit-scrollbar{display:none!important;}
-#happyadHomePhotoFullscreen .haHomeFsAlbumSlide{
-  flex:0 0 100%!important;
-  width:100%!important;
-  min-width:100%!important;
-  height:100%!important;
-  scroll-snap-align:center!important;
-  display:grid!important;
-  place-items:center!important;
-  background:#000!important;
-  position:relative!important;
-  overflow:hidden!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAlbumSlide img{
-  max-width:100%!important;
-  max-height:100%!important;
-  width:auto!important;
-  height:auto!important;
-  object-fit:contain!important;
-  display:block!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsSlideLoading{
-  color:#dfe3ea!important;
-  font-size:14px!important;
-  font-weight:900!important;
-}
-</style>
-<script id="happyad-v475-home-fullscreen-album-native-js">
 (function(){
   if(window.__HAPPYAD_V475_HOME_FULLSCREEN_ALBUM_NATIVE__)return;
   window.__HAPPYAD_V475_HOME_FULLSCREEN_ALBUM_NATIVE__=true;
@@ -6798,21 +4805,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     });
   };
 })();
-</script>
 
 
-
-<style id="happyad-v480-publicite-full-no-old-css">
-/* V480 — empêcher définitivement l'ancien carré publicité divisé */
-.sponsorStrip{height:172px!important;min-height:172px!important;overflow:hidden!important;background:#000!important;}
-.sponsorStrip .sponsorTrack{position:relative!important;width:100%!important;height:100%!important;overflow:hidden!important;}
-.sponsorStrip .sponsorAd{position:relative!important;display:block!important;grid-template-columns:none!important;width:100%!important;height:100%!important;min-height:100%!important;padding:0!important;margin:0!important;border:0!important;background:#000!important;overflow:hidden!important;border-radius:25px!important;}
-.sponsorStrip .sponsorThumb{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;border-radius:25px!important;background:#000!important;overflow:hidden!important;z-index:1!important;}
-.sponsorStrip .sponsorThumb img,.sponsorStrip .sponsorThumb video{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#000!important;}
-.sponsorStrip .sponsorText,.sponsorStrip .sponsorDescWrap,.sponsorStrip .sponsorDesc,.sponsorStrip .sponsorMeta,.sponsorStrip .sponsorLiveDot{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}
-.sponsorStrip .sponsorCreatorFloat{pointer-events:auto!important;}
-</style>
-<script id="happyad-v480-publicite-click-full-fix">
 (function(){
   if(window.__HAPPYAD_V480_PUBLICITE_CLICK_FULL__)return;
   window.__HAPPYAD_V480_PUBLICITE_CLICK_FULL__=true;
@@ -6871,52 +4865,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   setTimeout(install,200);setTimeout(install,800);setTimeout(install,1800);
 })();
-</script>
 
 
-<style id="happyad-v482-publicite-media-only-late-css">
-/* V482 — sécurité tardive: aucune ancienne publicité divisée ne doit réapparaître */
-.sponsorStrip .sponsorAd{display:block!important;grid-template-columns:none!important;padding:0!important;overflow:hidden!important;background:#000!important;}
-.sponsorStrip .sponsorThumb{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;}
-.sponsorStrip .sponsorThumb img,.sponsorStrip .sponsorThumb video{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;}
-.sponsorStrip .sponsorText,.sponsorStrip .sponsorDescWrap,.sponsorStrip .sponsorDesc,.sponsorStrip .sponsorMeta,.sponsorStrip .sponsorLiveDot{display:none!important;visibility:hidden!important;pointer-events:none!important;}
-</style>
-
-
-
-<!-- === HAPPYAD V484 FULLSCREEN ACTIONS: PAS DANS ACCUEIL + ALBUM LIKE STABLE === -->
-<style id="happyad-v484-home-no-fs-actions-album-like-stable-css">
-/* V484 — Accueil: ne pas afficher les boutons j'aime/commentaire/partage dans le fullscreen photo. */
-#happyadHomePhotoFullscreen .haHomeFsActions{
-  display:none!important;
-  visibility:hidden!important;
-  opacity:0!important;
-  pointer-events:none!important;
-}
-/* V484 — Albums accueil: stopper les petits clignotements de la ligne j'aime/commentaire. */
-#list .haAlbumFixedBar,
-#list .haAlbumFixedBar .miniActions,
-#list .haAlbumFixedBar [data-card-act],
-#list .haAlbumFixedBar [data-card-act] *,
-#list .haAlbumFullPagerCard .miniActions,
-#list .haAlbumFullPagerCard .miniActions *{
-  animation:none!important;
-  transition:none!important;
-  opacity:1!important;
-}
-#list .haAlbumFixedBar [data-card-act]{
-  transform:none!important;
-  will-change:auto!important;
-}
-</style>
-
-
-
-
-
-<!-- === HAPPYAD V481 NATIVE NOTIFICATIONS FUSION: vrai écran interne dans index.html === -->
-<!-- === HAPPYAD V483 — MESSAGES CONNECTÉS À INDEX / CHAT INTERNE === -->
-<script id="happyad-v491-pwa-app-launcher">
 (function(){
   if(window.__HAPPYAD_V491_PWA_APP_LAUNCHER__)return;
   window.__HAPPYAD_V491_PWA_APP_LAUNCHER__=true;
@@ -6929,7 +4879,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=640msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=634msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -6966,10 +4916,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){tryOpenLaunchView(0)},250)},{once:true});
   else setTimeout(function(){tryOpenLaunchView(0)},250);
 })();
-</script>
 
 
-<script id="happyad-v493-module-deeplink-starter">
 (function(){
   if(window.__HAPPYAD_V493_MODULE_DEEPLINK_STARTER__)return;
   window.__HAPPYAD_V493_MODULE_DEEPLINK_STARTER__=true;
@@ -7007,11 +4955,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   }
   if(document.readyState==='complete')setTimeout(start,80);else window.addEventListener('load',function(){setTimeout(start,80)},{once:true});
 })();
-</script>
 
 
-<!-- HAPPYAD V495 — barre système noire + carte média Chrome nettoyée -->
-<script id="happyad-v495-status-media-cleaner">
 (function(){
   if(window.__HAPPYAD_V495_STATUS_MEDIA_CLEANER__)return;window.__HAPPYAD_V495_STATUS_MEDIA_CLEANER__=true;
   var BLANK_IMG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
@@ -7064,271 +5009,8 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   ['pageshow','focus','resize'].forEach(function(ev){try{window.addEventListener(ev,scan,true)}catch(_e){}});
   try{new MutationObserver(function(){scan();}).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){setInterval(scan,2500);}
 })();
-</script>
-<style id="happyad-v503-tap-orange-feedback-css">
-/* V509: garder le retour orange sur les boutons normaux, mais jamais sur la barre flottante du bas. */
-.happyadTapOrange,
-.happyadTapOrange *,
-button:active,
-a:active,
-[role="button"]:active,
-[data-native-notif-open]:active{
-  color:#ff8a00!important;
-  border-color:rgba(255,138,0,.72)!important;
-}
-.happyadTapOrange svg,
-.happyadTapOrange svg *,
-button:active svg,
-a:active svg,
-[role="button"]:active svg{
-  stroke:#ff8a00!important;
-}
-.happyadTapOrange{filter:drop-shadow(0 0 8px rgba(255,138,0,.35))!important;transition:color .05s linear,filter .05s linear!important}
-/* Barre flottante: aucune coloration au clic */
-.bottom .nav.happyadTapOrange,
-.bottom .nav.happyadTapOrange *,
-.bottom .nav:active,
-.bottom .nav:active *{
-  color:inherit!important;
-  border-color:transparent!important;
-  filter:none!important;
-}
-.bottom .nav.happyadTapOrange svg,
-.bottom .nav.happyadTapOrange svg *,
-.bottom .nav:active svg,
-.bottom .nav:active svg *{
-  stroke:currentColor!important;
-}
-</style>
-<style id="happyad-v303-home-compact-magic-final">
-/* V303 — Accueil compact premium: garde le design actuel, resserre seulement les espaces. */
-.hScroller,
-.feedGrid{
-  gap:12px!important;
-  padding-bottom:6px!important;
-}
-.hScroller .miniCard,
-.feedGrid .miniCard{
-  flex:0 0 min(420px,86vw)!important;
-  padding-bottom:3px!important;
-}
-.miniCardFrame{
-  border-radius:22px!important;
-  box-shadow:0 14px 30px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.015)!important;
-}
-.miniTop{
-  height:56px!important;
-  min-height:56px!important;
-  padding:8px 15px!important;
-  gap:10px!important;
-  align-items:center!important;
-}
-.avatar{
-  width:39px!important;
-  height:39px!important;
-  flex:0 0 39px!important;
-}
-.creator{
-  min-width:0!important;
-}
-.creator b{
-  font-size:16px!important;
-  line-height:1.02!important;
-  letter-spacing:-.25px!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:4px!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-.creator span{
-  font-size:13px!important;
-  line-height:1!important;
-  margin-top:3px!important;
-}
-.miniTop .miniPostDate{
-  font-size:12px!important;
-  line-height:1!important;
-  padding-top:2px!important;
-  margin-left:auto!important;
-  flex:0 0 auto!important;
-}
-.miniMedia,
-.hScroller .miniMedia,
-.feedGrid .miniMedia,
-.miniCard.videoCard .miniMedia{
-  aspect-ratio:1/1!important;
-}
-.miniBody{
-  min-height:58px!important;
-  padding:11px 15px 12px!important;
-}
-.miniTitle{
-  font-size:20px!important;
-  line-height:1.05!important;
-  letter-spacing:-.35px!important;
-  margin:0!important;
-}
-.miniMeta{
-  font-size:16px!important;
-  line-height:1.05!important;
-  margin-top:4px!important;
-}
-.miniActions{
-  margin:0!important;
-  padding:7px 24px 0!important;
-  justify-content:space-between!important;
-  filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));
-}
-.miniActions .actionBtn{
-  gap:6px!important;
-}
-.haLineIcon,
-.haLineIcon svg{
-  width:23px!important;
-  height:23px!important;
-}
-.haLineIcon{
-  flex:0 0 23px!important;
-}
-.miniActions .actionBtn small{
-  font-size:15px!important;
-  line-height:1!important;
-  font-weight:950!important;
-}
-.sectionTitle{
-  margin-top:8px!important;
-  margin-bottom:7px!important;
-}
-.empty{
-  margin-top:4px!important;
-  margin-bottom:8px!important;
-}
-.happyadVideoViewsBadge{
-  right:10px!important;
-  bottom:10px!important;
-  font-size:12px!important;
-}
-@media(max-width:390px){
-  .hScroller .miniCard,
-  .feedGrid .miniCard{flex-basis:86vw!important}
-  .miniTop{height:53px!important;min-height:53px!important;padding:7px 13px!important;gap:9px!important}
-  .avatar{width:36px!important;height:36px!important;flex-basis:36px!important}
-  .creator b{font-size:15px!important}
-  .creator span{font-size:12px!important}
-  .miniTop .miniPostDate{font-size:11.5px!important}
-  .miniBody{min-height:55px!important;padding:10px 13px 11px!important}
-  .miniTitle{font-size:19px!important}
-  .miniMeta{font-size:15px!important;margin-top:3px!important}
-  .miniActions{padding:7px 20px 0!important}
-  .haLineIcon,.haLineIcon svg{width:22px!important;height:22px!important}
-  .haLineIcon{flex-basis:22px!important}
-  .miniActions .actionBtn small{font-size:14.5px!important}
-}
-</style>
-
-<!-- HAPPYAD V324 — DESIGN GLOBAL COMPACT / AUCUNE NOUVELLE FONCTION -->
-<style id="happyad-global-compact-v324">
-:root{--ha-radius:16px;--ha-gap:8px;--ha-soft:#11151d;--ha-line:#252b35}
-.app{padding-left:10px!important;padding-right:10px!important;padding-bottom:84px!important}
-.top{margin-left:-10px!important;margin-right:-10px!important;padding:8px 10px!important}
-.topRow{grid-template-columns:40px 1fr 40px!important;gap:7px!important}.round{width:38px!important;height:38px!important;font-size:20px!important}.title{font-size:22px!important}.sub{font-size:10px!important;margin-top:1px!important}
-.head{margin:10px 0 7px!important}h1{font-size:24px!important;letter-spacing:-.8px!important}.sectionTitle{font-size:15px!important;margin:7px 0 6px!important}
-.sponsorStrip{height:104px!important;margin:4px 0 7px!important;border-radius:18px!important}.sponsorAd{grid-template-columns:45% 55%!important}.sponsorText{padding:8px 10px!important;gap:2px!important}.sponsorText b{font-size:14px!important;line-height:1.05!important}.sponsorText small,.sponsorText .sponsorMeta{font-size:10px!important;line-height:1.1!important}.sponsorDescWrap{max-height:28px!important}.sponsorDesc{font-size:10px!important;line-height:1.18!important;-webkit-line-clamp:2!important}
-.chips{gap:6px!important;padding:2px 0 8px!important}.chip{height:30px!important;padding:6px 10px!important;border-radius:13px!important;font-size:10px!important}
-.radarBlock{margin:4px 0 9px!important}.radarHead{margin-bottom:6px!important}.radarTitle{font-size:13px!important}.mapLite{padding:6px 9px!important;font-size:9.5px!important}.radarRow{gap:9px!important}.radarItem{flex-basis:68px!important}.radarAvatar{width:52px!important;height:52px!important;margin-bottom:4px!important}.radarAvatar.add span{font-size:28px!important}.radarName{font-size:9.5px!important}.radarMeta{font-size:8.5px!important}
-.feedGrid{gap:8px!important}.hScroller{gap:8px!important;padding-bottom:4px!important}.miniCard{border-radius:16px!important;box-shadow:0 8px 20px rgba(0,0,0,.24)!important}.miniTop{height:36px!important;min-height:36px!important;padding:6px 8px!important;gap:6px!important}.avatar{width:25px!important;height:25px!important;font-size:11px!important}.creator b{font-size:11px!important}.creator span{font-size:9px!important}.miniMedia,.hScroller .miniMedia,.feedGrid .miniMedia,.miniCard.videoCard .miniMedia{aspect-ratio:1/1!important;height:auto!important;min-height:0!important}.miniBody{padding:7px 8px!important;min-height:auto!important}.miniTitle{font-size:13px!important;line-height:1.08!important;min-height:0!important;display:-webkit-box!important;-webkit-line-clamp:1!important;-webkit-box-orient:vertical!important;overflow:hidden!important}.miniMeta{font-size:10px!important;line-height:1.1!important;margin-top:3px!important;min-height:0!important;display:-webkit-box!important;-webkit-line-clamp:1!important;-webkit-box-orient:vertical!important;overflow:hidden!important}.miniActions{gap:6px!important;padding:5px 0 0!important;margin:0!important}.miniActions .actionBtn{font-size:10.5px!important;gap:2px!important}.miniActions .actionBtn small{font-size:10.5px!important}.haLineIcon,.haLineIcon svg{width:18px!important;height:18px!important}.cardOverlay{right:6px!important;top:48px!important;gap:5px!important}.cardAct{width:27px!important;min-height:27px!important;font-size:12px!important}
-.bottom{bottom:8px!important;width:min(496px,calc(100% - 18px))!important;border-radius:22px!important;padding:6px 5px!important}.nav{font-size:9.5px!important}.nav .ico{font-size:18px!important}.plus{width:46px!important;height:46px!important;font-size:29px!important;margin-top:-26px!important}
-@media(max-width:380px){.app{padding-left:8px!important;padding-right:8px!important}.top{margin-left:-8px!important;margin-right:-8px!important}.feedGrid{gap:7px!important}.miniTitle{font-size:12.5px!important}.miniMeta{font-size:9.5px!important}.sponsorStrip{height:96px!important}.radarItem{flex-basis:64px!important}.radarAvatar{width:50px!important;height:50px!important}}
-</style>
-
-<!-- HAPPYAD V326 — Accueil: photo profil ronde conservee + favoris masque pour eviter collision -->
-<style id="happyad-v326-home-actions-no-fav-collision">
-/* Correction demandee: garder le profil rond, supprimer seulement favoris sur l'accueil,
-   puis recentrer les autres boutons pour eviter toute collision avec la carte suivante. */
-.miniTop .avatar,
-.feedGrid .miniTop .avatar,
-.hScroller .miniTop .avatar{
-  border-radius:50%!important;
-  overflow:hidden!important;
-  aspect-ratio:1/1!important;
-  flex:0 0 auto!important;
-}
-.miniTop .avatar img,
-.feedGrid .miniTop .avatar img,
-.hScroller .miniTop .avatar img{
-  width:100%!important;
-  height:100%!important;
-  border-radius:50%!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  display:block!important;
-}
-/* Sur l'accueil, on ne montre plus le favori: il reste disponible dans l'ouverture detaillee. */
-.miniActions .actionBtn.fav,
-.feedGrid .miniActions .actionBtn.fav,
-.hScroller .miniActions .actionBtn.fav{
-  display:none!important;
-}
-/* Les 4 actions restantes se placent proprement dans leur propre carte. */
-.miniActions,
-.feedGrid .miniActions,
-.hScroller .miniActions{
-  display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  align-items:center!important;
-  width:100%!important;
-  max-width:100%!important;
-  box-sizing:border-box!important;
-  padding:6px 12px 0!important;
-  margin:0!important;
-  gap:0!important;
-  overflow:hidden!important;
-}
-.miniActions .actionBtn,
-.feedGrid .miniActions .actionBtn,
-.hScroller .miniActions .actionBtn{
-  min-width:0!important;
-  max-width:100%!important;
-  width:100%!important;
-  justify-content:center!important;
-  text-align:center!important;
-  overflow:hidden!important;
-  gap:4px!important;
-  transform:none!important;
-}
-.miniActions .actionBtn small,
-.feedGrid .miniActions .actionBtn small,
-.hScroller .miniActions .actionBtn small{
-  max-width:32px!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-}
-@media(max-width:390px){
-  .miniActions,.feedGrid .miniActions,.hScroller .miniActions{padding:6px 10px 0!important}
-  .miniActions .actionBtn,.feedGrid .miniActions .actionBtn,.hScroller .miniActions .actionBtn{gap:3px!important}
-  .miniActions .actionBtn small,.feedGrid .miniActions .actionBtn small,.hScroller .miniActions .actionBtn small{max-width:28px!important}
-}
 
 
-/* HAPPYAD V334 — finition premium accueil: bord à bord, album intelligent, double-tap */
-#list.homeTimeline{margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important;}
-#list.homeTimeline .miniCard{width:100vw!important;border-left:0!important;border-right:0!important;border-radius:20px!important;}
-#list.homeTimeline .miniCardFrame{border-radius:20px!important;}
-#list.homeTimeline .miniMedia>img,#list.homeTimeline .happyadAlbumSlide img,#list.homeTimeline .miniMedia img.happyadCropImg{object-position:center 12%!important;}
-#list.homeTimeline .happyadAlbumBadge{position:absolute;left:14px;bottom:14px;z-index:9;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 9px;color:#fff;font-size:12px;font-weight:1000;line-height:1;box-shadow:0 6px 16px rgba(0,0,0,.35)}
-#list.homeTimeline .happyadAlbumDots{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:10;display:flex;gap:6px;align-items:center;justify-content:center;pointer-events:none}
-#list.homeTimeline .happyadAlbumDots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 4px rgba(0,0,0,.45);transition:width .18s ease,background .18s ease}
-#list.homeTimeline .happyadAlbumDots span.on{width:18px;border-radius:999px;background:#ff8a00}
-.happyadDoubleTapHeart{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.72);z-index:30;color:#ff315f;font-size:82px;font-weight:1000;text-shadow:0 6px 25px rgba(0,0,0,.55);opacity:0;pointer-events:none;animation:happyadHeartPop .72s ease forwards}
-@keyframes happyadHeartPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}70%{opacity:.95;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.24)}}
-@media(max-width:390px){#list.homeTimeline .miniCard{border-radius:18px!important}#list.homeTimeline .miniCardFrame{border-radius:18px!important}}
-</style>
-
-<!-- HAPPYAD V342: RADAR SEEN LOCK - ne marque vu que si story réellement ouverte -->
-<script id="happyad-v342-radar-seen-lock-fix">
 (function(){
   if(window.__HAPPYAD_V342_RADAR_SEEN_LOCK__) return;
   window.__HAPPYAD_V342_RADAR_SEEN_LOCK__ = true;
@@ -7459,490 +5141,8 @@ a:active svg,
   window.addEventListener('pageshow',function(){setTimeout(function(){try{window.renderRadarHome()}catch(e){}},120)});
   setTimeout(function(){try{window.renderRadarHome()}catch(e){}},260);
 })();
-</script>
-
-<style id="happyad-v405-home-photo-profile-card-fit-fix">
-/* HAPPYAD V405/V466 — Accueil photo adaptatif.
-   La carte garde le design actuel, mais la photo est complète dans un cadre 3/4 avec fond flou. */
-#list.homeTimeline .miniMedia,
-#list.homeTimeline .happyadAlbumSlide{
-  width:100%!important;
-  aspect-ratio:3/4!important;
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  overflow:hidden!important;
-  background:#05070a!important;
-  display:grid!important;
-  place-items:center!important;
-  position:relative!important;
-}
-#list.homeTimeline .videoCard .miniMedia{
-  width:100%!important;
-  aspect-ratio:1/1!important;
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  overflow:hidden!important;
-  background:#05070a!important;
-}
-@media(max-height:700px){
-  #list.homeTimeline .miniCard:not(.videoCard) .miniMedia,
-  #list.homeTimeline .happyadAlbumSlide{aspect-ratio:4/5!important;}
-}
-#list.homeTimeline .happyadAlbumCarousel,
-#list.homeTimeline .happyadAlbumTrack{
-  width:100%!important;
-  height:100%!important;
-}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia::before,
-#list.homeTimeline .happyadAlbumSlide::before{
-  content:""!important;
-  position:absolute!important;
-  inset:-22px!important;
-  background-image:var(--ha-photo-bg)!important;
-  background-size:cover!important;
-  background-position:center center!important;
-  filter:blur(20px)!important;
-  transform:scale(1.08)!important;
-  opacity:.42!important;
-  z-index:0!important;
-  pointer-events:none!important;
-}
-#list.homeTimeline .miniMedia>img,
-#list.homeTimeline .happyadAlbumSlide img,
-#list.homeTimeline .miniMedia img.happyadCropImg{
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:contain!important;
-  object-position:center center!important;
-  transform:none!important;
-  display:block!important;
-  position:relative!important;
-  z-index:1!important;
-}
-/* Les vidéos gardent le même cadre carré, sans étirer le poster. */
-#list.homeTimeline .miniMedia video,
-#list.homeTimeline .miniMedia img.happyadVideoPoster,
-#list.homeTimeline .miniMedia video.happyadVideoLoading,
-#list.homeTimeline .miniMedia video.happyadVideoReady{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-}
-body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!important;}
-#happyadHomePhotoFullscreen{position:fixed!important;inset:0!important;z-index:999998!important;background:rgba(0,0,0,.94)!important;display:none!important;align-items:center!important;justify-content:center!important;color:#fff!important;font-family:system-ui,-apple-system,Segoe UI,sans-serif!important;touch-action:none!important;}
-#happyadHomePhotoFullscreen.on{display:flex!important;}
-#happyadHomePhotoFullscreen .haHomeFsCard{position:relative!important;width:100vw!important;height:100dvh!important;overflow:hidden!important;background:#000!important;display:grid!important;place-items:center!important;}
-#happyadHomePhotoFullscreen .haHomeFsMedia{position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;overflow:hidden!important;background:#000!important;}
-#happyadHomePhotoFullscreen .haHomeFsBg{position:absolute!important;inset:-32px!important;background-size:cover!important;background-position:center!important;filter:blur(24px)!important;opacity:.36!important;transform:scale(1.08)!important;}
-#happyadHomePhotoFullscreen .haHomeFsMedia img{position:relative!important;z-index:2!important;max-width:100%!important;max-height:100%!important;width:auto!important;height:auto!important;object-fit:contain!important;transition:opacity .16s ease!important;}
-#happyadHomePhotoFullscreen .haHomeFsLoading{position:relative!important;z-index:3!important;color:#d9dde8!important;font-weight:900!important;font-size:14px!important;}
-#happyadHomePhotoFullscreen .haHomeFsTop{position:absolute!important;left:0!important;right:0!important;top:0!important;z-index:5!important;padding:18px 14px 58px!important;display:flex!important;align-items:center!important;gap:10px!important;background:linear-gradient(rgba(0,0,0,.76),rgba(0,0,0,.32),rgba(0,0,0,0))!important;}
-#happyadHomePhotoFullscreen .haHomeFsClose{position:absolute!important;left:12px!important;top:18px!important;z-index:7!important;width:42px!important;height:42px!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.15)!important;color:#fff!important;font-size:30px!important;font-weight:900!important;display:grid!important;place-items:center!important;}
-#happyadHomePhotoFullscreen .haHomeFsAvatar{margin-left:52px!important;width:38px!important;height:38px!important;border-radius:50%!important;background:#181b22!important;overflow:hidden!important;display:grid!important;place-items:center!important;font-weight:1000!important;flex:0 0 38px!important;}
-#happyadHomePhotoFullscreen .haHomeFsAvatar img{width:100%!important;height:100%!important;object-fit:cover!important;}
-#happyadHomePhotoFullscreen .haHomeFsInfo{min-width:0!important;line-height:1.08!important;}
-#happyadHomePhotoFullscreen .haHomeFsInfo b{display:block!important;font-size:15px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:58vw!important;}
-#happyadHomePhotoFullscreen .haHomeFsInfo span{display:block!important;margin-top:3px!important;font-size:12px!important;color:#d8dbe4!important;}
-#happyadHomePhotoFullscreen .haHomeFsCount{margin-left:auto!important;margin-right:8px!important;font-size:13px!important;font-weight:1000!important;background:rgba(0,0,0,.48)!important;border-radius:999px!important;padding:5px 9px!important;}
-#happyadHomePhotoFullscreen .haHomeFsNav{position:absolute!important;top:50%!important;transform:translateY(-50%)!important;z-index:6!important;width:44px!important;height:54px!important;border:0!important;border-radius:999px!important;background:rgba(0,0,0,.34)!important;color:#fff!important;font-size:35px!important;font-weight:900!important;display:grid!important;place-items:center!important;}
-#happyadHomePhotoFullscreen .haHomeFsPrev{left:8px!important;}#happyadHomePhotoFullscreen .haHomeFsNext{right:8px!important;}
-#happyadHomePhotoFullscreen .haHomeFsCaption{position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:5!important;padding:78px 18px 24px!important;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.72))!important;font-size:15px!important;font-weight:850!important;line-height:1.25!important;max-height:34vh!important;overflow:auto!important;}
-/* L'âge de publication reste visible, mais un peu rentré vers la gauche. */
-#list.homeTimeline .miniTop .miniPostDate{
-  margin-left:auto!important;
-  margin-right:8px!important;
-  max-width:112px!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-  text-align:right!important;
-}
-@media(max-width:390px){
-  #list.homeTimeline .miniTop .miniPostDate{margin-right:12px!important;max-width:96px!important;font-size:11.5px!important}
-}
-
-/* HAPPYAD V467 — Accueil photo propre: plus de fond flou, albums en grille, fullscreen sans gros boutons. */
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia::before,
-#list.homeTimeline .happyadAlbumSlide::before{
-  content:none!important;
-  display:none!important;
-  background-image:none!important;
-}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia{
-  background:#05070a!important;
-  aspect-ratio:3/4!important;
-}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia.haPhotoTall{aspect-ratio:3/4!important;}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia.haPhotoSquare{aspect-ratio:1/1!important;}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia.haPhotoWide{aspect-ratio:4/3!important;}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia.haPhotoPanorama{aspect-ratio:16/9!important;}
-@media(max-height:700px){
-  #list.homeTimeline .miniCard:not(.videoCard) .miniMedia.haPhotoTall{aspect-ratio:4/5!important;}
-}
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia>img,
-#list.homeTimeline .miniCard:not(.videoCard) .miniMedia img.happyadCropImg{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  background:#05070a!important;
-}
-#list.homeTimeline .miniMedia.haAlbumGridBox{
-  aspect-ratio:1/1!important;
-  background:#05070a!important;
-}
-#list.homeTimeline .miniMedia.haAlbumGridBox.haAlbum2{aspect-ratio:4/5!important;}
-#list.homeTimeline .miniMedia.haAlbumGridBox.haAlbum3,
-#list.homeTimeline .miniMedia.haAlbumGridBox.haAlbum4{aspect-ratio:1/1!important;}
-#list.homeTimeline .happyadAlbumGrid{
-  width:100%!important;
-  height:100%!important;
-  display:grid!important;
-  gap:2px!important;
-  background:#05070a!important;
-  overflow:hidden!important;
-}
-#list.homeTimeline .happyadAlbumCount2{grid-template-columns:repeat(2,1fr)!important;grid-template-rows:1fr!important;}
-#list.homeTimeline .happyadAlbumCount3{grid-template-columns:1.35fr .9fr!important;grid-template-rows:repeat(2,1fr)!important;}
-#list.homeTimeline .happyadAlbumCount3 .happyadAlbumTile.isFirst{grid-row:1 / span 2!important;}
-#list.homeTimeline .happyadAlbumCount4{grid-template-columns:repeat(2,1fr)!important;grid-template-rows:repeat(2,1fr)!important;}
-#list.homeTimeline .happyadAlbumTile{position:relative!important;overflow:hidden!important;background:#05070a!important;min-width:0!important;min-height:0!important;}
-#list.homeTimeline .happyadAlbumTile img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;}
-#list.homeTimeline .happyadAlbumLoading{position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;color:#aeb3c0!important;font-size:12px!important;font-weight:800!important;}
-#list.homeTimeline .happyadAlbumMore{position:absolute!important;inset:0!important;background:rgba(0,0,0,.48)!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:28px!important;font-weight:1000!important;}
-#list.homeTimeline .happyadAlbumDots,
-#list.homeTimeline .happyadAlbumHint{display:none!important;}
-#happyadHomePhotoFullscreen .haHomeFsBg{display:none!important;background-image:none!important;}
-#happyadHomePhotoFullscreen .haHomeFsNav{display:none!important;}
-#happyadHomePhotoFullscreen .haHomeFsMedia{background:#000!important;}
 
 
-/* HAPPYAD V468 — Albums photo: cartes horizontales adaptatives + commentaires popup fluide. */
-#list.homeTimeline .miniMedia.haAlbumScrollBox{
-  display:block!important;
-  aspect-ratio:3/4!important;
-  background:#05070a!important;
-  overflow:hidden!important;
-  position:relative!important;
-}
-@media(max-height:700px){#list.homeTimeline .miniMedia.haAlbumScrollBox{aspect-ratio:4/5!important;}}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumScroll{
-  width:100%!important;height:100%!important;overflow:hidden!important;background:#05070a!important;
-}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumTrack{
-  width:100%!important;height:100%!important;display:flex!important;gap:8px!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory!important;scroll-behavior:smooth!important;padding:0 10px 0 0!important;box-sizing:border-box!important;scrollbar-width:none!important;background:#05070a!important;
-}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumTrack::-webkit-scrollbar{display:none!important;}
-#list.homeTimeline .happyadAlbumSlideCard{
-  position:relative!important;flex:0 0 84%!important;min-width:84%!important;height:100%!important;scroll-snap-align:start!important;overflow:hidden!important;background:#05070a!important;display:grid!important;place-items:center!important;border-right:1px solid rgba(255,255,255,.04)!important;
-}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoTall{flex-basis:78%!important;min-width:78%!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoSquare{flex-basis:76%!important;min-width:76%!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoWide{flex-basis:92%!important;min-width:92%!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoPanorama{flex-basis:96%!important;min-width:96%!important;}
-#list.homeTimeline .happyadAlbumSlideCard img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#05070a!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumBadge{left:12px!important;bottom:12px!important;background:rgba(0,0,0,.62)!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumDots{display:flex!important;position:absolute!important;left:50%!important;bottom:14px!important;transform:translateX(-50%)!important;z-index:10!important;gap:5px!important;pointer-events:none!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumDots span{width:6px!important;height:6px!important;border-radius:999px!important;background:rgba(255,255,255,.55)!important;transition:width .18s ease,background .18s ease!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumDots span.on{width:18px!important;background:#ff8a00!important;}
-#happyadHomePhotoFullscreen .haHomeFsInfo b{display:flex!important;align-items:center!important;gap:5px!important;max-width:58vw!important;white-space:nowrap!important;overflow:hidden!important;}
-#happyadHomePhotoFullscreen .haHomeFsNameText{display:inline-block!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
-#happyadHomePhotoFullscreen .haHomeFsInfo .happyBadgeMark{flex:0 0 14px!important;margin-left:0!important;vertical-align:0!important;}
-#happyadHomePhotoFullscreen .haHomeFsCaption{padding:72px 18px 28px!important;}
-#happyadHomePhotoFullscreen .haHomeFsTitle{font-size:18px!important;font-weight:1000!important;line-height:1.15!important;margin-bottom:7px!important;}
-#happyadHomePhotoFullscreen .haHomeFsDesc{font-size:14px!important;font-weight:700!important;line-height:1.32!important;color:#f2f4f8!important;}
-#happyadHomePhotoFullscreen .haHomeFsSeeMore{margin-top:8px!important;border:0!important;background:rgba(255,255,255,.12)!important;color:#fff!important;border-radius:999px!important;padding:7px 12px!important;font-size:12px!important;font-weight:950!important;}
-body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!important;}
-#happyadHomeCommentPopup{position:fixed!important;inset:0!important;z-index:999999!important;display:none!important;font-family:system-ui,-apple-system,Segoe UI,sans-serif!important;color:#fff!important;}
-#happyadHomeCommentPopup.on{display:block!important;}
-#happyadHomeCommentPopup .haCommentBackdrop{position:absolute!important;inset:0!important;background:rgba(0,0,0,.52)!important;backdrop-filter:blur(6px)!important;}
-#happyadHomeCommentPopup .haCommentPanel{position:absolute!important;left:0!important;right:0!important;top:0!important;bottom:0!important;background:linear-gradient(180deg,rgba(9,12,18,.88),rgba(5,7,10,.94))!important;display:flex!important;flex-direction:column!important;transform:translateY(18px)!important;opacity:.98!important;transition:transform .18s ease,opacity .18s ease!important;}
-#happyadHomeCommentPopup.on .haCommentPanel{transform:translateY(0)!important;}
-#happyadHomeCommentPopup .haCommentHead{height:66px!important;display:flex!important;align-items:center!important;gap:12px!important;padding:8px 14px!important;border-bottom:1px solid rgba(255,255,255,.08)!important;background:rgba(10,12,18,.62)!important;backdrop-filter:blur(10px)!important;flex:0 0 auto!important;}
-#happyadHomeCommentPopup .haCommentClose{width:42px!important;height:42px!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;color:#fff!important;font-size:32px!important;font-weight:900!important;display:grid!important;place-items:center!important;}
-#happyadHomeCommentPopup .haCommentHead b{display:block!important;font-size:18px!important;font-weight:1000!important;}
-#happyadHomeCommentPopup .haCommentHead span{display:block!important;max-width:72vw!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#b8bdc8!important;font-size:12px!important;margin-top:2px!important;}
-#happyadHomeCommentPopup .haCommentList{flex:1 1 auto!important;overflow:auto!important;padding:14px 14px 100px!important;-webkit-overflow-scrolling:touch!important;}
-#happyadHomeCommentPopup .haCommentItem{display:flex!important;gap:10px!important;margin:0 0 14px!important;align-items:flex-start!important;}
-#happyadHomeCommentPopup .haCommentAvatar{width:36px!important;height:36px!important;border-radius:50%!important;overflow:hidden!important;background:#20242d!important;display:grid!important;place-items:center!important;font-weight:1000!important;flex:0 0 36px!important;}
-#happyadHomeCommentPopup .haCommentAvatar img{width:100%!important;height:100%!important;object-fit:cover!important;}
-#happyadHomeCommentPopup .haCommentBubble{max-width:calc(100vw - 82px)!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:18px!important;padding:9px 11px!important;}
-#happyadHomeCommentPopup .haCommentBubble b{display:flex!important;align-items:center!important;gap:5px!important;font-size:13px!important;font-weight:1000!important;line-height:1.1!important;margin-bottom:3px!important;}
-#happyadHomeCommentPopup .haCommentBubble p{margin:0!important;font-size:14px!important;font-weight:650!important;line-height:1.33!important;color:#f4f6fb!important;white-space:pre-wrap!important;word-break:break-word!important;}
-#happyadHomeCommentPopup .haCommentEmpty{height:45vh!important;display:grid!important;place-items:center!important;color:#b8bdc8!important;font-weight:800!important;text-align:center!important;}
-#happyadHomeCommentPopup .haCommentComposer{position:absolute!important;left:0!important;right:0!important;bottom:0!important;display:flex!important;gap:8px!important;align-items:center!important;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;background:rgba(8,10,15,.82)!important;backdrop-filter:blur(12px)!important;border-top:1px solid rgba(255,255,255,.08)!important;}
-#happyadHomeCommentPopup .haCommentComposer input{flex:1!important;height:44px!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:999px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;padding:0 15px!important;font-size:15px!important;font-weight:700!important;outline:none!important;}
-#happyadHomeCommentPopup .haCommentComposer input::placeholder{color:#aeb4c2!important;}
-#happyadHomeCommentPopup .haCommentComposer button{height:44px!important;border:0!important;border-radius:999px!important;background:#ff8a00!important;color:#111!important;padding:0 15px!important;font-size:13px!important;font-weight:1000!important;}
-#happyadHomeCommentPopup .haCommentComposer button:disabled{opacity:.55!important;}
-
-/* HAPPYAD V469 — commentaires libres + cartes album propres type PHOTO HAPPYAD */
-#list.homeTimeline .miniMedia.haAlbumScrollBox{aspect-ratio:3/4!important;background:#05070a!important;padding:0!important;}
-@media(max-height:700px){#list.homeTimeline .miniMedia.haAlbumScrollBox{aspect-ratio:4/5!important;}}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumScroll{height:100%!important;background:#05070a!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumTrack{height:100%!important;gap:14px!important;padding:10px 16px 16px 16px!important;align-items:center!important;box-sizing:border-box!important;background:#05070a!important;}
-#list.homeTimeline .happyadAlbumSlideCard{height:100%!important;flex:0 0 82%!important;min-width:82%!important;background:transparent!important;border:0!important;overflow:visible!important;display:grid!important;place-items:center!important;scroll-snap-align:center!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoTall{flex-basis:78%!important;min-width:78%!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoSquare{flex-basis:74%!important;min-width:74%!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoWide{flex-basis:88%!important;min-width:88%!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoPanorama{flex-basis:92%!important;min-width:92%!important;}
-#list.homeTimeline .happyadAlbumInnerCard{width:100%!important;height:100%!important;display:grid!important;place-items:center!important;background:#000!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:22px!important;overflow:hidden!important;box-shadow:0 10px 28px rgba(0,0,0,.32)!important;}
-#list.homeTimeline .happyadAlbumSlideCard img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center center!important;background:#000!important;display:block!important;}
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoWide img,
-#list.homeTimeline .happyadAlbumSlideCard.haPhotoPanorama img{object-fit:cover!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumBadge{left:16px!important;bottom:18px!important;z-index:20!important;background:rgba(0,0,0,.68)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:999px!important;padding:6px 10px!important;font-size:13px!important;font-weight:1000!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumDots{bottom:18px!important;z-index:19!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumDots span{width:7px!important;height:7px!important;opacity:.82!important;}
-#list.homeTimeline .haAlbumScrollBox .happyadAlbumDots span.on{width:24px!important;background:#ff8a00!important;}
-#happyadHomeCommentPopup{z-index:999999!important;}
-#happyadHomeCommentPopup .haCommentBackdrop{background:rgba(0,0,0,.28)!important;backdrop-filter:blur(4px)!important;}
-#happyadHomeCommentPopup .haCommentPanel{top:0!important;bottom:0!important;border-radius:0!important;background:linear-gradient(180deg,rgba(8,10,15,.72),rgba(5,7,10,.91))!important;backdrop-filter:blur(12px)!important;transform:translateY(100%)!important;transition:transform .22s cubic-bezier(.2,.8,.2,1)!important;}
-#happyadHomeCommentPopup.on .haCommentPanel{transform:translateY(0)!important;}
-#happyadHomeCommentPopup .haCommentHead,
-#happyadHomeCommentPopup .haCommentClose{display:none!important;}
-#happyadHomeCommentPopup .haCommentPuller{width:46px!important;height:5px!important;border-radius:999px!important;background:rgba(255,255,255,.28)!important;margin:10px auto 4px!important;flex:0 0 auto!important;}
-#happyadHomeCommentPopup .haCommentList{flex:1 1 auto!important;overflow:auto!important;padding:18px 14px 112px!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;}
-#happyadHomeCommentPopup .haCommentTopSpace{height:8px!important;}
-#happyadHomeCommentPopup .haCommentItem{display:flex!important;gap:10px!important;margin:0 0 15px!important;align-items:flex-start!important;}
-#happyadHomeCommentPopup .haCommentItem[data-level="1"]{margin-left:38px!important;}
-#happyadHomeCommentPopup .haCommentItem[data-level="2"]{margin-left:58px!important;}
-#happyadHomeCommentPopup .haCommentItem[data-level="3"],
-#happyadHomeCommentPopup .haCommentItem[data-level="4"],
-#happyadHomeCommentPopup .haCommentItem[data-level="5"],
-#happyadHomeCommentPopup .haCommentItem[data-level="6"]{margin-left:70px!important;}
-#happyadHomeCommentPopup .haCommentAvatar{width:34px!important;height:34px!important;border-radius:50%!important;overflow:hidden!important;background:#20242d!important;display:grid!important;place-items:center!important;font-size:12px!important;font-weight:1000!important;flex:0 0 34px!important;box-shadow:0 0 0 1px rgba(255,255,255,.12)!important;}
-#happyadHomeCommentPopup .haCommentAvatar img{width:100%!important;height:100%!important;object-fit:cover!important;}
-#happyadHomeCommentPopup .haCommentMain{flex:1 1 auto!important;min-width:0!important;}
-#happyadHomeCommentPopup .haCommentLine{display:flex!important;align-items:flex-start!important;gap:8px!important;min-width:0!important;}
-#happyadHomeCommentPopup .haCommentTextBlock{flex:1 1 auto!important;min-width:0!important;max-width:100%!important;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;}
-#happyadHomeCommentPopup .haCommentBubble{display:contents!important;background:transparent!important;border:0!important;padding:0!important;max-width:none!important;}
-#happyadHomeCommentPopup .haCommentMeta{display:flex!important;align-items:center!important;gap:7px!important;min-width:0!important;margin:0 0 3px!important;}
-#happyadHomeCommentPopup .haCommentMeta b{display:flex!important;align-items:center!important;gap:5px!important;font-size:13px!important;font-weight:1000!important;line-height:1.15!important;min-width:0!important;color:#fff!important;}
-#happyadHomeCommentPopup .haCommentMeta span{font-size:11px!important;font-weight:800!important;color:#aeb4c1!important;white-space:nowrap!important;}
-#happyadHomeCommentPopup .haCommentTextBlock p{margin:0!important;font-size:14.5px!important;font-weight:650!important;line-height:1.36!important;color:#f4f6fb!important;white-space:pre-wrap!important;word-break:break-word!important;}
-#happyadHomeCommentPopup .haCommentTools{display:flex!important;gap:12px!important;align-items:center!important;margin-top:5px!important;}
-#happyadHomeCommentPopup .haCommentTools button,
-#happyadHomeCommentPopup .haCommentSeeMore{border:0!important;background:transparent!important;color:#aeb4c1!important;font-size:12px!important;font-weight:950!important;padding:0!important;}
-#happyadHomeCommentPopup .haCommentSeeMore{margin-top:4px!important;color:#ffb15d!important;display:inline-block!important;}
-#happyadHomeCommentPopup .haCommentLike{width:38px!important;min-width:38px!important;border:0!important;background:transparent!important;color:#cdd2dc!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:2px!important;padding:2px 0!important;}
-#happyadHomeCommentPopup .haCommentLike svg{width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;}
-#happyadHomeCommentPopup .haCommentLike.on{color:#ff315f!important;}
-#happyadHomeCommentPopup .haCommentLike.on svg{fill:currentColor!important;}
-#happyadHomeCommentPopup .haCommentLike small{font-size:10px!important;font-weight:1000!important;line-height:1!important;}
-#happyadHomeCommentPopup .haCommentMenu{display:flex!important;gap:6px!important;margin-top:7px!important;}
-#happyadHomeCommentPopup .haCommentMenu[hidden]{display:none!important;}
-#happyadHomeCommentPopup .haCommentMenu button{border:1px solid rgba(255,255,255,.10)!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border-radius:999px!important;padding:6px 10px!important;font-size:12px!important;font-weight:950!important;}
-#happyadHomeCommentPopup .haCommentChildren{margin-top:10px!important;}
-#happyadHomeCommentPopup .haCommentEndHint{text-align:center!important;color:rgba(255,255,255,.36)!important;font-size:11px!important;font-weight:900!important;padding:14px 0 0!important;}
-#happyadHomeCommentPopup .haCommentEmpty{height:58vh!important;display:grid!important;place-items:center!important;color:#b8bdc8!important;font-weight:900!important;text-align:center!important;}
-#happyadHomeCommentPopup .haCommentComposer{position:absolute!important;left:0!important;right:0!important;bottom:0!important;display:flex!important;gap:8px!important;align-items:center!important;flex-wrap:wrap!important;padding:9px 12px calc(9px + env(safe-area-inset-bottom))!important;background:rgba(7,9,13,.78)!important;backdrop-filter:blur(14px)!important;border-top:1px solid rgba(255,255,255,.07)!important;}
-#happyadHomeCommentPopup .haReplyBar{width:100%!important;align-items:center!important;justify-content:space-between!important;padding:0 8px 3px!important;color:#ffb15d!important;font-size:12px!important;font-weight:950!important;}
-#happyadHomeCommentPopup .haReplyBar button{width:24px!important;height:24px!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;color:#fff!important;padding:0!important;font-size:18px!important;}
-#happyadHomeCommentPopup .haCommentComposer input{flex:1!important;min-width:0!important;height:45px!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:999px!important;background:rgba(255,255,255,.09)!important;color:#fff!important;padding:0 15px!important;font-size:15px!important;font-weight:750!important;outline:none!important;}
-#happyadHomeCommentPopup .haCommentComposer button[type="submit"]{height:45px!important;border:0!important;border-radius:999px!important;background:#ff8a00!important;color:#111!important;padding:0 16px!important;font-size:13px!important;font-weight:1000!important;}
-
-#happyadHomeCommentPopup .haCommentMeta b .happyBadgeMark{flex:0 0 14px!important;width:14px!important;height:14px!important;display:inline-block!important;margin-left:1px!important;}
-#happyadHomeCommentPopup .haCommentMoreReplies{border:0!important;background:transparent!important;color:#aeb4c1!important;font-size:12px!important;font-weight:950!important;padding:4px 0 0!important;margin:2px 0 0!important;}
-#happyadHomeCommentPopup .haCommentRepliesHidden[hidden]{display:none!important;}
-
-
-/* HAPPYAD V470 — Album = cartes originales dupliquées horizontalement + sortie commentaire moins agressive */
-#list.homeTimeline .miniCard.haAlbumFullPagerCard{
-  overflow:hidden!important;
-  background:transparent!important;
-  border:0!important;
-  box-shadow:none!important;
-}
-#list.homeTimeline .haAlbumFullScroller{
-  width:100%!important;
-  overflow:hidden!important;
-}
-#list.homeTimeline .haAlbumFullTrack{
-  display:flex!important;
-  gap:14px!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  scroll-snap-type:x mandatory!important;
-  scroll-behavior:smooth!important;
-  -webkit-overflow-scrolling:touch!important;
-  scrollbar-width:none!important;
-  align-items:flex-start!important;
-}
-#list.homeTimeline .haAlbumFullTrack::-webkit-scrollbar{display:none!important;}
-#list.homeTimeline .haAlbumFullSlide{
-  flex:0 0 100%!important;
-  min-width:100%!important;
-  scroll-snap-align:start!important;
-  box-sizing:border-box!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniCardFrame{
-  border-radius:28px 28px 0 0!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haAlbumSingleMedia{
-  position:relative!important;
-  width:100%!important;
-  height:auto!important;
-  min-height:0!important;
-  overflow:hidden!important;
-  background:#05070a!important;
-  display:block!important;
-  aspect-ratio:4/5!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haPhotoTall{aspect-ratio:3/4!important;}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haPhotoSquare{aspect-ratio:1/1!important;}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haPhotoWide{aspect-ratio:4/3!important;}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haPhotoPanorama{aspect-ratio:16/9!important;}
-@media(max-height:700px){#list.homeTimeline .haAlbumFullSlide .miniMedia.haPhotoTall{aspect-ratio:4/5!important;}}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haAlbumSingleMedia>img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  display:block!important;
-  background:#05070a!important;
-}
-#list.homeTimeline .haAlbumFullSlide .happyadAlbumBadge{
-  position:absolute!important;
-  left:14px!important;
-  bottom:14px!important;
-  z-index:8!important;
-  background:rgba(0,0,0,.62)!important;
-  border:1px solid rgba(255,255,255,.16)!important;
-  border-radius:999px!important;
-  padding:5px 9px!important;
-  color:#fff!important;
-  font-size:12px!important;
-  font-weight:1000!important;
-  line-height:1!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniActions{
-  border-radius:0 0 28px 28px!important;
-}
-#list.homeTimeline .haAlbumFullDots{
-  display:flex!important;
-  justify-content:center!important;
-  align-items:center!important;
-  gap:6px!important;
-  padding:9px 0 0!important;
-  pointer-events:none!important;
-}
-#list.homeTimeline .haAlbumFullDots span{
-  width:7px!important;
-  height:7px!important;
-  border-radius:999px!important;
-  background:rgba(255,255,255,.48)!important;
-  transition:width .18s ease,background .18s ease!important;
-}
-#list.homeTimeline .haAlbumFullDots span.on{
-  width:24px!important;
-  background:#ff8a00!important;
-}
-#happyadHomeCommentPopup .haCommentPanel{
-  will-change:transform!important;
-  transition:transform .22s cubic-bezier(.2,.85,.2,1),opacity .18s ease!important;
-}
-
-
-/* HAPPYAD V471 — petites corrections album + commentaire naturel */
-#list.homeTimeline .haAlbumFullPagerCard{
-  padding-bottom:0!important;
-}
-#list.homeTimeline .haAlbumFullScroller{
-  height:auto!important;
-  min-height:0!important;
-  overflow:hidden!important;
-}
-#list.homeTimeline .haAlbumFullTrack{
-  height:auto!important;
-  min-height:0!important;
-  align-items:center!important;
-}
-#list.homeTimeline .haAlbumFullSlide{
-  height:auto!important;
-  min-height:0!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniCardFrame{
-  border-radius:22px!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haAlbumSingleMedia{
-  display:block!important;
-  place-items:normal!important;
-  background:#05070a!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniMedia.haAlbumSingleMedia>img{
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  background:#05070a!important;
-  margin:0!important;
-}
-#list.homeTimeline .haAlbumFixedBar{
-  width:100%!important;
-  background:transparent!important;
-}
-#list.homeTimeline .haAlbumFixedBar .miniActions{
-  margin:0!important;
-  padding:10px 24px 8px!important;
-  justify-content:space-between!important;
-  flex-wrap:nowrap!important;
-  border-radius:0!important;
-}
-#list.homeTimeline .haAlbumFullSlide .miniActions{
-  display:none!important;
-}
-#list.homeTimeline .haAlbumFullDots{
-  padding:2px 0 8px!important;
-}
-#list.homeTimeline .haAlbumFullSlide .happyadAlbumBadge{
-  min-width:30px!important;
-  text-align:center!important;
-}
-#happyadHomeCommentPopup .haCommentPanel{
-  will-change:transform!important;
-}
-#happyadHomeCommentPopup .haCommentComposer input{
-  -webkit-user-select:text!important;
-  user-select:text!important;
-  touch-action:manipulation!important;
-}
-
-
-/* HAPPYAD V472 — album une carte par glissement + commentaire qui suit vraiment le doigt */
-#list.homeTimeline .haAlbumFullTrack{
-  touch-action:pan-x pinch-zoom!important;
-  overscroll-behavior-x:contain!important;
-  scroll-snap-type:x mandatory!important;
-}
-#list.homeTimeline .haAlbumFullSlide{
-  scroll-snap-stop:always!important;
-}
-#happyadHomeCommentPopup .haCommentPanel{
-  will-change:transform,opacity!important;
-}
-
-
-/* HAPPYAD V474 — album horizontal natif: vertical libre, sans JS lourd */
-#list.homeTimeline .haAlbumFullTrack{
-  touch-action:auto!important;
-  overscroll-behavior:auto!important;
-  scroll-behavior:auto!important;
-  scroll-snap-type:x mandatory!important;
-}
-#list.homeTimeline .haAlbumFullSlide{
-  scroll-snap-stop:always!important;
-}
-
-</style>
-
-<script id="happyad-v406-story-radar-owner-identity-lock">
 (function(){
   if(window.__HAPPYAD_V406_STORY_RADAR_OWNER_IDENTITY_LOCK__)return;
   window.__HAPPYAD_V406_STORY_RADAR_OWNER_IDENTITY_LOCK__=true;
@@ -7995,167 +5195,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   window.addEventListener('storage',function(e){if(e&&/HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL|HAPPYAD_AUTHOR_PROFILE_CACHE_V1|HAPPYAD_STORIES_CACHE_V1/.test(e.key||'')){setTimeout(function(){try{fixCache();if(typeof window.renderRadarHome==='function')window.renderRadarHome()}catch(_e){}},60)}});
   setTimeout(function(){try{fixCache();if(typeof window.renderRadarHome==='function')window.renderRadarHome()}catch(e){}},350);
 })();
-</script>
 
 
-
-<style id="happyad-v475-home-fullscreen-album-native-late-css">
-/* V475 late override — garder le fullscreen album fluide malgré les anciens CSS */
-#happyadHomePhotoFullscreen,
-#happyadHomePhotoFullscreen .haHomeFsCard,
-#happyadHomePhotoFullscreen .haHomeFsMedia{
-  touch-action:auto!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsMedia{
-  display:block!important;
-  overflow:hidden!important;
-  background:#000!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAlbumTrack{
-  width:100%!important;
-  height:100%!important;
-  display:flex!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  scroll-snap-type:x mandatory!important;
-  scroll-behavior:auto!important;
-  -webkit-overflow-scrolling:touch!important;
-  touch-action:pan-x pinch-zoom!important;
-  scrollbar-width:none!important;
-  overscroll-behavior-x:contain!important;
-  overscroll-behavior-y:none!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAlbumTrack::-webkit-scrollbar{display:none!important;}
-#happyadHomePhotoFullscreen .haHomeFsAlbumSlide{
-  flex:0 0 100%!important;
-  width:100%!important;
-  min-width:100%!important;
-  height:100%!important;
-  scroll-snap-align:center!important;
-  display:grid!important;
-  place-items:center!important;
-  background:#000!important;
-  position:relative!important;
-  overflow:hidden!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAlbumSlide img{
-  max-width:100%!important;
-  max-height:100%!important;
-  width:auto!important;
-  height:auto!important;
-  object-fit:contain!important;
-  display:block!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsSlideLoading{
-  color:#dfe3ea!important;
-  font-size:14px!important;
-  font-weight:900!important;
-}
-</style>
-
-<style id="happyad-v476-home-clean-no-filter-ad-large">
-/* V476 — Accueil simplifie : publicite + radar + publications, sans supprimer les anciens boutons */
-.chips{
-  display:none!important;
-  height:0!important;
-  min-height:0!important;
-  max-height:0!important;
-  margin:0!important;
-  padding:0!important;
-  overflow:hidden!important;
-  pointer-events:none!important;
-}
-.sponsorStrip{
-  height:158px!important;
-  min-height:158px!important;
-  margin:8px 0 13px!important;
-  border-radius:24px!important;
-  border-color:rgba(255,138,0,.46)!important;
-  background:#07090d!important;
-  box-shadow:0 16px 38px rgba(0,0,0,.34),0 0 0 1px rgba(255,138,0,.08) inset!important;
-}
-.sponsorAd{
-  grid-template-columns:52% 48%!important;
-  border-radius:24px!important;
-  background:#07090d!important;
-}
-.sponsorThumb{
-  border-radius:24px 0 0 24px!important;
-  background:#000!important;
-}
-.sponsorThumb img,
-.sponsorThumb video{
-  object-fit:cover!important;
-  width:100%!important;
-  height:100%!important;
-}
-.sponsorText{
-  padding:18px 15px!important;
-  gap:5px!important;
-  justify-content:center!important;
-  background:linear-gradient(90deg,rgba(0,0,0,.38),rgba(0,0,0,.94) 45%,#000)!important;
-}
-.sponsorText:before{
-  content:"";
-  position:absolute;
-  left:-38px;
-  top:0;
-  width:64px;
-  height:100%;
-  background:linear-gradient(90deg,transparent,rgba(0,0,0,.74),rgba(0,0,0,.96));
-  pointer-events:none;
-}
-.sponsorText b{
-  font-size:19px!important;
-  line-height:1.05!important;
-  color:#ffd21a!important;
-}
-.sponsorText small,
-.sponsorText .sponsorMeta{
-  font-size:13px!important;
-  line-height:1.22!important;
-}
-.sponsorDescWrap{
-  height:46px!important;
-  max-height:46px!important;
-}
-.sponsorDesc{
-  font-size:12.5px!important;
-  line-height:1.28!important;
-}
-.radarBlock{
-  margin:2px 0 14px!important;
-}
-.radarHead{
-  margin:0 3px 10px!important;
-}
-.radarTitle{
-  font-size:16px!important;
-  letter-spacing:.1px!important;
-}
-.mapLite{
-  padding:8px 12px!important;
-  font-size:11px!important;
-}
-@media(max-width:380px){
-  .sponsorStrip{
-    height:144px!important;
-    min-height:144px!important;
-    margin:7px 0 12px!important;
-    border-radius:22px!important;
-  }
-  .sponsorAd{grid-template-columns:50% 50%!important;}
-  .sponsorThumb{border-radius:22px 0 0 22px!important;}
-  .sponsorText{padding:15px 12px!important;}
-  .sponsorText b{font-size:17px!important;}
-  .sponsorText small,
-  .sponsorText .sponsorMeta{font-size:12px!important;}
-  .sponsorDescWrap{height:40px!important;max-height:40px!important;}
-  .sponsorDesc{font-size:11.5px!important;}
-}
-</style>
-
-<script id="happyad-v476-force-home-all-no-filter">
 (function(){
   try{
     if(typeof currentFilter!=='undefined') currentFilter='all';
@@ -8165,145 +5206,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
     }
   }catch(e){}
 })();
-</script>
 
-<style id="happyad-v477-sponsor-full-media-avatar">
-/* V477 — Publicité accueil: média plein cadre, infos au clic, avatar créateur flottant après 3s */
-.sponsorStrip{
-  height:172px!important;
-  min-height:172px!important;
-  margin:8px 0 14px!important;
-  border-radius:25px!important;
-  overflow:hidden!important;
-  background:#000!important;
-  border-color:rgba(255,138,0,.48)!important;
-  box-shadow:0 16px 42px rgba(0,0,0,.38),0 0 0 1px rgba(255,138,0,.08) inset!important;
-}
-.sponsorTrack{position:relative!important;width:100%!important;height:100%!important;display:block!important;}
-.sponsorAd{
-  position:relative!important;
-  display:block!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:100%!important;
-  grid-template-columns:none!important;
-  border:0!important;
-  padding:0!important;
-  margin:0!important;
-  overflow:hidden!important;
-  border-radius:25px!important;
-  background:#000!important;
-  color:#fff!important;
-  text-align:left!important;
-  cursor:pointer!important;
-}
-.sponsorThumb{
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  border-radius:25px!important;
-  background:#000!important;
-  display:block!important;
-  overflow:hidden!important;
-  z-index:1!important;
-}
-.sponsorThumb img,
-.sponsorThumb video{
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  transform:none!important;
-  display:block!important;
-  background:#000!important;
-}
-.sponsorAd:after{
-  content:"";
-  position:absolute;
-  left:0;right:0;bottom:0;
-  height:44%;
-  z-index:2;
-  background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.52));
-  pointer-events:none;
-  opacity:.72;
-}
-.sponsorText{
-  display:none!important;
-  opacity:0!important;
-  visibility:hidden!important;
-  pointer-events:none!important;
-  width:0!important;
-  height:0!important;
-  padding:0!important;
-  margin:0!important;
-  overflow:hidden!important;
-}
-.sponsorText:before{content:none!important;display:none!important;}
-.sponsorCreatorFloat{
-  position:absolute!important;
-  right:12px!important;
-  bottom:12px!important;
-  z-index:5!important;
-  width:54px!important;
-  height:54px!important;
-  border-radius:999px!important;
-  display:grid!important;
-  place-items:center!important;
-  background:rgba(8,10,14,.48)!important;
-  border:1px solid rgba(255,255,255,.22)!important;
-  box-shadow:0 14px 32px rgba(0,0,0,.45),0 0 0 2px rgba(255,138,0,.16)!important;
-  backdrop-filter:blur(10px)!important;
-  opacity:0;
-  transform:translateY(10px) scale(.86);
-  animation:happyadSponsorFloatIn .36s ease 3s forwards;
-  pointer-events:none!important;
-}
-.sponsorCreatorFloat img,
-.sponsorCreatorFloat .sponsorCreatorInitial{
-  width:44px!important;
-  height:44px!important;
-  border-radius:50%!important;
-  display:grid!important;
-  place-items:center!important;
-  object-fit:cover!important;
-  background:linear-gradient(135deg,#ff8a00,#2434ff)!important;
-  color:#fff!important;
-  font-size:16px!important;
-  font-weight:1000!important;
-  overflow:hidden!important;
-}
-.sponsorCreatorFloat i{
-  position:absolute!important;
-  right:-2px!important;
-  bottom:-2px!important;
-  width:18px!important;
-  height:18px!important;
-  border-radius:50%!important;
-  display:grid!important;
-  place-items:center!important;
-  background:linear-gradient(135deg,#ff8a00,#ff4b22)!important;
-  color:#111!important;
-  font-style:normal!important;
-  font-size:11px!important;
-  font-weight:1000!important;
-  border:2px solid rgba(3,4,7,.96)!important;
-  box-shadow:0 4px 12px rgba(0,0,0,.32)!important;
-}
-@keyframes happyadSponsorFloatIn{
-  to{opacity:1;transform:translateY(0) scale(1);}
-}
-@media(max-width:380px){
-  .sponsorStrip{height:158px!important;min-height:158px!important;border-radius:23px!important;}
-  .sponsorAd,.sponsorThumb{border-radius:23px!important;}
-  .sponsorCreatorFloat{right:10px!important;bottom:10px!important;width:50px!important;height:50px!important;}
-  .sponsorCreatorFloat img,.sponsorCreatorFloat .sponsorCreatorInitial{width:40px!important;height:40px!important;}
-}
-</style>
 
-<script id="happyad-v477-sponsor-float-avatar-js">
 (function(){
   function clean(v){return String(v==null?'':v).trim();}
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c;});}
@@ -8373,16 +5277,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   setTimeout(initial,300);
   setTimeout(initial,1200);
 })();
-</script>
 
 
-
-<style id="happyad-v478-ad-click-profile-photo-return-css">
-/* V478 — publicité: avatar cliquable + retour photo vers la carte source */
-.sponsorCreatorFloat{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;}
-#happyadHomePhotoFullscreen .haHomeFsAlbumSlide img{cursor:pointer!important;}
-</style>
-<script id="happyad-v478-ad-click-profile-photo-return-js">
 (function(){
   if(window.__HAPPYAD_V478_AD_PROFILE_PHOTO_RETURN__)return;
   window.__HAPPYAD_V478_AD_PROFILE_PHOTO_RETURN__=true;
@@ -8502,21 +5398,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
   setTimeout(init,200);setTimeout(init,900);setTimeout(init,1800);
 })();
-</script>
 
 
-<style id="happyad-v481-publicite-final-no-old-css">
-/* V481 final — garder uniquement la publicité média plein cadre, même après les anciens styles */
-.sponsorStrip{height:172px!important;min-height:172px!important;overflow:hidden!important;background:#000!important;border-radius:25px!important;}
-.sponsorStrip .sponsorTrack{position:relative!important;width:100%!important;height:100%!important;overflow:hidden!important;display:block!important;}
-.sponsorStrip .sponsorAd{position:relative!important;display:block!important;grid-template-columns:none!important;width:100%!important;height:100%!important;min-height:100%!important;padding:0!important;margin:0!important;border:0!important;background:#000!important;overflow:hidden!important;border-radius:25px!important;}
-.sponsorStrip .sponsorThumb{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;border-radius:25px!important;background:#000!important;overflow:hidden!important;z-index:1!important;}
-.sponsorStrip .sponsorThumb img,.sponsorStrip .sponsorThumb video{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;background:#000!important;}
-.sponsorStrip .sponsorText,.sponsorStrip .sponsorDescWrap,.sponsorStrip .sponsorDesc,.sponsorStrip .sponsorMeta,.sponsorStrip .sponsorLiveDot{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}
-.sponsorStrip .sponsorCreatorFloat{pointer-events:auto!important;z-index:20!important;}
-.sponsorStrip .happyadFixedRadarAd .sponsorCreatorFloat,.sponsorStrip .happyadFixedRadarAd video{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
-</style>
-<script id="happyad-v481-publicite-final-click-js">
 (function(){
   if(window.__HAPPYAD_V481_PUBLICITE_FINAL__)return;window.__HAPPYAD_V481_PUBLICITE_FINAL__=true;
   function clean(v){return String(v==null?'':v).trim()}
@@ -8529,62 +5412,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   function install(){var t=document.getElementById('sponsorTrack');if(!t)return;cleanDom();if(!t.__v481Click){t.__v481Click=true;t.addEventListener('click',function(e){var ad=e.target&&e.target.closest&&e.target.closest('.sponsorAd');if(!ad)return;if((ad.classList&&ad.classList.contains('happyadFixedRadarAd')) || (ad.dataset&&ad.dataset.fixedRadar==='1') || t.dataset.fixedRadar==='1'){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false;}var p=post(ad);e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();if(e.target.closest('.sponsorCreatorFloat'))return profile(p);return open(p,ad);},true);}if(!t.__v481Mo){try{t.__v481Mo=new MutationObserver(function(){setTimeout(install,10)});t.__v481Mo.observe(t,{childList:true,subtree:true})}catch(e){}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();setTimeout(install,120);setTimeout(install,700);setTimeout(install,1800);
 })();
-</script>
 
 
-<style id="happyad-v483-fullscreen-actions-sponsor-10s-css">
-/* V483 — fullscreen photo: actions SVG transparentes, sans fond */
-#happyadHomePhotoFullscreen .haHomeFsCard{position:relative!important;}
-#happyadHomePhotoFullscreen .haHomeFsActions{
-  position:absolute!important;
-  right:18px!important;
-  bottom:132px!important;
-  z-index:35!important;
-  display:grid!important;
-  gap:16px!important;
-  background:transparent!important;
-  border:0!important;
-  box-shadow:none!important;
-  padding:0!important;
-  pointer-events:auto!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAct{
-  appearance:none!important;
-  -webkit-appearance:none!important;
-  border:0!important;
-  outline:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  color:#fff!important;
-  padding:0!important;
-  margin:0!important;
-  min-width:38px!important;
-  min-height:38px!important;
-  display:grid!important;
-  place-items:center!important;
-  gap:1px!important;
-  font-weight:1000!important;
-  text-shadow:0 2px 8px rgba(0,0,0,.95)!important;
-  cursor:pointer!important;
-  touch-action:manipulation!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAct .haFsSvg,
-#happyadHomePhotoFullscreen .haHomeFsAct .haFsSvg svg{
-  width:27px!important;
-  height:27px!important;
-  display:block!important;
-}
-#happyadHomePhotoFullscreen .haHomeFsAct svg{fill:none!important;stroke:currentColor!important;stroke-width:2.25!important;stroke-linecap:round!important;stroke-linejoin:round!important;filter:drop-shadow(0 2px 5px rgba(0,0,0,.95))!important;}
-#happyadHomePhotoFullscreen .haHomeFsAct[data-card-act="like"].on{color:#ff315f!important;}
-#happyadHomePhotoFullscreen .haHomeFsAct small{font-size:12px!important;line-height:1!important;color:currentColor!important;background:transparent!important;font-weight:1000!important;}
-#happyadHomePhotoFullscreen .haHomeFsActions [data-card-act="fav"],
-#happyadHomePhotoFullscreen .haHomeFsActions [data-card-act="repost"]{display:none!important;}
-@media(max-width:390px){
-  #happyadHomePhotoFullscreen .haHomeFsActions{right:14px!important;bottom:120px!important;gap:14px!important;}
-  #happyadHomePhotoFullscreen .haHomeFsAct .haFsSvg,#happyadHomePhotoFullscreen .haHomeFsAct .haFsSvg svg{width:25px!important;height:25px!important;}
-}
-</style>
-<script id="happyad-v483-sponsor-10s-final-js">
 (function(){
   if(window.__HAPPYAD_V483_SPONSOR_10S_FINAL__)return;window.__HAPPYAD_V483_SPONSOR_10S_FINAL__=true;
   window.happyadSponsorLoop5s=function(v){
@@ -8601,9 +5430,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fixVideos,{once:true});else fixVideos();
   setInterval(fixVideos,1200);
 })();
-</script>
 
-<script id="happyad-v494-home-no-limited-posts-js">
+
 /* V494 — Accueil sans limite cachée: si un post existe en recherche/cache/Supabase, il remonte aussi dans l'accueil. */
 (function(){
   if(window.__HAPPYAD_V494_HOME_NO_LIMITED_POSTS__)return;window.__HAPPYAD_V494_HOME_NO_LIMITED_POSTS__=true;
@@ -8623,39 +5451,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,700);},{once:true});else setTimeout(run,700);
   window.addEventListener('focus',function(){setTimeout(run,350);});
 })();
-</script>
 
 
-<!-- === HAPPYAD V492 — APPLICATION CONNECTÉE / ROUTEUR CENTRAL PHOTO-VIDÉO-PROFIL === -->
-<style id="happyad-v16zf-pwa-install-10s-session-style">
-#happyadInstallAppBtn{position:fixed!important;left:50%!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 10px)!important;bottom:auto!important;z-index:1000008!important;width:min(496px,calc(100% - 22px))!important;max-width:496px!important;margin:0!important;display:none!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;border:1px solid rgba(255,138,0,.46)!important;background:linear-gradient(180deg,rgba(21,23,30,.98),rgba(6,7,11,.985))!important;color:#fff!important;border-radius:22px!important;padding:10px 11px!important;font:900 12px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;box-shadow:0 16px 38px rgba(0,0,0,.54),0 0 0 1px rgba(255,255,255,.05) inset!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;opacity:0!important;transform:translate(-50%,-12px)!important;transition:opacity .22s ease,transform .22s ease!important;text-align:left!important;touch-action:manipulation!important;cursor:pointer!important}
-#happyadInstallAppBtn.on{display:grid!important;opacity:1!important;transform:translate(-50%,0)!important}
-#happyadInstallAppBtn .haInstallIcon{width:42px!important;height:42px!important;border-radius:15px!important;display:grid!important;place-items:center!important;background:#000!important;color:#fff!important;font-size:0!important;box-shadow:0 10px 24px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.14) inset!important;flex:0 0 auto!important;overflow:hidden!important}
-#happyadInstallAppBtn .haInstallIcon img{width:100%!important;height:100%!important;display:block!important;object-fit:cover!important;border-radius:inherit!important;background:#000!important}
-#happyadInstallAppBtn .haInstallText{min-width:0!important;display:block!important;line-height:1.05!important}
-#happyadInstallAppBtn .haInstallText b{display:block!important;color:#fff!important;font-size:13px!important;font-weight:1000!important;letter-spacing:-.2px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#happyadInstallAppBtn .haInstallText small{display:block!important;color:#c8ceda!important;font-size:10px!important;font-weight:850!important;margin-top:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#happyadInstallAppBtn .haInstallAction{display:inline-flex!important;align-items:center!important;justify-content:center!important;height:32px!important;border-radius:999px!important;padding:0 12px!important;background:linear-gradient(135deg,#ffb000,#ff6a00)!important;color:#111!important;font-weight:1000!important;font-size:11px!important;box-shadow:0 8px 20px rgba(255,138,0,.25)!important;white-space:nowrap!important}
-#happyadPwaGuide{position:fixed!important;inset:0!important;z-index:1000012!important;background:rgba(0,0,0,.62)!important;display:none!important;align-items:flex-end!important;justify-content:center!important;padding:16px 12px calc(env(safe-area-inset-bottom,0px) + 16px)!important;backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important}
-#happyadPwaGuide.on{display:flex!important}
-#happyadPwaGuide .haPwaBox{width:min(480px,100%)!important;background:linear-gradient(180deg,#151821,#08090d)!important;border:1px solid rgba(255,138,0,.36)!important;border-radius:24px!important;color:#fff!important;box-shadow:0 24px 60px rgba(0,0,0,.68)!important;padding:16px!important;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important}
-#happyadPwaGuide .haPwaTop{display:flex!important;gap:11px!important;align-items:center!important;margin-bottom:10px!important}
-#happyadPwaGuide .haPwaLogo{width:46px!important;height:46px!important;border-radius:16px!important;background:#000!important;object-fit:cover!important;box-shadow:0 0 0 1px rgba(255,255,255,.14) inset!important}
-#happyadPwaGuide .haPwaTitle{min-width:0!important;line-height:1.08!important}
-#happyadPwaGuide .haPwaTitle b{display:block!important;font-size:16px!important;font-weight:1000!important;color:#fff!important}
-#happyadPwaGuide .haPwaTitle small{display:block!important;color:#c8ceda!important;font-size:11px!important;font-weight:850!important;margin-top:4px!important}
-#happyadPwaGuide .haPwaSteps{margin:10px 0 0!important;padding:0!important;list-style:none!important;display:grid!important;gap:8px!important}
-#happyadPwaGuide .haPwaSteps li{background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.075)!important;border-radius:16px!important;padding:10px 11px!important;font-size:13px!important;font-weight:850!important;line-height:1.28!important;color:#eef1f7!important}
-#happyadPwaGuide .haPwaSteps li b{color:#ffb000!important}
-#happyadPwaGuide .haPwaBtns{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:8px!important;margin-top:12px!important}
-#happyadPwaGuide .haPwaBtn{height:42px!important;border-radius:15px!important;border:1px solid rgba(255,255,255,.12)!important;background:rgba(255,255,255,.06)!important;color:#fff!important;font-size:13px!important;font-weight:1000!important}
-#happyadPwaGuide .haPwaBtn.primary{border:0!important;background:linear-gradient(135deg,#ffb000,#ff6a00)!important;color:#111!important}
-#happyadPwaGuide .haPwaNote{margin-top:10px!important;color:#aeb5c4!important;font-size:10.5px!important;font-weight:800!important;line-height:1.25!important;text-align:center!important}
-@media(max-width:380px){#happyadPwaGuide .haPwaBtns{grid-template-columns:1fr!important}#happyadInstallAppBtn{grid-template-columns:38px minmax(0,1fr) auto!important;gap:8px!important;padding:9px!important;border-radius:20px!important}#happyadInstallAppBtn .haInstallIcon{width:38px!important;height:38px!important;border-radius:14px!important}#happyadInstallAppBtn .haInstallText b{font-size:12px!important}#happyadInstallAppBtn .haInstallText small{font-size:9.5px!important}#happyadInstallAppBtn .haInstallAction{height:30px!important;padding:0 10px!important;font-size:10px!important}#happyadPwaGuide .haPwaBox{padding:14px!important;border-radius:22px!important}#happyadPwaGuide .haPwaSteps li{font-size:12px!important}}
-</style>
-<button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Disponible avec Chrome, Samsung, Edge, Brave, Firefox...</small></span><span class="haInstallAction">Installer</span></button>
-<div id="happyadPwaGuide" aria-hidden="true"><div class="haPwaBox" role="dialog" aria-modal="true" aria-label="Installation HAPPYAD"><div class="haPwaTop"><img class="haPwaLogo" src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""><span class="haPwaTitle"><b>Installer HAPPYAD</b><small id="happyadPwaGuideSub">Choisis ton navigateur puis suis les étapes.</small></span></div><ul class="haPwaSteps" id="happyadPwaGuideSteps"><li><b>1.</b> Ouvre le menu du navigateur.</li><li><b>2.</b> Choisis “Installer l’application” ou “Ajouter à l’écran d’accueil”.</li><li><b>3.</b> Confirme avec “Installer” ou “Ajouter”.</li></ul><div class="haPwaBtns"><button type="button" class="haPwaBtn" id="happyadPwaGuideClose">Fermer</button><button type="button" class="haPwaBtn" id="happyadPwaAlreadyInstalled">Déjà installé</button><button type="button" class="haPwaBtn primary" id="happyadPwaCopyLink">Copier le lien</button></div><div class="haPwaNote">Si HAPPYAD est déjà installé, ouvre l’icône de l’application. La notification d’installation sera cachée automatiquement.</div></div></div>
-<script id="happyad-v16zf-pwa-install-10s-session">
 (function(){
   'use strict';
   if(window.__HAPPYAD_V16ZF_PWA_INSTALL_10S_SESSION__)return;
@@ -8823,92 +5620,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   setTimeout(bind,250);setTimeout(bind,1200);setTimeout(show,1800);
 })();
-</script>
-<!-- === HAPPYAD V480 APP SHELL / ROUTEUR INTERNE SAFE ===
-     Objectif: garder index.html ouvert et afficher Profil/Notifications sans recharge complète à chaque clic.
-     Les anciens liens restent utilisables si le fichier est ouvert seul. -->
-<style id="happyad-v480-app-shell-style">
-#happyadAppShell{position:fixed!important;inset:0!important;z-index:999980!important;background:#050507!important;display:none!important;overflow:hidden!important;width:100vw!important;height:100dvh!important}
-#happyadAppShell.on{display:block!important}
-.happyadAppFrame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;background:#050507!important;display:none!important}
-.happyadAppFrame.on{display:block!important}
-body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
-#happyadAppMiniLoader{position:fixed!important;top:14px!important;right:14px!important;z-index:999999!important;width:26px!important;height:26px!important;border-radius:50%!important;border:2px solid rgba(255,255,255,.18)!important;border-top-color:#ff8a00!important;display:none!important;animation:happyadAppSpin .7s linear infinite!important;pointer-events:none!important}
-#happyadAppMiniLoader.on{display:none!important}
-@keyframes happyadAppSpin{to{transform:rotate(360deg)}}
-</style>
-<div id="happyadAppShell" aria-hidden="true"></div>
-<div id="happyadAppMiniLoader" aria-hidden="true"></div>
 
-<style id="happyad-v504-floating-bar-tap-route-css">
-/* V509: barre flottante sans couleur de clic. Les routes Vidéos/Notifications restent prioritaires. */
-.bottom .nav{
-  border-radius:18px!important;
-  padding:4px 2px!important;
-  min-height:46px!important;
-  touch-action:manipulation!important;
-  user-select:none!important;
-  -webkit-user-select:none!important;
-  transition:none!important;
-}
-.bottom .nav.happyadTapOrange,
-.bottom .nav.happyadBottomPressedV504,
-.bottom .nav:active{
-  background:transparent!important;
-  color:inherit!important;
-  transform:none!important;
-  box-shadow:none!important;
-  filter:none!important;
-}
-.bottom .nav.happyadTapOrange *,
-.bottom .nav.happyadBottomPressedV504 *,
-.bottom .nav:active *{
-  color:inherit!important;
-}
-.bottom .nav.happyadTapOrange svg,
-.bottom .nav.happyadTapOrange svg *,
-.bottom .nav.happyadBottomPressedV504 svg,
-.bottom .nav.happyadBottomPressedV504 svg *,
-.bottom .nav:active svg,
-.bottom .nav:active svg *{
-  stroke:currentColor!important;
-}
-.bottom .nav.happyadTapOrange .navBadge,
-.bottom .nav.happyadBottomPressedV504 .navBadge,
-.bottom .nav:active .navBadge{
-  background:#ff2f5f!important;
-  color:#fff!important;
-  border-color:#0d0f14!important;
-}
-.bottom .nav.happyadTapOrange .plus,
-.bottom .nav.happyadBottomPressedV504 .plus,
-.bottom .nav:active .plus{
-  background:linear-gradient(135deg,var(--orange),var(--orange2))!important;
-  color:#111!important;
-}
-</style>
 
-<style id="happyad-v16r-video-click-fluid-css">
-/* V16R: feedback vidéo visible sans activer le bouton bas quand une carte est cliquée */
-.bottom .nav[data-happyad-bottom-video].happyadTapOrange,
-.bottom .nav[data-happyad-bottom-video].happyadBottomPressedV504,
-.bottom .nav[data-happyad-bottom-video].happyadVideoOpeningV16R{
-  background:rgba(255,138,0,.16)!important;
-  color:#ff8a00!important;
-  box-shadow:0 0 0 1px rgba(255,138,0,.24) inset,0 0 22px rgba(255,138,0,.16)!important;
-  transform:scale(.985)!important;
-}
-.miniCard.videoCard.happyadVideoCardOpeningV16R{
-  outline:2px solid rgba(255,138,0,.62)!important;
-  box-shadow:0 0 0 4px rgba(255,138,0,.10),0 14px 38px rgba(0,0,0,.45)!important;
-}
-.miniCard.videoCard.happyadVideoCardOpeningV16R .play{
-  background:rgba(255,138,0,.92)!important;
-  color:#111!important;
-  box-shadow:0 0 24px rgba(255,138,0,.45)!important;
-}
-</style>
-<script id="happyad-v521-photo-fullscreen-normal-back-fix">
 /* V521 — Une photo ouverte en plein écran devient une vraie étape retour :
    carte photo -> page d'origine -> accueil -> sortie normale. */
 (function(){
@@ -9030,50 +5743,8 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wrapHomeOpen,{once:true});
   setTimeout(wrapHomeOpen,200);setTimeout(wrapHomeOpen,900);setTimeout(wrapHomeOpen,1800);
 })();
-</script>
 
 
-
-<style id="happyad-v16zi-comment-keyboard-css">
-:root{--ha-comment-keyboard-offset:0px!important;}
-#happyadHomeCommentPopup .haCommentComposer{bottom:var(--ha-comment-keyboard-offset,0px)!important;z-index:5!important;}
-#happyadHomeCommentPopup .haCommentList{padding-bottom:calc(128px + var(--ha-comment-keyboard-offset,0px))!important;}
-#happyadHomeCommentPopup.haKeyboardOpen .haCommentPanel{overflow:hidden!important;}
-#happyadHomeCommentPopup.haKeyboardOpen .haCommentComposer{box-shadow:0 -16px 32px rgba(0,0,0,.46)!important;}
-#happyadHomeCommentPopup .haCommentComposer input{font-size:16px!important;}
-</style>
-
-
-
-<style id="happyad-v639-home-message-counter-css">
-.bottom .nav[data-happyad-bottom-message]{position:relative!important;overflow:visible!important;}
-.bottom .nav[data-happyad-bottom-message] .ico{position:relative!important;overflow:visible!important;}
-.bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count{
-  position:absolute!important;
-  left:50%!important;
-  top:2px!important;
-  right:auto!important;
-  transform:translate(12px,-8px)!important;
-  min-width:17px!important;
-  height:17px!important;
-  padding:0 5px!important;
-  border-radius:999px!important;
-  display:none;
-  align-items:center!important;
-  justify-content:center!important;
-  color:#fff!important;
-  background:linear-gradient(180deg,#ff5c6d,#ef1f3e)!important;
-  font-size:10px!important;
-  line-height:17px!important;
-  font-weight:950!important;
-  box-shadow:0 0 0 2px rgba(2,8,17,.96),0 0 14px rgba(239,31,62,.45)!important;
-  z-index:12!important;
-  pointer-events:none!important;
-}
-.bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count.on{display:flex!important;}
-@media (max-width:390px){.bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count{top:1px!important;transform:translate(11px,-8px)!important;}}
-</style>
-<script id="happyad-v639-home-message-counter-js">
 (function(){
   'use strict';
   var timer=null, realtime=null, busy=false, lastCount=-1, sessionPromise=null;
@@ -9124,7 +5795,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
       var sess=await ensureSession(true); if(!sess||!sess.ready||!sess.id)return;
       if(realtime){try{await c.removeChannel(realtime);}catch(e){} realtime=null;}
       var fast=function(){setTimeout(function(){refresh(true);},120);setTimeout(function(){refresh(true);},1200);};
-      realtime=c.channel('happyad-home-message-counter-v639-'+sess.id)
+      realtime=c.channel('happyad-home-message-counter-v637-'+sess.id)
         .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_receipts',filter:'user_id=eq.'+sess.id},fast)
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'happyad_msg_messages',filter:'receiver_id=eq.'+sess.id},fast)
         .subscribe(function(status){if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')setTimeout(setupRealtime,3000);});
@@ -9134,42 +5805,6 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true}); else start();
   document.addEventListener('visibilitychange',function(){if(!document.hidden){refresh(true);setupRealtime();}},false);
   window.addEventListener('focus',function(){refresh(true);},false);
-  window.addEventListener('storage',function(e){if(e && /HAPPYAD_MSG_READ_STATE_STABLE_V1_|HAPPYAD_MSG_HOME_COUNTER_REFRESH|HAPPYAD_MSG_MARK_READ_DONE/.test(e.key||'')){refresh(true);setTimeout(function(){refresh(true);},900);}},false);
+  window.addEventListener('storage',function(e){if(e && /HAPPYAD_MSG_READ_STATE_STABLE_V1_|HAPPYAD_MSG_HOME_COUNTER_REFRESH/.test(e.key||''))refresh(true);},false);
   window.addEventListener('message',function(ev){try{var d=ev&&ev.data||{};if(d&&d.type==='HAPPYAD_MSG_COUNTER_REFRESH')refresh(true);}catch(e){}},false);
 })();
-</script>
-
-<!-- HAPPYAD CORE STRUCTURE V1: nouveaux maîtres ajoutés sans remplacer le design actuel -->
-<script id="happyad-core-loader-v1" src="core/state.js?v=core-structure-v1"></script>
-<script src="core/cache.js?v=core-structure-v1"></script>
-<script src="core/api.js?v=core-structure-v1"></script>
-<script src="core/auth.js?v=core-structure-v1"></script>
-<script src="core/permissions.js?v=core-structure-v1"></script>
-<script src="core/media.js?v=core-structure-v1"></script>
-<script src="core/history.js?v=core-structure-v1"></script>
-<script src="core/router.js?v=core-structure-v1"></script>
-<script src="core/bootstrap.js?v=core-structure-v1"></script>
-<!-- HAPPYAD CORE V4: registre des maîtres chargé avant les maîtres actifs/passifs -->
-<script src="core/master-registry.js?v=core-grouped-v4"></script>
-
-<style id="happyad-core-v6-black-return-guard">
-/* V6: garde noire pendant fermeture de frame, jamais blanc. */
-html,body{background:#000!important;}
-#happyadAppShell{background:#000!important;}
-.happyadAppFrame{background:#000!important;}
-</style>
-<!-- HAPPYAD CORE V10: navigation/vidéo + profil/boutique maîtres actifs, ouverture boutique profil sécurisée -->
-<script src="core/navigation-master.js?v=core-nav-v37-reload-no-home-flash-v16zj"></script>
-<script src="core/video-master.js?v=core-nav-v10"></script>
-
-<!-- HAPPYAD CORE V4: regroupement passif des maîtres par module/catégorie, sans changer le design -->
-<script src="core/photo-master.js?v=core-photo-v14"></script>
-<script src="core/profile-master.js?v=core-profile-v15"></script>
-<script src="core/boutique-master.js?v=core-profile-boutique-v10"></script>
-<script src="core/cache-master.js?v=core-grouped-v4"></script>
-<script src="core/auth-master.js?v=core-grouped-v4"></script>
-<script src="core/media-master.js?v=core-grouped-v4"></script>
-<script src="core/radar-stories-master.js?v=core-grouped-v4"></script>
-<script src="core/home-ui-master.js?v=core-grouped-v4"></script>
-
-</body></html>
