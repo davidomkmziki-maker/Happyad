@@ -1,7 +1,7 @@
-/* HAPPYAD V640 - Service worker PWA actif, chemin message profil visiteur réparé. */
+/* HAPPYAD V16ZL - Service worker PWA actif, restauration page ouverte après actualisation. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v640-visitor-message-path-master';
+var HAPPYAD_SW_VERSION='v632-message-home-counter-red-read-fix';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

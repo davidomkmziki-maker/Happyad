@@ -11,9 +11,6 @@
   Cache-Control: no-cache, no-store, must-revalidate
 
 
-/messages.html
-  Cache-Control: no-cache, no-store, must-revalidate
-
 /reset-password.html
   Cache-Control: no-cache, no-store, must-revalidate
 

@@ -6929,7 +6929,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=640msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=20msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -9045,7 +9045,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 
 
 
-<style id="happyad-v639-home-message-counter-css">
+<style id="happyad-v632-home-message-counter-css">
 .bottom .nav[data-happyad-bottom-message]{position:relative!important;overflow:visible!important;}
 .bottom .nav[data-happyad-bottom-message] .ico{position:relative!important;overflow:visible!important;}
 .bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count{
@@ -9073,68 +9073,98 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 .bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count.on{display:flex!important;}
 @media (max-width:390px){.bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count{top:1px!important;transform:translate(11px,-8px)!important;}}
 </style>
-<script id="happyad-v639-home-message-counter-js">
+<script id="happyad-v632-home-message-counter-js">
 (function(){
   'use strict';
-  var timer=null, realtime=null, busy=false, lastCount=-1, sessionPromise=null;
+  var timer=null, realtime=null, busy=false, lastCount=-1, forcedUntil=0;
   function clean(v){return String(v==null?'':v).trim();}
-  function sb(){try{return (typeof happyadSb==='function'&&happyadSb())||window.happyadSupabase||(window.supabase&&window.supabase.createClient&&(window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-txjjyhupbejgjcianrmr-auth-token'}})));}catch(e){return null;}}
+  function sb(){try{return (typeof happyadSb==='function'&&happyadSb())||window.happyadSupabase||(window.supabase&&window.supabase.createClient&&(window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})));}catch(e){return null;}}
   function nav(){return document.querySelector('.bottom .nav[data-happyad-bottom-message]');}
-  function badge(){var n=nav(); if(!n)return null; var b=n.querySelector('.happyad-home-msg-count'); if(!b){b=document.createElement('span');b.className='happyad-home-msg-count';n.appendChild(b);} return b;}
-  function setCount(n,force){n=Math.max(0,Math.min(99,Number(n)||0)); if(!force && n===lastCount)return; lastCount=n; var b=badge(); if(!b)return; b.textContent=n>99?'99+':String(n); b.classList.toggle('on',n>0);}
-  function readJsonRaw(raw){try{return JSON.parse(raw||'')}catch(e){return null}}
-  function sessionFromRaw(raw){var p=readJsonRaw(raw); if(!p)return null; var roots=[p,p.currentSession,p.session,p.data&&p.data.session,p.data,p.auth].filter(Boolean); for(var i=0;i<roots.length;i++){var r=roots[i]||{}; var access=clean(r.access_token||r.accessToken||r.access); var refresh=clean(r.refresh_token||r.refreshToken||r.refresh); var u=r.user||p.user||{}; var exp=Number(r.expires_at||r.expiresAt||0); if(access&&refresh){if(exp && exp<Math.floor(Date.now()/1000)-120)continue; return {access_token:access,refresh_token:refresh,user:u,id:clean(u&&u.id)};}} return null;}
-  function storedSession(){var areas=[localStorage,sessionStorage]; for(var a=0;a<areas.length;a++){try{var st=areas[a]; for(var i=0;i<st.length;i++){var k=st.key(i)||''; if(!/sb-|supabase|auth-token|auth\.token/i.test(k))continue; var cand=sessionFromRaw(st.getItem(k)); if(cand)return cand;}}catch(e){}} return null;}
-  async function ensureSession(force){
-    if(sessionPromise && !force)return sessionPromise;
-    sessionPromise=(async function(){
-      var c=sb(), id='', token='', ready=false;
-      try{if(c&&c.auth&&c.auth.getSession){var s=await c.auth.getSession(); var sess=s&&s.data&&s.data.session; id=clean(sess&&sess.user&&sess.user.id); token=clean(sess&&sess.access_token); ready=!!(id&&token);}}catch(e){}
-      if(!ready){try{var stored=storedSession(); if(stored&&c&&c.auth&&c.auth.setSession){var ss=await c.auth.setSession({access_token:stored.access_token,refresh_token:stored.refresh_token}); var sess2=ss&&ss.data&&ss.data.session; id=clean(sess2&&sess2.user&&sess2.user.id)||stored.id; token=clean(sess2&&sess2.access_token)||stored.access_token; ready=!!(id&&token);}}catch(e){}}
-      if(id){try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(e){}}
-      if(token&&c&&c.realtime&&typeof c.realtime.setAuth==='function'){try{c.realtime.setAuth(token);}catch(e){}}
-      setTimeout(function(){sessionPromise=null;},1200);
-      return {id:id,token:token,ready:ready};
-    })();
-    return sessionPromise;
+  function badge(){
+    var n=nav(); if(!n)return null;
+    var b=n.querySelector('.happyad-home-msg-count');
+    if(!b){b=document.createElement('span');b.className='happyad-home-msg-count';n.appendChild(b);}
+    return b;
   }
-  function readStateFor(uid){try{return JSON.parse(localStorage.getItem('HAPPYAD_MSG_READ_STATE_STABLE_V1_'+clean(uid))||sessionStorage.getItem('HAPPYAD_MSG_READ_STATE_STABLE_V1_'+clean(uid))||'{}')||{}}catch(e){return {}}}
+  function setCount(n,force){
+    n=Math.max(0,Math.min(99,Number(n)||0));
+    if(!force && n===lastCount)return;
+    lastCount=n;
+    var b=badge(); if(!b)return;
+    b.textContent=n>99?'99+':String(n);
+    b.classList.toggle('on',n>0);
+  }
+  async function uid(){
+    var c=sb();
+    try{if(c&&c.auth&&c.auth.getSession){var s=await c.auth.getSession();var id=clean(s&&s.data&&s.data.session&&s.data.session.user&&s.data.session.user.id);if(id){try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(_e){} return id;}}}catch(e){}
+    try{if(c&&c.auth&&c.auth.getUser){var r=await c.auth.getUser();var id2=clean(r&&r.data&&r.data.user&&r.data.user.id);if(id2){try{localStorage.setItem('HAPPYAD_AUTH_UID',id2);}catch(_e){} return id2;}}}catch(e){}
+    try{return clean(localStorage.getItem('HAPPYAD_AUTH_UID')||sessionStorage.getItem('HAPPYAD_AUTH_UID')||'');}catch(e){return '';}
+  }
+  function readJson(k,fb){try{return JSON.parse(localStorage.getItem(k)||sessionStorage.getItem(k)||'')||fb}catch(e){return fb}}
+  function readStateFor(uid){return readJson('HAPPYAD_MSG_READ_STATE_STABLE_V1_'+clean(uid),{})||{};}
+  function isLocallyRead(m,state){
+    try{
+      var cid=clean(m&&m.conversation_id), mid=clean(m&&m.id), at=Date.parse(clean(m&&m.created_at)||'')||0;
+      var st=cid&&(state||{})[cid]; if(!st)return false;
+      if(mid && clean(st.last_message_id)===mid)return true;
+      var stAt=Date.parse(clean(st.last_message_at)||'')||0;
+      if(stAt && at && at<=stAt+1000)return true;
+      if(Number(st.at||0) && at && at<=Number(st.at||0)+1000 && Date.now()-Number(st.at||0)<1000*60*60*24*7)return true;
+    }catch(e){}
+    return false;
+  }
   function unique(arr){var out={},n=[];(arr||[]).forEach(function(x){x=clean(x);if(x&&!out[x]){out[x]=1;n.push(x)}});return n;}
-  function isLocallyRead(m,state){try{var cid=clean(m&&m.conversation_id), mid=clean(m&&m.id), at=Date.parse(clean(m&&m.created_at)||'')||0; var st=cid&&(state||{})[cid]; if(!st)return false; if(mid&&clean(st.last_message_id)===mid)return true; var stAt=Date.parse(clean(st.last_message_at)||'')||0; if(stAt&&at&&at<=stAt+1000)return true;}catch(e){} return false;}
-  async function calculateUnreadFallback(c,id){
-    var rr=await c.from('happyad_msg_message_receipts').select('message_id,conversation_id,read_at').eq('user_id',id).is('read_at',null).limit(160);
+  async function calculateUnread(c,id){
+    var rr=await c.from('happyad_msg_message_receipts').select('message_id,conversation_id,read_at').eq('user_id',id).is('read_at',null).limit(250);
     if(!rr || rr.error || !Array.isArray(rr.data))return null;
-    var ids=unique(rr.data.map(function(x){return x&&x.message_id;})); if(!ids.length)return 0;
-    var state=readStateFor(id), total=0;
-    for(var i=0;i<ids.length;i+=80){var part=ids.slice(i,i+80); var mr=await c.from('happyad_msg_messages').select('id,conversation_id,receiver_id,deleted_for_all,created_at').in('id',part).eq('receiver_id',id).eq('deleted_for_all',false); if(mr&&!mr.error&&Array.isArray(mr.data)){mr.data.forEach(function(m){if(!isLocallyRead(m,state))total++;});}}
+    var ids=unique(rr.data.map(function(x){return x&&x.message_id;}));
+    if(!ids.length)return 0;
+    var state=readStateFor(id);
+    var total=0;
+    for(var i=0;i<ids.length;i+=80){
+      var part=ids.slice(i,i+80);
+      var mr=await c.from('happyad_msg_messages').select('id,conversation_id,receiver_id,deleted_for_all,created_at').in('id',part).eq('receiver_id',id).eq('deleted_for_all',false);
+      if(mr && !mr.error && Array.isArray(mr.data)){
+        mr.data.forEach(function(m){if(!isLocallyRead(m,state))total++;});
+      }
+    }
     return total;
   }
   async function refresh(force){
     if(busy)return; busy=true;
     try{
       var c=sb(); if(!c){busy=false;return;}
-      var sess=await ensureSession(!!force); if(!sess||!sess.ready||!sess.id){busy=false;setTimeout(function(){refresh(true);},1800);return;}
-      try{var rpc=await c.rpc('happyad_msg_unread_count'); if(rpc&&!rpc.error&&rpc.data!=null){setCount(Number(rpc.data)||0,force);busy=false;return;}}catch(e){}
-      var real=await calculateUnreadFallback(c,sess.id); if(typeof real==='number'){setCount(real,force);}
+      var id=await uid(); if(!id){setCount(0,force);busy=false;return;}
+      var real=await calculateUnread(c,id);
+      if(typeof real==='number'){setCount(real,force);busy=false;return;}
+      var r=await c.from('happyad_msg_message_receipts').select('message_id',{count:'exact',head:true}).eq('user_id',id).is('read_at',null);
+      if(r && !r.error && typeof r.count==='number'){setCount(r.count,force);busy=false;return;}
+      var r2=await c.from('happyad_msg_message_receipts').select('message_id').eq('user_id',id).is('read_at',null).limit(100);
+      if(r2 && !r2.error && Array.isArray(r2.data)){setCount(r2.data.length,force);}
     }catch(e){}finally{busy=false;}
   }
   async function setupRealtime(){
     try{
       var c=sb(); if(!c||!c.channel)return;
-      var sess=await ensureSession(true); if(!sess||!sess.ready||!sess.id)return;
+      var id=await uid(); if(!id)return;
       if(realtime){try{await c.removeChannel(realtime);}catch(e){} realtime=null;}
-      var fast=function(){setTimeout(function(){refresh(true);},120);setTimeout(function(){refresh(true);},1200);};
-      realtime=c.channel('happyad-home-message-counter-v639-'+sess.id)
-        .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_receipts',filter:'user_id=eq.'+sess.id},fast)
-        .on('postgres_changes',{event:'INSERT',schema:'public',table:'happyad_msg_messages',filter:'receiver_id=eq.'+sess.id},fast)
-        .subscribe(function(status){if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')setTimeout(setupRealtime,3000);});
-    }catch(e){setTimeout(setupRealtime,3500);}
+      var fast=function(){setTimeout(function(){refresh(true);},60);setTimeout(function(){refresh(true);},900);};
+      realtime=c.channel('happyad-home-message-counter-v632-'+id)
+        .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_receipts',filter:'user_id=eq.'+id},fast)
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'happyad_msg_messages',filter:'receiver_id=eq.'+id},fast)
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'happyad_msg_messages',filter:'receiver_id=eq.'+id},fast)
+        .subscribe(function(status){if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')setTimeout(setupRealtime,1800);});
+    }catch(e){setTimeout(setupRealtime,2200);}
   }
-  function start(){badge(); refresh(true); setupRealtime(); if(timer)clearInterval(timer); timer=setInterval(function(){refresh(false);},8000);}
+  function start(){
+    badge(); refresh(true); setupRealtime();
+    if(timer)clearInterval(timer);
+    timer=setInterval(function(){refresh(false);},1800);
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true}); else start();
   document.addEventListener('visibilitychange',function(){if(!document.hidden){refresh(true);setupRealtime();}},false);
   window.addEventListener('focus',function(){refresh(true);},false);
-  window.addEventListener('storage',function(e){if(e && /HAPPYAD_MSG_READ_STATE_STABLE_V1_|HAPPYAD_MSG_HOME_COUNTER_REFRESH|HAPPYAD_MSG_MARK_READ_DONE/.test(e.key||'')){refresh(true);setTimeout(function(){refresh(true);},900);}},false);
+  window.addEventListener('storage',function(e){if(e && /HAPPYAD_MSG_READ_STATE_STABLE_V1_|HAPPYAD_MSG_HOME_COUNTER_REFRESH/.test(e.key||''))refresh(true);},false);
   window.addEventListener('message',function(ev){try{var d=ev&&ev.data||{};if(d&&d.type==='HAPPYAD_MSG_COUNTER_REFRESH')refresh(true);}catch(e){}},false);
 })();
 </script>

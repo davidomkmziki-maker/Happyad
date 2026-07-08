@@ -2213,10 +2213,7 @@
       let activeConversationId = '';
       let activeOtherUserId = '';
       let activeDirectFromVisitor = happyadMsgMode === 'direct' && happyadMsgOrigin === 'visitor_profile';
-      const happyadMsgDirectStrict = cleanMsg(happyadMsgParams.get('strict') || '') === '1' || activeDirectFromVisitor;
       let happyadMsgCurrentUser = null;
-      let happyadMsgSessionBridgePromise = null;
-      let happyadMsgSessionSnapshot = {id:'', ready:false, token:''};
       let happyadMsgSupabase = null;
       let happyadMsgRealtime = null;
       let happyadMsgRealtimeReady = false;
@@ -2254,9 +2251,9 @@
         online:true,
         badge:''
       };
-      const HAPPYAD_MSG_CACHE_VERSION = 'V640';
+      const HAPPYAD_MSG_CACHE_VERSION = 'V632';
       const HAPPYAD_MSG_STABLE_CACHE_VERSION = 'V1';
-      const HAPPYAD_MSG_OLD_CACHE_VERSIONS = ['V635','V634','V633','V632','V631','V630','V629','V628','V627','V626','V625','V624','V623','V622','V621','V620','V619','V618','V617','V616','V615','V614'];
+      const HAPPYAD_MSG_OLD_CACHE_VERSIONS = ['V630','V629','V628','V627','V626','V625','V624','V623','V622','V621','V620','V619','V618','V617','V616','V615','V614'];
       const HAPPYAD_MSG_PROFILE_CACHE_KEY = 'HAPPYAD_MSG_PROFILE_CACHE_STABLE_' + HAPPYAD_MSG_STABLE_CACHE_VERSION;
       const HAPPYAD_MSG_ME_CACHE_KEY = 'HAPPYAD_MSG_ME_CACHE_STABLE_' + HAPPYAD_MSG_STABLE_CACHE_VERSION;
       const HAPPYAD_MSG_CONSUMED_ONCE_KEY = 'HAPPYAD_MSG_VIEW_ONCE_CONSUMED_STABLE_' + HAPPYAD_MSG_STABLE_CACHE_VERSION;
@@ -2952,7 +2949,7 @@
 
 
 
-      /* HAPPYAD MSG V636 — session Supabase stable + RPC temps réel */
+      /* HAPPYAD MSG V1B — connexion Supabase propre, fichier central unique */
       function cleanMsg(v){return String(v==null?'':v).trim();}
       function escMsg(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c;});}
       function msgTimeout(promise, ms, fallback){
@@ -2966,13 +2963,10 @@
       function msgClient(){
         try{
           if(happyadMsgSupabase) return happyadMsgSupabase;
-          try{if(window.parent && window.parent!==window && window.parent.happyadSupabase){happyadMsgSupabase=window.parent.happyadSupabase;window.happyadSupabase=happyadMsgSupabase;return happyadMsgSupabase;}}catch(_pe){}
           if(window.happyadSupabase){happyadMsgSupabase=window.happyadSupabase;return happyadMsgSupabase;}
           if(window.supabase && window.supabase.createClient){
-            const opts={auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-txjjyhupbejgjcianrmr-auth-token'}};
-            happyadMsgSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL, window.HAPPYAD_SUPABASE_KEY, opts);
+            happyadMsgSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL, window.HAPPYAD_SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
             window.happyadSupabase=happyadMsgSupabase;
-            try{if(window.parent && window.parent!==window && !window.parent.happyadSupabase)window.parent.happyadSupabase=happyadMsgSupabase;}catch(_e){}
             return happyadMsgSupabase;
           }
         }catch(e){}
@@ -2997,99 +2991,6 @@
         }catch(e){}
         return null;
       }
-      function forEachHappyStorage(callback){
-        try{
-          const areas=[localStorage,sessionStorage];
-          try{if(window.parent&&window.parent!==window&&window.parent.localStorage)areas.push(window.parent.localStorage);}catch(_e){}
-          try{if(window.parent&&window.parent!==window&&window.parent.sessionStorage)areas.push(window.parent.sessionStorage);}catch(_e){}
-          areas.forEach(function(area){
-            try{
-              for(let i=0;i<area.length;i++){
-                const k=area.key(i); if(!k)continue;
-                callback(k,area.getItem(k)||'',area);
-              }
-            }catch(_e){}
-          });
-        }catch(e){}
-      }
-      function sessionCandidateFromValue(raw){
-        try{
-          const parsed=safeJsonParse(raw); if(!parsed)return null;
-          const roots=[parsed,parsed.currentSession,parsed.session,parsed.data&&parsed.data.session,parsed.data,parsed.auth].filter(Boolean);
-          for(const root of roots){
-            const access=cleanMsg(root.access_token||root.accessToken||root.access);
-            const refresh=cleanMsg(root.refresh_token||root.refreshToken||root.refresh);
-            const user=(root.user||root.currentUser||parsed.user||parsed.currentSession&&parsed.currentSession.user||parsed.session&&parsed.session.user||{});
-            const uid=cleanMsg(user&&user.id);
-            const exp=Number(root.expires_at||root.expiresAt||0);
-            if(access&&refresh){
-              if(exp && exp < Math.floor(Date.now()/1000)-120) continue;
-              return {access_token:access,refresh_token:refresh,user:user,id:uid,expires_at:exp||0};
-            }
-          }
-        }catch(e){}
-        return null;
-      }
-      function readSupabaseStoredSession(){
-        let found=null;
-        forEachHappyStorage(function(k,raw){
-          if(found)return;
-          if(!/sb-|supabase|auth-token|auth\.token/i.test(k))return;
-          const cand=sessionCandidateFromValue(raw);
-          if(cand&&cand.access_token&&cand.refresh_token)found=cand;
-        });
-        return found;
-      }
-      async function ensureMsgSession(options){
-        options=options||{};
-        if(happyadMsgSessionBridgePromise && !options.force)return happyadMsgSessionBridgePromise;
-        happyadMsgSessionBridgePromise=(async function(){
-          const c=msgClient();
-          let id='', token='', ready=false, user=null;
-          try{
-            if(c&&c.auth&&c.auth.getSession){
-              const s=await msgTimeout(c.auth.getSession(),2600,null);
-              const sess=s&&s.data&&s.data.session;
-              id=cleanMsg(sess&&sess.user&&sess.user.id); token=cleanMsg(sess&&sess.access_token); user=sess&&sess.user||null;
-              if(id&&token)ready=true;
-            }
-          }catch(e){}
-          if(!ready){
-            try{
-              const stored=readSupabaseStoredSession();
-              if(stored&&stored.access_token&&stored.refresh_token&&c&&c.auth&&c.auth.setSession){
-                const set=await msgTimeout(c.auth.setSession({access_token:stored.access_token,refresh_token:stored.refresh_token}),3600,null);
-                const sess=set&&set.data&&set.data.session;
-                id=cleanMsg(sess&&sess.user&&sess.user.id)||cleanMsg(stored.id);
-                token=cleanMsg(sess&&sess.access_token)||stored.access_token;
-                user=sess&&sess.user||stored.user||null;
-                ready=!!(id&&token);
-              }
-            }catch(e){}
-          }
-          if(!ready){
-            try{
-              if(c&&c.auth&&c.auth.getUser){
-                const r=await msgTimeout(c.auth.getUser(),2600,null);
-                id=cleanMsg(r&&r.data&&r.data.user&&r.data.user.id)||id;
-                user=r&&r.data&&r.data.user||user;
-                if(id){
-                  const s2=c.auth&&c.auth.getSession?await msgTimeout(c.auth.getSession(),1800,null):null;
-                  token=cleanMsg(s2&&s2.data&&s2.data.session&&s2.data.session.access_token)||token;
-                  ready=!!token;
-                }
-              }
-            }catch(e){}
-          }
-          if(id){try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(_e){}}
-          if(token&&c&&c.realtime&&typeof c.realtime.setAuth==='function'){try{c.realtime.setAuth(token);}catch(_e){}}
-          happyadMsgSessionSnapshot={id:id||stableAuthUidFromAnySource(),ready:!!ready,token:token||'',user:user||null};
-          setTimeout(function(){if(happyadMsgSessionBridgePromise)happyadMsgSessionBridgePromise=null;},900);
-          return happyadMsgSessionSnapshot;
-        })();
-        return happyadMsgSessionBridgePromise;
-      }
-
       function stableAuthUidFromAnySource(){
         try{
           const cachedAuth=readSupabaseAuthUserFromStorage();
@@ -3111,10 +3012,20 @@
         const c=msgClient();
         let local=readConnectedUserFromStorage()||{};
         let authUser=readSupabaseAuthUserFromStorage();
-        let session=await ensureMsgSession().catch(function(){return {id:'',ready:false,user:null};});
-        authUser=(session&&session.user)||authUser||null;
+        try{
+          if(c&&c.auth&&c.auth.getSession){
+            const gs=await msgTimeout(c.auth.getSession(),3600,null);
+            authUser=gs&&gs.data&&gs.data.session&&gs.data.session.user||null;
+          }
+        }catch(e){}
+        try{
+          if(!authUser&&c&&c.auth&&c.auth.getUser){
+            const r=await msgTimeout(c.auth.getUser(),3600,null);
+            authUser=r&&r.data&&r.data.user||null;
+          }
+        }catch(e){}
         let profile={};
-        const authId=cleanMsg(session&&session.id)||(authUser&&authUser.id)||stableAuthUidFromAnySource()||cleanMsg(local.id||local.user_id||local.uid||local.uuid||localStorage.getItem('HAPPYAD_AUTH_UID'));
+        const authId=(authUser&&authUser.id)||stableAuthUidFromAnySource()||cleanMsg(local.id||local.user_id||local.uid||local.uuid||localStorage.getItem('HAPPYAD_AUTH_UID'));
         if(authId){
           try{localStorage.setItem('HAPPYAD_AUTH_UID',authId);}catch(_e){}
           try{
@@ -3133,8 +3044,7 @@
           badge:userBadgeFromObject(exactMe)||userBadgeFromObject(profile)||userBadgeFromObject(meta)||userBadgeFromObject(rawMeta)||local.badge||cachedMe.badge||CONNECTED_USER_FALLBACK.badge,
           online:true,
           story:'active',
-          authReady:!!(session&&session.ready),
-          sessionReady:!!(session&&session.ready)
+          authReady:!!(authUser||authId)
         };
         if(happyadMsgCurrentUser.id || happyadMsgCurrentUser.name !== CONNECTED_USER_FALLBACK.name){writeMsgJson(HAPPYAD_MSG_ME_CACHE_KEY,happyadMsgCurrentUser);}
         return happyadMsgCurrentUser;
@@ -3751,19 +3661,10 @@
           if(!conversationId)return;
           markConversationReadLocal(conversationId);
           const now=Date.now();
-          if(!force && happyadMsgLastMarkReadByConversation[conversationId] && now-happyadMsgLastMarkReadByConversation[conversationId] < 2500) return;
+          if(!force && happyadMsgLastMarkReadByConversation[conversationId] && now-happyadMsgLastMarkReadByConversation[conversationId] < 30000) return;
           happyadMsgLastMarkReadByConversation[conversationId]=now;
           const c=msgClient();
-          if(c&&c.rpc){
-            c.rpc('happyad_msg_mark_read',{p_conversation_id:conversationId}).then(function(){
-              try{localStorage.setItem('HAPPYAD_MSG_HOME_COUNTER_REFRESH',String(Date.now()));}catch(_e){}
-              try{localStorage.setItem('HAPPYAD_MSG_MARK_READ_DONE',JSON.stringify({conversation_id:conversationId,at:Date.now()}));}catch(_e){}
-              try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'HAPPYAD_MSG_COUNTER_REFRESH',conversation_id:conversationId,mark_read:true},'*');}catch(_e){}
-              try{setTimeout(function(){loadConversations({silent:true});},120);}catch(_e){}
-            }).catch(function(){
-              try{ensureMsgSession({force:true}).then(function(){return c.rpc('happyad_msg_mark_read',{p_conversation_id:conversationId});}).then(function(){try{localStorage.setItem('HAPPYAD_MSG_HOME_COUNTER_REFRESH',String(Date.now()));}catch(_e){};try{loadConversations({silent:true});}catch(_e){}}).catch(function(){});}catch(_e){}
-            });
-          }
+          if(c&&c.rpc)c.rpc('happyad_msg_mark_read',{p_conversation_id:conversationId}).catch(function(){});
         }catch(e){}
       }
       function rememberLocalTextMessage(conversationId,text,isMine,isOnce,messageType,forcedId){
@@ -3867,18 +3768,11 @@
       function profileFromUrl(){
         let saved={};
         try{saved=JSON.parse(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||'{}')||{};}catch(e){}
-        let storedTarget='';
-        try{storedTarget=cleanMsg(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID')||'');}catch(e){}
-        const directId=cleanMsg(happyadDirectUserId)||storedTarget;
-        const savedId=cleanMsg(saved.auth_uid||saved.auth_id||saved.user_id||saved.uid||saved.uuid||saved.id);
-        if(directId && savedId && savedId!==directId) saved={};
-        const cached=getCachedMsgProfile(directId)||{};
+        const cached=getCachedMsgProfile(happyadDirectUserId)||{};
         const name=safeParam(happyadMsgParams.get('name')||'')||saved.name||saved.full_name||saved.display_name||cached.name||cached.full_name||cached.display_name||'';
         return {
-          id:directId,
-          user_id:directId,
-          auth_id:directId,
-          auth_uid:directId,
+          id:happyadDirectUserId,
+          user_id:happyadDirectUserId,
           full_name:isGenericMsgName(name)?(cached.name||''):name,
           name:isGenericMsgName(name)?(cached.name||''):name,
           username:safeParam(happyadMsgParams.get('username')||happyadMsgParams.get('handle')||'')||saved.username||saved.handle||cached.username||cached.handle||'',
@@ -4019,19 +3913,13 @@
         }
         const u=await msgUser();
         applyMsgUserToHeader(u);
-        const sessionForList=await ensureMsgSession().catch(function(){return {ready:false,id:''};});
-        const fallbackUidForList=cleanMsg((sessionForList&&sessionForList.id)||stableAuthUidFromAnySource());
-        if((!sessionForList || !sessionForList.ready) && !fallbackUidForList){
-          if(!cachedPairs.length)setEmptyConversations('Connexion messages...');
-          else renderConversationPairs(cachedPairs,'Connexion messages...', {silent:!!options.silent});
-          setTimeout(function(){ensureMsgSession({force:true}).then(function(){loadConversations({silent:true});});},2500);
+        if((!u || (!u.authReady && !u.id)) && !cachedPairs.length){
+          setEmptyConversations('Connexion au compte...');
+          setTimeout(loadConversations,1200);
           return;
         }
         try{
-          let r=await happyadMsgRpc('happyad_msg_get_my_conversations',{},8200,[]);
-          if(!r || r.error || r.__timeout){
-            r=await msgTimeout(c.from('happyad_msg_my_conversations').select('*').order('last_message_at',{ascending:false,nullsFirst:false}),7500,null);
-          }
+          const r=await msgTimeout(c.from('happyad_msg_my_conversations').select('*').order('last_message_at',{ascending:false,nullsFirst:false}),7500,null);
           if(r && r.__timeout){
             const again=readConversationPairsCache();
             if(again.length)renderConversationPairs(again,'Aucune conversation.', {silent:true});
@@ -4048,7 +3936,7 @@
           let serverPairs=conversationPairsFromServer(list,profiles).map(function(pair){try{if(activeConversationId && cleanMsg((pair.item||{}).conversation_id)===cleanMsg(activeConversationId)){pair.item=Object.assign({},pair.item,{unread_count:0});}}catch(e){} return pair;});
           let pairs=mergeConversationPairsForStableList(backupBefore, serverPairs);
           if(!serverPairs.length && !pairs.length){
-            const hard=await happyadMsgHardInboxSync({force:true,fast:false,showEmptyWhenDone:false});
+            const hard=await happyadMsgHardInboxSync({force:true,fast:true,showEmptyWhenDone:false});
             const backup=readConversationPairsCache();
             if(backup.length){
               renderConversationPairs(backup,'Chargement conversations...', {silent:true});
@@ -4056,14 +3944,8 @@
             } else if(hard){
               happyadMsgLoadedOnce=true;
             } else {
-              const realSessionId=await happyadMsgAuthSessionId();
-              const fallbackSessionId=realSessionId||stableAuthUidFromAnySource();
-              if(!fallbackSessionId){
-                setEmptyConversations('Session message non connectée. Reconnecte-toi puis rouvre Messages.');
-              }else{
-                setEmptyConversations('Chargement conversations...');
-                setTimeout(function(){happyadMsgHardInboxSync({force:true,showEmptyWhenDone:true});},650);
-              }
+              setEmptyConversations('Chargement conversations...');
+              setTimeout(function(){happyadMsgHardInboxSync({force:true,showEmptyWhenDone:true});},650);
             }
             return;
           }
@@ -4173,10 +4055,7 @@
         const c=msgClient();
         if(!c){if(!cached.length&&!hasDomMessages)setChatLoading('Connexion messages indisponible.');return;}
         try{
-          let r=await happyadMsgRpc('happyad_msg_get_my_messages',{p_conversation_id:conversationId},8200,null);
-          if(!r || r.error || r.__timeout){
-            r=await msgTimeout(c.from('happyad_msg_my_messages').select('*').eq('conversation_id',conversationId).order('created_at',{ascending:true}),5200,null);
-          }
+          const r=await msgTimeout(c.from('happyad_msg_my_messages').select('*').eq('conversation_id',conversationId).order('created_at',{ascending:true}),5200,null);
           if(loadSeq !== happyadMsgMessageLoadSeq || activeConversationId !== conversationId) return;
           if(!r) throw new Error('messages_timeout');
           if(r.error) throw r.error;
@@ -4208,87 +4087,14 @@
           }
         }
       }
-      function happyadMsgIsUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cleanMsg(v));}
-      function happyadMsgDirectCandidateList(raw,p){
-        p=p||{};
-        let saved={};
-        try{saved=JSON.parse(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||'{}')||{};}catch(e){}
-        const q=happyadMsgParams;
-        const urlTarget=cleanMsg(raw||q.get('to')||q.get('uid')||q.get('user_id')||q.get('auth_id')||q.get('auth_uid'));
-        const savedId=cleanMsg(saved.auth_uid||saved.auth_id||saved.user_id||saved.uid||saved.uuid||saved.id);
-        if(urlTarget && savedId && savedId!==urlTarget) saved={};
-        if(happyadMsgDirectStrict){
-          return [urlTarget,q.get('auth_uid'),q.get('auth_id'),q.get('user_id'),q.get('uid'),q.get('to'),raw].map(cleanMsg).filter(Boolean);
-        }
-        return [
-          urlTarget,q.get('auth_uid'),q.get('auth_id'),q.get('user_id'),q.get('uid'),q.get('to'),raw,
-          p.auth_uid,p.auth_id,p.user_id,p.uid,p.uuid,p.owner_id,p.creator_id,p.id,
-          saved.auth_uid,saved.auth_id,saved.user_id,saved.uid,saved.uuid,saved.id
-        ].map(cleanMsg).filter(Boolean);
-      }
-      async function happyadMsgResolveDirectTargetId(raw,p){
-        raw=cleanMsg(raw); p=p||{};
-        const c=msgClient();
-        let meId=cleanMsg((happyadMsgCurrentUser&&happyadMsgCurrentUser.id)||stableAuthUidFromAnySource());
-        try{const u=await msgUser();meId=cleanMsg(u&&u.id)||meId;}catch(_e){}
-        function good(v){v=cleanMsg(v);return happyadMsgIsUuid(v)&&(!meId||v!==meId)?v:'';}
-        async function rpcResolveProfileUid(id){
-          id=good(id);
-          if(!id||!c)return '';
-          try{
-            const rr=await msgTimeout(c.rpc('happyad_msg_resolve_profile_message_uid',{p_profile_id:id}),1600,null);
-            const out=good(rr&&rr.data);
-            if(rr&&!rr.error&&out)return out;
-          }catch(_e){}
-          return '';
-        }
-        async function queryProfileByUuid(id){
-          id=good(id); if(!id||!c)return '';
-          const tables=['profiles','happyad_profiles'];
-          for(const t of tables){
-            try{
-              let r=await msgTimeout(c.from(t).select('*').eq('id',id).maybeSingle(),2400,null);
-              if(r&&!r.error&&r.data){
-                const row=r.data||{};
-                const resolved=good(row.auth_uid)||good(row.auth_id)||good(row.user_id)||good(row.uid)||good(row.uuid)||good(row.id);
-                if(resolved){cacheMsgProfile(messageProfileIdentityFromObject(row,resolved),resolved);return resolved;}
-              }
-            }catch(_e){}
-            try{
-              let r2=await msgTimeout(c.from(t).select('*').eq('user_id',id).maybeSingle(),2200,null);
-              if(r2&&!r2.error&&r2.data){
-                const row2=r2.data||{};
-                const resolved2=good(row2.auth_uid)||good(row2.auth_id)||good(row2.user_id)||good(row2.uid)||good(row2.uuid)||good(row2.id);
-                if(resolved2){cacheMsgProfile(messageProfileIdentityFromObject(row2,resolved2),resolved2);return resolved2;}
-              }
-            }catch(_e){}
-          }
-          return '';
-        }
-        const candidates=happyadMsgDirectCandidateList(raw,p);
-        for(const x of candidates){
-          const rr=await rpcResolveProfileUid(x);
-          if(rr)return rr;
-        }
-        for(const x of candidates){
-          const q=await queryProfileByUuid(x);
-          if(q)return q;
-        }
-        for(const x of candidates){
-          const g=good(x);
-          if(g)return g;
-        }
-        return '';
-      }
       async function openDirectConversation(){
         if(!happyadDirectUserId) return;
         const p0=profileFromUrl();
-        const visualId=cleanMsg(p0.user_id||p0.id||happyadDirectUserId);
-        cacheMsgProfile(p0,visualId);
-        const localRow=makeConversationRow({conversation_id:'',other_user_id:visualId,unread_count:0,last_message_at:null},p0);
+        cacheMsgProfile(p0,happyadDirectUserId);
+        const localRow=makeConversationRow({conversation_id:'',other_user_id:happyadDirectUserId,unread_count:0,last_message_at:null},p0);
         localRow.dataset.status='Connexion...';
         openChat(localRow);
-        const directInfo=profileInfo(p0,visualId);
+        const directInfo=profileInfo(p0,happyadDirectUserId);
         chatName.textContent=directInfo.name;
         setBadge(chatBadge,directInfo.badge||'');
         if(directInfo.avatar){chatAvatar.innerHTML='<img src="'+escMsg(directInfo.avatar)+'" alt="">';}else{chatAvatar.textContent=directInfo.initial;}
@@ -4298,31 +4104,18 @@
         if(!c){chatBody.innerHTML='<div class="empty" style="display:block;padding-top:28px">Supabase non chargé.</div>';return;}
         try{
           const u=await msgUser();applyMsgUserToHeader(u);
-          const targetId=await happyadMsgResolveDirectTargetId(happyadDirectUserId,p0);
-          if(!targetId){
-            chatStatus.textContent='Profil message invalide';
-            chatBody.innerHTML='<div class="empty" style="display:block;padding-top:28px">Ce profil n’a pas encore un identifiant message valide. Corrige son compte puis réessaie.</div>';
-            return;
-          }
-          if(cleanMsg(u&&u.id)===targetId){
-            chatStatus.textContent='Profil connecté';
-            chatBody.innerHTML='<div class="empty" style="display:block;padding-top:28px">Impossible d’ouvrir un message avec ton propre profil.</div>';
-            return;
-          }
-          const res=await msgTimeout(c.rpc('happyad_msg_get_or_create_conversation',{p_other_user_id:targetId}),6500,null);
-          if(!res) throw new Error('conversation_timeout');
+          const res=await msgTimeout(c.rpc('happyad_msg_get_or_create_conversation',{p_other_user_id:happyadDirectUserId}),5200,null);
           if(res.error) throw res.error;
-          if(!res.data) throw new Error('conversation_absente');
+          if(!res.data) throw new Error('conversation_timeout');
           const convId=res.data;
           localRow.dataset.conversationId=convId;
-          localRow.dataset.otherUserId=targetId;
-          mergeConversationPairIntoCache({item:enhanceConversationItemFromCache({conversation_id:convId,other_user_id:targetId,unread_count:0,last_message_at:null,last_message_body:'Nouvelle conversation',last_message_is_mine:false,last_message_type:'text'}),profile:p0});
+          mergeConversationPairIntoCache({item:enhanceConversationItemFromCache({conversation_id:convId,other_user_id:happyadDirectUserId,unread_count:0,last_message_at:null,last_message_body:'Nouvelle conversation',last_message_is_mine:false,last_message_type:'text'}),profile:p0});
           activeConversationId=convId;
-          activeOtherUserId=targetId;
-          let profiles=await profilesByIds([targetId]);
-          const p=profiles[targetId]||getCachedMsgProfile(targetId)||Object.assign({},p0,{id:targetId,user_id:targetId});
-          cacheMsgProfile(p,targetId);
-          const info=profileInfo(p,targetId);
+          activeOtherUserId=happyadDirectUserId;
+          let profiles=await profilesByIds([happyadDirectUserId]);
+          const p=profiles[happyadDirectUserId]||getCachedMsgProfile(happyadDirectUserId)||p0;
+          cacheMsgProfile(p,happyadDirectUserId);
+          const info=profileInfo(p,happyadDirectUserId);
           localRow.dataset.name=info.name;
           localRow.dataset.initial=info.initial;
           localRow.dataset.badge=info.badge||'';
@@ -4332,11 +4125,7 @@
           chatStatus.textContent='Vu récemment';
           if(info.avatar){chatAvatar.innerHTML='<img src="'+escMsg(info.avatar)+'" alt="">';}else{chatAvatar.textContent=info.initial;}
           await loadMessages(convId);
-        }catch(e){
-          console.warn('HAPPYAD MSG direct open',e);
-          chatStatus.textContent='Hors ligne';
-          chatBody.innerHTML='<div class="empty" style="display:block;padding-top:28px">Conversation non ouverte. Vérifie que ce compte possède un vrai user_id/auth_id Supabase.</div>';
-        }
+        }catch(e){console.warn('HAPPYAD MSG direct open',e);chatStatus.textContent='Hors ligne';chatBody.innerHTML='<div class="empty" style="display:block;padding-top:28px">Aucun message. Écris le premier message.</div>';}
       }
       function parentBackOrClose(){
         try{if(window.parent&&window.parent!==window&&window.parent.HappyNavigation&&typeof window.parent.HappyNavigation.back==='function'){window.parent.HappyNavigation.back();return true;}}catch(e){}
@@ -4531,16 +4320,7 @@
           upsertConversationPairDom(realtimePair);
           renderCachedConversationListSilently();
           if(isConversationActuallyOpen(m.conversation_id)){
-            try{
-              const oldMsgs=readMessagesCache(m.conversation_id);
-              const liveMsg=Object.assign({},m,{attachments:Array.isArray(m.attachments)?m.attachments:[]});
-              const mergedMsgs=mergeMessagesForDisplay(m.conversation_id,oldMsgs,[liveMsg]);
-              writeMessagesCache(m.conversation_id,mergedMsgs);
-              renderMessagesArray(mergedMsgs,'Aucun message. Écris le premier message.',{silent:true});
-              markConversationReadRemote(m.conversation_id,true);
-            }catch(_e){}
-            setTimeout(function(){loadMessages(m.conversation_id,{silent:true,forceMarkRead:true});},80);
-            setTimeout(function(){loadMessages(m.conversation_id,{silent:true,forceMarkRead:true});},900);
+            setTimeout(function(){loadMessages(m.conversation_id,{silent:true});},80);
           }
         }catch(e){console.warn('HAPPYAD MSG realtime list apply',e);}
       }
@@ -4560,8 +4340,8 @@
         happyadMsgInvisibleListRunning=true;
         try{
           const c=msgClient(); if(!c)return;
-          const session=await ensureMsgSession({force:!!options.force}).catch(function(){return {ready:false,id:''};});
-          const uid=cleanMsg(session&&session.ready&&session.id); if(!uid)return;
+          const u=await msgUser().catch(function(){return null;});
+          const uid=cleanMsg(u&&u.id); if(!uid)return;
           const r=await msgTimeout(
             c.from('happyad_msg_my_messages')
               .select('*')
@@ -4596,8 +4376,8 @@
         happyadMsgListRawSyncRunning=true;
         try{
           const c=msgClient(); if(!c)return;
-          const session=await ensureMsgSession({force:!!options.force}).catch(function(){return {ready:false,id:''};});
-          const uid=cleanMsg(session&&session.ready&&session.id); if(!uid)return;
+          const u=await msgUser().catch(function(){return null;});
+          const uid=cleanMsg(u&&u.id); if(!uid)return;
           const q='sender_id.eq.'+uid+',receiver_id.eq.'+uid;
           const r=await msgTimeout(
             c.from('happyad_msg_messages')
@@ -4645,41 +4425,34 @@
         }catch(e){console.warn('HAPPYAD MSG recent list sync',e);}finally{happyadMsgRecentListSyncRunning=false;}
       }
 
-
-      async function happyadMsgRpc(name, args, ms, fallback){
-        try{
-          const c=msgClient();
-          if(!c || !c.rpc) return {data:fallback||null,error:{message:'rpc_unavailable'}};
-          /* V636: ne pas couper la messagerie uniquement parce que le pont session a répondu lentement.
-             On tente d'abord le RPC; si Supabase refuse le JWT, on force la session puis on réessaie. */
-          await ensureMsgSession({force:false}).catch(function(){return {ready:false,id:''};});
-          let r=await msgTimeout(c.rpc(name,args||{}), ms||5200, fallback||null);
-          const msg=String((r&&r.error&&r.error.message)||r&&r.error||'');
-          if((!r || r.error || r.__timeout) && /JWT|session|auth|PGRST301|401|403|not authenticated|Auth session missing/i.test(msg)){
-            await ensureMsgSession({force:true}).catch(function(){});
-            r=await msgTimeout(c.rpc(name,args||{}), ms||5200, fallback||null);
-          }
-          return r||{data:fallback||null,error:{message:'rpc_empty_response'}};
-        }catch(e){return {data:fallback||null,error:e};}
-      }
-      async function happyadMsgAuthSessionId(){
-        try{
-          const s=await ensureMsgSession({force:true});
-          return (s&&s.ready&&s.id)?cleanMsg(s.id):'';
-        }catch(e){return '';}
-      }
       async function msgAuthUserIdFast(){
         try{
-          const s=await ensureMsgSession({force:false});
-          if(s&&s.id)return cleanMsg(s.id);
+          const c=msgClient();
+          /* V631: toujours préférer la vraie session Supabase active. Sur plusieurs téléphones/comptes,
+             un ancien HAPPYAD_AUTH_UID local pouvait faire lire la boîte du mauvais compte. */
+          if(c && c.auth && c.auth.getSession){
+            const s=await msgTimeout(c.auth.getSession(),2200,null);
+            const id=cleanMsg(s&&s.data&&s.data.session&&s.data.session.user&&s.data.session.user.id);
+            if(id && id!=='guest'){
+              try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(_e){}
+              return id;
+            }
+          }
+          if(c && c.auth && c.auth.getUser){
+            const r=await msgTimeout(c.auth.getUser(),2200,null);
+            const id=cleanMsg(r&&r.data&&r.data.user&&r.data.user.id);
+            if(id && id!=='guest'){
+              try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(_e){}
+              return id;
+            }
+          }
         }catch(e){}
         try{
-          const fallback=stableAuthUidFromAnySource();
-          if(fallback&&fallback!=='guest')return cleanMsg(fallback);
+          const cached=stableAuthUidFromAnySource();
+          if(cached&&cached!=='guest')return cached;
         }catch(e){}
-        return '';
+        return cleanMsg(msgCurrentUserCacheId());
       }
-
 
 
       function newerThanCachedConversation(m){
@@ -4799,7 +4572,7 @@
               .or(q)
               .order('created_at',{ascending:false})
               .limit(80),
-            options.fast?4500:6500,
+            options.fast?1200:2200,
             []
           );
           const unreadMap=await unreadMapPromise;
@@ -4856,14 +4629,14 @@
             syncRecentMessagesForList({force:true});
             loadConversations({silent:true});
             if(activeConversationId)loadMessages(activeConversationId,{silent:true});
-          },120);
+          },320);
         }catch(e){}
       }
       async function setupInboxRealtime(force){
         const c=msgClient(); if(!c||!c.channel)return;
         try{
-          const session=await ensureMsgSession({force:!!force}).catch(function(){return {ready:false,id:''};});
-          const uid=cleanMsg(session&&session.ready&&session.id); if(!uid)return;
+          const u=await msgUser().catch(function(){return null;});
+          const uid=cleanMsg(u&&u.id); if(!uid)return;
           if(force && happyadMsgInboxRealtime){try{await c.removeChannel(happyadMsgInboxRealtime);}catch(_e){} happyadMsgInboxRealtime=null; happyadMsgInboxRealtimeReady=false;}
           if(happyadMsgInboxRealtime && happyadMsgInboxRealtimeReady)return;
           let token='';
@@ -4875,15 +4648,11 @@
           const fast=function(payload){
             try{
               const rec=(payload&&payload.new)||null;
-              if(rec&&cleanMsg(rec.conversation_id)){
-                applyRealtimeMessageToList(Object.assign({},rec,{__me_id:uid}),{source:'inbox-filtered',uid:uid});
-                if(isConversationActuallyOpen(rec.conversation_id)){
-                  setTimeout(function(){loadMessages(rec.conversation_id,{silent:true,forceMarkRead:true});},70);
-                  setTimeout(function(){markConversationReadRemote(rec.conversation_id,true);},180);
-                }
-              }
-              refreshSoon();
-            }catch(e){refreshSoon();}
+              if(rec&&cleanMsg(rec.conversation_id)) applyRealtimeMessageToList(Object.assign({},rec,{__me_id:uid}),{source:'inbox-filtered',uid:uid});
+              happyadMsgHardInboxSync({force:true,fast:true});
+              invisibleListRefresh({force:true});
+              syncRecentRawMessagesForList({force:true});
+            }catch(e){syncRecentRawMessagesForList({force:true});}
           };
           happyadMsgInboxRealtime=c.channel('happyad-msg-inbox-fast-'+uid)
             .on('postgres_changes',{event:'INSERT',schema:'public',table:'happyad_msg_messages',filter:'receiver_id=eq.'+uid},fast)
@@ -4901,55 +4670,72 @@
         }catch(e){setTimeout(function(){setupInboxRealtime(true);},1800);}
       }
       async function setupRealtime(force){
-        /* HAPPYAD MSG V632 — realtime léger: ne plus écouter toutes les tables globalement.
-           Le canal filtré par mon uid dans setupInboxRealtime suffit pour mes messages.
-           Cela réduit fortement Disk IO/Reatime et évite que chaque téléphone écoute tous les messages du site. */
+        const c=msgClient();if(!c||!c.channel)return;
         try{
-          await setupInboxRealtime(!!force);
-          happyadMsgRealtimeReady=true;
-        }catch(e){
-          happyadMsgRealtimeReady=false;
-          setTimeout(function(){setupRealtime(true);},8000);
-        }
+          if(force && happyadMsgRealtime){try{await c.removeChannel(happyadMsgRealtime);}catch(_e){} happyadMsgRealtime=null; happyadMsgRealtimeReady=false;}
+          if(happyadMsgRealtime && happyadMsgRealtimeReady)return;
+          let token='';
+          try{
+            const s=await msgTimeout(c.auth.getSession(),1800,null);
+            token=s&&s.data&&s.data.session&&s.data.session.access_token||'';
+            if(token && c.realtime && typeof c.realtime.setAuth==='function') c.realtime.setAuth(token);
+          }catch(_e){}
+          const u=await msgUser().catch(function(){return null;});
+          const channelName='happyad-msg-v1b-center-'+cleanMsg((u&&u.id)||msgCurrentUserCacheId()||'user');
+          happyadMsgRealtime=c.channel(channelName)
+            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_conversations'},refreshSoon)
+            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_conversation_members'},refreshSoon)
+            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_messages'},handleRealtimeMessageEvent)
+            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_receipts'},refreshSoon)
+            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_attachments'},refreshSoon)
+            .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_deletes'},refreshSoon)
+            .subscribe(function(status){
+              happyadMsgRealtimeReady = status === 'SUBSCRIBED';
+              if(status === 'SUBSCRIBED') setupInboxRealtime(false);
+              if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){
+                happyadMsgRealtimeReady=false;
+                setTimeout(function(){setupRealtime(true);},2200);
+              }
+            });
+        }catch(e){setTimeout(function(){setupRealtime(true);},2600);}
       }
       function startMessagePolling(){
         try{if(happyadMsgPollTimer)clearInterval(happyadMsgPollTimer);}catch(e){}
         try{if(happyadMsgFastListPollTimer)clearInterval(happyadMsgFastListPollTimer);}catch(e){}
         try{if(happyadMsgInvisibleListTimer)clearInterval(happyadMsgInvisibleListTimer);}catch(e){}
-        /* HAPPYAD MSG V632 — anti Disk IO: les anciens intervalles 650ms/1200ms/2600ms forçaient
-           trop de lectures Supabase. Maintenant realtime d'abord, polling seulement en sécurité. */
         happyadMsgInvisibleListTimer=setInterval(function(){
           try{
-            if(document.hidden)return;
+            // Actualisation invisible permanente de la liste: pas de redraw complet, seulement la ligne concernée.
             happyadMsgHardInboxSync({force:true,fast:true});
             pulseInboxListNow({force:true});
+            invisibleListRefresh({force:true});
           }catch(e){}
-        },18000);
+        },650);
         happyadMsgFastListPollTimer=setInterval(function(){
           try{
-            if(document.hidden)return;
             pulseInboxListNow({force:true});
+            invisibleListRefresh({force:true});
             syncRecentRawMessagesForList({force:true});
             if(!happyadMsgInboxRealtimeReady) setupInboxRealtime(true);
           }catch(e){}
-        },24000);
+        },1200);
         happyadMsgPollTimer=setInterval(function(){
           try{
             if(document.hidden)return;
             happyadMsgPollTick++;
+            pulseInboxListNow({force:true});
             syncRecentMessagesForList({silent:true});
-            if(happyadMsgPollTick%2===0) loadConversations({silent:true});
+            if(happyadMsgPollTick%5===0) loadConversations({silent:true});
             if(activeConversationId && !chatView.classList.contains('hidden')) loadMessages(activeConversationId,{silent:true});
             if(!happyadMsgRealtimeReady) setupRealtime(true);
             if(!happyadMsgInboxRealtimeReady) setupInboxRealtime(true);
           }catch(e){}
-        },30000);
-        try{document.addEventListener('visibilitychange',function(){if(!document.hidden){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});loadConversations({silent:true});setupInboxRealtime(true);}},false);}catch(e){}
-        try{window.addEventListener('focus',function(){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});setupInboxRealtime(true);},false);}catch(e){}
+        },2600);
+        try{document.addEventListener('visibilitychange',function(){if(!document.hidden){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentRawMessagesForList({force:true});syncRecentMessagesForList({force:true});loadConversations({silent:true});setupInboxRealtime(true);}},false);}catch(e){}
+        try{window.addEventListener('focus',function(){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentRawMessagesForList({force:true});},false);}catch(e){}
       }
       function bootMessages(){
         try{cleanupOldUnreadIdsForList();}catch(e){}
-        try{ensureMsgSession({force:true}).then(function(){loadConversations({silent:true});setupInboxRealtime(true);});}catch(_e){}
         try{applyMsgUserToHeader(readConnectedUserFromStorage()||readMsgJson(HAPPYAD_MSG_ME_CACHE_KEY,{}));}catch(e){}
         try{
           const panel=document.getElementById('conversationPanel');
@@ -5019,10 +4805,6 @@
         if(cachedBefore.length) renderMessagesArray(cachedBefore,'Aucun message. Écris le premier message.');
         else setChatLoading(activeConversationId ? 'Chargement messages...' : 'Ouverture conversation...');
         markConversationReadLocal(activeConversationId);
-        if(activeConversationId){
-          markConversationReadRemote(activeConversationId,true);
-          setTimeout(function(){markConversationReadRemote(activeConversationId,true);},900);
-        }
 
         row.classList.remove('unread');
         const pill = row.querySelector('.unread-pill');
