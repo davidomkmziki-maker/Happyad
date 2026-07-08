@@ -35,6 +35,33 @@
 })();
 </script>
 
+<script id="happyad-v653-public-profile-return-stale-guard">
+(function(){
+  if(window.__HAPPYAD_V653_PUBLIC_PROFILE_RETURN_STALE_GUARD__)return;
+  window.__HAPPYAD_V653_PUBLIC_PROFILE_RETURN_STALE_GUARD__=true;
+  try{
+    var q=new URLSearchParams(location.search||'');
+    var uid=String(q.get('uid')||q.get('user_id')||q.get('profile_uid')||'').trim();
+    if(!uid || String(q.get('public')||'')!=='1')return;
+    function clean(v){return String(v==null?'':v).trim();}
+    function safe(raw){try{return JSON.parse(raw||'{}')||{};}catch(e){return {};}}
+    function pickId(o){o=o||{};return clean(o.profile_uid||o.raw_uid||o.id||o.user_id||o.uid||o.uuid||'');}
+    var stable=safe(localStorage.getItem('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid)||sessionStorage.getItem('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid)||'{}');
+    if(!stable || !Object.keys(stable).length){stable={id:uid,user_id:uid,uid:uid,profile_uid:uid,raw_uid:uid,source:'public-return-seed-v653'};}
+    stable=Object.assign({},stable,{id:uid,user_id:uid,uid:uid,profile_uid:uid,raw_uid:uid,__happyadUidLocked:true,at:Date.now()});
+    var active=safe(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||sessionStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'{}');
+    if(pickId(active)!==uid){
+      window.__HAPPYAD_ACTIVE_PROFILE_RAM=stable;
+      localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(stable));
+      sessionStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(stable));
+    }
+    sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',uid);
+    sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_MODE','public');
+    document.documentElement.setAttribute('data-happyad-public-uid',uid);
+  }catch(e){}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -13610,10 +13637,10 @@ body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!import
 
 
 
-<script id="happyad-public-message-open-v642-path-master">
+<script id="happyad-public-message-open-v654-central-path-master">
 (function(){
   'use strict';
-  window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V640_PATH_MASTER__=true; window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V642_PATH_MASTER__=true;
+  window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V640_PATH_MASTER__=true; window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V642_PATH_MASTER__=true; window.__HAPPYAD_PUBLIC_MESSAGE_OPEN_V654_CENTRAL_PATH_MASTER__=true;
   function clean(v){return String(v==null?'':v).trim();}
   function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v));}
   function generic(v){var n=clean(v).toLowerCase();return !n||n==='utilisateur happyad'||n==='happyad'||n==='profil'||n==='chargement profil...'||n==='aucun compte connecté';}
@@ -13623,12 +13650,13 @@ body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!import
   function params(){try{return new URLSearchParams(location.search||'');}catch(e){return {get:function(){return '';}};}}
   function urlUid(){var q=params();return clean(q.get('uid')||q.get('user_id')||q.get('profile_uid')||q.get('auth_id')||q.get('auth_uid')||q.get('owner_id')||q.get('creator_id')||'');}
   function firstUuid(o){o=o||{};var arr=[o.auth_uid,o.auth_id,o.message_uid,o.user_id,o.uid,o.uuid,o.owner_id,o.creator_id,o.id];for(var i=0;i<arr.length;i++){if(isUuid(arr[i]))return clean(arr[i]);}return '';}
+  function firstProfileUuid(o){o=o||{};var arr=[o.profile_uid,o.raw_uid,o.id,o.user_id,o.uid,o.uuid,o.owner_id,o.creator_id,o.message_uid,o.auth_uid,o.auth_id];for(var i=0;i<arr.length;i++){if(isUuid(arr[i]))return clean(arr[i]);}return '';}
   function idMatchesUrl(id, url){id=clean(id);url=clean(url);return !url || !id || id===url;}
   function activeProfileStrict(){
     var u=urlUid();
     var ap={};
-    try{var ram=window.__HAPPYAD_ACTIVE_PROFILE_RAM||null;if(ram&&(!u||firstUuid(ram)===u))ap=Object.assign({},ram);}catch(e){}
-    if(!firstUuid(ap)){try{var ls=safeJson(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||sessionStorage.getItem('HAPPYAD_ACTIVE_PROFILE'));if(ls&&(!u||firstUuid(ls)===u))ap=Object.assign({},ls);}catch(e){}}
+    try{var ram=window.__HAPPYAD_ACTIVE_PROFILE_RAM||null;if(ram&&(!u||firstProfileUuid(ram)===u||firstUuid(ram)===u))ap=Object.assign({},ram);}catch(e){}
+    if(!firstUuid(ap)){try{var ls=safeJson(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||sessionStorage.getItem('HAPPYAD_ACTIVE_PROFILE'));if(ls&&(!u||firstProfileUuid(ls)===u||firstUuid(ls)===u))ap=Object.assign({},ls);}catch(e){}}
     if(u){
       /* V642 : ne pas écraser auth_id/auth_uid avec l'UID URL.
          L'URL peut contenir l'id profil alors que la messagerie a besoin du vrai id auth Supabase. */
@@ -13655,7 +13683,7 @@ body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!import
   }
   function readMeLocal(){try{var keys=['HAPPYAD_AUTH_UID','HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','happyad_user','happyad_current_user','happyad_auth_user','user'];for(var i=0;i<keys.length;i++){var k=keys[i];if(k==='HAPPYAD_AUTH_UID'){var x=clean(localStorage.getItem(k)||sessionStorage.getItem(k)||'');if(isUuid(x))return {id:x};continue;}var raw=localStorage.getItem(k)||sessionStorage.getItem(k);if(!raw)continue;var o=safeJson(raw);var roots=[o,o.user,o.profile,o.currentUser,o.session&&o.session.user,o.data&&o.data.user].filter(Boolean);for(var j=0;j<roots.length;j++){var id=firstUuid(roots[j]);if(id)return {id:id};}}}catch(e){}return null;}
   async function readMe(){var m=readMeLocal();try{var c=sb();if(c&&c.auth&&c.auth.getUser){var r=await Promise.race([c.auth.getUser(),new Promise(function(resolve){setTimeout(function(){resolve(null);},900);})]);var id=clean(r&&r.data&&r.data.user&&r.data.user.id);if(isUuid(id))m={id:id};}}catch(e){}return m;}
-  function cachePublicProfile(uid,p){try{uid=clean(uid);if(!isUuid(uid))return;p=Object.assign({},p||{},{id:uid,user_id:uid,uid:uid,__happyadUidLocked:true,at:Date.now()});window.__HAPPYAD_ACTIVE_PROFILE_RAM=p;localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(p));localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid,JSON.stringify(p));}catch(e){}}
+  function cachePublicProfile(uid,p){try{uid=clean(uid);if(!isUuid(uid))return;p=Object.assign({},p||{},{id:uid,user_id:uid,uid:uid,profile_uid:uid,raw_uid:uid,__happyadUidLocked:true,at:Date.now()});window.__HAPPYAD_ACTIVE_PROFILE_RAM=p;localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(p));sessionStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(p));localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid,JSON.stringify(p));sessionStorage.setItem('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid,JSON.stringify(p));}catch(e){}}
   async function rpcResolve(uid){
     uid=clean(uid); if(!isUuid(uid))return '';
     var c=sb(); if(!c)return uid;
@@ -13673,11 +13701,22 @@ body.haHomePhotoFsLock{overflow:hidden!important;overscroll-behavior:none!import
     var badge=clean(p.badge||p.user_badge||p.badge_type||'');
     var authId=clean(p.message_uid||p.auth_uid||p.auth_id||uid);
     var directProfile={id:rawUid||uid,user_id:rawUid||uid,uid:rawUid||uid,profile_uid:rawUid||uid,raw_uid:rawUid||uid,message_uid:authId,auth_id:authId,auth_uid:authId,name:name,full_name:name,display_name:name,username:handle,handle:handle,avatar:avatar,avatar_url:avatar,badge:badge,user_badge:badge,at:Date.now(),source:'visitor_profile_v642_path'};
-    try{sessionStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_PROFILE');localStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_PROFILE');sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID',authId);localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID',authId);sessionStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(rawUid||uid));}catch(e){}
-    var url='messages.html?mode=direct&origin=visitor_profile&strict=1&to='+encodeURIComponent(authId)+'&auth_uid='+encodeURIComponent(authId)+'&message_uid='+encodeURIComponent(authId)+'&profile_uid='+encodeURIComponent(rawUid||uid)+'&v=642';
-    try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v642-path',page:'messages'});return false;}}catch(e){}
-    try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v642-path',page:'messages'});return false;}}catch(e){}
-    try{if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,source:'profile-visitor-message-v642-path'},'*');return false;}}catch(e){}
+    try{
+      sessionStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_PROFILE');localStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_PROFILE');
+      sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE',JSON.stringify(directProfile));
+      sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID',authId);localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID',authId);
+      sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE_UID',rawUid||uid);localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_PROFILE_UID',rawUid||uid);
+      sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_CENTER','1');localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_CENTER','1');
+      sessionStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(rawUid||uid));localStorage.setItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL','modules/user.html?public=1&uid='+encodeURIComponent(rawUid||uid));
+      sessionStorage.setItem('HAPPYAD_MESSAGE_DIRECT_OPEN_REQUEST_V654',JSON.stringify({to:authId,auth_uid:authId,message_uid:authId,profile_uid:rawUid||uid,profile:directProfile,at:Date.now()}));
+      localStorage.setItem('HAPPYAD_MESSAGE_DIRECT_OPEN_REQUEST_V654',JSON.stringify({to:authId,auth_uid:authId,message_uid:authId,profile_uid:rawUid||uid,profile:directProfile,at:Date.now()}));
+    }catch(e){}
+    /* V654 : ouvrir la vraie centrale messages en mode liste, puis demander à la centrale d'ouvrir la conversation.
+       On ne charge plus une page direct isolée qui ressemble à une copie. */
+    var url='messages.html?mode=list&origin=visitor_profile&open_direct=1&to='+encodeURIComponent(authId)+'&auth_uid='+encodeURIComponent(authId)+'&message_uid='+encodeURIComponent(authId)+'&profile_uid='+encodeURIComponent(rawUid||uid)+'&v=654';
+    try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v654-central',page:'messages',force:true});return false;}}catch(e){}
+    try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(url,{source:'profile-visitor-message-v654-central',page:'messages',force:true});return false;}}catch(e){}
+    try{if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,extra:{source:'profile-visitor-message-v654-central',page:'messages',force:true}},'*');return false;}}catch(e){}
     location.href=(location.pathname.indexOf('/modules/')>-1?'../':'')+url;
     return false;
   }

@@ -2220,13 +2220,14 @@
       const happyadMsgParams = new URLSearchParams(location.search || '');
       const happyadMsgMode = String(happyadMsgParams.get('mode') || 'list').toLowerCase();
       const happyadMsgOrigin = String(happyadMsgParams.get('origin') || happyadMsgParams.get('from') || 'home').toLowerCase();
-      const happyadDirectUserId = String(happyadMsgParams.get('to') || happyadMsgParams.get('uid') || happyadMsgParams.get('user_id') || '').trim();
+      const happyadDirectUserId = String(happyadMsgParams.get('to') || happyadMsgParams.get('message_uid') || happyadMsgParams.get('auth_uid') || happyadMsgParams.get('auth_id') || happyadMsgParams.get('uid') || happyadMsgParams.get('user_id') || '').trim();
+      const happyadMsgOpenDirectCentral = cleanMsg(happyadMsgParams.get('open_direct') || happyadMsgParams.get('direct') || '') === '1';
       let activeConversationId = '';
       let activeOtherUserId = '';
       let happyadMsgPendingDirectTargetId = '';
       let happyadMsgPendingDirectProfile = null;
       let happyadMsgOpeningDirectPromise = null;
-      let activeDirectFromVisitor = happyadMsgMode === 'direct' && happyadMsgOrigin === 'visitor_profile';
+      let activeDirectFromVisitor = happyadMsgOrigin === 'visitor_profile' && (happyadMsgMode === 'direct' || happyadMsgOpenDirectCentral || !!happyadDirectUserId);
       const happyadMsgDirectStrict = cleanMsg(happyadMsgParams.get('strict') || '') === '1' || activeDirectFromVisitor;
       let happyadMsgCurrentUser = null;
       let happyadMsgSessionBridgePromise = null;
@@ -4623,46 +4624,77 @@
           if(a&&!a.error&&a.data&&a.data[0]&&cleanMsg(a.data[0].conversation_id))return cleanMsg(a.data[0].conversation_id);
           const b=await msgTimeout(c.from('happyad_msg_messages').select(cols).eq('sender_id',targetId).eq('receiver_id',me).order('created_at',{ascending:false}).limit(1),2200,null);
           if(b&&!b.error&&b.data&&b.data[0]&&cleanMsg(b.data[0].conversation_id))return cleanMsg(b.data[0].conversation_id);
+          /* HAPPYAD MSG V653 — fallback conversation sans message: lire les membres, sans vider l'écran. */
+          const mine=await msgTimeout(c.from('happyad_msg_conversation_members').select('conversation_id').eq('user_id',me).limit(80),2200,null);
+          const myIds=(mine&&!mine.error&&Array.isArray(mine.data)?mine.data:[]).map(function(x){return cleanMsg(x&&x.conversation_id);}).filter(Boolean);
+          if(myIds.length){
+            const other=await msgTimeout(c.from('happyad_msg_conversation_members').select('conversation_id').eq('user_id',targetId).in('conversation_id',myIds).limit(1),2200,null);
+            if(other&&!other.error&&other.data&&other.data[0]&&cleanMsg(other.data[0].conversation_id))return cleanMsg(other.data[0].conversation_id);
+          }
         }catch(e){}
         return '';
+      }
+      function happyadMsgExtractConversationId(data){
+        try{
+          if(!data)return '';
+          if(typeof data==='string')return cleanMsg(data);
+          if(Array.isArray(data))return happyadMsgExtractConversationId(data[0]);
+          return cleanMsg(data.conversation_id||data.id||data.uuid||data.cid||data.conversationId||data.data&&data.data.conversation_id||'');
+        }catch(e){return '';}
       }
       async function happyadMsgGetOrCreateConversationForTarget(targetId){
         targetId=cleanMsg(targetId);
         const c=msgClient(); if(!c||!targetId)return null;
+        let meId='';
+        try{const u=await msgUser();meId=cleanMsg(u&&u.id)||cleanMsg((happyadMsgCurrentUser||{}).id)||stableAuthUidFromAnySource();}catch(_e){meId=stableAuthUidFromAnySource();}
+        if(meId&&targetId===meId)return null;
         try{
-          let res=await happyadMsgRpc('happyad_msg_get_or_create_conversation',{p_other_user_id:targetId},10000,null);
-          if(res&&(!res.error)&&cleanMsg(res.data))return {conversation_id:cleanMsg(res.data),target_id:targetId,source:'rpc'};
-          /* Filet de sécurité: certaines anciennes fonctions SQL ont utilisé un autre nom de paramètre. */
-          const altParams=[
+          const argList=[
+            {p_other_user_id:targetId},
             {p_target_user_id:targetId},
             {p_receiver_id:targetId},
+            {p_recipient_id:targetId},
+            {p_other_uid:targetId},
             {p_user_id:targetId}
           ];
-          for(const args of altParams){
+          for(let i=0;i<argList.length;i++){
             try{
-              res=await happyadMsgRpc('happyad_msg_get_or_create_conversation',args,3600,null);
-              if(res&&(!res.error)&&cleanMsg(res.data))return {conversation_id:cleanMsg(res.data),target_id:targetId,source:'rpc_alt'};
+              const wait=i===0?10000:4200;
+              let res=await happyadMsgRpc('happyad_msg_get_or_create_conversation',argList[i],wait,null);
+              const cid=res&&(!res.error)&&happyadMsgExtractConversationId(res.data);
+              if(cid)return {conversation_id:cid,target_id:targetId,source:i===0?'rpc':'rpc_alt'};
             }catch(_e){}
           }
         }catch(e){}
         const old=await happyadMsgFindExistingConversationWithTarget(targetId);
-        if(old)return {conversation_id:old,target_id:targetId,source:'existing_message'};
+        if(old)return {conversation_id:old,target_id:targetId,source:'existing'};
         return null;
       }
       async function happyadMsgOpenOrCreateDirectConversation(raw,p0){
         const candidates=happyadMsgDirectCandidateList(raw,p0);
         const resolved=[];
         const seen={};
-        for(const cand of candidates){
-          let rid=await happyadMsgResolveDirectTargetId(cand,p0);
-          if(!rid && happyadMsgIsUuid(cand))rid=cleanMsg(cand);
-          if(rid&&!seen[rid.toLowerCase()]){seen[rid.toLowerCase()]=1;resolved.push(rid);}
+        let meId='';
+        try{const u=await msgUser();meId=cleanMsg(u&&u.id)||stableAuthUidFromAnySource();}catch(_e){meId=stableAuthUidFromAnySource();}
+        function addCandidate(v,kind){
+          v=cleanMsg(v);
+          if(!happyadMsgIsUuid(v))return;
+          if(meId&&v===meId)return;
+          const k=v.toLowerCase();
+          if(!seen[k]){seen[k]=1;resolved.push({id:v,kind:kind||'direct'});}
         }
-        for(const tid of resolved){
-          const got=await happyadMsgGetOrCreateConversationForTarget(tid);
+        /* V653 : ne pas remplacer l'UID profil par l'UID auth. On essaie les deux.
+           Selon le SQL Supabase, la conversation peut attendre l'id profil OU l'id auth. */
+        for(const cand of candidates){
+          addCandidate(cand,'raw');
+          let rid=await happyadMsgResolveDirectTargetId(cand,p0);
+          addCandidate(rid,'resolved');
+        }
+        for(const entry of resolved){
+          const got=await happyadMsgGetOrCreateConversationForTarget(entry.id);
           if(got)return got;
         }
-        if(resolved[0])return {conversation_id:'',target_id:resolved[0],source:'pending'};
+        if(resolved[0])return {conversation_id:'',target_id:resolved[0].id,source:'pending'};
         return null;
       }
       async function happyadMsgEnsureConversationForSend(){
@@ -4757,6 +4789,63 @@
         })();
         try{await happyadMsgOpeningDirectPromise;}finally{setTimeout(function(){happyadMsgOpeningDirectPromise=null;},400);}
       }
+      async function openDirectConversationFromCentral(){
+        if(!happyadDirectUserId) return false;
+        const p0=profileFromUrl();
+        const visualId=cleanMsg(p0.user_id||p0.id||happyadMsgParams.get('profile_uid')||happyadDirectUserId);
+        happyadMsgPendingDirectTargetId=happyadDirectUserId;
+        happyadMsgPendingDirectProfile=p0;
+        cacheMsgProfile(p0,visualId);
+        try{renderCachedConversationListSilently();}catch(_e){}
+        try{setEmptyConversations(readConversationPairsCache().length?'':'Chargement conversations...');}catch(_e){}
+        const c=msgClient();
+        if(!c){return false;}
+        happyadMsgOpeningDirectPromise=(async function(){
+          try{
+            const u=await msgUser();applyMsgUserToHeader(u);
+            const got=await happyadMsgOpenOrCreateDirectConversation(happyadDirectUserId,p0);
+            if(!got||!got.target_id){
+              appendSystemMessage('Conversation non créée. Rouvre le profil puis réessaie.');
+              return false;
+            }
+            if(cleanMsg(u&&u.id)===got.target_id){
+              appendSystemMessage('Impossible d’ouvrir un message avec ton propre profil.');
+              return false;
+            }
+            happyadMsgPendingDirectTargetId=got.target_id;
+            happyadMsgPendingDirectProfile=Object.assign({},p0,{id:got.target_id,user_id:got.target_id,auth_id:got.target_id,auth_uid:got.target_id});
+            activeOtherUserId=got.target_id;
+            let profiles=await profilesByIds([got.target_id]);
+            const p=profiles[got.target_id]||getCachedMsgProfile(got.target_id)||Object.assign({},p0,{id:got.target_id,user_id:got.target_id});
+            cacheMsgProfile(p,got.target_id);
+            if(got.conversation_id){
+              activeConversationId=got.conversation_id;
+              const item=enhanceConversationItemFromCache({conversation_id:got.conversation_id,other_user_id:got.target_id,unread_count:0,last_message_at:null,last_message_body:'Nouvelle conversation',last_message_is_mine:false,last_message_type:'text'});
+              const pair={item:item,profile:p};
+              mergeConversationPairIntoCache(pair);
+              upsertConversationPairDom(pair);
+              let row=null;
+              try{Array.from(document.querySelectorAll('.row')).some(function(r){if(cleanMsg(r.dataset.conversationId)===cleanMsg(got.conversation_id)){row=r;return true;}return false;});}catch(_e){}
+              if(!row){row=makeConversationRow(item,p);try{document.getElementById('conversationPanel').insertBefore(row, document.getElementById('conversationEmpty'));}catch(_e){}}
+              openChat(row);
+              await loadMessages(got.conversation_id,{silent:false,forceMarkRead:true});
+              return true;
+            }
+            // Si Supabase n'a pas encore renvoyé l'id conversation, on ouvre le composeur central avec l'état pending.
+            const pendingRow=makeConversationRow({conversation_id:'',other_user_id:got.target_id,unread_count:0,last_message_at:null,last_message_body:'Nouvelle conversation'},p);
+            pendingRow.dataset.pendingDirect='1';
+            openChat(pendingRow);
+            const info=profileInfo(p,got.target_id);
+            chatName.textContent=info.name;setBadge(chatBadge,info.badge||'');
+            if(info.avatar){chatAvatar.innerHTML='<img src="'+escMsg(info.avatar)+'" alt="">';}else{chatAvatar.textContent=info.initial;}
+            chatStatus.textContent='Prêt';
+            await renderMessagesArray([],'Aucun message. Écris le premier message.', {silent:false});
+            return false;
+          }catch(e){console.warn('HAPPYAD MSG central direct open',e);return false;}
+        })();
+        try{await happyadMsgOpeningDirectPromise;}finally{setTimeout(function(){happyadMsgOpeningDirectPromise=null;},500);}
+        return !!activeConversationId;
+      }
       function parentBackOrClose(){
         try{if(window.parent&&window.parent!==window&&window.parent.HappyNavigation&&typeof window.parent.HappyNavigation.back==='function'){window.parent.HappyNavigation.back();return true;}}catch(e){}
         try{if(window.parent&&window.parent!==window){window.parent.history.back();return true;}}catch(e){}
@@ -4765,14 +4854,21 @@
         return false;
       }
       function closeMessageCenter(){
-        if(!chatView.classList.contains('hidden')){closeChat();return true;}
+        if(!chatView.classList.contains('hidden')){
+          if(activeDirectFromVisitor){
+            try{var ret=sessionStorage.getItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL')||localStorage.getItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL')||'';if(ret&&window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(ret,{source:'messages-direct-return-profile-v654',page:'profile',force:true});return true;}}catch(_e){}
+            return parentBackOrClose();
+          }
+          closeChat();return true;
+        }
         return parentBackOrClose();
       }
       async function sendTextMessage(text,isSticker,isOnce){
         const messageType=isSticker?'sticker':'text';
-        if(!activeConversationId && (happyadMsgMode==='direct' || happyadMsgPendingDirectTargetId)){
+        if(!activeConversationId && (happyadMsgMode==='direct' || activeDirectFromVisitor || happyadMsgOpenDirectCentral || happyadMsgPendingDirectTargetId)){
           const ready=await happyadMsgEnsureConversationForSend();
           if(!ready){appendSystemMessage('Conversation non créée. Rouvre le profil puis réessaie.');return null;}
+          try{if(currentConversationRow&&activeConversationId){currentConversationRow.dataset.conversationId=activeConversationId;}}catch(_e){}
         }
         const local=appendTextMessage(text,isSticker,isOnce);
         const localCache=rememberLocalTextMessage(activeConversationId,text,true,!!isOnce,messageType);
@@ -4819,9 +4915,10 @@
       }
       async function sendMediaMessage(files,isOnce,caption,localMsg){
         files=Array.from(files||[]);if(!files.length)return;
-        if(!activeConversationId && (happyadMsgMode==='direct' || happyadMsgPendingDirectTargetId)){
+        if(!activeConversationId && (happyadMsgMode==='direct' || activeDirectFromVisitor || happyadMsgOpenDirectCentral || happyadMsgPendingDirectTargetId)){
           const ready=await happyadMsgEnsureConversationForSend();
           if(!ready){appendSystemMessage('Conversation non créée. Rouvre le profil puis réessaie.');return localMsg||null;}
+          try{if(currentConversationRow&&activeConversationId){currentConversationRow.dataset.conversationId=activeConversationId;}}catch(_e){}
         }
         if(!localMsg)localMsg=appendFileMessage(files,isOnce);
         const localMediaId='local_media_'+Date.now()+'_'+Math.random().toString(16).slice(2);
@@ -5412,7 +5509,11 @@
         }catch(e){}
         msgUser().then(function(u){applyMsgUserToHeader(u);setupRealtime(true);setupInboxRealtime(true);happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentRawMessagesForList({force:true});syncRecentMessagesForList({force:true});}).catch(()=>{setupRealtime(true);setupInboxRealtime(true);happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentRawMessagesForList({force:true});syncRecentMessagesForList({force:true});});
         startMessagePolling();
-        if(happyadMsgMode==='direct' && happyadDirectUserId) openDirectConversation();
+        if(happyadDirectUserId && (happyadMsgMode==='direct' || happyadMsgOpenDirectCentral || activeDirectFromVisitor)){
+          loadConversations({silent:true});
+          setTimeout(function(){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentMessagesForList({force:true});},250);
+          openDirectConversationFromCentral();
+        }
         else { loadConversations(); setTimeout(function(){happyadMsgHardInboxSync({force:true,fast:true});pulseInboxListNow({force:true});invisibleListRefresh({force:true});syncRecentMessagesForList({force:true});},250); }
       }
 
@@ -5494,9 +5595,24 @@
         if(activeConversationId) loadMessages(activeConversationId,{silent:!!cachedBefore.length});
       }
 
+      function returnToVisitorProfileFromMessage(){
+        try{
+          let ret='';
+          try{ret=sessionStorage.getItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL')||localStorage.getItem('HAPPYAD_MESSAGE_RETURN_PROFILE_URL')||'';}catch(_e){}
+          const q=new URLSearchParams(location.search||'');
+          const raw=cleanMsg(q.get('profile_uid')||q.get('profile_id')||q.get('raw_uid')||'');
+          if(!ret && raw)ret='modules/user.html?public=1&uid='+encodeURIComponent(raw)+'&fromMessage=1';
+          if(!ret)return false;
+          try{if(window.parent&&window.parent!==window&&typeof window.parent.happyadOpenInternalUrlV492==='function'){window.parent.happyadOpenInternalUrlV492(ret,{source:'message-direct-return-v653',page:'profile'});return true;}}catch(_e){}
+          try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(ret,{source:'message-direct-return-v653',page:'profile'});return true;}}catch(_e){}
+          try{if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:ret,source:'message-direct-return-v653'},'*');return true;}}catch(_e){}
+          location.href=(ret.indexOf('modules/')===0?'../index.html?app=profile&module_url='+encodeURIComponent(ret):ret);
+          return true;
+        }catch(e){return false;}
+      }
       function closeChat(){
         consumeVisibleViewOnceOnChatClose();
-        if(activeDirectFromVisitor){activeDirectFromVisitor=false;return parentBackOrClose();}
+        if(activeDirectFromVisitor){if(returnToVisitorProfileFromMessage())return true;activeDirectFromVisitor=false;return parentBackOrClose();}
         currentConversationRow = null;
         activeConversationId = '';
         activeOtherUserId = '';

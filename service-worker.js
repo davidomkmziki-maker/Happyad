@@ -1,7 +1,7 @@
-/* HAPPYAD V652 - PWA installation stable: manifest fixe + service worker minimal non bloquant. */
+/* HAPPYAD V654 - PWA installation stable: manifest fixe + service worker minimal non bloquant. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v649-pwa-stable-install';
+var HAPPYAD_SW_VERSION='v654-message-central-direct-fix';
 
 function sameOrigin(url){
   try{return new URL(url).origin===self.location.origin;}catch(e){return false;}
