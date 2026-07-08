@@ -1,7 +1,7 @@
-/* HAPPYAD V640 - Service worker PWA actif, chemin message profil visiteur réparé. */
+/* HAPPYAD V646 - Messages conversations chargés en arrière-plan sans disparition. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v640-visitor-message-path-master';
+var HAPPYAD_SW_VERSION='v646-message-background-stable-fix';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [
