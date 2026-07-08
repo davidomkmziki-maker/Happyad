@@ -1,7 +1,7 @@
-/* HAPPYAD V638 - Service worker PWA actif, cache forcé message profil visiteur. */
+/* HAPPYAD V640 - Service worker PWA actif, chemin message profil visiteur réparé. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v638-message-counter-profile-direct-safe';
+var HAPPYAD_SW_VERSION='v640-visitor-message-path-master';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

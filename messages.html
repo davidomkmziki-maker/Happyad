@@ -2213,6 +2213,7 @@
       let activeConversationId = '';
       let activeOtherUserId = '';
       let activeDirectFromVisitor = happyadMsgMode === 'direct' && happyadMsgOrigin === 'visitor_profile';
+      const happyadMsgDirectStrict = cleanMsg(happyadMsgParams.get('strict') || '') === '1' || activeDirectFromVisitor;
       let happyadMsgCurrentUser = null;
       let happyadMsgSessionBridgePromise = null;
       let happyadMsgSessionSnapshot = {id:'', ready:false, token:''};
@@ -2253,7 +2254,7 @@
         online:true,
         badge:''
       };
-      const HAPPYAD_MSG_CACHE_VERSION = 'V638';
+      const HAPPYAD_MSG_CACHE_VERSION = 'V640';
       const HAPPYAD_MSG_STABLE_CACHE_VERSION = 'V1';
       const HAPPYAD_MSG_OLD_CACHE_VERSIONS = ['V635','V634','V633','V632','V631','V630','V629','V628','V627','V626','V625','V624','V623','V622','V621','V620','V619','V618','V617','V616','V615','V614'];
       const HAPPYAD_MSG_PROFILE_CACHE_KEY = 'HAPPYAD_MSG_PROFILE_CACHE_STABLE_' + HAPPYAD_MSG_STABLE_CACHE_VERSION;
@@ -3750,10 +3751,19 @@
           if(!conversationId)return;
           markConversationReadLocal(conversationId);
           const now=Date.now();
-          if(!force && happyadMsgLastMarkReadByConversation[conversationId] && now-happyadMsgLastMarkReadByConversation[conversationId] < 30000) return;
+          if(!force && happyadMsgLastMarkReadByConversation[conversationId] && now-happyadMsgLastMarkReadByConversation[conversationId] < 2500) return;
           happyadMsgLastMarkReadByConversation[conversationId]=now;
           const c=msgClient();
-          if(c&&c.rpc)c.rpc('happyad_msg_mark_read',{p_conversation_id:conversationId}).catch(function(){});
+          if(c&&c.rpc){
+            c.rpc('happyad_msg_mark_read',{p_conversation_id:conversationId}).then(function(){
+              try{localStorage.setItem('HAPPYAD_MSG_HOME_COUNTER_REFRESH',String(Date.now()));}catch(_e){}
+              try{localStorage.setItem('HAPPYAD_MSG_MARK_READ_DONE',JSON.stringify({conversation_id:conversationId,at:Date.now()}));}catch(_e){}
+              try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'HAPPYAD_MSG_COUNTER_REFRESH',conversation_id:conversationId,mark_read:true},'*');}catch(_e){}
+              try{setTimeout(function(){loadConversations({silent:true});},120);}catch(_e){}
+            }).catch(function(){
+              try{ensureMsgSession({force:true}).then(function(){return c.rpc('happyad_msg_mark_read',{p_conversation_id:conversationId});}).then(function(){try{localStorage.setItem('HAPPYAD_MSG_HOME_COUNTER_REFRESH',String(Date.now()));}catch(_e){};try{loadConversations({silent:true});}catch(_e){}}).catch(function(){});}catch(_e){}
+            });
+          }
         }catch(e){}
       }
       function rememberLocalTextMessage(conversationId,text,isMine,isOnce,messageType,forcedId){
@@ -3857,7 +3867,9 @@
       function profileFromUrl(){
         let saved={};
         try{saved=JSON.parse(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||'{}')||{};}catch(e){}
-        const directId=cleanMsg(happyadDirectUserId);
+        let storedTarget='';
+        try{storedTarget=cleanMsg(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_TARGET_UID')||'');}catch(e){}
+        const directId=cleanMsg(happyadDirectUserId)||storedTarget;
         const savedId=cleanMsg(saved.auth_uid||saved.auth_id||saved.user_id||saved.uid||saved.uuid||saved.id);
         if(directId && savedId && savedId!==directId) saved={};
         const cached=getCachedMsgProfile(directId)||{};
@@ -4205,6 +4217,9 @@
         const urlTarget=cleanMsg(raw||q.get('to')||q.get('uid')||q.get('user_id')||q.get('auth_id')||q.get('auth_uid'));
         const savedId=cleanMsg(saved.auth_uid||saved.auth_id||saved.user_id||saved.uid||saved.uuid||saved.id);
         if(urlTarget && savedId && savedId!==urlTarget) saved={};
+        if(happyadMsgDirectStrict){
+          return [urlTarget,q.get('auth_uid'),q.get('auth_id'),q.get('user_id'),q.get('uid'),q.get('to'),raw].map(cleanMsg).filter(Boolean);
+        }
         return [
           urlTarget,q.get('auth_uid'),q.get('auth_id'),q.get('user_id'),q.get('uid'),q.get('to'),raw,
           p.auth_uid,p.auth_id,p.user_id,p.uid,p.uuid,p.owner_id,p.creator_id,p.id,
@@ -4217,6 +4232,16 @@
         let meId=cleanMsg((happyadMsgCurrentUser&&happyadMsgCurrentUser.id)||stableAuthUidFromAnySource());
         try{const u=await msgUser();meId=cleanMsg(u&&u.id)||meId;}catch(_e){}
         function good(v){v=cleanMsg(v);return happyadMsgIsUuid(v)&&(!meId||v!==meId)?v:'';}
+        async function rpcResolveProfileUid(id){
+          id=good(id);
+          if(!id||!c)return '';
+          try{
+            const rr=await msgTimeout(c.rpc('happyad_msg_resolve_profile_message_uid',{p_profile_id:id}),1600,null);
+            const out=good(rr&&rr.data);
+            if(rr&&!rr.error&&out)return out;
+          }catch(_e){}
+          return '';
+        }
         async function queryProfileByUuid(id){
           id=good(id); if(!id||!c)return '';
           const tables=['profiles','happyad_profiles'];
@@ -4241,6 +4266,10 @@
           return '';
         }
         const candidates=happyadMsgDirectCandidateList(raw,p);
+        for(const x of candidates){
+          const rr=await rpcResolveProfileUid(x);
+          if(rr)return rr;
+        }
         for(const x of candidates){
           const q=await queryProfileByUuid(x);
           if(q)return q;
@@ -4502,7 +4531,16 @@
           upsertConversationPairDom(realtimePair);
           renderCachedConversationListSilently();
           if(isConversationActuallyOpen(m.conversation_id)){
-            setTimeout(function(){loadMessages(m.conversation_id,{silent:true});},80);
+            try{
+              const oldMsgs=readMessagesCache(m.conversation_id);
+              const liveMsg=Object.assign({},m,{attachments:Array.isArray(m.attachments)?m.attachments:[]});
+              const mergedMsgs=mergeMessagesForDisplay(m.conversation_id,oldMsgs,[liveMsg]);
+              writeMessagesCache(m.conversation_id,mergedMsgs);
+              renderMessagesArray(mergedMsgs,'Aucun message. Écris le premier message.',{silent:true});
+              markConversationReadRemote(m.conversation_id,true);
+            }catch(_e){}
+            setTimeout(function(){loadMessages(m.conversation_id,{silent:true,forceMarkRead:true});},80);
+            setTimeout(function(){loadMessages(m.conversation_id,{silent:true,forceMarkRead:true});},900);
           }
         }catch(e){console.warn('HAPPYAD MSG realtime list apply',e);}
       }
@@ -4818,7 +4856,7 @@
             syncRecentMessagesForList({force:true});
             loadConversations({silent:true});
             if(activeConversationId)loadMessages(activeConversationId,{silent:true});
-          },320);
+          },120);
         }catch(e){}
       }
       async function setupInboxRealtime(force){
@@ -4837,7 +4875,13 @@
           const fast=function(payload){
             try{
               const rec=(payload&&payload.new)||null;
-              if(rec&&cleanMsg(rec.conversation_id)) applyRealtimeMessageToList(Object.assign({},rec,{__me_id:uid}),{source:'inbox-filtered',uid:uid});
+              if(rec&&cleanMsg(rec.conversation_id)){
+                applyRealtimeMessageToList(Object.assign({},rec,{__me_id:uid}),{source:'inbox-filtered',uid:uid});
+                if(isConversationActuallyOpen(rec.conversation_id)){
+                  setTimeout(function(){loadMessages(rec.conversation_id,{silent:true,forceMarkRead:true});},70);
+                  setTimeout(function(){markConversationReadRemote(rec.conversation_id,true);},180);
+                }
+              }
               refreshSoon();
             }catch(e){refreshSoon();}
           };
@@ -4975,6 +5019,10 @@
         if(cachedBefore.length) renderMessagesArray(cachedBefore,'Aucun message. Écris le premier message.');
         else setChatLoading(activeConversationId ? 'Chargement messages...' : 'Ouverture conversation...');
         markConversationReadLocal(activeConversationId);
+        if(activeConversationId){
+          markConversationReadRemote(activeConversationId,true);
+          setTimeout(function(){markConversationReadRemote(activeConversationId,true);},900);
+        }
 
         row.classList.remove('unread');
         const pill = row.querySelector('.unread-pill');
