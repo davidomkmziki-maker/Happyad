@@ -1,0 +1,54 @@
+/* V123 — Popup modification produit toujours visible au clic Modifier */
+#productEditOverlay.show{
+  position:fixed!important;
+  inset:0!important;
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  z-index:2147483000!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  padding:14px!important;
+  background:rgba(0,0,0,.76)!important;
+  box-sizing:border-box!important;
+}
+#productEditOverlay.show .productEditSheet{
+  width:100%!important;
+  max-width:560px!important;
+  max-height:88vh!important;
+  overflow:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#profile .ownerTools .edit,
+#myList .rowActions .circleBtn[data-edit-product="1"]{
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+body.happyadProductEditOpen{
+  overflow:hidden!important;
+}
+
+#productEditOverlay #prodEditCategory,
+#productEditOverlay #prodEditZones{
+  width:100%!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:#090d14!important;
+  color:#fff!important;
+  border-radius:16px!important;
+  padding:13px!important;
+  outline:none!important;
+  font-weight:900!important;
+  box-sizing:border-box!important;
+}
+#productEditOverlay #prodEditZones{
+  min-height:86px!important;
+  resize:vertical!important;
+  font-weight:700!important;
+}
+#productEditOverlay .deliveryZonesHelp{
+  color:rgba(255,255,255,.78)!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+  margin:8px 0 6px!important;
+}

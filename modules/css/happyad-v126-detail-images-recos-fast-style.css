@@ -1,0 +1,11 @@
+/* HAPPYAD V126 — médias réels rapides détail + recommandations */
+.product .pic.v126HasRealMedia .bag{display:none!important}
+.product .pic .v126RealMedia{position:absolute;inset:0;z-index:1;border-radius:inherit;overflow:hidden;background:#10141e}
+.product .pic .v126RealMedia img,.product .pic .v126RealMedia video{width:100%;height:100%;object-fit:cover;display:block;background:#10141e}
+.product .pic .v126RealMedia:after{content:"";position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.42));pointer-events:none}
+.v126DetailVisual{position:absolute;inset:0;border-radius:22px;overflow:hidden;background:#0b0f16!important;display:grid;place-items:center}
+.v126DetailVisual .detailRealMedia{width:100%;height:100%;object-fit:contain;display:block;background:#0b0f16}
+.v126DetailVisual.video .detailRealMedia{object-fit:contain}
+.v126DetailVisual .playBubble{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:999px;background:rgba(255,255,255,.9);color:#111;display:grid;place-items:center;box-shadow:0 12px 30px rgba(0,0,0,.38);pointer-events:none}
+.mediaThumb.v126Thumb{background-size:cover;background-position:center;background-repeat:no-repeat;overflow:hidden}
+.mediaThumb.v126Thumb svg{filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}

@@ -1,0 +1,8 @@
+/* Extracted from index.html. Keep load order. */
+#paymentOverlay .paymentSheet .payOption small{display:none!important}
+  #paymentOverlay .paymentSheet .sheetTop span{font-size:13px!important;color:#aaa6b8!important}
+  #paymentOverlay .paymentSheet .paySectionTitle{font-size:14px!important;margin-top:12px!important}
+  #paymentOverlay .paymentSheet .deliveryPayBlock label{font-size:12px!important}
+  #receiveConfirmOverlay .receiveConfirmHead p{font-size:13px!important;color:#aaa6b8!important}
+  #receiveConfirmOverlay .receiveConfirmWarn2{font-size:15px!important;line-height:1.35!important;padding:12px!important}
+  #receiveConfirmOverlay .receiveConfirmCheck label{font-size:16px!important;line-height:1.35!important}

@@ -1,0 +1,47 @@
+/* V124 SAFE — vraie photo/vidéo produit dans le panier */
+.cartProductMedia.v124RealCartMedia,
+.cartProductMedia.hasRealCartMedia,
+.mini.v124RealCartMedia,
+.mini.hasRealCartMedia{
+  overflow:hidden!important;
+  padding:0!important;
+  background:#0f1623!important;
+  position:relative!important;
+  display:block!important;
+}
+.cartProductMedia.v124RealCartMedia img,
+.cartProductMedia.v124RealCartMedia video,
+.cartProductMedia.hasRealCartMedia img,
+.cartProductMedia.hasRealCartMedia video,
+.mini.v124RealCartMedia img,
+.mini.v124RealCartMedia video,
+.mini.hasRealCartMedia img,
+.mini.hasRealCartMedia video{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  display:block!important;
+  border-radius:inherit!important;
+}
+.cartProductMedia.v124RealCartMedia svg,
+.cartProductMedia.hasRealCartMedia svg,
+.mini.v124RealCartMedia svg,
+.mini.hasRealCartMedia svg{
+  display:none!important;
+}
+.cartProductMedia .cartVideoMini,
+.mini .cartVideoMini{
+  position:absolute!important;
+  right:8px!important;
+  bottom:8px!important;
+  width:28px!important;
+  height:28px!important;
+  border-radius:999px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:rgba(255,255,255,.92)!important;
+  color:#111!important;
+  font-size:12px!important;
+  font-weight:1000!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.35)!important;
+}

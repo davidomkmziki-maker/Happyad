@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>HAPPYAD — Publish</title>
+<style>
+:root{--bg:#07080c;--panel:#10131a;--line:#252b35;--text:#fff;--muted:#aeb3c0;--orange:#ff8a00;--orange2:#ff4b22;--blue:#9aa9ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#050609;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+body{max-width:520px;margin:auto;height:100dvh}
+button,input,textarea,select{font-family:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;background:#050609}
+.top{height:70px;display:grid;grid-template-columns:58px 1fr 86px;align-items:center;padding:8px 14px;background:#080a10}
+.close{border:0;background:transparent;color:#fff;font-size:42px;line-height:1;text-decoration:none}
+.title{font-size:24px;font-weight:1000;letter-spacing:-.5px}
+.next{border:0;background:transparent;color:var(--blue);font-weight:1000;font-size:17px;text-align:right}
+.preview{height:42dvh;min-height:260px;background:#07080c;display:grid;place-items:center;position:relative;overflow:hidden}
+.preview.empty:before{content:"";width:74px;height:74px;border-radius:24px;background:linear-gradient(135deg,var(--orange),var(--orange2));display:grid;place-items:center;color:#111;font-size:35px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.14)}
+.preview.empty:after{content:"Prendre ou choisir une photo/vidéo";position:absolute;top:calc(50% + 55px);color:#cfd3dc;font-weight:900}
+.preview img,.preview video{max-width:100%;max-height:100%;object-fit:contain}
+.photoCropPanel{display:none;position:absolute;left:12px;right:12px;bottom:62px;z-index:6;background:rgba(8,10,16,.86);border:1px solid rgba(255,138,0,.38);border-radius:18px;padding:10px 12px;backdrop-filter:blur(10px)}
+.photoCropPanel.show{display:block}
+.photoCropLabel{font-size:12px;font-weight:1000;color:#fff;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.photoCropGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.photoCropControl{display:grid;gap:3px;color:#aeb3c0;font-size:10px;font-weight:900}
+.photoCropControl input{width:100%;accent-color:#ff8a00}
+.preview img.cropPreview{width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;will-change:transform;touch-action:none;user-select:none}
+.modeBar{margin:0 16px 10px;display:flex;gap:6px;background:rgba(12,14,20,.96);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:6px;z-index:5;box-shadow:0 10px 26px rgba(0,0,0,.24)}
+.preview .modeBar{position:absolute;bottom:10px;left:12px;right:12px;margin:0}
+.mode{border:0;background:transparent;color:#aeb3c0;border-radius:18px;padding:10px 9px;font-weight:1000;letter-spacing:.2px;font-size:12px;flex:1}
+.mode.on{background:linear-gradient(135deg,#705cff,#9b5cff);color:#fff;box-shadow:0 10px 26px rgba(112,92,255,.35)}
+.libraryTop{display:none}
+.album{font-size:22px;font-weight:1000}
+.selectBtn{border:0;background:#4a4d52;color:#fff;border-radius:999px;padding:11px 14px;font-size:14px;font-weight:900}
+.realBtns{flex:1;display:grid;grid-template-columns:1fr;gap:14px;padding:0 16px 16px;overflow:auto}
+.quickActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.primaryPick{border:0;border-radius:22px;padding:15px 12px;background:linear-gradient(135deg,#705cff,#8e5cff);color:#fff;font-weight:1000;font-size:15px;box-shadow:0 14px 34px rgba(112,92,255,.25)}
+.secondaryPick{border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:15px 12px;background:#10131a;color:#fff;font-weight:1000;font-size:15px}
+.fileTitle{display:flex;align-items:center;justify-content:space-between;margin-top:4px;font-size:22px;font-weight:1000}.fileTitle small{color:#9aa9ff;font-size:13px;font-weight:1000}
+.fileGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.fileTile{height:82px;border:1px solid #252b35;background:linear-gradient(180deg,#141924,#0c0f15);color:#fff;border-radius:18px;display:grid;place-items:center;text-align:center;font-weight:1000;font-size:11px;overflow:hidden}.fileTile b{font-size:26px;display:block;margin-bottom:5px}.fileTile.on{border-color:#8d7cff;box-shadow:0 0 0 1px rgba(141,124,255,.35) inset}
+.realBtn{height:auto;min-height:64px;border:1px solid #252b35;background:#10131a;color:#fff;border-radius:22px;display:flex;align-items:center;gap:12px;padding:14px;font-weight:1000;font-size:16px;text-align:left}
+.realBtn .ico{width:48px;height:48px;border-radius:17px;background:linear-gradient(135deg,#705cff,#ff42c7);display:grid;place-items:center;color:#fff;font-size:24px;flex:0 0 auto}
+.realBtn span{display:block;color:#aeb3c0;font-size:12px;font-weight:700;margin-top:3px}
+.cameraSheet{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.58);display:none;align-items:flex-end;justify-content:center}.cameraSheet.show{display:flex}.cameraBox{width:min(520px,100%);background:#0b0e14;border-radius:26px 26px 0 0;border:1px solid rgba(255,255,255,.09);padding:18px}.cameraBox h3{margin:0 0 12px;font-size:21px}.cameraChoice{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cameraChoice button{border:0;border-radius:20px;padding:18px;background:#151a24;color:#fff;font-size:16px;font-weight:1000}.cameraChoice button:first-child{background:linear-gradient(135deg,#705cff,#9b5cff)}.cameraCancel{margin-top:10px;width:100%;border:0;border-radius:18px;padding:14px;background:#242936;color:#fff;font-weight:1000}
+.step2{position:fixed;inset:0;max-width:520px;margin:auto;background:#050609;z-index:50;display:none;flex-direction:column}
+.step2.show{display:flex}
+.form{padding:16px 14px 30px;display:grid;gap:16px;overflow:auto}
+.field{width:100%;border:1px solid #2a303b;background:#0c0f15;border-radius:18px;padding:16px 15px;color:#fff;outline:0;font-size:16px;min-height:58px;transition:border-color .18s ease, box-shadow .18s ease, background .18s ease}
+textarea.field{min-height:136px;resize:vertical;line-height:1.45}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.publishBtn{border:0;border-radius:20px;padding:17px 15px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;font-weight:1000;font-size:18px;box-shadow:0 14px 34px rgba(255,100,0,.22)}
+.publishBtn:disabled,.next:disabled{opacity:.55}
+.card{border:1px solid #28303c;background:#10151e;border-radius:22px;padding:16px}.summary{color:#cfd3dc;font-size:13px;line-height:1.45}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100;background:#11151d;border:1px solid rgba(255,138,0,.55);padding:12px 16px;border-radius:999px;font-weight:1000;display:none;max-width:92%;text-align:center}.toast.show{display:block}
+.publishProgress{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:22px}.publishProgress.show{display:flex}.progressBox{width:min(420px,94vw);border:1px solid rgba(255,138,0,.45);background:linear-gradient(180deg,#151922,#0b0d12);border-radius:26px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.55);text-align:center}.progressTitle{font-size:22px;font-weight:1000;margin-bottom:8px}.progressText{color:#cfd3dc;font-weight:800;margin-bottom:16px}.progressTrack{height:16px;border-radius:999px;background:#262b35;overflow:hidden;border:1px solid rgba(255,255,255,.08)}.progressFill{height:100%;width:0%;border-radius:999px;background:linear-gradient(135deg,var(--orange),var(--orange2));transition:width .25s ease}.progressNum{font-size:36px;font-weight:1000;margin-top:14px;color:#fff}.progressHint{font-size:13px;color:#9fa6b5;margin-top:8px;line-height:1.35}
+.haIcon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;vertical-align:-5px;margin-right:7px;color:currentColor}.haIcon svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.fileTile .haIcon{width:28px;height:28px;margin:0 0 5px;color:#fff}.cameraChoice .haIcon{width:24px;height:24px;margin-right:7px}.svgPreviewIcon{width:58px;height:58px;margin:auto;color:#fff}.svgPreviewIcon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+
+/* V96 — Publication normale + publication boutique propre */
+.summaryRow{display:grid;grid-template-columns:1fr;gap:10px}
+.summaryRow .summary{min-width:0;color:#cfd3dc;font-weight:800;line-height:1.35}
+.publishTargetSwitch{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:6px}
+.targetBtn{border:0;background:transparent;color:#aeb3c0;border-radius:14px;padding:12px 8px;font-weight:1000;font-size:14px}
+.targetBtn.on{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;box-shadow:0 10px 26px rgba(255,100,0,.25)}
+.formBlock{display:block}
+.formBlock.hide{display:none!important}
+.mediaPickCard,.deliveryCard{background:#10131a;border:1px solid #252b35;border-radius:22px;padding:16px;display:grid;gap:12px}
+.mediaPickCard .miniInfo,.deliveryCard .miniInfo{color:#aeb3c0;font-size:13px;line-height:1.35;font-weight:800}
+.coverSelectGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.coverSelectGrid .field{width:100%}
+.smallActionBtn{border:1px solid rgba(255,255,255,.12);background:#151923;color:#fff;border-radius:18px;padding:16px 13px;font-weight:1000;min-height:58px}
+.deliveryZoneRow{display:grid;grid-template-columns:1fr 1fr 50px;grid-template-areas:"zone zone remove" "value unit remove";gap:10px;align-items:stretch;padding:4px 0}
+.deliveryZoneRow .field{width:100%}.deliveryZoneRow .deliveryZoneInput{grid-area:zone}.deliveryZoneRow .deliveryTimeValueInput{grid-area:value}.deliveryZoneRow .deliveryUnitInput{grid-area:unit}
+.zoneRemoveBtn{grid-area:remove;min-height:58px;border:1px solid rgba(255,255,255,.12);background:#151923;color:#fff;border-radius:18px;font-weight:1000;font-size:22px}
+.zoneAddBtn{width:100%;border:1px solid rgba(255,138,0,.38);background:rgba(255,138,0,.08);color:#ffbd66;border-radius:18px;padding:16px 13px;font-weight:1000;min-height:58px}
+.requiredHint{font-size:13px;color:#ffbd66;font-weight:900;line-height:1.45;margin-top:2px}.field.invalid{border-color:rgba(255,95,95,.95)!important;box-shadow:0 0 0 1px rgba(255,95,95,.35) inset;background:#120d10}.validationHint{display:none;border:1px solid rgba(255,138,0,.25);background:rgba(255,138,0,.08);color:#ffcf86;border-radius:18px;padding:12px 14px;font-size:13px;font-weight:900;line-height:1.45}.validationHint.show{display:block}.validationHint.ok{display:block;border-color:rgba(0,208,123,.25);background:rgba(0,208,123,.08);color:#9ef0c4}
+@media(max-width:370px){.deliveryZoneRow{grid-template-columns:1fr 1fr 44px}.targetBtn{font-size:13px;padding:11px 6px}.deliveryUnitInput{font-size:13px!important;padding-left:8px!important;padding-right:8px!important}.row{grid-template-columns:1fr}}
+
+</style>
+
+<script id="happyad-no-demo-posts-cleaner-v63">
+(function(){
+  var POST_KEY='HAPPYAD_PUBLISH_POSTS_V2';
+  var ACTION_KEY='HAPPYAD_VIDEO_ACTIONS_V1';
+  function lower(v){return String(v==null?'':v).toLowerCase();}
+  function isDemoPost(p){
+    if(!p || typeof p!=='object') return true;
+    var title=lower(p.title||p.name||p.caption);
+    var creator=lower(p.creatorName||p.userName||p.author);
+    var id=lower(p.id);
+    var cid=lower(p.creatorId);
+    var handle=lower(p.handle||p.username);
+    return id.indexOf('demo')>=0 || cid==='u_demo' || title.indexOf('renos pro')>=0 || title==='broks' || creator.indexOf('renos')>=0 || creator.indexOf('broks')>=0 || handle.indexOf('broks')>=0 || handle.indexOf('renos')>=0;
+  }
+  try{
+    var arr=JSON.parse(localStorage.getItem(POST_KEY)||'[]');
+    if(Array.isArray(arr)){
+      var before=arr.length;
+      var clean=arr.filter(function(p){return !isDemoPost(p)});
+      if(clean.length!==before){
+        try{localStorage.removeItem(POST_KEY);localStorage.removeItem('HAPPYAD_GLOBAL_POSTS_CACHE_V1');localStorage.removeItem('HAPPYAD_PROFILE_POSTS_CACHE_V1');}catch(_e){}
+        try{
+          var actions=JSON.parse(localStorage.getItem(ACTION_KEY)||'{}');
+          Object.keys(actions||{}).forEach(function(k){
+            var found=clean.some(function(p){return String(p.id)===String(k)});
+            if(!found) delete actions[k];
+          });
+          localStorage.setItem(ACTION_KEY,JSON.stringify(actions));
+        }catch(e){}
+      }
+    }
+  }catch(e){try{localStorage.removeItem(POST_KEY);}catch(_e){}}
+  try{
+    var ap=JSON.parse(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'null');
+    var n=lower(ap&&ap.name), h=lower(ap&&ap.handle);
+    if(n.indexOf('broks')>=0||n.indexOf('renos')>=0||h.indexOf('broks')>=0||h.indexOf('renos')>=0){
+      localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE');
+    }
+  }catch(e){}
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div id="publishProgress" class="publishProgress" aria-live="polite">
+  <div class="progressBox">
+    <div class="progressTitle">Publication en cours</div>
+    <div id="progressText" class="progressText">Préparation...</div>
+    <div class="progressTrack"><div id="progressFill" class="progressFill"></div></div>
+    <div id="progressNum" class="progressNum">0%</div>
+    <div class="progressHint">Ne ferme pas cette page pendant l’envoi vers Supabase.</div>
+  </div>
+</div>
+<div class="app">
+  <div class="top">
+    <a class="close" href="../index.html">×</a>
+    <div class="title">Nouvelle publication</div>
+    <button type="button" class="next" id="nextBtn">Suivant</button>
+  </div>
+  <div class="modeBar" id="modeBar">
+    <button type="button" class="mode on" data-mode="publish">Publier</button>
+    <button type="button" class="mode" data-mode="story">Story</button>
+    <button type="button" class="mode" data-mode="live">Live</button>
+    <button type="button" class="mode" data-mode="reel">Reel</button>
+    <button type="button" class="mode" data-mode="card">Carte</button>
+  </div>
+  <div class="preview empty" id="preview"></div>
+  <div class="realBtns">
+    <div class="quickActions">
+      <button type="button" class="primaryPick" id="cameraBtn"><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5h3l1.6-2.3h6.8L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="14" r="3.6"/></svg></span>Prendre photo/vidéo</button>
+      <button type="button" class="secondaryPick" id="galleryBtn"><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.5"/><path d="M21 16l-5.2-5.2L8 18"/></svg></span>Galerie</button>
+    </div>
+    <div class="fileTitle">Fichiers du téléphone <small id="fileHint">choisir</small></div>
+    <div class="fileGrid">
+      <button type="button" class="fileTile on" id="allBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5h7l2 2h9v8.5A2 2 0 0 1 19 20H5a2 2 0 0 1-2-2Z"/><path d="M3 7.5V6a2 2 0 0 1 2-2h4.5l2 2H19a2 2 0 0 1 2 2v1.5"/></svg></span></b>Tous</button>
+      <button type="button" class="fileTile" id="imageBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.5"/><path d="M21 16l-5.2-5.2L8 18"/></svg></span></b>Images</button>
+      <button type="button" class="fileTile" id="videoBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3Z"/></svg></span></b>Vidéos</button>
+      <button type="button" class="fileTile" id="audioBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/></svg></span></b>Audio</button>
+      <button type="button" class="fileTile" id="docBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span></b>Docs</button>
+      <button type="button" class="fileTile" id="otherBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg></span></b>Autres</button>
+      <button type="button" class="fileTile" id="locationBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg></span></b>Lieux</button>
+      <button type="button" class="fileTile" id="liveBtn"><b><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg></span></b>Live</button>
+    </div>
+  </div>
+</div>
+
+<div class="cameraSheet" id="cameraSheet">
+  <div class="cameraBox">
+    <h3>Ouvrir la vraie caméra</h3>
+    <div class="cameraChoice">
+      <button type="button" id="takePhotoBtn"><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5h3l1.6-2.3h6.8L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="14" r="3.6"/></svg></span>Photo</button>
+      <button type="button" id="takeVideoBtn"><span class="haIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3Z"/></svg></span>Vidéo</button>
+    </div>
+    <button type="button" class="cameraCancel" id="cameraCancel">Annuler</button>
+  </div>
+</div>
+
+<div class="step2" id="step2">
+  <div class="top">
+    <button type="button" class="close" id="backEdit">‹</button>
+    <div class="title">Détails</div>
+    <button type="button" class="next" id="publishBtnTop">Publier</button>
+  </div>
+  <div class="form">
+    <div class="card"><div class="summaryRow">
+      <div class="summary" id="summary">Mode : PUBLIER · Média : aucun</div>
+      <div class="publishTargetSwitch" aria-label="Type de publication">
+        <button type="button" class="targetBtn on" id="normalModeBtn">Mode normal</button>
+        <button type="button" class="targetBtn" id="boutiqueModeBtn">Mode boutique</button>
+      </div>
+    </div></div>
+
+    <div class="formBlock" id="normalFields">
+      <input class="field" id="titleInput" placeholder="Titre">
+      <textarea class="field" id="descInput" placeholder="Description"></textarea>
+      <input class="field" id="hashtagInput" placeholder="Hashtag  ex: #mode #promo">
+      <input class="field" id="mentionInput" placeholder="Mention  ex: @client @vendeur">
+      <select class="field" id="categoryInput">
+        <option value="">Catégorie</option><option>Personnel</option><option>Mode</option><option>Musique</option><option>Restaurant</option><option>Immobilier</option><option>Événement</option><option>Service</option><option>Produit</option>
+      </select>
+      <select class="field" id="locationInput"><option value="">Localisation optionnelle</option></select>
+    </div>
+
+    <div class="formBlock hide" id="boutiqueFields">
+      <input class="field" id="boutiqueTitleInput" placeholder="Titre du produit">
+      <textarea class="field" id="boutiqueDescInput" placeholder="Description complète du produit"></textarea>
+      <div class="row">
+        <input class="field" id="priceInput" inputmode="decimal" placeholder="Prix obligatoire > 0">
+        <select class="field" id="currencyInput">
+          <option value="">Devise</option><option value="UGX">UGX</option><option value="USD">USD</option><option value="CDF">CDF</option><option value="EUR">EUR</option><option value="KES">KES</option><option value="RWF">RWF</option><option value="TZS">TZS</option>
+        </select>
+      </div>
+      <select class="field" id="boutiqueCategoryInput">
+        <option value="">Catégorie boutique</option><option>Mode</option><option>Produit</option><option>Service</option><option>Restaurant</option><option>Décoration</option><option>Immobilier</option><option>Événement</option><option>Autres</option>
+      </select>
+      <div class="deliveryCard">
+        <div class="miniInfo">Zones de livraison obligatoires</div>
+        <div id="deliveryZonesList">
+          <div class="deliveryZoneRow" data-zone-row>
+            <input class="field deliveryZoneInput" placeholder="Ex: Kampala center">
+            <input class="field deliveryTimeValueInput" inputmode="numeric" placeholder="3">
+            <select class="field deliveryUnitInput">
+              <option value="hour">Heure</option>
+              <option value="minute">Minute</option>
+              <option value="day">Jour</option>
+              <option value="week">Semaine</option>
+            </select>
+            <button type="button" class="zoneRemoveBtn" data-remove-zone aria-label="Retirer zone">×</button>
+          </div>
+        </div>
+        <button type="button" class="zoneAddBtn" id="addDeliveryZoneBtn">+ Ajouter une autre zone</button>
+      </div>
+      <div class="mediaPickCard">
+        <div class="miniInfo" id="boutiqueMediaCount">Médias boutique : 0/3 minimum</div>
+        <div class="coverSelectGrid">
+          <select class="field" id="homeMediaSelect"><option value="0">Média principal HAPPYAD</option></select>
+          <button type="button" class="smallActionBtn" id="replaceBoutiqueMediaBtn">Choisir 3 médias</button>
+        </div>
+        <div class="requiredHint">Minimum 3 photos ou vidéos. Le média principal sélectionné sera affiché dans HAPPYAD principal. Tu peux ajouter jusqu’à 18 médias.</div>
+      </div>
+    </div>
+
+    <div id="validationHint" class="validationHint">Complète tous les champs obligatoires pour publier.</div>
+    <button type="button" class="publishBtn" id="publishBtn">Publier</button>
+  </div>
+</div>
+
+<input id="fileInput" type="file" accept="image/*,video/*" multiple hidden>
+<input id="imageInput" type="file" accept="image/*" multiple hidden>
+<input id="videoInput" type="file" accept="video/*" multiple hidden>
+<input id="audioInput" type="file" accept="audio/*" hidden>
+<input id="docInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+<input id="otherInput" type="file" accept="*/*" hidden>
+<input id="boutiqueMediaInput" type="file" accept="image/*,video/*" multiple hidden>
+<input id="cameraPhotoInput" type="file" accept="image/*" capture="environment" hidden>
+<input id="cameraVideoInput" type="file" accept="video/*" capture="environment" hidden>
+
+<script>
+(function(){
+  const initialMode=(new URLSearchParams(location.search).get("mode")||"publish").toLowerCase();
+  const state={mode:(initialMode==="story"||initialMode==="live"||initialMode==="reel"||initialMode==="card")?initialMode:"publish",publishTarget:"normal",homeCoverIndex:0,file:null,files:[],objectUrl:"",kind:"",crop:{scale:1,x:0,y:0}};
+  const $=id=>document.getElementById(id);
+
+  function toast(msg){
+    $("toast").textContent=msg;
+    $("toast").classList.add("show");
+    clearTimeout(window.__happyadToast);
+    window.__happyadToast=setTimeout(()=>$("toast").classList.remove("show"),1800);
+  }
+
+  let progressTimer=null;
+  let progressValue=0;
+  function setProgress(value,text){
+    progressValue=Math.max(0,Math.min(100,Math.round(value||0)));
+    const box=$("publishProgress"), fill=$("progressFill"), num=$("progressNum"), label=$("progressText");
+    if(box) box.classList.add("show");
+    if(fill) fill.style.width=progressValue+"%";
+    if(num) num.textContent=progressValue+"%";
+    if(label && text) label.textContent=text;
+  }
+  function startProgress(text){
+    clearInterval(progressTimer);
+    setProgress(3,text||"Publication en cours");
+    progressTimer=setInterval(()=>{
+      if(progressValue<35) setProgress(progressValue+4,"Publication en cours");
+      else if(progressValue<75) setProgress(progressValue+2,"Publication en cours");
+      else if(progressValue<90) setProgress(progressValue+1,"Publication en cours");
+    },450);
+  }
+  function finishProgress(text){
+    clearInterval(progressTimer);
+    setProgress(100,text||"Publication terminée");
+  }
+  function stopProgress(){
+    clearInterval(progressTimer);
+    setTimeout(()=>{ const box=$("publishProgress"); if(box) box.classList.remove("show"); },700);
+  }
+  function failProgress(text){
+    clearInterval(progressTimer);
+    const label=$("progressText");
+    if(label) label.textContent=text||"Échec publication";
+    setTimeout(()=>{ const box=$("publishProgress"); if(box) box.classList.remove("show"); },1400);
+  }
+
+  function clearHeavyPublicationCaches(){
+    try{
+      [
+        'HAPPYAD_PUBLISH_POSTS_V2',
+        'HAPPYAD_GLOBAL_POSTS_CACHE_V1',
+        'HAPPYAD_PROFILE_POSTS_CACHE_V1',
+        'HAPPYAD_USER_POSTS_CACHE_V1',
+        'HAPPYAD_ALL_POSTS_V1'
+      ].forEach(k=>localStorage.removeItem(k));
+    }catch(_e){}
+  }
+  function safeLocalFlag(key,value){
+    try{localStorage.setItem(key,String(value));return true;}
+    catch(e){
+      clearHeavyPublicationCaches();
+      try{localStorage.setItem(key,String(value));return true;}catch(_e){return false;}
+    }
+  }
+  clearHeavyPublicationCaches();
+
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open("HAPPYAD_MEDIA_DB",1);
+      req.onupgradeneeded=()=>{req.result.createObjectStore("media",{keyPath:"id"});};
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    });
+  }
+
+  async function saveMedia(record){
+    const db=await openDB();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction("media","readwrite");
+      tx.objectStore("media").put(record);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error||new Error("IndexedDB media erreur"));
+      tx.onabort=()=>reject(tx.error||new Error("IndexedDB media annulé"));
+    });
+  }
+
+  // V210 : IndexedDB est un cache local seulement.
+  // Sur mobile, écrire un gros File/Blob dans IndexedDB peut rester pendu sans erreur
+  // et bloquer l'interface à 90%. Donc on ne bloque jamais la publication sur ce cache.
+  async function saveMediaBestEffort(record){
+    try{
+      await withTimeout(saveMedia(record),3500,'Cache média local');
+      return true;
+    }catch(e){
+      console.warn('Cache média local ignoré pour ne pas bloquer la publication',e);
+      return false;
+    }
+  }
+
+  function bindModes(){
+    document.querySelectorAll("[data-mode]").forEach(btn=>{
+      btn.onclick=function(ev){
+        ev.preventDefault();
+        state.mode=this.dataset.mode;
+        if(state.mode==="live"){
+          window.location.href="live.html";
+          return;
+        }
+        document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("on",x.dataset.mode===state.mode));
+        if(state.mode!=="publish" && state.publishTarget==="boutique")state.publishTarget="normal";
+        renderPublishModeUI();
+      };
+    });
+  }
+
+  function modeBarHTML(){
+    const labels={publish:"Publier",story:"Story",live:"Live",reel:"Reel",card:"Carte"};
+    return '<div class="modeBar" id="modeBar">'+Object.keys(labels).map(m=>'<button type="button" class="mode '+(state.mode===m?'on':'')+'" data-mode="'+m+'">'+labels[m]+'</button>').join("")+'</div>';
+  }
+
+  function cropPanelHTML(){
+    return '<div class="photoCropPanel" id="photoCropPanel"><div class="photoCropLabel"><span>Ajuster la photo dans le carré</span><span>Photo seulement</span></div><div class="photoCropGrid"><label class="photoCropControl">Zoom<input id="cropScale" type="range" min="1" max="2.8" step="0.01" value="1"></label><label class="photoCropControl">Haut / bas<input id="cropY" type="range" min="-45" max="45" step="1" value="0"></label><label class="photoCropControl">Gauche / droite<input id="cropX" type="range" min="-45" max="45" step="1" value="0"></label><button type="button" class="mode" id="cropReset">Réinitialiser</button></div></div>';
+  }
+
+  function applyPhotoCropPreview(){
+    const img=document.getElementById('cropPreviewImg');
+    if(!img)return;
+    const c=state.crop||{scale:1,x:0,y:0};
+    img.style.transform='translate('+Number(c.x||0)+'%, '+Number(c.y||0)+'%) scale('+Number(c.scale||1)+')';
+    img.style.transformOrigin='center center';
+  }
+
+  function bindPhotoCropControls(){
+    const panel=document.getElementById('photoCropPanel');
+    if(panel)panel.classList.toggle('show',state.kind==='photo');
+    const scale=document.getElementById('cropScale'), x=document.getElementById('cropX'), y=document.getElementById('cropY'), reset=document.getElementById('cropReset');
+    if(!scale||!x||!y)return;
+    scale.value=String(state.crop.scale||1); x.value=String(state.crop.x||0); y.value=String(state.crop.y||0);
+    const upd=()=>{state.crop={scale:parseFloat(scale.value)||1,x:parseInt(x.value||0,10)||0,y:parseInt(y.value||0,10)||0};applyPhotoCropPreview();};
+    scale.oninput=upd; x.oninput=upd; y.oninput=upd;
+    if(reset)reset.onclick=()=>{state.crop={scale:1,x:0,y:0};scale.value='1';x.value='0';y.value='0';applyPhotoCropPreview();};
+    applyPhotoCropPreview();
+  }
+
+  function renderFirstPreview(file){
+    if(!file)return;
+    if(state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+    state.file=file;
+    state.kind=(file.type&&file.type.startsWith("video/"))?"video":((file.type&&file.type.startsWith("audio/"))?"audio":((file.type&&file.type.startsWith("image/"))?"photo":"file"));
+    state.crop={scale:1,x:0,y:0};
+    state.objectUrl=URL.createObjectURL(file);
+    $("preview").classList.remove("empty");
+    $("preview").innerHTML=(state.kind==="video"
+      ? '<video src="'+state.objectUrl+'" controls playsinline></video>'
+      : (state.kind==="audio" ? '<div style="padding:24px;text-align:center"><div class="svgPreviewIcon"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/></svg></div><div style="font-weight:1000;margin:10px 0">Audio sélectionné</div><audio src="'+state.objectUrl+'" controls style="width:100%"></audio></div>'
+      : (state.kind==="file" ? '<div style="padding:24px;text-align:center"><div class="svgPreviewIcon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></div><div style="font-weight:1000;margin:10px 0">Fichier sélectionné</div><div style="color:#aeb3c0;font-weight:800">'+(file.name||'document')+'</div></div>'
+      : '<img id="cropPreviewImg" class="cropPreview" src="'+state.objectUrl+'" alt="media">'+cropPanelHTML()))) + modeBarHTML();
+    bindModes();
+    bindPhotoCropControls();
+    updateSummary();
+    updatePublishButtonsState();
+  }
+
+  function showFiles(fileList){
+    const files=Array.from(fileList||[]).filter(Boolean);
+    if(!files.length)return;
+    const mediaFiles=files.filter(f=>f.type&&(f.type.startsWith("image/")||f.type.startsWith("video/")));
+    const onlyImages=files.every(f=>f.type&&f.type.startsWith("image/"));
+    const limited=(mediaFiles.length===files.length?mediaFiles:files).slice(0,18);
+    if(files.length>18)toast("Maximum 18 médias dans une publication");
+    if(limited.length>1 && mediaFiles.length===files.length && state.mode==="publish"){
+      state.files=limited;
+      state.homeCoverIndex=0;
+      renderFirstPreview(limited[0]);
+      toast(limited.length+(onlyImages?" photos groupées sélectionnées":" médias sélectionnés"));
+      renderPublishModeUI();
+      return;
+    }
+    showFile(limited[0]);
+  }
+
+  function showFile(file){
+    if(!file)return;
+    if(state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+    state.file=file;
+    state.files=[file];
+    state.homeCoverIndex=0;
+    state.kind=(file.type&&file.type.startsWith("video/"))?"video":((file.type&&file.type.startsWith("audio/"))?"audio":((file.type&&file.type.startsWith("image/"))?"photo":"file"));
+    state.crop={scale:1,x:0,y:0};
+    state.objectUrl=URL.createObjectURL(file);
+    $("preview").classList.remove("empty");
+    $("preview").innerHTML=(state.kind==="video"
+      ? '<video src="'+state.objectUrl+'" controls playsinline></video>'
+      : (state.kind==="audio" ? '<div style="padding:24px;text-align:center"><div class="svgPreviewIcon"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/></svg></div><div style="font-weight:1000;margin:10px 0">Audio sélectionné</div><audio src="'+state.objectUrl+'" controls style="width:100%"></audio></div>'
+      : (state.kind==="file" ? '<div style="padding:24px;text-align:center"><div class="svgPreviewIcon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></div><div style="font-weight:1000;margin:10px 0">Fichier sélectionné</div><div style="color:#aeb3c0;font-weight:800">'+(file.name||'document')+'</div></div>'
+      : '<img id="cropPreviewImg" class="cropPreview" src="'+state.objectUrl+'" alt="media">'+cropPanelHTML()))) + modeBarHTML();
+    bindModes();
+    bindPhotoCropControls();
+    updateSummary();
+    toast(state.kind==="photo"?"Photo sélectionnée : ajuste le cadrage":"Média sélectionné");
+    renderPublishModeUI();
+  }
+
+  function loadLocations(){
+    let places=[];
+    try{places=JSON.parse(localStorage.getItem("HAPPYAD_LOCATIONS_V1")||'{"places":[]}').places||[];}catch(e){}
+    $("locationInput").innerHTML='<option value="">Localisation optionnelle</option>'+places.map(p=>{
+      const label=(p.name||"Lieu")+" — "+(p.city||"")+" "+(p.country||"");
+      return '<option value="'+label.replace(/"/g,'&quot;')+'">'+label+'</option>';
+    }).join("");
+  }
+
+  function updateSummary(){
+    const count=(state.files&&state.files.length)||0;
+    $("summary").textContent="Mode : "+state.mode.toUpperCase()+" · Média : "+(state.kind||"aucun")+(count>1?(" · "+count+" médias"):"")+(state.publishTarget==="boutique"?" · Boutique":"");
+  }
+
+  function isBoutiqueMode(){return state.publishTarget==="boutique";}
+  function setPublishTarget(target){
+    target=(target==="boutique")?"boutique":"normal";
+    if(target==="boutique" && state.mode!=="publish"){
+      toast("Mode boutique disponible seulement pour Publier");
+      target="normal";
+    }
+    state.publishTarget=target;
+    if(isBoutiqueMode()){
+      const t=$("titleInput")&&$("titleInput").value.trim();
+      const d=$("descInput")&&$("descInput").value.trim();
+      if(t&&!$("boutiqueTitleInput").value)$("boutiqueTitleInput").value=t;
+      if(d&&!$("boutiqueDescInput").value)$("boutiqueDescInput").value=d;
+      if(!$("currencyInput").value)$("currencyInput").value="UGX";
+      ensureDeliveryZoneRow();
+    }
+    renderPublishModeUI();
+  }
+  function renderPublishModeUI(){
+    const n=$("normalFields"), b=$("boutiqueFields");
+    if(n)n.classList.toggle("hide",isBoutiqueMode());
+    if(b)b.classList.toggle("hide",!isBoutiqueMode());
+    const normalBtn=$("normalModeBtn"), boutiqueBtn=$("boutiqueModeBtn");
+    if(normalBtn)normalBtn.classList.toggle("on",!isBoutiqueMode());
+    if(boutiqueBtn)boutiqueBtn.classList.toggle("on",isBoutiqueMode());
+    const count=(state.files&&state.files.length)||0;
+    const mediaCount=$("boutiqueMediaCount");
+    if(mediaCount)mediaCount.textContent="Médias boutique : "+count+"/3 minimum";
+    const sel=$("homeMediaSelect");
+    if(sel){
+      sel.innerHTML=(state.files||[]).map(function(f,i){
+        const type=(f.type&&f.type.startsWith('video/'))?'vidéo':'photo';
+        return '<option value="'+i+'">Média principal '+(i+1)+' · '+type+'</option>';
+      }).join('') || '<option value="0">Média principal HAPPYAD</option>';
+      sel.value=String(Math.min(Number(state.homeCoverIndex||0),Math.max(0,count-1)));
+    }
+    updateSummary();
+  }
+
+  function toggleBoutiqueMode(){setPublishTarget(isBoutiqueMode()?"normal":"boutique");}
+
+  function ensureDeliveryZoneRow(){
+    const list=$("deliveryZonesList");
+    if(!list)return;
+    if(!list.querySelector("[data-zone-row]"))addDeliveryZoneRow();
+    updateDeliveryRemoveButtons();
+  }
+  function addDeliveryZoneRow(zone,hours){
+    const list=$("deliveryZonesList");
+    if(!list)return;
+    const row=document.createElement("div");
+    row.className="deliveryZoneRow";
+    row.setAttribute("data-zone-row","");
+    row.innerHTML='<input class="field deliveryZoneInput" placeholder="Ex: Kampala center"><input class="field deliveryTimeValueInput" inputmode="numeric" placeholder="3"><select class="field deliveryUnitInput"><option value="hour">Heure</option><option value="minute">Minute</option><option value="day">Jour</option><option value="week">Semaine</option></select><button type="button" class="zoneRemoveBtn" data-remove-zone aria-label="Retirer zone">×</button>';
+    row.querySelector(".deliveryZoneInput").value=zone||"";
+    row.querySelector(".deliveryTimeValueInput").value=hours||"";
+    row.querySelector(".deliveryUnitInput").value="hour";
+    list.appendChild(row);
+    updateDeliveryRemoveButtons();
+  }
+  function updateDeliveryRemoveButtons(){
+    const rows=[].slice.call(document.querySelectorAll("[data-zone-row]"));
+    rows.forEach(function(row){const b=row.querySelector("[data-remove-zone]");if(b)b.style.visibility=rows.length>1?"visible":"hidden";});
+  }
+  function deliveryUnitLabel(unit,value){
+    unit=String(unit||'hour');
+    value=Number(value||0);
+    const plural=value>1;
+    if(unit==='minute')return plural?'minutes':'minute';
+    if(unit==='day')return plural?'jours':'jour';
+    if(unit==='week')return plural?'semaines':'semaine';
+    return plural?'heures':'heure';
+  }
+  function deliveryZones(){
+    const rows=[].slice.call(document.querySelectorAll("[data-zone-row]"));
+    return rows.map(function(row,i){
+      const z=(row.querySelector(".deliveryZoneInput")&&row.querySelector(".deliveryZoneInput").value||"").trim();
+      const vRaw=(row.querySelector(".deliveryTimeValueInput")&&row.querySelector(".deliveryTimeValueInput").value||"").trim();
+      const unit=(row.querySelector(".deliveryUnitInput")&&row.querySelector(".deliveryUnitInput").value)||"hour";
+      const value=Math.max(0,parseInt(String(vRaw).replace(/[^0-9]/g,"")||"0",10)||0);
+      const minutes=unit==='minute'?value:(unit==='day'?value*1440:(unit==='week'?value*10080:value*60));
+      const hours=Math.max(1,Math.ceil(minutes/60)); // compatibilité avec ancienne colonne delivery_hours
+      const label=value+" "+deliveryUnitLabel(unit,value);
+      return {zone:z,value:value,unit:unit,minutes:minutes,hours:hours,label:label,sort_order:i};
+    }).filter(function(x){return x.zone||x.value;});
+  }
+
+  function happySb(){
+    if(window.happyadSupabase)return window.happyadSupabase;
+    if(window.supabase&&window.supabase.createClient){
+      window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+      return window.happyadSupabase;
+    }
+    return null;
+  }
+  function cleanName(n){return String(n||'media').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-80)}
+  async function currentProfile(){
+    const c=happySb(); if(!c) return {user:null,profile:null};
+    const auth=await getFreshAuth(c);
+    return {user:auth.user,profile:auth.profile};
+  }
+
+  // V278 : publication vidéo lourde — session Supabase gardée active avant Storage.
+  // Sur mobile, la préparation/compression peut durer longtemps; on ne doit pas échouer
+  // simplement parce que getSession() retourne temporairement vide au moment d'envoyer.
+  async function getFreshAuth(c){
+    let session=null, user=null, profile=null;
+    try{
+      const s=await withTimeout(c.auth.getSession(),20000,'Lecture session Supabase');
+      session=s&&s.data&&s.data.session?s.data.session:null;
+    }catch(_e){}
+    if(!session){
+      try{
+        const r=await withTimeout(c.auth.refreshSession(),25000,'Renouvellement session Supabase');
+        session=r&&r.data&&r.data.session?r.data.session:null;
+      }catch(_e){}
+    }
+    user=session&&session.user?session.user:null;
+    if(!user){
+      try{
+        const u=await withTimeout(c.auth.getUser(),20000,'Lecture utilisateur Supabase');
+        user=u&&u.data&&u.data.user?u.data.user:null;
+      }catch(_e){}
+    }
+    if(!user){
+      try{
+        const uid=localStorage.getItem('HAPPYAD_AUTH_UID')||'';
+        if(uid) user={id:uid,email:''};
+      }catch(_e){}
+    }
+    if(user&&user.id){
+      try{const r=await withTimeout(c.from('profiles').select('*').eq('id',user.id).maybeSingle(),20000,'Lecture profil'); profile=r.data||null;}catch(e){}
+    }
+    return {session,user,profile};
+  }
+
+  async function touchAuthSession(c){
+    try{
+      const s=await c.auth.getSession();
+      if(!(s&&s.data&&s.data.session)) await c.auth.refreshSession();
+    }catch(_e){}
+  }
+  function withTimeout(promise, ms, label){
+    return Promise.race([
+      promise,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' : délai dépassé. Réseau lent ou requête bloquée.')),ms))
+    ]);
+  }
+
+
+  function happyadVideoThumbFromFile(file){
+    return new Promise(function(resolve){
+      try{
+        if(!file || !String(file.type||'').toLowerCase().includes('video'))return resolve(null);
+        const video=document.createElement('video');
+        const url=URL.createObjectURL(file);
+        let done=false;
+        function finish(blob){if(done)return;done=true;try{URL.revokeObjectURL(url)}catch(e){}resolve(blob||null)}
+        video.muted=true; video.playsInline=true; video.preload='metadata'; video.src=url;
+        video.addEventListener('loadedmetadata',function(){try{video.currentTime=Math.min(1,Math.max(0.15,(video.duration||1)*0.08));}catch(e){finish(null)}},{once:true});
+        video.addEventListener('seeked',function(){try{
+          const c=document.createElement('canvas');
+          const vw=video.videoWidth||640, vh=video.videoHeight||360;
+          const size=720;
+          c.width=size; c.height=size;
+          const ctx=c.getContext('2d'); if(!ctx)return finish(null);
+          const side=Math.min(vw,vh);
+          const sx=Math.max(0,(vw-side)/2), sy=Math.max(0,(vh-side)/2);
+          ctx.drawImage(video,sx,sy,side,side,0,0,size,size);
+          c.toBlob(function(blob){finish(blob)},'image/jpeg',0.82);
+        }catch(e){finish(null)}},{once:true});
+        video.addEventListener('error',function(){finish(null)},{once:true});
+        setTimeout(function(){finish(null)},5500);
+      }catch(e){resolve(null)}
+    });
+  }
+
+  async function happyadUploadVideoThumb(c,user,id,file){
+    try{
+      const blob=await happyadVideoThumbFromFile(file);
+      if(!blob)return '';
+      const path=user.id+'/thumbs/'+id+'.jpg';
+      const up=await withTimeout(c.storage.from('happyad-media').upload(path,blob,{upsert:true,cacheControl:'31536000',contentType:'image/jpeg'}),15000,'Upload miniature vidéo');
+      if(up.error)return '';
+      const pub=c.storage.from('happyad-media').getPublicUrl(path);
+      return pub&&pub.data&&pub.data.publicUrl?pub.data.publicUrl:'';
+    }catch(e){console.warn('thumbnail video non créée',e);return ''}
+  }
+
+  async function savePostToSupabase(localPost,file){
+    const c=happySb(); if(!c) throw new Error('Supabase non chargé');
+    setProgress(8,'Vérification session...');
+    const auth=await getFreshAuth(c);
+    const session=auth.session, user=auth.user, profile=auth.profile;
+    if(!user) throw new Error('Session Supabase absente : reconnecte-toi');
+    setProgress(18,'Session prête');
+    const id=localPost.id;
+    const ext=cleanName((file.name&&file.name.includes('.'))?file.name.split('.').pop():(localPost.kind==='video'?'mp4':'jpg')).replace(/^\.+/,'') || (localPost.kind==='video'?'mp4':'jpg');
+    const path=user.id+'/'+id+'.'+ext;
+    // V279 : correction blocage à 90% sur vidéos lourdes.
+    // Le 90% était causé par le timeout fixe 120s pendant l'upload Storage.
+    // Pour le prototype, on accepte les vidéos jusqu'à environ 200 Mo et on donne
+    // plus de temps à Supabase sur réseau mobile lent.
+    const fileSizeMb=(file&&file.size)?(file.size/1024/1024):0;
+    if(localPost.kind==='video' && fileSizeMb>60){
+      throw new Error('Vidéo trop lourde pour une lecture fluide : maximum 60 Mo. Coupe ou compresse la vidéo avant publication.');
+    }
+    if(localPost.kind==='video' && fileSizeMb>25){
+      try{console.warn('HAPPYAD: vidéo lourde ('+fileSizeMb.toFixed(1)+' Mo). Pour une fluidité parfaite, viser 6 à 15 Mo.');}catch(_e){}
+    }
+    function uploadTimeoutMs(){
+      if(localPost.kind==='video'){
+        // 200 Mo sur réseau mobile peut dépasser plusieurs minutes; 15 minutes évite le faux échec à 90%.
+        return Math.max(240000, Math.min(900000, Math.ceil(fileSizeMb*4500)));
+      }
+      return 90000;
+    }
+    setProgress(35,'Upload Supabase...');
+    let keepAuthAlive=setInterval(function(){touchAuthSession(c);},25000);
+    let up;
+    try{
+      await touchAuthSession(c);
+      up=await withTimeout(
+        c.storage.from('happyad-media').upload(path,file,{upsert:true,cacheControl:'31536000',contentType:file.type||'application/octet-stream'}),
+        uploadTimeoutMs(),
+        'Upload Storage'
+      );
+    }finally{
+      clearInterval(keepAuthAlive);
+    }
+    if(up.error){
+      const msg=up.error.message||up.error.error_description||JSON.stringify(up.error);
+      throw new Error('Storage upload: '+msg);
+    }
+    setProgress(78,'Publication en cours');
+    const pub=c.storage.from('happyad-media').getPublicUrl(path);
+    const mediaUrl=pub&&pub.data&&pub.data.publicUrl?pub.data.publicUrl:'';
+    if(!mediaUrl) throw new Error('Storage publicUrl vide');
+    const videoThumbUrl=(localPost.kind==='video')?await happyadUploadVideoThumb(c,user,id,file):'';
+    const row={
+      id:id,
+      user_id:user.id,
+      mode:localPost.mode||'publish',
+      title:localPost.title||'Publication HAPPYAD',
+      description:localPost.desc||'',
+      hashtags:localPost.hashtags||'',
+      mentions:localPost.mentions||'',
+      price:localPost.price||'',
+      category:localPost.category||'',
+      location:localPost.location||'',
+      kind:localPost.kind||'',
+      media_url:mediaUrl,
+      media_path:path,
+      media_type:localPost.kind||'',
+      thumbnail_url:videoThumbUrl||'',
+      poster_url:videoThumbUrl||'',
+      mime_type:file.type||'',
+      file_name:file.name||'',
+      batch_id:localPost.batchId||localPost.batch_id||'',
+      group_index:Number(localPost.groupIndex||localPost.group_index||0),
+      photo_index:Number(localPost.groupIndex||localPost.group_index||0),
+      creator_name:(profile&&profile.full_name)||localPost.creatorName||'Utilisateur HAPPYAD',
+      display_name:(profile&&profile.full_name)||localPost.creatorName||'Utilisateur HAPPYAD',
+      handle:(profile&&profile.username)||String(localPost.handle||'').replace(/^@+/,''),
+      username:(profile&&profile.username)||String(localPost.handle||'').replace(/^@+/,''),
+      avatar_url:(profile&&profile.avatar_url)||localPost.avatar||'',
+      badge:(profile&&profile.badge)||localPost.badge||'aucun',
+      created_at:new Date().toISOString()
+    };
+    async function createStoryOrLiveRecords(){
+      if(row.mode==='story'){
+        const storyRow={user_id:user.id,user_name:row.creator_name,display_name:row.creator_name,username:row.username||'',handle:row.handle||'',user_avatar:row.avatar_url,title:row.title||'Story',description:row.description||'',caption:row.description||'',media_url:mediaUrl,thumbnail_url:videoThumbUrl||'',poster_url:videoThumbUrl||'',media_type:(row.media_type==='video'?'video':'image'),kind:row.media_type||row.kind||'',location_name:'',latitude:null,longitude:null,is_active:true,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
+        // Source unique officielle des Stories: happyad_stories seulement.
+        // Ne jamais écrire le badge dans happyad_stories: le badge réel vient toujours de profiles.
+        async function insertHappyadStoryClean(payload){
+          let clean=Object.assign({},payload);
+          for(let i=0;i<12;i++){
+            const r=await c.from('happyad_stories').insert(clean).select('id').single();
+            if(!r.error)return r;
+            const msg=String(r.error.message||r.error.details||'');
+            const m=msg.match(/'([^']+)' column/);
+            if(m&&m[1]&&Object.prototype.hasOwnProperty.call(clean,m[1])){
+              delete clean[m[1]];
+              continue;
+            }
+            throw r.error;
+          }
+          throw new Error('Impossible de publier la story: schéma happyad_stories incomplet');
+        }
+        const r=await insertHappyadStoryClean(storyRow);
+const storyId=r.data&&r.data.id?r.data.id:null;
+
+try{
+  const cacheKey='HAPPYAD_STORIES_CACHE_V1';
+  const nowMs=Date.now();
+  const storyKey=String(storyId||('local_story_'+nowMs));
+  const cached=JSON.parse(localStorage.getItem(cacheKey)||'[]')||[];
+
+  const storyItem={
+    id:storyKey,
+    sourceId:storyKey,
+    story_id:storyKey,
+
+    mode:'story',
+    type:'story',
+    category:'story',
+    isRadar:true,
+    isLive:false,
+    isSeen:false,
+
+    title:storyRow.title||storyRow.user_name||'Story',
+    desc:storyRow.description||storyRow.caption||'',
+    description:storyRow.description||storyRow.caption||'',
+
+    kind:storyRow.media_type==='video'?'video':'photo',
+    mediaType:storyRow.media_type||'photo',
+    mediaUrl:storyRow.media_url||'',
+    media_url:storyRow.media_url||'',
+    thumbnailUrl:storyRow.thumbnail_url||'',
+    posterUrl:storyRow.poster_url||'',
+
+    creatorId:storyRow.user_id||(user&&user.id)||'',
+    user_id:storyRow.user_id||(user&&user.id)||'',
+    creatorName:storyRow.user_name||storyRow.display_name||'Utilisateur HAPPYAD',
+    user_name:storyRow.user_name||storyRow.display_name||'Utilisateur HAPPYAD',
+    handle:storyRow.username?('@'+String(storyRow.username).replace(/^@+/,'')):(storyRow.handle||''),
+    username:storyRow.username||'',
+    avatar:storyRow.user_avatar||'',
+    user_avatar:storyRow.user_avatar||'',
+    badge:storyRow.badge||storyRow.user_badge||'aucun',
+
+    createdAt:nowMs,
+    created_at:storyRow.created_at||new Date(nowMs).toISOString(),
+    expiresAt:storyRow.expires_at||new Date(nowMs+24*60*60*1000).toISOString(),
+    expires_at:storyRow.expires_at||new Date(nowMs+24*60*60*1000).toISOString(),
+
+    supabase:true,
+    __storyTable:'happyad_stories',
+    __optimistic:true
+  };
+
+  const next=[storyItem].concat(cached.filter(function(x){
+    const xid=String(x.id||x.story_id||x.sourceId||'');
+    const owner=String(x.creatorId||x.user_id||'');
+    const exp=x.expiresAt||x.expires_at||'';
+    const expired=exp && new Date(exp).getTime()<Date.now();
+
+    return !expired &&
+      xid!==String(storyItem.id) &&
+      owner!==String(storyItem.creatorId);
+  })).slice(0,80);
+
+  localStorage.setItem(cacheKey,JSON.stringify(next));
+  localStorage.setItem('HAPPYAD_RADAR_REFRESH_NEEDED','1');
+  localStorage.setItem('HAPPYAD_HOME_REFRESH_NEEDED','1');
+}catch(_e){}
+
+return {source:'story',id:storyId};
+      }
+      if(row.mode==='live'){
+        const liveRow={user_id:user.id,user_name:row.creator_name,user_avatar:row.avatar_url,title:row.title||'Live en direct',live_url:mediaUrl,location_name:row.location||'',latitude:null,longitude:null,viewers_count:0,is_live:true,started_at:new Date().toISOString()};
+        const r=await c.from('happyad_lives').insert(liveRow).select('id').single();
+        if(r.error)throw r.error;
+        const liveId=r.data&&r.data.id?r.data.id:null;
+        return {source:'live',id:liveId};
+      }
+      return null;
+    }
+    setProgress(88,'Publication en cours');
+
+    // STORY/LIVE : ne pas créer une publication normale.
+    // Le contenu passe dans happyad_stories ou happyad_lives ; Profil et Radar lisent happyad_stories.
+    if(row.mode==='story' || row.mode==='live'){
+      const special=await createStoryOrLiveRecords();
+      localPost.mediaUrl=mediaUrl; localPost.mediaPath=path; if(videoThumbUrl){localPost.thumbnailUrl=videoThumbUrl;localPost.posterUrl=videoThumbUrl;} localPost.supabase=true; localPost.creatorId=user.id;
+      localPost.creatorName=row.creator_name; localPost.handle=row.handle?'@'+String(row.handle).replace(/^@+/,''):''; localPost.avatar=row.avatar_url||''; localPost.badge=row.badge||'aucun';
+      if(localPost.kind==='photo'&&state.crop){localPost.imageCrop=Object.assign({},state.crop);}
+      localPost.sourceId=special&&special.id;
+      localPost.__radarOnly=true;
+      return localPost;
+    }
+
+    // V209 : correction blocage 90%.
+    // Le média est déjà envoyé dans Storage vers 78-88%.
+    // À partir d'ici, on doit enregistrer la ligne happyad_posts avec supabase-js uniquement,
+    // sans fetch REST parallèle qui pouvait rester pendu sur mobile.
+    function stripUnknownColumnFromError(payload,msg){
+      msg=String(msg||'');
+      const m=msg.match(/(?:column|champ) ["']?([a-zA-Z0-9_]+)["']? (?:of relation|does not exist|n.existe pas)|["']([a-zA-Z0-9_]+)["'] column/);
+      const col=(m&&(m[1]||m[2]))||'';
+      if(col && Object.prototype.hasOwnProperty.call(payload,col)){delete payload[col];return true;}
+      return false;
+    }
+    async function insertPostResilient(){
+      let payload=Object.assign({},row);
+      let lastMsg='';
+      for(let i=0;i<10;i++){
+        try{
+          setProgress(Math.min(98,Math.max(90,progressValue+1)),'Enregistrement publication');
+          const saved=await withTimeout(
+            c.from('happyad_posts').upsert(payload,{onConflict:'id'}).select('id').maybeSingle(),
+            20000,
+            'Enregistrement publication'
+          );
+          if(saved&&saved.error){
+            const msg=saved.error.message||saved.error.details||JSON.stringify(saved.error);
+            lastMsg=msg;
+            if(stripUnknownColumnFromError(payload,msg))continue;
+            throw saved.error;
+          }
+          const savedId=saved&&saved.data&&saved.data.id;
+          if(savedId || (saved&&saved.data===null)){
+            // Vérification courte : la publication doit exister dans Supabase avant d'afficher 100%.
+            const check=await withTimeout(
+              c.from('happyad_posts').select('id').eq('id',payload.id).maybeSingle(),
+              8000,
+              'Vérification publication'
+            );
+            if(check&&check.error){
+              const msg=check.error.message||check.error.details||JSON.stringify(check.error);
+              lastMsg=msg;
+              if(stripUnknownColumnFromError(payload,msg))continue;
+              throw check.error;
+            }
+            if(check&&check.data&&check.data.id)return {ok:true,id:check.data.id};
+            if(savedId)return {ok:true,id:savedId};
+            throw new Error('Publication non retrouvée après enregistrement');
+          }
+          return {ok:true,id:payload.id};
+        }catch(err){
+          const msg=(err&&err.message)?err.message:String(err||'');
+          lastMsg=msg;
+          if(stripUnknownColumnFromError(payload,msg))continue;
+          if(/timeout|délai|delai|aborted|network|fetch/i.test(msg) && i<2){
+            await new Promise(r=>setTimeout(r,700));
+            continue;
+          }
+          throw new Error(msg||'Enregistrement publication impossible');
+        }
+      }
+      throw new Error('Publication non enregistrée dans happyad_posts: '+(lastMsg||'colonnes/RLS incompatibles'));
+    }
+    await insertPostResilient();
+    await createStoryOrLiveRecords();
+    localPost.mediaUrl=mediaUrl; localPost.mediaPath=path; if(videoThumbUrl){localPost.thumbnailUrl=videoThumbUrl;localPost.posterUrl=videoThumbUrl;} localPost.supabase=true; localPost.creatorId=user.id;
+    localPost.creatorName=row.creator_name; localPost.handle=row.handle?'@'+String(row.handle).replace(/^@+/,''):''; localPost.avatar=row.avatar_url||''; localPost.badge=row.badge||'aucun';
+    if(localPost.kind==='photo'&&state.crop){localPost.imageCrop=Object.assign({},state.crop);}
+    if(row.batch_id)localPost.batchId=row.batch_id;
+    if(row.group_index!=null)localPost.groupIndex=row.group_index;
+    return localPost;
+  }
+
+
+  function parsePositiveAmount(v){
+    const raw=String(v||'').replace(/\s/g,'').replace(/,/g,'.');
+    const n=Number((raw.match(/[0-9.]+/)||['0'])[0])||0;
+    return n;
+  }
+  function fileKind(file){return (file&&file.type&&file.type.startsWith('video/'))?'video':'photo';}
+  async function uploadBoutiqueMediaFile(c,user,productId,file,index){
+    const ext=cleanName((file.name&&file.name.includes('.'))?file.name.split('.').pop():(fileKind(file)==='video'?'mp4':'jpg')).replace(/^\.+/,'') || (fileKind(file)==='video'?'mp4':'jpg');
+    const path=user.id+'/boutique/'+productId+'/'+String(index+1)+'_'+Date.now()+'.'+ext;
+    const sizeMb=(file&&file.size)?(file.size/1024/1024):0;
+    if(fileKind(file)==='video' && sizeMb>60){throw new Error('Vidéo boutique trop lourde pour une lecture fluide : maximum 60 Mo.');}
+    const ms=fileKind(file)==='video'?Math.max(240000,Math.min(900000,Math.ceil(sizeMb*4500))):90000;
+    const up=await withTimeout(c.storage.from('happyad-media').upload(path,file,{upsert:true,cacheControl:'31536000',contentType:file.type||'application/octet-stream'}),ms,'Upload média boutique '+(index+1));
+    if(up.error)throw new Error('Storage boutique '+(index+1)+' : '+(up.error.message||JSON.stringify(up.error)));
+    const pub=c.storage.from('happyad-media').getPublicUrl(path);
+    return {url:(pub&&pub.data&&pub.data.publicUrl)||'',path:path,type:fileKind(file)};
+  }
+  function stripUnknownColumn(payload,msg){
+    msg=String(msg||'');
+    const m=msg.match(/(?:column|champ) ["']?([a-zA-Z0-9_]+)["']? (?:of relation|does not exist|n.existe pas)|["']([a-zA-Z0-9_]+)["'] column/);
+    const col=(m&&(m[1]||m[2]))||'';
+    if(col && Object.prototype.hasOwnProperty.call(payload,col)){delete payload[col];return true;}
+    return false;
+  }
+  async function upsertHappyadPostResilient(c,row){
+    let payload=Object.assign({},row), last='';
+    for(let i=0;i<10;i++){
+      const r=await withTimeout(c.from('happyad_posts').upsert(payload,{onConflict:'id'}).select('id').maybeSingle(),20000,'Enregistrement HAPPYAD principal');
+      if(r&&r.error){
+        last=r.error.message||r.error.details||JSON.stringify(r.error);
+        if(stripUnknownColumn(payload,last))continue;
+        throw new Error(last);
+      }
+      return true;
+    }
+    throw new Error('Publication HAPPYAD principale impossible : '+last);
+  }
+  async function insertProductResilient(c,row){
+    let payload=Object.assign({},row), last='';
+    for(let i=0;i<10;i++){
+      const r=await withTimeout(c.from('boutique_products').insert(payload).select('*').single(),20000,'Création produit boutique');
+      if(r&&r.error){
+        last=r.error.message||r.error.details||JSON.stringify(r.error);
+        if(stripUnknownColumn(payload,last))continue;
+        throw new Error(last);
+      }
+      return r.data;
+    }
+    throw new Error('Produit boutique impossible : '+last);
+  }
+  async function insertDeliveryZonesResilient(c,rows){
+    let payload=(rows||[]).map(function(r){return Object.assign({},r);}), last='';
+    for(let i=0;i<10;i++){
+      const r=await withTimeout(c.from('boutique_delivery_zones').insert(payload),20000,'Zones livraison');
+      if(r&&r.error){
+        last=r.error.message||r.error.details||JSON.stringify(r.error);
+        const m=last.match(/'(.*?)' column|column "(.*?)"/);
+        const col=(m&&(m[1]||m[2]))||'';
+        if(col){
+          payload=payload.map(function(x){const y=Object.assign({},x);delete y[col];return y;});
+          continue;
+        }
+        throw new Error(last);
+      }
+      return true;
+    }
+    throw new Error('Zones livraison impossibles : '+last);
+  }
+
+  async function saveBoutiquePublication(){
+    if(state.mode!=="publish")throw new Error('Boutique disponible seulement en mode Publier');
+    const title=$("boutiqueTitleInput").value.trim();
+    const desc=$("boutiqueDescInput").value.trim();
+    const amount=parsePositiveAmount($("priceInput").value);
+    const currency=$("currencyInput").value;
+    const category=$("boutiqueCategoryInput").value;
+    const zones=deliveryZones();
+    const files=(state.files||[]).filter(f=>f&&f.type&&(f.type.startsWith('image/')||f.type.startsWith('video/'))).slice(0,18);
+    const coverIndex=Math.min(Math.max(0,Number($("homeMediaSelect").value||state.homeCoverIndex||0)),Math.max(0,files.length-1));
+    if(!title)throw new Error('Titre produit obligatoire');
+    if(!desc)throw new Error('Description produit obligatoire');
+    if(!(amount>0))throw new Error('Prix obligatoire supérieur à 0');
+    if(!currency)throw new Error('Devise obligatoire');
+    if(!category)throw new Error('Catégorie boutique obligatoire');
+    if(!zones.length)throw new Error('Ajoute au moins une zone de livraison');
+    const badZone=zones.find(function(z){return !z.zone || !(z.hours>0);});
+    if(badZone)throw new Error('Chaque zone doit avoir un nom, un nombre supérieur à 0 et une unité de temps');
+    if(files.length<3)throw new Error('Boutique exige minimum 3 photos ou vidéos');
+    const c=happySb(); if(!c)throw new Error('Supabase non chargé');
+    setProgress(8,'Vérification session...');
+    const auth=await getFreshAuth(c);
+    const user=auth.user, profile=auth.profile;
+    if(!user)throw new Error('Session Supabase absente : reconnecte-toi');
+    const id='pb_'+Date.now();
+    const sellerName=(profile&&profile.full_name)||'Vendeur HAPPYAD';
+    const handle=(profile&&profile.username)||'';
+    const avatar=(profile&&profile.avatar_url)||'';
+    const badge=(profile&&profile.badge)||'aucun';
+    setProgress(15,'Création produit boutique...');
+    let product=await insertProductResilient(c,{seller_id:user.id,seller_name:sellerName,linked_post_id:null,title:title,description:desc,category:category,price_amount:amount,currency:currency,cart_enabled:true,status:'active'});
+    const productId=product&&product.id;
+    if(!productId)throw new Error('Produit boutique créé sans ID');
+    const uploaded=[];
+    for(let i=0;i<files.length;i++){
+      setProgress(18+Math.round((i/files.length)*52),'Upload média boutique '+(i+1)+'/'+files.length);
+      uploaded.push(await uploadBoutiqueMediaFile(c,user,productId,files[i],i));
+    }
+    setProgress(74,'Enregistrement médias boutique...');
+    const mediaRows=uploaded.map(function(m,i){return {product_id:productId,media_url:m.url,media_type:m.type,label:(m.type==='video'?'Vidéo ':'Photo ')+(i+1),orientation:'natural',sort_order:i,is_home_cover:i===coverIndex};});
+    const mr=await withTimeout(c.from('boutique_product_media').insert(mediaRows),20000,'Médias boutique');
+    if(mr&&mr.error)throw new Error(mr.error.message||JSON.stringify(mr.error));
+    setProgress(82,'Zones livraison...');
+    const zoneRows=zones.map(function(z,i){return {product_id:productId,zone_name:z.zone,delivery_hours:z.hours,delivery_time_value:z.value,delivery_time_unit:z.unit,delivery_minutes:z.minutes,delivery_label:z.label,sort_order:i,is_active:true};});
+    await insertDeliveryZonesResilient(c,zoneRows);
+    const mainZone=zones[0]&&zones[0].zone?zones[0].zone:'';
+    const allZones=zones.map(function(z){return z.zone+' '+z.label;}).join(' · ');
+    const home=uploaded[coverIndex]||uploaded[0];
+    const homePostId=id+'_home';
+    setProgress(90,'Publication HAPPYAD principale...');
+    await upsertHappyadPostResilient(c,{id:homePostId,user_id:user.id,mode:'publish',post_type:'boutique',title:title,description:desc,caption:desc,price:String(amount),category:category,location:mainZone,kind:home.type,media_url:home.url,media_path:home.path,home_media_url:home.url,home_media_type:home.type,boutique_product_id:productId,button_label:'',is_active:true,creator_name:sellerName,display_name:sellerName,handle:handle,username:handle,avatar_url:avatar,badge:badge});
+    try{await c.from('boutique_products').update({linked_post_id:homePostId,updated_at:new Date().toISOString()}).eq('id',productId);}catch(_e){}
+    try{var __map=JSON.parse(localStorage.getItem('HAPPYAD_BOUTIQUE_POST_PRODUCT_MAP_V1')||'{}')||{};__map[String(homePostId)]=String(productId);localStorage.setItem('HAPPYAD_BOUTIQUE_POST_PRODUCT_MAP_V1',JSON.stringify(__map));}catch(_mapErr){}
+    const localPost={id:homePostId,mode:'publish',postType:'boutique',post_type:'boutique',title:title,desc:desc,price:String(amount),category:category,location:mainZone,deliveryZones:zones,deliveryZonesText:allZones,kind:home.type,mediaUrl:home.url,mediaPath:home.path,homeMediaUrl:home.url,homeMediaType:home.type,boutique_product_id:productId,boutiqueProductId:productId,button_label:'',creatorId:user.id,creatorName:sellerName,handle:handle?('@'+String(handle).replace(/^@+/,'')):'',avatar:avatar,badge:badge,createdAt:Date.now(),supabase:true};
+    return {localPost:localPost,homeFile:files[coverIndex]||files[0],productId:productId};
+  }
+
+
+  function markInvalid(el,on){ if(el) el.classList.toggle('invalid',!!on); }
+  function validatePublishForm(opts){
+    opts=opts||{};
+    const errors=[];
+    let firstInvalid=null;
+    document.querySelectorAll('.field.invalid').forEach(el=>el.classList.remove('invalid'));
+    function addError(el,msg,cond){
+      if(!cond) return;
+      errors.push(msg);
+      if(el){ markInvalid(el,true); if(!firstInvalid) firstInvalid=el; }
+    }
+    addError(null,'Choisis d’abord une photo ou une vidéo',!state.file);
+    if(isBoutiqueMode()){
+      addError($('boutiqueTitleInput'),'Titre du produit obligatoire',!$('boutiqueTitleInput').value.trim());
+      addError($('boutiqueDescInput'),'Description du produit obligatoire',!$('boutiqueDescInput').value.trim());
+      addError($('priceInput'),'Prix obligatoire supérieur à 0',!(parsePositiveAmount($('priceInput').value)>0));
+      addError($('currencyInput'),'Choisis une devise',!$('currencyInput').value);
+      addError($('boutiqueCategoryInput'),'Choisis une catégorie boutique',!$('boutiqueCategoryInput').value);
+      const zones=deliveryZones();
+      if(!zones.length){
+        errors.push('Ajoute au moins une zone de livraison');
+        const row=$('deliveryZonesList')&&$('deliveryZonesList').querySelector('[data-zone-row]');
+        if(row){ ['.deliveryZoneInput','.deliveryTimeValueInput','.deliveryUnitInput'].forEach(sel=>markInvalid(row.querySelector(sel),true)); if(!firstInvalid) firstInvalid=row.querySelector('.deliveryZoneInput'); }
+      }
+      document.querySelectorAll('[data-zone-row]').forEach(row=>{
+        const zone=row.querySelector('.deliveryZoneInput');
+        const value=row.querySelector('.deliveryTimeValueInput');
+        const unit=row.querySelector('.deliveryUnitInput');
+        const zoneMissing=!zone.value.trim();
+        const valueMissing=!((parseInt(String(value.value||'').replace(/[^0-9]/g,''),10)||0)>0);
+        const unitMissing=!unit.value;
+        markInvalid(zone,zoneMissing); markInvalid(value,valueMissing); markInvalid(unit,unitMissing);
+        if((zoneMissing||valueMissing||unitMissing) && !firstInvalid) firstInvalid=zoneMissing?zone:(valueMissing?value:unit);
+      });
+      const files=(state.files||[]).filter(f=>f&&f.type&&(f.type.startsWith('image/')||f.type.startsWith('video/'))).slice(0,18);
+      if(files.length<3) errors.push('Ajoute minimum 3 photos ou vidéos');
+    }else if(state.mode==='publish'){
+      // Publication normale : titre, description, hashtag, mention et catégorie sont optionnels.
+      // On bloque seulement s'il n'y a aucun média sélectionné.
+    }
+    const hint=$('validationHint');
+    const valid=errors.length===0;
+    if(hint){
+      hint.classList.remove('show','ok');
+      if(valid){
+        hint.textContent=isBoutiqueMode()?'Tous les champs boutique sont remplis. Tu peux publier.':'Publication normale prête. Les champs texte sont optionnels.';
+        hint.classList.add('show','ok');
+      }else{
+        hint.textContent='À compléter : '+errors.slice(0,3).join(' • ')+(errors.length>3?' ...':'');
+        hint.classList.add('show');
+      }
+    }
+    if($('publishBtn')) $('publishBtn').disabled=!valid;
+    if($('publishBtnTop')) $('publishBtnTop').disabled=!valid;
+    return {valid:valid,errors:errors,firstInvalid:firstInvalid};
+  }
+  function updatePublishButtonsState(){ return validatePublishForm({silent:true}); }
+
+  function openDetails(){
+    if(!state.file){toast("Choisis une photo ou vidéo réelle");return;}
+    loadLocations();
+    renderPublishModeUI();
+    $("step2").classList.add("show");
+    updatePublishButtonsState();
+  }
+
+  async function savePublish(){
+    const validation=validatePublishForm();
+    if(!validation.valid){
+      toast(validation.errors[0]||"Complète tous les champs obligatoires");
+      if(validation.firstInvalid){ try{ validation.firstInvalid.focus(); }catch(_e){} }
+      return;
+    }
+    if(!state.file){toast("Aucun média sélectionné");return;}
+    $("publishBtn").disabled=true; $("publishBtnTop").disabled=true;
+    startProgress("Préparation de la publication...");
+    toast("Publication en cours");
+    try{
+      const id="p_"+Date.now();
+      // V210 : ne pas attendre IndexedDB avant Supabase.
+      // La publication officielle doit passer par Storage + happyad_posts ;
+      // le cache média local est écrit plus bas en arrière-plan, sans bloquer l'utilisateur.
+      clearHeavyPublicationCaches();
+      let u={};try{u=JSON.parse(localStorage.getItem("HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL")||"{}")}catch(e){u={}}
+      let localPost={
+        id,mode:state.mode,
+        title:$("titleInput").value.trim()||"Publication HAPPYAD",
+        desc:$("descInput").value.trim(),
+        hashtags:$("hashtagInput").value.trim(),
+        mentions:$("mentionInput").value.trim(),
+        price:'',
+        category:$("categoryInput").value,
+        location:$("locationInput").value,
+        kind:state.kind,
+        creatorId:u.id||"",
+        creatorName:u.name||"Utilisateur HAPPYAD",
+        handle:u.handle?(String(u.handle).startsWith('@')?u.handle:'@'+u.handle):'',
+        avatar:u.avatar||"",
+        badge:u.badge||"aucun",
+        createdAt:Date.now()
+      };
+      if(isBoutiqueMode()){
+        const result=await saveBoutiquePublication();
+        saveMediaBestEffort({id:result.localPost.id,blob:result.homeFile,type:result.homeFile.type,kind:result.localPost.kind,name:result.homeFile.name||'media_principal'});
+        try{
+  const freshPost=Object.assign({},result.localPost,{
+    user_id:result.localPost.creatorId||"",
+    media_url:result.localPost.mediaUrl||"",
+    avatar_url:result.localPost.avatar||"",
+    description:result.localPost.desc||"",
+    created_at:result.localPost.created_at||new Date(result.localPost.createdAt||Date.now()).toISOString(),
+    __fromPublishSuccess:true
+  });
+
+  ['HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_ALL_POSTS_V1'].forEach(function(k){
+    let arr=[];
+    try{arr=JSON.parse(localStorage.getItem(k)||'[]')||[];}catch(_e){arr=[];}
+    if(!Array.isArray(arr))arr=[];
+    arr=[freshPost].concat(arr.filter(function(p){
+      return String(p&&p.id)!==String(freshPost.id);
+    })).slice(0,80);
+    localStorage.setItem(k,JSON.stringify(arr));
+  });
+
+  try{
+    let s=[];
+    try{s=JSON.parse(sessionStorage.getItem('HAPPYAD_SESSION_PROFILE_POSTS_V104')||'[]')||[];}catch(_e){s=[];}
+    if(!Array.isArray(s))s=[];
+    s=[freshPost].concat(s.filter(function(p){
+      return String(p&&p.id)!==String(freshPost.id);
+    })).slice(0,80);
+    sessionStorage.setItem('HAPPYAD_SESSION_PROFILE_POSTS_V104',JSON.stringify(s));
+  }catch(_e){}
+
+  sessionStorage.removeItem('HAPPYAD_PROFILE_POSTS_LAST_SYNC');
+  sessionStorage.removeItem('HAPPYAD_ALL_POSTS_LAST_SYNC');
+  sessionStorage.removeItem('HAPPYAD_HOME_POSTS_LAST_SYNC');
+
+  localStorage.setItem('HAPPYAD_PROFILE_REFRESH_NEEDED',String(Date.now()));
+}catch(_e){}
+        finishProgress("Produit publié dans Boutique et HAPPYAD");
+        toast("Produit publié dans Boutique et HAPPYAD");
+        safeLocalFlag("HAPPYAD_HOME_REFRESH_NEEDED","1");
+        setTimeout(()=>{window.location.href="../index.html";},900);
+        return;
+      }
+      if(state.kind==='photo'){localPost.imageCrop=Object.assign({},state.crop||{scale:1,x:0,y:0});}
+      if(state.kind==='photo' && state.mode==='publish' && state.files && state.files.length>1){
+        const groupFiles=state.files.slice(0,18);
+        const batchId='grp_'+Date.now();
+        const savedPosts=[];
+        for(let i=0;i<groupFiles.length;i++){
+          setProgress(12+Math.round((i/groupFiles.length)*70),'Publication photo '+(i+1)+'/'+groupFiles.length);
+          const pid=id+'_'+(i+1);
+          let groupedPost=Object.assign({},localPost,{id:pid,batchId:batchId,batch_id:batchId,groupIndex:i,group_index:i,photoIndex:i,photo_index:i,createdAt:Date.now()+i});
+          try{ groupedPost=await savePostToSupabase(groupedPost,groupFiles[i]); }
+          catch(remoteErr){ console.error(remoteErr); toast('Photo '+(i+1)+' non enregistrée : '+(remoteErr.message||remoteErr.error_description||'SQL colonnes/RLS')); throw remoteErr; }
+          savedPosts.push(groupedPost);
+          saveMediaBestEffort({id:pid,blob:groupFiles[i],type:groupFiles[i].type,kind:'photo',name:groupFiles[i].name||('photo_'+(i+1))});
+        }
+        try{
+  const postsToCache=(savedPosts||[]).map(function(p){
+    return Object.assign({},p,{
+      user_id:p.user_id||p.creatorId||localPost.creatorId||"",
+      media_url:p.media_url||p.mediaUrl||"",
+      avatar_url:p.avatar_url||p.avatar||localPost.avatar||"",
+      description:p.description||p.desc||localPost.desc||"",
+      created_at:p.created_at||new Date(p.createdAt||Date.now()).toISOString(),
+      batch_id:p.batch_id||p.batchId||batchId,
+      batchId:p.batchId||p.batch_id||batchId,
+      group_index:p.group_index!=null?p.group_index:(p.groupIndex!=null?p.groupIndex:0),
+      groupIndex:p.groupIndex!=null?p.groupIndex:(p.group_index!=null?p.group_index:0),
+      __fromPublishSuccess:true
+    });
+  }).sort(function(a,b){
+    return (Number(b.createdAt)||0)-(Number(a.createdAt)||0);
+  });
+
+  ['HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_ALL_POSTS_V1'].forEach(function(k){
+    let arr=[];
+    try{arr=JSON.parse(localStorage.getItem(k)||'[]')||[];}catch(_e){arr=[];}
+    if(!Array.isArray(arr))arr=[];
+
+    const ids={};
+    postsToCache.forEach(function(p){
+      ids[String(p&&p.id)] = 1;
+    });
+
+    arr=postsToCache.concat(arr.filter(function(p){
+      return !ids[String(p&&p.id)];
+    })).slice(0,120);
+
+    localStorage.setItem(k,JSON.stringify(arr));
+  });
+
+  try{
+    let s=[];
+    try{s=JSON.parse(sessionStorage.getItem('HAPPYAD_SESSION_PROFILE_POSTS_V104')||'[]')||[];}catch(_e){s=[];}
+    if(!Array.isArray(s))s=[];
+
+    const ids={};
+    postsToCache.forEach(function(p){
+      ids[String(p&&p.id)] = 1;
+    });
+
+    s=postsToCache.concat(s.filter(function(p){
+      return !ids[String(p&&p.id)];
+    })).slice(0,120);
+
+    sessionStorage.setItem('HAPPYAD_SESSION_PROFILE_POSTS_V104',JSON.stringify(s));
+  }catch(_e){}
+
+  sessionStorage.removeItem('HAPPYAD_PROFILE_POSTS_LAST_SYNC');
+  sessionStorage.removeItem('HAPPYAD_ALL_POSTS_LAST_SYNC');
+  sessionStorage.removeItem('HAPPYAD_HOME_POSTS_LAST_SYNC');
+
+  localStorage.setItem('HAPPYAD_PROFILE_REFRESH_NEEDED',String(Date.now()));
+}catch(_e){}
+        finishProgress('Publication groupée publiée');
+        toast('Publication groupée publiée');
+        safeLocalFlag('HAPPYAD_HOME_REFRESH_NEEDED','1');
+        setTimeout(()=>{window.location.href='../index.html';},900);
+        return;
+      }
+      try{ localPost=await savePostToSupabase(localPost,state.file); }
+      catch(remoteErr){ console.error(remoteErr); toast("Publication non enregistrée : "+(remoteErr.message||remoteErr.error_description||"SQL colonnes/RLS")); throw remoteErr; }
+      if(localPost.__radarOnly || state.mode==='story' || state.mode==='live'){
+        saveMediaBestEffort({id,blob:state.file,type:state.file.type,kind:state.kind,name:state.file.name||"media"});
+        finishProgress((state.mode==='live'?'Live':'Story')+" envoyé dans le Radar");
+        toast((state.mode==='live'?'Live':'Story')+" envoyé dans le Radar");
+        safeLocalFlag('HAPPYAD_RADAR_REFRESH_NEEDED','1')
+        setTimeout(()=>{window.location.href="../index.html";},900);
+        return;
+      }
+      saveMediaBestEffort({id,blob:state.file,type:state.file.type,kind:state.kind,name:state.file.name||"media"});
+      try{
+  const freshPost=Object.assign({},localPost,{
+    user_id:localPost.creatorId||"",
+    media_url:localPost.mediaUrl||"",
+    avatar_url:localPost.avatar||"",
+    description:localPost.desc||"",
+    created_at:localPost.created_at||new Date(localPost.createdAt||Date.now()).toISOString(),
+    __fromPublishSuccess:true
+  });
+
+  ['HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_ALL_POSTS_V1'].forEach(function(k){
+    let arr=[];
+    try{arr=JSON.parse(localStorage.getItem(k)||'[]')||[];}catch(_e){arr=[];}
+    if(!Array.isArray(arr))arr=[];
+    arr=[freshPost].concat(arr.filter(function(p){
+      return String(p&&p.id)!==String(freshPost.id);
+    })).slice(0,80);
+    localStorage.setItem(k,JSON.stringify(arr));
+  });
+
+  try{
+    let s=[];
+    try{s=JSON.parse(sessionStorage.getItem('HAPPYAD_SESSION_PROFILE_POSTS_V104')||'[]')||[];}catch(_e){s=[];}
+    if(!Array.isArray(s))s=[];
+    s=[freshPost].concat(s.filter(function(p){
+      return String(p&&p.id)!==String(freshPost.id);
+    })).slice(0,80);
+    sessionStorage.setItem('HAPPYAD_SESSION_PROFILE_POSTS_V104',JSON.stringify(s));
+  }catch(_e){}
+
+  sessionStorage.removeItem('HAPPYAD_PROFILE_POSTS_LAST_SYNC');
+  sessionStorage.removeItem('HAPPYAD_ALL_POSTS_LAST_SYNC');
+  sessionStorage.removeItem('HAPPYAD_HOME_POSTS_LAST_SYNC');
+
+  localStorage.setItem('HAPPYAD_PROFILE_REFRESH_NEEDED',String(Date.now()));
+}catch(_e){}
+      finishProgress("Publication publiée");
+      toast("Publication publiée");
+      safeLocalFlag("HAPPYAD_HOME_REFRESH_NEEDED","1");
+      setTimeout(()=>{window.location.href="../index.html";},900);
+    }catch(err){
+      console.error(err);
+      const m=(err&&err.message)?err.message:String(err||'Erreur inconnue');
+      failProgress('Échec : '+m.slice(0,90));
+      toast('Échec publication : '+m.slice(0,120));
+      updatePublishButtonsState();
+    }
+  }
+
+  function openFileChooser(inputId){
+    const el=$(inputId);
+    if(!el){toast("Sélecteur introuvable");return;}
+    try{el.value="";}catch(_e){}
+    el.click();
+  }
+
+  $("nextBtn").onclick=openDetails;
+  $("backEdit").onclick=()=>$("step2").classList.remove("show");
+  function setActiveTile(id){document.querySelectorAll('.fileTile').forEach(b=>b.classList.toggle('on',b.id===id));}
+  $("cameraBtn").onclick=()=>{$("cameraSheet").classList.add("show");};
+  $("cameraCancel").onclick=()=>{$("cameraSheet").classList.remove("show");};
+  $("takePhotoBtn").onclick=()=>{$("cameraSheet").classList.remove("show");toast("Ouverture caméra photo...");openFileChooser("cameraPhotoInput");};
+  $("takeVideoBtn").onclick=()=>{$("cameraSheet").classList.remove("show");toast("Ouverture caméra vidéo...");openFileChooser("cameraVideoInput");};
+  $("galleryBtn").onclick=()=>{setActiveTile("allBtn");toast("Ouverture galerie...");openFileChooser("fileInput");};
+  $("allBtn").onclick=()=>{setActiveTile("allBtn");openFileChooser("fileInput");};
+  $("imageBtn").onclick=()=>{setActiveTile("imageBtn");openFileChooser("imageInput");};
+  $("videoBtn").onclick=()=>{setActiveTile("videoBtn");openFileChooser("videoInput");};
+  $("audioBtn").onclick=()=>{setActiveTile("audioBtn");openFileChooser("audioInput");};
+  $("docBtn").onclick=()=>{setActiveTile("docBtn");openFileChooser("docInput");};
+  $("otherBtn").onclick=()=>{setActiveTile("otherBtn");openFileChooser("otherInput");};
+  $("liveBtn").onclick=()=>{window.location.href="live.html";};
+  $("locationBtn").onclick=()=>{window.location.href="map.html";};
+  $("fileInput").onchange=e=>showFiles(e.target.files);
+  $("imageInput").onchange=e=>showFiles(e.target.files);
+  $("videoInput").onchange=e=>showFiles(e.target.files);
+  $("audioInput").onchange=e=>showFile(e.target.files&&e.target.files[0]);
+  $("docInput").onchange=e=>showFile(e.target.files&&e.target.files[0]);
+  $("otherInput").onchange=e=>showFile(e.target.files&&e.target.files[0]);
+  $("boutiqueMediaInput").onchange=e=>showFiles(e.target.files);
+  $("cameraPhotoInput").onchange=e=>showFile(e.target.files&&e.target.files[0]);
+  $("cameraVideoInput").onchange=e=>showFile(e.target.files&&e.target.files[0]);
+  $("publishBtn").onclick=savePublish;
+  $("publishBtnTop").onclick=savePublish;
+  $("normalModeBtn").onclick=()=>setPublishTarget("normal");
+  $("boutiqueModeBtn").onclick=()=>setPublishTarget("boutique");
+  $("replaceBoutiqueMediaBtn").onclick=()=>{openFileChooser("boutiqueMediaInput");};
+  $("addDeliveryZoneBtn").onclick=()=>{addDeliveryZoneRow(); updatePublishButtonsState();};
+  $("deliveryZonesList").onclick=e=>{const btn=e.target.closest("[data-remove-zone]");if(!btn)return;const rows=document.querySelectorAll("[data-zone-row]");if(rows.length<=1){toast("Garde au moins une zone");return;}btn.closest("[data-zone-row]").remove();updateDeliveryRemoveButtons();updatePublishButtonsState();};
+  $("homeMediaSelect").onchange=e=>{state.homeCoverIndex=Number(e.target.value||0)||0; updatePublishButtonsState();};
+  ["titleInput","descInput","hashtagInput","mentionInput","categoryInput","locationInput","boutiqueTitleInput","boutiqueDescInput","priceInput","currencyInput","boutiqueCategoryInput"].forEach(function(id){
+    const el=$(id); if(!el)return; el.addEventListener('input',updatePublishButtonsState); el.addEventListener('change',updatePublishButtonsState);
+  });
+  $("deliveryZonesList").addEventListener('input',updatePublishButtonsState);
+  $("deliveryZonesList").addEventListener('change',updatePublishButtonsState);
+  function applyInitialModeButtons(){document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("on",x.dataset.mode===state.mode));}
+  bindModes(); applyInitialModeButtons(); loadLocations(); renderPublishModeUI(); updatePublishButtonsState();
+})();
+</script>
+
+
+<!-- HAPPYAD V492 — pont application: retour et liens restent dans index.html quand la page est ouverte comme module interne -->
+<script id="happyad-v492-module-app-bridge">
+(function(){
+  if(window.__HAPPYAD_V492_MODULE_APP_BRIDGE__)return;window.__HAPPYAD_V492_MODULE_APP_BRIDGE__=true;
+  function inFrame(){try{return window.parent&&window.parent!==window;}catch(e){return false;}}
+  function clean(url){url=String(url||'').trim();if(url.indexOf('../')===0)url=url.replace(/^\.\.\//,'');if(url.indexOf('./')===0)url=url.replace(/^\.\//,'');return url;}
+  function send(url){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:clean(url)},'*');return true;}}catch(e){}return false;}
+  function close(){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_CLOSE_APP_PAGE'},'*');return true;}}catch(e){}return false;}
+  window.happyadOpenInternalUrlV492=function(url){if(send(url))return true;location.href=url;return true;};
+  window.happyadCloseAppPage=function(){if(close())return true;history.back();return true;};
+  document.addEventListener('click',function(e){
+    try{
+      if(!inFrame())return;
+      var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
+      var href=a.getAttribute('href')||'';var c=clean(href);var p=c.split('?')[0].split('#')[0];
+      if(p==='index.html'||p==='/index.html'||href==='../index.html'||href==='index.html'||href==='/'){
+        e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close();return false;
+      }
+      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
+        e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();send(c);return false;
+      }
+    }catch(_e){}
+  },true);
+})();
+</script>
+
+
+
+<style id="happyad-v503-global-tap-orange-css">
+.happyadTapOrange,.happyadTapOrange *,button:active,a:active,.nav:active,[role="button"]:active{color:#ff8a00!important;border-color:rgba(255,138,0,.72)!important}
+.happyadTapOrange svg,.happyadTapOrange svg *,button:active svg,a:active svg,.nav:active svg{stroke:#ff8a00!important}
+</style>
+<script id="happyad-v503-global-tap-orange-js">
+(function(){if(window.__HAPPYAD_V503_GLOBAL_TAP_ORANGE__)return;window.__HAPPYAD_V503_GLOBAL_TAP_ORANGE__=true;function o(el){try{if(!el||!el.classList)return;el.classList.add('happyadTapOrange');clearTimeout(el.__happyadTapOrangeT);el.__happyadTapOrangeT=setTimeout(function(){try{el.classList.remove('happyadTapOrange');}catch(e){}},260);}catch(e){}}['pointerdown','touchstart','mousedown','click'].forEach(function(ev){try{document.addEventListener(ev,function(e){try{var el=e.target&&e.target.closest&&e.target.closest('button,a,.nav,[role="button"],.chip,.round,.topBtn,.actionBtn,.filterBtn,.sortBtn,.catCard');if(el)o(el);}catch(x){}},{capture:true,passive:true});}catch(e){}});})();
+</script>
+
+</body>
+</html>

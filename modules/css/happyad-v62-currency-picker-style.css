@@ -1,0 +1,18 @@
+/* Extracted from index.html. Keep load order. */
+.productEditSheet #prodEditCurrency{display:none!important}
+.productEditSheet .v62CurrencyPickerBox{width:100%;border:1px solid rgba(255,255,255,.10);background:#090d14;border-radius:18px;padding:13px 16px;margin:10px 0;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;box-sizing:border-box}
+.productEditSheet .v62CurrencyPickerBox b{font-size:18px;line-height:1.1;font-weight:1000;letter-spacing:.4px;display:block;color:#fff}
+.productEditSheet .v62CurrencyPickerBox small{font-size:11px;line-height:1.15;color:#aeb2c1;font-weight:800;display:block;margin-top:4px;text-transform:none;letter-spacing:0}
+.productEditSheet .v62CurrencyPickerBox .v62Chevron{font-size:22px;color:#b8bdca;line-height:1}
+.productEditSheet .v62CurrencyPanel{display:none;border:1px solid rgba(255,255,255,.12);background:#090d14;border-radius:18px;margin:8px 0 12px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.42)}
+.productEditSheet .v62CurrencyPanel.show{display:block}
+.productEditSheet .v62CurrencySearch{width:100%;box-sizing:border-box;border:0!important;border-bottom:1px solid rgba(255,255,255,.10)!important;border-radius:0!important;background:#0f1520!important;color:#fff!important;padding:13px 16px!important;font-size:16px!important;outline:none!important}
+.productEditSheet .v62CurrencyList{max-height:42vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.productEditSheet .v62CurrencyOption{width:100%;border:0;background:transparent;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.09);text-align:left;cursor:pointer}
+.productEditSheet .v62CurrencyOption:last-child{border-bottom:0}
+.productEditSheet .v62CurrencyOption b{font-size:18px;line-height:1.1;font-weight:1000;letter-spacing:.4px;color:#fff;display:block}
+.productEditSheet .v62CurrencyOption small{display:block;margin-top:4px;font-size:11px;line-height:1.15;font-weight:850;color:#aeb2c1;text-transform:none;letter-spacing:0}
+.productEditSheet .v62CurrencyOption.active{background:rgba(255,122,0,.10)}
+.productEditSheet .v62CurrencyOption.active b,.productEditSheet .v62CurrencyOption.active .v62Check{color:#ff7a00}
+.productEditSheet .v62CurrencyAdminNote{border:1px solid rgba(255,122,0,.22);background:rgba(255,122,0,.08);border-radius:16px;padding:10px 12px;color:#ffd7b0;font-size:12px;font-weight:850;line-height:1.35;margin:4px 0 12px}
+.productEditSheet .v62CurrencyAdminNote b{color:#fff}

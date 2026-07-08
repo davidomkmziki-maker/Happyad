@@ -1,0 +1,298 @@
+/* V129 — Stats boutique : créateur 5 blocs, visiteur/acheteur 3 blocs */
+#profile .publicCard.v117HiddenPublicPreview{
+  display:none!important;
+}
+
+#profile .vendorHero,
+#vendor .vendorHero{
+  overflow:hidden!important;
+}
+
+#profile .vendorHero .vendorTop,
+#vendor .vendorHero .vendorTop{
+  align-items:flex-start!important;
+  gap:12px!important;
+  min-width:0!important;
+}
+
+#profile .vendorHero .vendorTop .avatar,
+#vendor .vendorHero .vendorTop .avatar{
+  flex:0 0 auto!important;
+  width:58px!important;
+  height:58px!important;
+}
+
+#profile .vendorHero .vendorTop > div:not(.avatar),
+#vendor .vendorHero .vendorTop > div:not(.avatar){
+  min-width:0!important;
+  flex:1 1 auto!important;
+}
+
+#profile .vendorHero .happyadName,
+#vendor .vendorHero .happyadName{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:5px!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  font-size:clamp(24px,7vw,32px)!important;
+  line-height:1.04!important;
+  letter-spacing:-.5px!important;
+  word-break:break-word!important;
+}
+
+#profile .vendorHero .status,
+#vendor .vendorHero .status{
+  white-space:nowrap!important;
+  flex:0 0 auto!important;
+}
+
+#vendor .vendorHero .vendorTop .status{
+  margin-left:auto!important;
+  margin-top:2px!important;
+}
+
+#profile .vendorHero .stats.svgStats,
+#profile .vendorHero .sellerProfileStats{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin-top:16px!important;
+}
+
+#profile .vendorHero .sellerProfileStats .productsStat{
+  grid-column:1 / -1!important;
+}
+
+#vendor .vendorHero .stats,
+#vendor .vendorHero .sellerPublicStats{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin-top:16px!important;
+}
+
+#profile .vendorHero .stats .stat,
+#vendor .vendorHero .stats .stat{
+  min-width:0!important;
+  min-height:86px!important;
+  padding:13px 8px!important;
+  display:grid!important;
+  place-items:center!important;
+  align-content:center!important;
+  gap:4px!important;
+  border-radius:18px!important;
+}
+
+#profile .vendorHero .stats .stat b,
+#vendor .vendorHero .stats .stat b,
+#profile .vendorHero .stats .globalStarStat b,
+#profile .vendorHero .stats .v118GlobalStarStat b{
+  display:grid!important;
+  place-items:center!important;
+  width:23px!important;
+  height:23px!important;
+  margin:0 auto!important;
+  color:#ffad29!important;
+}
+
+#profile .vendorHero .stats .stat b svg,
+#vendor .vendorHero .stats .stat b svg,
+#profile .vendorHero .stats .globalStarStat b svg,
+#profile .vendorHero .stats .v118GlobalStarStat b svg{
+  width:23px!important;
+  height:23px!important;
+}
+
+#profile .vendorHero .stats .stat strong,
+#vendor .vendorHero .stats .stat strong,
+#profile .vendorHero .stats .globalStarStat strong,
+#profile .vendorHero .stats .v118GlobalStarStat strong{
+  display:block!important;
+  font-size:clamp(22px,6vw,29px)!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  color:#fff!important;
+  margin:0!important;
+}
+
+#profile .vendorHero .stats .stat span,
+#vendor .vendorHero .stats .stat span,
+#profile .vendorHero .stats .globalStarStat span,
+#profile .vendorHero .stats .v118GlobalStarStat span{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  color:var(--muted)!important;
+  font-size:clamp(11px,3.2vw,13px)!important;
+  line-height:1.12!important;
+  text-align:center!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  word-break:normal!important;
+  overflow-wrap:break-word!important;
+}
+
+@media (max-width:360px){
+  #profile .vendorHero,
+  #vendor .vendorHero{
+    padding:16px!important;
+    border-radius:26px!important;
+  }
+  #vendor .vendorHero .vendorTop{
+    display:grid!important;
+    grid-template-columns:58px minmax(0,1fr) auto!important;
+    align-items:start!important;
+  }
+  #vendor .vendorHero .happyadName{
+    font-size:25px!important;
+  }
+  #vendor .vendorHero .vendorTop .status{
+    grid-column:3!important;
+    max-width:104px!important;
+    padding:7px 10px!important;
+    font-size:12px!important;
+  }
+  #vendor .vendorHero .stats,
+  #vendor .vendorHero .sellerPublicStats{
+    gap:6px!important;
+  }
+  #vendor .vendorHero .stats .stat{
+    min-height:78px!important;
+    padding:10px 5px!important;
+    border-radius:16px!important;
+  }
+  #vendor .vendorHero .stats .stat span{
+    font-size:10.5px!important;
+  }
+}
+
+#profile .freeHead{
+  margin-top:4px!important;
+}
+
+/* V130 — Stats boutique plus petites et mieux organisées (CSS uniquement, aucune logique touchée) */
+#profile .vendorHero,
+#vendor .vendorHero{
+  padding:16px!important;
+  border-radius:26px!important;
+}
+#profile .vendorHero .vendorTop,
+#vendor .vendorHero .vendorTop{
+  gap:10px!important;
+}
+#profile .vendorHero .vendorTop .avatar,
+#vendor .vendorHero .vendorTop .avatar{
+  width:52px!important;
+  height:52px!important;
+  flex-basis:52px!important;
+}
+#profile .vendorHero .happyadName,
+#vendor .vendorHero .happyadName{
+  font-size:clamp(22px,6.2vw,30px)!important;
+  line-height:1.02!important;
+  letter-spacing:-.55px!important;
+}
+#profile .vendorHero .status,
+#vendor .vendorHero .status{
+  padding:7px 10px!important;
+  font-size:12px!important;
+}
+
+/* Créateur : 5 stats compactes en 3 + 2, pour éviter le grand bloc Produit */
+#profile .vendorHero .creatorProfileStats,
+#profile .vendorHero .stats.svgStats.creatorProfileStats,
+#profile .vendorHero .sellerProfileStats.creatorProfileStats{
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin-top:14px!important;
+}
+#profile .vendorHero .creatorProfileStats .stat{
+  grid-column:span 2!important;
+  min-height:72px!important;
+  padding:8px 5px!important;
+  border-radius:16px!important;
+  gap:2px!important;
+}
+#profile .vendorHero .creatorProfileStats .viewsStat,
+#profile .vendorHero .creatorProfileStats .productsStat{
+  grid-column:span 3!important;
+}
+#profile .vendorHero .creatorProfileStats .stat b,
+#profile .vendorHero .creatorProfileStats .globalStarStat b,
+#profile .vendorHero .creatorProfileStats .v118GlobalStarStat b,
+#vendor .vendorHero .sellerPublicStats .stat b{
+  width:19px!important;
+  height:19px!important;
+}
+#profile .vendorHero .creatorProfileStats .stat b svg,
+#profile .vendorHero .creatorProfileStats .globalStarStat b svg,
+#profile .vendorHero .creatorProfileStats .v118GlobalStarStat b svg,
+#vendor .vendorHero .sellerPublicStats .stat b svg{
+  width:19px!important;
+  height:19px!important;
+}
+#profile .vendorHero .creatorProfileStats .stat strong,
+#profile .vendorHero .creatorProfileStats .globalStarStat strong,
+#profile .vendorHero .creatorProfileStats .v118GlobalStarStat strong,
+#vendor .vendorHero .sellerPublicStats .stat strong{
+  font-size:clamp(19px,5.1vw,24px)!important;
+  line-height:.98!important;
+}
+#profile .vendorHero .creatorProfileStats .stat span,
+#profile .vendorHero .creatorProfileStats .globalStarStat span,
+#profile .vendorHero .creatorProfileStats .v118GlobalStarStat span,
+#vendor .vendorHero .sellerPublicStats .stat span{
+  font-size:clamp(9.8px,2.75vw,11.5px)!important;
+  line-height:1.08!important;
+}
+
+/* Visiteur / acheteur : 3 stats seulement, compactes */
+#vendor .vendorHero .sellerPublicStats,
+#vendor .vendorHero .stats.sellerPublicStats{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  margin-top:14px!important;
+}
+#vendor .vendorHero .sellerPublicStats .stat{
+  min-height:72px!important;
+  padding:8px 5px!important;
+  border-radius:16px!important;
+  gap:2px!important;
+}
+
+@media (max-width:360px){
+  #profile .vendorHero,
+  #vendor .vendorHero{
+    padding:14px!important;
+    border-radius:24px!important;
+  }
+  #profile .vendorHero .vendorTop .avatar,
+  #vendor .vendorHero .vendorTop .avatar{
+    width:48px!important;
+    height:48px!important;
+    flex-basis:48px!important;
+  }
+  #profile .vendorHero .happyadName,
+  #vendor .vendorHero .happyadName{
+    font-size:22px!important;
+  }
+  #profile .vendorHero .creatorProfileStats,
+  #vendor .vendorHero .sellerPublicStats{
+    gap:6px!important;
+  }
+  #profile .vendorHero .creatorProfileStats .stat,
+  #vendor .vendorHero .sellerPublicStats .stat{
+    min-height:66px!important;
+    padding:7px 4px!important;
+    border-radius:14px!important;
+  }
+  #profile .vendorHero .creatorProfileStats .stat strong,
+  #vendor .vendorHero .sellerPublicStats .stat strong{
+    font-size:19px!important;
+  }
+  #profile .vendorHero .creatorProfileStats .stat span,
+  #vendor .vendorHero .sellerPublicStats .stat span{
+    font-size:9.4px!important;
+  }
+}
