@@ -1,4 +1,24 @@
 <!DOCTYPE html><html lang="fr"><head>
+<script id="happyad-v648-pwa-early-install-capture">
+(function(){
+  'use strict';
+  if(window.__HAPPYAD_V648_PWA_EARLY_INSTALL_CAPTURE__)return;
+  window.__HAPPYAD_V648_PWA_EARLY_INSTALL_CAPTURE__=true;
+  window.__HAPPYAD_EARLY_INSTALL_PROMPT__=window.__HAPPYAD_EARLY_INSTALL_PROMPT__||null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    try{
+      e.preventDefault();
+      window.__HAPPYAD_EARLY_INSTALL_PROMPT__=e;
+      window.__HAPPYAD_EARLY_INSTALL_READY__=true;
+      try{window.dispatchEvent(new CustomEvent('happyad:pwa-install-ready'));}catch(_ce){}
+    }catch(_e){}
+  },true);
+  window.addEventListener('appinstalled',function(){
+    try{localStorage.setItem('HAPPYAD_PWA_INSTALLED_V16ZA','1');}catch(_e){}
+    try{window.__HAPPYAD_EARLY_INSTALL_PROMPT__=null;window.__HAPPYAD_EARLY_INSTALL_READY__=false;}catch(_e2){}
+  },true);
+})();
+</script>
 <script id="happyad-v274-logout-landing-guard">
 (function(){
   try{
@@ -102,7 +122,7 @@ html.happyadBootRestoringPageV16ZJ .app{opacity:0!important;pointer-events:none!
 
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
 <!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
-<link rel="manifest" href="manifest.webmanifest?v=647pwa">
+<link rel="manifest" href="manifest.webmanifest?v=648pwa">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
@@ -6929,7 +6949,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=647pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=648pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -8627,7 +8647,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 
 
 <!-- === HAPPYAD V492 — APPLICATION CONNECTÉE / ROUTEUR CENTRAL PHOTO-VIDÉO-PROFIL === -->
-<style id="happyad-v16zf-pwa-install-10s-session-style">
+<style id="happyad-v648-pwa-install-direct-master-style">
 #happyadInstallAppBtn{position:fixed!important;left:50%!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 10px)!important;bottom:auto!important;z-index:1000008!important;width:min(496px,calc(100% - 22px))!important;max-width:496px!important;margin:0!important;display:none!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;border:1px solid rgba(255,138,0,.46)!important;background:linear-gradient(180deg,rgba(21,23,30,.98),rgba(6,7,11,.985))!important;color:#fff!important;border-radius:22px!important;padding:10px 11px!important;font:900 12px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;box-shadow:0 16px 38px rgba(0,0,0,.54),0 0 0 1px rgba(255,255,255,.05) inset!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;opacity:0!important;transform:translate(-50%,-12px)!important;transition:opacity .22s ease,transform .22s ease!important;text-align:left!important;touch-action:manipulation!important;cursor:pointer!important}
 #happyadInstallAppBtn.on{display:grid!important;opacity:1!important;transform:translate(-50%,0)!important}
 #happyadInstallAppBtn .haInstallIcon{width:42px!important;height:42px!important;border-radius:15px!important;display:grid!important;place-items:center!important;background:#000!important;color:#fff!important;font-size:0!important;box-shadow:0 10px 24px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.14) inset!important;flex:0 0 auto!important;overflow:hidden!important}
@@ -8655,11 +8675,11 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
 </style>
 <button id="happyadInstallAppBtn" type="button" aria-label="Télécharger l’application HAPPYAD"><span class="haInstallIcon" aria-hidden="true"><img src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""></span><span class="haInstallText"><b>Télécharger l’application HAPPYAD</b><small>Disponible avec Chrome, Samsung, Edge, Brave, Firefox...</small></span><span class="haInstallAction">Installer</span></button>
 <div id="happyadPwaGuide" aria-hidden="true"><div class="haPwaBox" role="dialog" aria-modal="true" aria-label="Installation HAPPYAD"><div class="haPwaTop"><img class="haPwaLogo" src="icons/happyad-icon-v535center1-192.png?v=536reset1" alt=""><span class="haPwaTitle"><b>Installer HAPPYAD</b><small id="happyadPwaGuideSub">Choisis ton navigateur puis suis les étapes.</small></span></div><ul class="haPwaSteps" id="happyadPwaGuideSteps"><li><b>1.</b> Ouvre le menu du navigateur.</li><li><b>2.</b> Choisis “Installer l’application” ou “Ajouter à l’écran d’accueil”.</li><li><b>3.</b> Confirme avec “Installer” ou “Ajouter”.</li></ul><div class="haPwaBtns"><button type="button" class="haPwaBtn" id="happyadPwaGuideClose">Fermer</button><button type="button" class="haPwaBtn" id="happyadPwaAlreadyInstalled">Déjà installé</button><button type="button" class="haPwaBtn primary" id="happyadPwaCopyLink">Copier le lien</button></div><div class="haPwaNote">Si HAPPYAD est déjà installé, ouvre l’icône de l’application. La notification d’installation sera cachée automatiquement.</div></div></div>
-<script id="happyad-v16zf-pwa-install-10s-session">
+<script id="happyad-v648-pwa-install-direct-master">
 (function(){
   'use strict';
-  if(window.__HAPPYAD_V16ZF_PWA_INSTALL_10S_SESSION__)return;
-  window.__HAPPYAD_V16ZF_PWA_INSTALL_10S_SESSION__=true;
+  if(window.__HAPPYAD_V648_PWA_INSTALL_DIRECT_MASTER__)return;
+  window.__HAPPYAD_V648_PWA_INSTALL_DIRECT_MASTER__=true;
   window.__HAPPYAD_PWA_DISABLED__=false;
 
   var deferredPrompt=null;
@@ -8697,6 +8717,15 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   function clearNoticeTimer(){try{if(noticeAutoTimer){clearTimeout(noticeAutoTimer);noticeAutoTimer=null;}}catch(_e){}}
   function hide(){try{clearNoticeTimer();var b=btn();if(b)b.classList.remove('on');}catch(_e){}}
   function hideForThisVisit(){try{noticeClosedThisVisit=true;hide();}catch(_e){hide();}}
+  function takeEarlyPrompt(){
+    try{
+      if(!deferredPrompt && window.__HAPPYAD_EARLY_INSTALL_PROMPT__){
+        deferredPrompt=window.__HAPPYAD_EARLY_INSTALL_PROMPT__;
+        readyForNativePrompt=true;
+      }
+      return !!deferredPrompt;
+    }catch(_e){return !!deferredPrompt;}
+  }
   function scheduleNoticeAutoHide(){
     try{
       clearNoticeTimer();
@@ -8705,6 +8734,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   }
   function show(){
     try{
+      takeEarlyPrompt();
       if(isInstalledKnown())return hide();
       if(noticeClosedThisVisit)return hide();
       var b=btn();if(!b)return;
@@ -8715,6 +8745,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   }
   function setButtonText(){
     try{
+      takeEarlyPrompt();
       var b=btn();if(!b)return;
       var s=b.querySelector('.haInstallText small');
       var a=b.querySelector('.haInstallAction');
@@ -8740,8 +8771,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
         if(s)s.textContent='iPhone : Partager puis Ajouter à l’écran d’accueil.';
         if(a)a.textContent='Guide';
       }else{
-        if(s)s.textContent='Ouvre le guide si le bouton Installer ne sort pas.';
-        if(a)a.textContent='Guide';
+        if(s)s.textContent='Appuie pour installer. Si Chrome ne propose pas, le guide s’ouvre.';
+        if(a)a.textContent='Installer';
       }
     }catch(_e){}
   }
@@ -8757,6 +8788,8 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   }
   function openGuide(){
     try{
+      takeEarlyPrompt();
+      if(readyForNativePrompt)return clickInstall(null);
       if(isInstalledKnown())return hide();
       var g=guide();if(!g)return;
       var sub=document.getElementById('happyadPwaGuideSub');
@@ -8786,22 +8819,30 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   }
 
   window.addEventListener('beforeinstallprompt',function(e){
-    try{e.preventDefault();deferredPrompt=e;readyForNativePrompt=true;show();}catch(_e){}
+    try{e.preventDefault();window.__HAPPYAD_EARLY_INSTALL_PROMPT__=e;deferredPrompt=e;readyForNativePrompt=true;noticeClosedThisVisit=false;closeGuide();show();}catch(_e){}
+  },true);
+  window.addEventListener('happyad:pwa-install-ready',function(){
+    try{takeEarlyPrompt();readyForNativePrompt=!!deferredPrompt;noticeClosedThisVisit=false;closeGuide();show();}catch(_e){}
   });
   window.addEventListener('appinstalled',function(){markInstalled();deferredPrompt=null;readyForNativePrompt=false;hide();closeGuide();});
 
   function clickInstall(e){
     try{if(e){e.preventDefault();e.stopPropagation();}}catch(_e){}
     try{
+      takeEarlyPrompt();
       if(isInstalledKnown())return hide();
       if(deferredPrompt){
-        var p=deferredPrompt;deferredPrompt=null;readyForNativePrompt=false;
+        var p=deferredPrompt;deferredPrompt=null;window.__HAPPYAD_EARLY_INSTALL_PROMPT__=null;readyForNativePrompt=false;
+        closeGuide();
         p.prompt();
         if(p.userChoice&&p.userChoice.then){p.userChoice.then(function(choice){if(choice&&choice.outcome==='accepted')hide();else{setButtonText();hideForThisVisit();openGuide();}}).catch(function(){setButtonText();hideForThisVisit();openGuide();});}
         return false;
       }
-      hideForThisVisit();
-      openGuide();
+      var b=btn(), small=b&&b.querySelector('.haInstallText small'), act=b&&b.querySelector('.haInstallAction');
+      if(small)small.textContent='Préparation de l’installation... réessaie dans 2 secondes.';
+      if(act)act.textContent='Installer';
+      noticeClosedThisVisit=false;
+      setTimeout(function(){try{takeEarlyPrompt();if(deferredPrompt){show();}else{hideForThisVisit();openGuide();}}catch(_e2){hideForThisVisit();openGuide();}},2200);
       return false;
     }catch(_e){hideForThisVisit();openGuide();return false;}
   }
@@ -8816,6 +8857,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
       var cp=document.getElementById('happyadPwaCopyLink');if(cp&&!cp.__happyadPwaCopyV16Z){cp.__happyadPwaCopyV16Z=true;cp.addEventListener('click',copyLink,true);}
       var ai=document.getElementById('happyadPwaAlreadyInstalled');if(ai&&!ai.__happyadPwaInstalledV16ZF){ai.__happyadPwaInstalledV16ZF=true;ai.addEventListener('click',alreadyInstalled,true);}
       var g=guide();if(g&&!g.__happyadPwaBackV16Z){g.__happyadPwaBackV16Z=true;g.addEventListener('click',function(e){if(e.target===g)closeGuide();},true);}
+      takeEarlyPrompt();
       if(isStandalone())hide();else setTimeout(show,700);
     }catch(_e){}
   }

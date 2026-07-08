@@ -4879,7 +4879,7 @@ async function saveRemote(id,on){
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=647pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=648pwa',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -5537,8 +5537,8 @@ async function saveRemote(id,on){
         if(s)s.textContent='iPhone : Partager puis Ajouter à l’écran d’accueil.';
         if(a)a.textContent='Guide';
       }else{
-        if(s)s.textContent='Ouvre le guide si le bouton Installer ne sort pas.';
-        if(a)a.textContent='Guide';
+        if(s)s.textContent='Appuie pour installer. Si Chrome ne propose pas, le guide s’ouvre.';
+        if(a)a.textContent='Installer';
       }
     }catch(_e){}
   }

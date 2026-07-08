@@ -2,7 +2,7 @@
   "name": "HAPPYAD",
   "short_name": "HAPPYAD",
   "description": "HAPPYAD – réseau social, marketplace et application installable.",
-  "start_url": "./index.html?source=pwa&v=647pwa",
+  "start_url": "./index.html?source=pwa&v=648pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -87,7 +87,7 @@
     {
       "name": "Vidéos",
       "short_name": "Vidéos",
-      "url": "./index.html?app=video&v=647pwa",
+      "url": "./index.html?app=video&v=648pwa",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -99,7 +99,7 @@
     {
       "name": "Messages",
       "short_name": "Messages",
-      "url": "./index.html?app=messages&v=647pwa",
+      "url": "./index.html?app=messages&v=648pwa",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -111,7 +111,7 @@
     {
       "name": "Mon profil",
       "short_name": "Profil",
-      "url": "./index.html?app=profile&v=647pwa",
+      "url": "./index.html?app=profile&v=648pwa",
       "icons": [
         {
           "src": "./icons/happyad-icon-v535center1-192.png",
@@ -121,5 +121,5 @@
       ]
     }
   ],
-  "id": "./index.html"
+  "id": "happyad-app-v648"
 }

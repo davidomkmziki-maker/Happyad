@@ -1,7 +1,7 @@
-/* HAPPYAD V647 - Correction installation PWA bloquée : install immédiate, cache runtime seulement. */
+/* HAPPYAD V648 - PWA install direct: service worker non bloquant + activation rapide. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v647-pwa-install-finish-fix';
+var HAPPYAD_SW_VERSION='v648-pwa-direct-install-nonblocking';
 var HAPPYAD_RUNTIME_CACHE=HAPPYAD_SW_VERSION+'-runtime';
 
 function isHappyCache(name){return String(name||'').toLowerCase().indexOf('happyad')>-1;}
@@ -21,22 +21,20 @@ function heavyMedia(request){
 function cleanOldHappyCaches(){
   return caches.keys().then(function(keys){
     return Promise.all(keys.map(function(key){
-      if(isHappyCache(key)&&!isCurrentCache(key))return caches.delete(key);
+      if(isHappyCache(key)&&!isCurrentCache(key))return caches.delete(key).catch(function(){return false;});
       return Promise.resolve(false);
     }));
   }).catch(function(){return true;});
 }
 function networkFirst(request){
-  return caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){
-    return fetch(request,{cache:'no-store'}).then(function(response){
-      try{if(response&&response.ok&&sameOrigin(request.url))cache.put(request,response.clone());}catch(e){}
-      return response;
-    }).catch(function(){
-      return caches.match(request).then(function(cached){
-        if(cached)return cached;
-        if(request.mode==='navigate'||request.destination==='document')return caches.match('./index.html');
-        return cached;
-      });
+  return fetch(request).then(function(response){
+    try{if(response&&response.ok&&sameOrigin(request.url)){caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){cache.put(request,response.clone()).catch(function(){});});}}catch(e){}
+    return response;
+  }).catch(function(){
+    return caches.match(request).then(function(cached){
+      if(cached)return cached;
+      if(request.mode==='navigate'||request.destination==='document')return caches.match('./index.html');
+      return cached;
     });
   });
 }
@@ -44,26 +42,28 @@ function cacheFirst(request){
   return caches.match(request).then(function(cached){
     if(cached)return cached;
     return fetch(request).then(function(response){
-      try{if(response&&response.ok&&sameOrigin(request.url))caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){cache.put(request,response.clone());});}catch(e){}
+      try{if(response&&response.ok&&sameOrigin(request.url)){caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){cache.put(request,response.clone()).catch(function(){});});}}catch(e){}
       return response;
     });
   });
 }
 
 self.addEventListener('install',function(event){
-  /* Ne jamais bloquer l'installation avec addAll : Android/Chrome peut rester sur "Installation..." si un seul fichier répond lentement. */
-  event.waitUntil(self.skipWaiting());
+  /* Installation instantanée : aucune ressource n'est préchargée ici. */
+  self.skipWaiting();
 });
 
 self.addEventListener('activate',function(event){
-  event.waitUntil(cleanOldHappyCaches().then(function(){return self.clients.claim();}));
+  /* L'activation ne doit jamais attendre le nettoyage de gros caches. */
+  event.waitUntil(self.clients.claim());
+  try{cleanOldHappyCaches();}catch(e){}
 });
 
 self.addEventListener('message',function(event){
   try{
     var type=event&&event.data&&event.data.type;
-    if(type==='HAPPYAD_SKIP_WAITING')event.waitUntil(self.skipWaiting());
-    if(type==='HAPPYAD_CLEAR_OLD_CACHES')event.waitUntil(cleanOldHappyCaches());
+    if(type==='HAPPYAD_SKIP_WAITING')self.skipWaiting();
+    if(type==='HAPPYAD_CLEAR_OLD_CACHES')cleanOldHappyCaches();
   }catch(e){}
 });
 
