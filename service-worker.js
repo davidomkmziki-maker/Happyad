@@ -1,7 +1,7 @@
-/* HAPPYAD V16ZL - Service worker PWA actif, restauration page ouverte après actualisation. */
+/* HAPPYAD V637 - Service worker PWA actif, cache forcé message profil visiteur. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v632-message-home-counter-red-read-fix';
+var HAPPYAD_SW_VERSION='v637-visitor-profile-message-safe';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [
