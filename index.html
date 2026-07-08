@@ -6929,7 +6929,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     /* V16ZF : plus de reload automatique sur controllerchange.
        Le service worker se met à jour en arrière-plan, mais l’accueil ne recharge plus deux fois. */
 
-    navigator.serviceWorker.register('./service-worker.js?v=634msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
+    navigator.serviceWorker.register('./service-worker.js?v=638msg',{scope:'./',updateViaCache:'none'}).then(function(reg){
       try{reg.update();}catch(_e){}
 
       try{
@@ -9045,7 +9045,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 
 
 
-<style id="happyad-v635-home-message-counter-css">
+<style id="happyad-v638-home-message-counter-css">
 .bottom .nav[data-happyad-bottom-message]{position:relative!important;overflow:visible!important;}
 .bottom .nav[data-happyad-bottom-message] .ico{position:relative!important;overflow:visible!important;}
 .bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count{
@@ -9073,7 +9073,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
 .bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count.on{display:flex!important;}
 @media (max-width:390px){.bottom .nav[data-happyad-bottom-message] .happyad-home-msg-count{top:1px!important;transform:translate(11px,-8px)!important;}}
 </style>
-<script id="happyad-v635-home-message-counter-js">
+<script id="happyad-v638-home-message-counter-js">
 (function(){
   'use strict';
   var timer=null, realtime=null, busy=false, lastCount=-1, sessionPromise=null;
@@ -9124,7 +9124,7 @@ body.happyadAppOpen{overflow:hidden!important;touch-action:none!important}
       var sess=await ensureSession(true); if(!sess||!sess.ready||!sess.id)return;
       if(realtime){try{await c.removeChannel(realtime);}catch(e){} realtime=null;}
       var fast=function(){setTimeout(function(){refresh(true);},120);setTimeout(function(){refresh(true);},1200);};
-      realtime=c.channel('happyad-home-message-counter-v637-'+sess.id)
+      realtime=c.channel('happyad-home-message-counter-v638-'+sess.id)
         .on('postgres_changes',{event:'*',schema:'public',table:'happyad_msg_message_receipts',filter:'user_id=eq.'+sess.id},fast)
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'happyad_msg_messages',filter:'receiver_id=eq.'+sess.id},fast)
         .subscribe(function(status){if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')setTimeout(setupRealtime,3000);});

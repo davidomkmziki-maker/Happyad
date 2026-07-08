@@ -1,7 +1,7 @@
-/* HAPPYAD V637 - Service worker PWA actif, cache forcé message profil visiteur. */
+/* HAPPYAD V638 - Service worker PWA actif, cache forcé message profil visiteur. */
 'use strict';
 
-var HAPPYAD_SW_VERSION='v637-visitor-profile-message-safe';
+var HAPPYAD_SW_VERSION='v638-message-counter-profile-direct-safe';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

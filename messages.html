@@ -2253,7 +2253,7 @@
         online:true,
         badge:''
       };
-      const HAPPYAD_MSG_CACHE_VERSION = 'V637';
+      const HAPPYAD_MSG_CACHE_VERSION = 'V638';
       const HAPPYAD_MSG_STABLE_CACHE_VERSION = 'V1';
       const HAPPYAD_MSG_OLD_CACHE_VERSIONS = ['V635','V634','V633','V632','V631','V630','V629','V628','V627','V626','V625','V624','V623','V622','V621','V620','V619','V618','V617','V616','V615','V614'];
       const HAPPYAD_MSG_PROFILE_CACHE_KEY = 'HAPPYAD_MSG_PROFILE_CACHE_STABLE_' + HAPPYAD_MSG_STABLE_CACHE_VERSION;
@@ -3857,11 +3857,16 @@
       function profileFromUrl(){
         let saved={};
         try{saved=JSON.parse(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||'{}')||{};}catch(e){}
-        const cached=getCachedMsgProfile(happyadDirectUserId)||{};
+        const directId=cleanMsg(happyadDirectUserId);
+        const savedId=cleanMsg(saved.auth_uid||saved.auth_id||saved.user_id||saved.uid||saved.uuid||saved.id);
+        if(directId && savedId && savedId!==directId) saved={};
+        const cached=getCachedMsgProfile(directId)||{};
         const name=safeParam(happyadMsgParams.get('name')||'')||saved.name||saved.full_name||saved.display_name||cached.name||cached.full_name||cached.display_name||'';
         return {
-          id:happyadDirectUserId,
-          user_id:happyadDirectUserId,
+          id:directId,
+          user_id:directId,
+          auth_id:directId,
+          auth_uid:directId,
           full_name:isGenericMsgName(name)?(cached.name||''):name,
           name:isGenericMsgName(name)?(cached.name||''):name,
           username:safeParam(happyadMsgParams.get('username')||happyadMsgParams.get('handle')||'')||saved.username||saved.handle||cached.username||cached.handle||'',
@@ -4197,10 +4202,13 @@
         let saved={};
         try{saved=JSON.parse(sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||localStorage.getItem('HAPPYAD_MESSAGE_DIRECT_PROFILE')||'{}')||{};}catch(e){}
         const q=happyadMsgParams;
+        const urlTarget=cleanMsg(raw||q.get('to')||q.get('uid')||q.get('user_id')||q.get('auth_id')||q.get('auth_uid'));
+        const savedId=cleanMsg(saved.auth_uid||saved.auth_id||saved.user_id||saved.uid||saved.uuid||saved.id);
+        if(urlTarget && savedId && savedId!==urlTarget) saved={};
         return [
-          saved.auth_uid,saved.auth_id,saved.user_id,saved.uid,saved.uuid,saved.id,
+          urlTarget,q.get('auth_uid'),q.get('auth_id'),q.get('user_id'),q.get('uid'),q.get('to'),raw,
           p.auth_uid,p.auth_id,p.user_id,p.uid,p.uuid,p.owner_id,p.creator_id,p.id,
-          q.get('auth_uid'),q.get('auth_id'),q.get('user_id'),q.get('uid'),q.get('to'),raw
+          saved.auth_uid,saved.auth_id,saved.user_id,saved.uid,saved.uuid,saved.id
         ].map(cleanMsg).filter(Boolean);
       }
       async function happyadMsgResolveDirectTargetId(raw,p){
