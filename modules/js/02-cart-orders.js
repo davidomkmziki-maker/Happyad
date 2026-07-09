@@ -62,8 +62,8 @@ function renderCart(){
   const cartItems=(cart||[]).map(item=>({product:products.find(p=>p.id===item.id), qty:item.qty})).filter(x=>x.product&&x.qty>0);
   const totalK=cartItems.reduce((sum,item)=>sum+(priceNumber(item.product)*item.qty),0);
   const totalText=formatBoutiqueAmount(totalK);
-  const ordersHtml=boutiqueOrders.length?`<div class="orderCard"><h3>Mes commandes payées</h3>${boutiqueOrders.map(o=>`<div class="cartLine"><span>${o.product} × ${o.qty}</span><b>${formatBoutiqueAmount(o.totalK)}</b></div><div class="deliveryStatus ${o.clientReceived?'done':''}">${o.clientReceived?'Commande reçue':'En attente de réception'}</div>${o.sellerDelivered&&!o.clientReceived?`<div class="confirmReceiveBox"><div class="confirmWarn">Le vendeur a confirmé la livraison avec preuve. Validez seulement si vous avez réellement reçu la commande.</div>${o.proofVisible?`<div class="clientProof">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<b>Preuve de livraison visible</b><br>${o.proof||'Photo preuve ajoutée par le vendeur'}</div>`:''}<button class="btn" style="width:100%" onclick="confirmReceivedStep1('${o.id}')">J’ai reçu la commande</button></div>`:''}`).join('')}</div>`:'';
-  document.getElementById('cartRows').innerHTML=cartItems.length?`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Commande sécurisée</b><p>Payez avec une méthode proposée par HAPPYAD. L’argent reste gardé jusqu’à réception confirmée.</p></div></div><div class="card">${cartItems.map(item=>{const p=item.product;return `<div class="row"><div class="mini">${icon('bag','ico')}</div><div class="rowInfo"><b>${p.name}</b><span><span class="cartSellerLine">${sellerProfile(p.seller).displayName} ${badgeSvg(p.seller)}</span><br>${p.price}</span><div class="small">Quantité : ${item.qty}</div></div><button class="circleBtn" onclick="event.stopPropagation();decreaseCart(${p.id})">−</button><b>${item.qty}</b><button class="circleBtn" onclick="event.stopPropagation();addCart(${p.id})">+</button><button class="circleBtn danger" onclick="event.stopPropagation();removeCart(${p.id})">${icon('trash','icoMini')}</button></div>`}).join('')}<div class="cartLine"><span>Sous-total</span><b>${totalText}</b></div><div class="cartLine"><span>Livraison</span><b>À confirmer</b></div><div class="cartLine"><span>Garantie</span><b>Active</b></div><div class="cartLine"><span>Total estimé</span><b class="total">${totalText}</b></div><div class="cartSteps"><div><span>1</span>Vous payez et la commande est créée.</div><div><span>2</span>Le vendeur confirme la livraison avec preuve.</div><div><span>3</span>Vous confirmez la réception, puis le vendeur reçoit l’argent.</div></div><br><br><button class="btn" style="width:100%" onclick="openPaymentPopup()">Continuer le paiement</button></div>${ordersHtml}`:`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Panier sécurisé</b><p>Ajoutez un produit au panier. Les commandes apparaissent seulement après paiement confirmé.</p></div></div>${ordersHtml||'<div class="card empty">Aucun article dans le panier.</div>'}`;
+  const ordersHtml=boutiqueOrders.length?`<div class="orderCard"><h3>Mes commandes payées</h3>${boutiqueOrders.map(o=>`<div class="cartLine"><span>${o.product} × ${o.qty}</span><b>${formatBoutiqueAmount(o.totalK)}</b></div><div class="deliveryStatus ${o.clientReceived?'done':''}">${o.clientReceived?'Commande reçue':'En attente de réception'}</div>${o.sellerDelivered&&!o.clientReceived?`<div class="confirmReceiveBox"><div class="confirmWarn">Le vendeur a confirmé la livraison avec preuve. Validez seulement si vous avez réellement reçu la commande.</div>${o.proofVisible?`<div class="clientProof">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<b>Preuve de livraison visible</b><br>${o.proof||'Photo preuve ajoutée par le vendeur'}</div>`:''}<button class="btn" style="width:100%" onclick="confirmReceivedStep1('${o.id}')">J’ai reçu la commande</button></div>`:''}<div class="claimVisibleRow"><button class="claimMainBtn" onclick="openResolutionChat('${o.id}','client','Je n’ai pas reçu')">Je n’ai pas reçu</button><button class="claimSecondBtn" onclick="openResolutionChat('${o.id}','client','Problème commande')">Revendication</button></div>`).join('')}</div>`:'';
+  document.getElementById('cartRows').innerHTML=cartItems.length?`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Commande sécurisée</b><p>Payez avec une méthode proposée par HAPPYAD. L’argent reste gardé jusqu’à réception confirmée.</p></div></div><div class="card">${cartItems.map(item=>{const p=item.product;return `<div class="row"><div class="mini">${icon('bag','ico')}</div><div class="rowInfo"><b>${p.name}</b><span><span class="cartSellerLine">${sellerProfile(p.seller).displayName} ${badgeSvg(p.seller)}</span><br>${p.price}</span><div class="small">Quantité : ${item.qty}</div></div><button class="circleBtn" onclick="event.stopPropagation();decreaseCart(${p.id})">−</button><b>${item.qty}</b><button class="circleBtn" onclick="event.stopPropagation();addCart(${p.id})">+</button><button class="circleBtn danger" onclick="event.stopPropagation();removeCart(${p.id})">${icon('trash','icoMini')}</button></div>`}).join('')}<div class="cartLine"><span>Sous-total</span><b>${totalText}</b></div><div class="cartLine"><span>Livraison</span><b>À confirmer</b></div><div class="cartLine"><span>Garantie</span><b>Active</b></div><div class="cartLine"><span>Total estimé</span><b class="total">${totalText}</b></div><div class="cartSteps"><div><span>1</span>Vous payez et la commande est créée.</div><div><span>2</span>Le vendeur confirme la livraison avec preuve.</div><div><span>3</span>Vous confirmez la réception, puis le vendeur reçoit l’argent.</div></div><br><button class="btn" style="width:100%" onclick="show('messages')">${icon('message','icoMini')} Message vendeur</button><br><br><button class="btn" style="width:100%" onclick="openPaymentPopup()">Continuer le paiement</button></div>${ordersHtml}`:`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Panier sécurisé</b><p>Ajoutez un produit au panier. Les commandes apparaissent seulement après paiement confirmé.</p></div></div>${ordersHtml||'<div class="card empty">Aucun article dans le panier.</div>'}`;
   hydrateIcons(document.getElementById('cartRows'));
 }
 function renderSellerOrders(){
@@ -80,9 +80,9 @@ function renderSellerOrders(){
     const statusText = validated ? 'Commande validée · argent libéré' : (waitingClient ? 'En attente validation client' : 'À livrer');
     const btnText = validated ? 'Validé par le client' : (waitingClient ? 'Preuve envoyée · attente client' : 'Valider livraison avec preuve');
     const btnDisabled = validated || waitingClient ? 'disabled' : '';
-    const extra = validated ? `<div class="adminNotice"><span data-ico="shield"></span><span>Client a confirmé la réception. HAPPYAD libère automatiquement l’argent au vendeur, frais plateforme déjà coupés.</span></div>` : (waitingClient ? `<div class="adminNotice"><span data-ico="message"></span><span>Preuve envoyée au client. Le statut deviendra “Validé” dès que le client confirme la réception.</span></div>` : '');
+    const extra = validated ? `<div class="adminNotice"><span data-ico="shield"></span><span>Client a confirmé la réception. HAPPYAD libère automatiquement l’argent au vendeur, frais plateforme déjà coupés.</span></div>` : (waitingClient ? `<div class="adminNotice"><span data-ico="message"></span><span>Notification envoyée au client. Le statut deviendra “Validé” dès que le client confirme la réception.</span></div>` : '');
     const previewClass=o.proofPhotoUrl?'proofPreview show':'proofPreview';
-    return `<div class="sellerOrderCard"><div class="sellerOrderTop"><div class="mini">${icon('bag','ico')}</div><div style="flex:1"><b>${o.product}</b><span>${o.id} · ${o.buyer} · ${formatBoutiqueAmount(o.totalK)}</span><div class="deliveryStatus ${o.sellerDelivered?'done':''}">${statusText}</div></div></div><div class="deliveryProofBox ${o.sellerDelivered?'show':''}" id="proof-${o.id}"><textarea placeholder="Écrire la preuve de livraison : lieu, heure, nom reçu..." ${validated?'readonly':''}>${o.proof||''}</textarea><div class="proofPhotoActions"><label class="proofPick" for="proofFile-${o.id}">${icon('image','icoMini')} Photo preuve</label><label class="proofPick" for="proofCam-${o.id}">${icon('camera','icoMini')} Appareil photo</label></div><input class="hiddenFile" id="proofFile-${o.id}" type="file" accept="image/*" onchange="handleProofPhoto('${o.id}',this)" ${validated?'disabled':''}><input class="hiddenFile" id="proofCam-${o.id}" type="file" accept="image/*" capture="environment" onchange="handleProofPhoto('${o.id}',this)" ${validated?'disabled':''}><div class="${previewClass}" id="proofPreview-${o.id}">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<span>${o.proofPhotoName||'Aucune photo ajoutée'}</span></div><div class="proofAudience">${icon('eye','icoMini')} Visible par HAPPYAD, le client et le créateur après envoi.</div></div>${extra}<button class="btn ${validated?'dark':''}" style="width:100%" onclick="sellerValidateDelivery('${o.id}')" ${btnDisabled}>${btnText}</button></div>`
+    return `<div class="sellerOrderCard"><div class="sellerOrderTop"><div class="mini">${icon('bag','ico')}</div><div style="flex:1"><b>${o.product}</b><span>${o.id} · ${o.buyer} · ${formatBoutiqueAmount(o.totalK)}</span><div class="deliveryStatus ${o.sellerDelivered?'done':''}">${statusText}</div></div></div><div class="deliveryProofBox ${o.sellerDelivered?'show':''}" id="proof-${o.id}"><textarea placeholder="Écrire la preuve de livraison : lieu, heure, nom reçu..." ${validated?'readonly':''}>${o.proof||''}</textarea><div class="proofPhotoActions"><label class="proofPick" for="proofFile-${o.id}">${icon('image','icoMini')} Photo preuve</label><label class="proofPick" for="proofCam-${o.id}">${icon('camera','icoMini')} Appareil photo</label></div><input class="hiddenFile" id="proofFile-${o.id}" type="file" accept="image/*" onchange="handleProofPhoto('${o.id}',this)" ${validated?'disabled':''}><input class="hiddenFile" id="proofCam-${o.id}" type="file" accept="image/*" capture="environment" onchange="handleProofPhoto('${o.id}',this)" ${validated?'disabled':''}><div class="${previewClass}" id="proofPreview-${o.id}">${o.proofPhotoUrl?`<img src="${o.proofPhotoUrl}" alt="Preuve livraison">`:''}<span>${o.proofPhotoName||'Aucune photo ajoutée'}</span></div><div class="proofAudience">${icon('eye','icoMini')} Visible par HAPPYAD, le client et le créateur après envoi.</div></div>${extra}<div class="claimVisibleRow"><button class="claimSecondBtn" onclick="openResolutionChat('${o.id}','seller','Difficulté livraison')">Difficulté livraison</button><button class="claimMainBtn" onclick="openResolutionChat('${o.id}','seller','Ouvrir dossier')">Ouvrir dossier</button></div><button class="btn ${validated?'dark':''}" style="width:100%" onclick="sellerValidateDelivery('${o.id}')" ${btnDisabled}>${btnText}</button></div>`
   }).join('');
   hydrateIcons(box);
 }
@@ -113,7 +113,7 @@ function sellerValidateDelivery(id){
   renderCart();
   renderProfilePublications();
   updateDeliveryCounters();
-  toast('Preuve envoyée au client');
+  toast('Notification envoyée au client');
 }
 function confirmReceivedStep1(id){
   const ok=confirm('Confirmez-vous avoir reçu cette commande ?');
@@ -129,7 +129,114 @@ function confirmReceivedStep1(id){
   toast('Réception confirmée. Argent envoyé au vendeur.');
 }
 
-/* HAPPYAD V611: ancien centre de résolution/chat commande supprimé. */
+/* RESOLUTION MODULE START - logique isolée */
+let currentResolutionOrderId=null;
+let currentResolutionRole='client';
+let currentIssue='Problème général';
+const resolutionThreads={};
+
+function getResolutionOrder(id){
+  if(id) return boutiqueOrders.find(o=>o.id===id) || null;
+  return boutiqueOrders[0] || null;
+}
+function ensureResolutionThread(order){
+  if(!order) return [];
+  if(!resolutionThreads[order.id]){
+    resolutionThreads[order.id]=[
+      {role:'support',text:'Conversation ouverte pour cette commande. Échangez ici avec le client, le vendeur et HAPPYAD.'}
+    ];
+  }
+  return resolutionThreads[order.id];
+}
+function openResolution(orderId=null, role='client'){
+  const order=getResolutionOrder(orderId);
+  currentResolutionOrderId=order?order.id:null;
+  currentResolutionRole=role;
+  currentIssue='Problème général';
+  if(order){
+    document.getElementById('resolutionTitle').textContent='Commande '+order.id;
+    document.getElementById('resolutionSub').textContent=order.product+' · '+formatBoutiqueAmount(order.totalK);
+  }else{
+    document.getElementById('resolutionTitle').textContent='Centre de résolution';
+    document.getElementById('resolutionSub').textContent='Aucune commande payée';
+  }
+  document.querySelectorAll('#issueChips .issueChip').forEach((b,i)=>b.classList.toggle('active',i===0));
+  renderResolutionChat();
+  show('resolution');
+}
+function chooseIssue(btn,label){
+  currentIssue=label;
+  document.querySelectorAll('#issueChips .issueChip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const input=document.getElementById('resolutionInput');
+  const presets={
+    'Je n’ai pas reçu':'Je n’ai pas reçu ma commande. Merci de vérifier la livraison.',
+    'Annulation':'Je demande l’annulation de cette commande.',
+    'Difficulté livraison':'J’ai une difficulté réelle pour expédier cette commande.',
+    'Déjà expédié':'La commande est déjà expédiée. Je peux fournir une preuve.',
+    'Problème général':''
+  };
+  if(input && presets[label]) input.value=presets[label];
+}
+function renderResolutionChat(){
+  const box=document.getElementById('resolutionChat'); if(!box) return;
+  const order=getResolutionOrder(currentResolutionOrderId);
+  if(!order){
+    box.innerHTML='<div class="chatBubble support"><b>HAPPYAD</b><span>Aucune commande payée pour ouvrir un problème.</span></div>';
+    hydrateIcons(box); return;
+  }
+  const thread=ensureResolutionThread(order);
+  box.innerHTML=thread.map(m=>{
+    const cls=m.role==='client'?'client':m.role==='seller'?'seller':'support';
+    const name=m.role==='client'?'Client':m.role==='seller'?'Vendeur':'Support HAPPYAD';
+    return `<div class="chatBubble ${cls}"><b>${name}</b><span>${m.text}</span></div>`;
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+  hydrateIcons(box);
+}
+function sendResolutionMessage(){
+  const order=getResolutionOrder(currentResolutionOrderId);
+  const input=document.getElementById('resolutionInput');
+  if(!order){toast('Aucune commande payée');return;}
+  const text=(input?.value||'').trim();
+  if(!text){toast('Écrivez un message');return;}
+  const thread=ensureResolutionThread(order);
+  thread.push({role:currentResolutionRole,text:`${currentIssue} : ${text}`});
+  if(currentIssue==='Annulation'){
+    order.cancelRequested=true; order.refundHold=true; order.status='cancel_pending';
+    thread.push({role:'support',text:'Annulation reçue. Remboursement en attente 2h. Si le vendeur prouve une expédition, le dossier reste en vérification.'});
+  }
+  if(currentIssue==='Je n’ai pas reçu'){
+    order.dispute=true; order.status='dispute';
+    thread.push({role:'support',text:'Signalement reçu. L’argent reste bloqué jusqu’à résolution.'});
+  }
+  if(currentIssue==='Difficulté livraison'){
+    order.deliveryProblem=true;
+    thread.push({role:'support',text:'Difficulté enregistrée. Le client sera informé et la commande reste protégée.'});
+  }
+  input.value='';
+  renderResolutionChat();
+  renderCart(); renderSellerOrders();
+  toast('Message envoyé');
+}
+function markResolutionPending(){
+  const order=getResolutionOrder(currentResolutionOrderId);
+  if(!order){toast('Aucune commande');return;}
+  order.status='support_review';
+  ensureResolutionThread(order).push({role:'support',text:'Dossier transmis au support HAPPYAD.'});
+  renderResolutionChat(); renderCart(); renderSellerOrders();
+  toast('Support HAPPYAD informé');
+}
+function markResolutionSolved(){
+  const order=getResolutionOrder(currentResolutionOrderId);
+  if(!order){toast('Aucune commande');return;}
+  order.dispute=false; order.deliveryProblem=false; order.cancelRequested=false;
+  if(order.clientReceived){order.status='released'} else if(order.sellerDelivered){order.status='delivered'} else {order.status='paid'}
+  ensureResolutionThread(order).push({role:'support',text:'Problème marqué comme résolu.'});
+  renderResolutionChat(); renderCart(); renderSellerOrders();
+  toast('Problème marqué résolu');
+}
+/* RESOLUTION MODULE END */
 
 // relancer l’affichage avec la nouvelle logique
 try{renderCart();renderSellerOrders();hydrateIcons();}catch(e){}

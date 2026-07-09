@@ -48,7 +48,7 @@ function normalizeHappyadSellerProfile(profile, fallbackName){
   const displayName=firstSellerProfileValue(profile,['displayName','display_name','full_name','name','seller_name','sellerName','seller','vendor_name','username','handle']) || cleanSellerProfileValue(fallbackName) || 'Vendeur HAPPYAD';
   const username=firstSellerProfileValue(profile,['username','handle','seller_username','sellerHandle','seller_handle']);
   const avatar=firstSellerProfileValue(profile,['avatar','avatar_url','photo','photo_url','profile_photo','picture','image','userAvatar','user_avatar','sellerAvatar','seller_avatar']);
-  const badge=firstSellerProfileValue(profile,['badge','user_badge','badge_type','certification','certified','is_verified','verified','blue_badge','verifyBadge','verified_badge','role_badge','profile_badge','sellerBadge','seller_badge']);
+  const badge=firstSellerProfileValue(profile,['badge','user_badge','badge_type','certification','blue_badge','verifyBadge','verified_badge','role_badge','profile_badge','sellerBadge','seller_badge']);
   return Object.assign({}, profile, {id:id||profile.id, user_id:id||profile.user_id, displayName:displayName, full_name:displayName, name:displayName, username:username, handle:username, avatar:avatar, avatar_url:avatar, badge:badge||'none'});
 }
 function rememberHappyadSellerProfile(profile, product){
@@ -234,6 +234,10 @@ function selectCategory(key, btn){
 function activateChip(b){b.parentElement.querySelectorAll('.chip,.catCard').forEach(x=>x.classList.remove('active'));b.classList.add('active')}
 function setHeader(t,s){document.getElementById('screenTitle').innerHTML=t;document.getElementById('screenSub').textContent=s}
 function show(id, opts={}){
+  if(id==='messages'){
+    try{var __haMsgDetail={source:'boutique-message-ready'};if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST',detail:__haMsgDetail},'*');}else{window.dispatchEvent(new CustomEvent('HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST',{detail:__haMsgDetail}));}}catch(e){}
+    return false;
+  }
   const fromBack=!!opts.fromBack;
   if(!fromBack && currentScreen && currentScreen!==id){
     if(navStack[navStack.length-1]!==currentScreen) navStack.push(currentScreen);
@@ -284,7 +288,7 @@ function openDetail(id){
       </div>
       <div class="detailChips"><button class="detailChip ok" onclick="detailChipInfo('stock',this)">${icon('shield','icoMini')} Disponible</button><button class="detailChip" onclick="detailChipInfo('category',this)">${icon('grid','icoMini')} ${p.cat}</button><button class="detailChip" onclick="detailChipInfo('delivery',this)">${icon('cart','icoMini')} Livraison</button><button class="detailChip" onclick="detailChipInfo('location',this)">${icon('pin','icoMini')} Kampala</button></div>
       <div class="descBox collapsed" id="detailDesc"><b>Description</b><br>${detailDescHtml}</div>
-      <div class="detailActionBar"><button class="btn" onclick="addCart(${jsArg(p.id)})">${icon('cart','icoMini')} Ajouter au panier</button><button class="btn dark" onclick="openProductSellerMessage(${jsArg(p.id)})"></button></div>
+      <div class="detailActionBar"><button class="btn" onclick="addCart(${jsArg(p.id)})">${icon('cart','icoMini')} Ajouter au panier</button><button class="btn dark" onclick="openProductSellerMessage(${jsArg(p.id)})">${icon('message','icoMini')} Message vendeur</button></div>
     </div>
     <div class="homeSection"><div class="homeSectionHead"><h3>Recommandations</h3><button class="seeMore" onclick="openCategoryView('all')">Voir plus ›</button></div><div class="recoRail">${recos.map(x=>card(x)).join('')}</div></div>`;
   show('detail');
@@ -475,7 +479,7 @@ function renderCart(){
   const cartItems=cart.map(item=>({product:products.find(p=>p.id===item.id), qty:item.qty})).filter(x=>x.product&&x.qty>0);
   const totalK=cartItems.reduce((sum,item)=>sum+(priceNumber(item.product)*item.qty),0);
   const totalText=formatBoutiqueAmount(totalK);
-  document.getElementById('cartRows').innerHTML=cartItems.length?`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Commande sécurisée</b><p>Votre paiement reste protégé jusqu’à la confirmation de réception.</p></div></div><div class="card">${cartItems.map(item=>{const p=item.product;return `<div class="row"><div class="mini">${icon('bag','ico')}</div><div class="rowInfo"><b>${p.name}</b><span><span class="cartSellerLine">${sellerProfile(p.seller).displayName} ${badgeSvg(p.seller)}</span><br>${p.price}</span><div class="small">Quantité : ${item.qty}</div></div><button class="circleBtn" onclick="event.stopPropagation();decreaseCart(${p.id})">−</button><b>${item.qty}</b><button class="circleBtn" onclick="event.stopPropagation();addCart(${p.id})">+</button><button class="circleBtn danger" onclick="event.stopPropagation();removeCart(${p.id})">${icon('trash','icoMini')}</button></div>`}).join('')}<div class="cartLine"><span>Sous-total</span><b>${totalText}</b></div><div class="cartLine"><span>Livraison</span><b>À confirmer</b></div><div class="cartLine"><span>Garantie</span><b>Active</b></div><div class="cartLine"><span>Total estimé</span><b class="total">${totalText}</b></div><div class="cartSteps"><div><span>1</span>Vous confirmez la commande.</div><div><span>2</span>Le vendeur prépare la livraison.</div><div><span>3</span>Vous confirmez la réception.</div></div><br><br><button class="btn" style="width:100%" onclick="toast('Commande validée')">Valider la commande</button></div>`:`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Panier sécurisé</b><p>Ajoutez un produit au panier. Les commandes apparaissent seulement après paiement confirmé.</p></div></div><div class="card empty">Aucun article dans le panier.</div>`;
+  document.getElementById('cartRows').innerHTML=cartItems.length?`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Commande sécurisée</b><p>Votre paiement reste protégé jusqu’à la confirmation de réception.</p></div></div><div class="card">${cartItems.map(item=>{const p=item.product;return `<div class="row"><div class="mini">${icon('bag','ico')}</div><div class="rowInfo"><b>${p.name}</b><span><span class="cartSellerLine">${sellerProfile(p.seller).displayName} ${badgeSvg(p.seller)}</span><br>${p.price}</span><div class="small">Quantité : ${item.qty}</div></div><button class="circleBtn" onclick="event.stopPropagation();decreaseCart(${p.id})">−</button><b>${item.qty}</b><button class="circleBtn" onclick="event.stopPropagation();addCart(${p.id})">+</button><button class="circleBtn danger" onclick="event.stopPropagation();removeCart(${p.id})">${icon('trash','icoMini')}</button></div>`}).join('')}<div class="cartLine"><span>Sous-total</span><b>${totalText}</b></div><div class="cartLine"><span>Livraison</span><b>À confirmer</b></div><div class="cartLine"><span>Garantie</span><b>Active</b></div><div class="cartLine"><span>Total estimé</span><b class="total">${totalText}</b></div><div class="cartSteps"><div><span>1</span>Vous confirmez la commande.</div><div><span>2</span>Le vendeur prépare la livraison.</div><div><span>3</span>Vous confirmez la réception.</div></div><br><button class="btn" style="width:100%" onclick="show('messages')">${icon('message','icoMini')} Message vendeur</button><br><br><button class="btn" style="width:100%" onclick="toast('Commande validée')">Valider la commande</button></div>`:`<div class="orderStatus"><div class="statusIcon">${icon('shield','ico')}</div><div><b>Panier sécurisé</b><p>Ajoutez un produit au panier. Les commandes apparaissent seulement après paiement confirmé.</p></div></div><div class="card empty">Aucun article dans le panier.</div>`;
   hydrateIcons(document.getElementById('cartRows'));
 }
 function back(){
@@ -614,3 +618,10 @@ applyBoutiqueAccess();syncCartSwitchUI();renderProducts();renderPreviewStrip();r
 
 
 
+/* v33 pont visible vers le chat de revendication */
+if(typeof window.openResolutionChat==='function'){
+  window.openResolution=function(orderId, role){
+    const reason = role==='seller' ? 'Difficulté livraison' : 'Je n’ai pas reçu';
+    return window.openResolutionChat(orderId, role || 'client', reason);
+  };
+}

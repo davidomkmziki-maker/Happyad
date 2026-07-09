@@ -181,7 +181,7 @@
   function clean(v){ return String(v==null?'':v).trim(); }
   function profileName(row){ return clean(row && (row.full_name || row.display_name || row.name || row.username || row.seller_name || row.seller)); }
   function profileAvatar(row){ return clean(row && (row.avatar_url || row.avatar || row.photo_url || row.photo || row.profile_photo || row.picture || row.image)); }
-  function profileBadge(row){ return clean(row && (row.badge || row.user_badge || row.badge_type || row.certification || row.certified || row.is_verified || row.verified || row.blue_badge || row.verifyBadge || row.verified_badge || row.role_badge || row.profile_badge)); }
+  function profileBadge(row){ return clean(row && (row.badge || row.user_badge || row.badge_type || row.certification || row.blue_badge || row.verifyBadge || row.verified_badge || row.role_badge || row.profile_badge)); }
   function normalizeSellerProfile(row, fallback){
     row=row||{}; fallback=fallback||{};
     const id=clean(row.id || row.user_id || row.uid || row.auth_id || fallback.seller_id || fallback.user_id);

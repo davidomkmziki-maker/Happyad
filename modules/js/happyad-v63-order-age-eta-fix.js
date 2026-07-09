@@ -66,7 +66,7 @@
     const status=completed?'Validée':(cancel?'Annulation en attente':(o.sellerDelivered?'À confirmer':'En préparation'));
     const receive=canReceive?`<div class="confirmReceiveBox"><div class="confirmWarn">Validez seulement après réception réelle.</div>${proofBlock(o)}<button class="btn" style="width:100%" onclick="confirmReceivedStep1('${js(o.id)}')">J’ai reçu la commande</button></div>`:'';
     const cancelBlock=cancel?`<div class="cancelPendingBox">Annulation en attente</div>`:'';
-    const actions=!completed&&!cancel?``:'';
+    const actions=!completed&&!cancel?`<div class="claimVisibleRow forceClaimRow"><button class="claimMainBtn" onclick="${o.sellerDelivered?`openResolutionChat('${js(o.id)}','client','Je n’ai pas reçu')`:`requestCancelOrder('${js(o.id)}')`}">${o.sellerDelivered?'Je n’ai pas reçu':'Annuler'}</button><button class="claimSecondBtn" onclick="openResolutionChat('${js(o.id)}','client','Revendication')">Revendication</button></div>`:'';
     const rating=completed?(typeof ratingBox==='function'?ratingBox(o):'<div class="deliveryStatus done">Terminée</div>'):'';
     const claim=o.claimOpen&&!completed&&!cancel?'<div class="claimOpenBadge">Revendication ouverte</div>':'';
     return `<div class="cartLine"><span>${esc(o.product)} × ${esc(o.qty||1)}</span><b>${esc(moneyOrder(o))}</b></div><div class="orderProductActionRow"><div class="deliveryStatus ${completed?'done':(cancel?'cancel':'')}">${status}</div>${orderProductButton(o)}</div>${orderTimeMeta(o)}${receive}${cancelBlock}${actions}${claim}${rating}`;
@@ -89,7 +89,7 @@
     const ordersHtml=orders().length?`<div class="orderCard"><h3>Mes commandes</h3>${orders().map(buyerOrderHtml).join('')}</div>`:'';
     if(items.length){
       const total=cartTotalsText(items);
-      box.innerHTML=`<div class="orderStatus"><div class="statusIcon">${iconSafe('shield','ico')}</div><div><b>Paiement sécurisé</b></div></div><div class="card">${items.map(cartItemHtml).join('')}<div class="cartLine"><span>Sous-total</span><b>${esc(total)}</b></div><div class="cartLine"><span>Total</span><b class="total">${esc(total)}</b></div><br><br><button class="btn" style="width:100%" onclick="openPaymentPopup()">Continuer le paiement</button></div>${ordersHtml}`;
+      box.innerHTML=`<div class="orderStatus"><div class="statusIcon">${iconSafe('shield','ico')}</div><div><b>Paiement sécurisé</b></div></div><div class="card">${items.map(cartItemHtml).join('')}<div class="cartLine"><span>Sous-total</span><b>${esc(total)}</b></div><div class="cartLine"><span>Total</span><b class="total">${esc(total)}</b></div><br><button class="btn" style="width:100%" onclick="show('messages')">${iconSafe('message')} Message vendeur</button><br><br><button class="btn" style="width:100%" onclick="openPaymentPopup()">Continuer le paiement</button></div>${ordersHtml}`;
     }else{
       box.innerHTML=ordersHtml||'<div class="card empty">Aucun article dans le panier.</div>';
     }
