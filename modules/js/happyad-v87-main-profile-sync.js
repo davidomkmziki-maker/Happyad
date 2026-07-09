@@ -37,12 +37,12 @@
   function normHandle(v){ return clean(v).replace(/^@+/,'').trim(); }
   function badgeValueFromAny(u){
     u=u||{};
-    return clean(u.badge||u.user_badge||u.badge_type||u.certification||u.blue_badge||u.verifyBadge||u.verify_badge||u.verifiedBadge||u.verified_badge||u.role_badge||u.profile_badge||u.admin_badge||u.badge_color||'');
+    return clean(u.badge||u.user_badge||u.badge_type||u.certification||u.certified||u.is_verified||u.verified||u.blue_badge||u.verifyBadge||u.verify_badge||u.verifiedBadge||u.verified_badge||u.role_badge||u.profile_badge||u.admin_badge||u.badge_color||'');
   }
   function realBadgeClass(v){
     v=String(v||'').toLowerCase().trim();
-    if(!v||v==='aucun'||v==='none'||v==='false'||v==='0'||v==='1'||v==='true'||v==='null'||v==='undefined')return '';
-    if(v.indexOf('bleu')>=0||v.indexOf('blue')>=0||v.indexOf('verify')>=0||v.indexOf('cert')>=0)return 'blue';
+    if(!v||v==='aucun'||v==='none'||v==='false'||v==='0'||v==='null'||v==='undefined')return '';
+    if(v.indexOf('bleu')>=0||v.indexOf('blue')>=0||v.indexOf('verify')>=0||v.indexOf('cert')>=0||v==='true'||v==='1')return 'blue';
     if(v.indexOf('violet')>=0||v.indexOf('purple')>=0)return 'violet';
     if(v.indexOf('jaune')>=0||v.indexOf('yellow')>=0||v.indexOf('business')>=0||v.indexOf('premium')>=0)return 'yellow';
     return 'blue';

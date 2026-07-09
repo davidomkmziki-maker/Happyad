@@ -48,7 +48,7 @@ function normalizeHappyadSellerProfile(profile, fallbackName){
   const displayName=firstSellerProfileValue(profile,['displayName','display_name','full_name','name','seller_name','sellerName','seller','vendor_name','username','handle']) || cleanSellerProfileValue(fallbackName) || 'Vendeur HAPPYAD';
   const username=firstSellerProfileValue(profile,['username','handle','seller_username','sellerHandle','seller_handle']);
   const avatar=firstSellerProfileValue(profile,['avatar','avatar_url','photo','photo_url','profile_photo','picture','image','userAvatar','user_avatar','sellerAvatar','seller_avatar']);
-  const badge=firstSellerProfileValue(profile,['badge','user_badge','badge_type','certification','blue_badge','verifyBadge','verified_badge','role_badge','profile_badge','sellerBadge','seller_badge']);
+  const badge=firstSellerProfileValue(profile,['badge','user_badge','badge_type','certification','certified','is_verified','verified','blue_badge','verifyBadge','verified_badge','role_badge','profile_badge','sellerBadge','seller_badge']);
   return Object.assign({}, profile, {id:id||profile.id, user_id:id||profile.user_id, displayName:displayName, full_name:displayName, name:displayName, username:username, handle:username, avatar:avatar, avatar_url:avatar, badge:badge||'none'});
 }
 function rememberHappyadSellerProfile(profile, product){
@@ -234,10 +234,6 @@ function selectCategory(key, btn){
 function activateChip(b){b.parentElement.querySelectorAll('.chip,.catCard').forEach(x=>x.classList.remove('active'));b.classList.add('active')}
 function setHeader(t,s){document.getElementById('screenTitle').innerHTML=t;document.getElementById('screenSub').textContent=s}
 function show(id, opts={}){
-  if(id==='messages'){
-    try{var __haMsgDetail={source:'boutique-message-ready'};if(window.parent&&window.parent!==window&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST',detail:__haMsgDetail},'*');}else{window.dispatchEvent(new CustomEvent('HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST',{detail:__haMsgDetail}));}}catch(e){}
-    return false;
-  }
   const fromBack=!!opts.fromBack;
   if(!fromBack && currentScreen && currentScreen!==id){
     if(navStack[navStack.length-1]!==currentScreen) navStack.push(currentScreen);

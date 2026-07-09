@@ -1,7 +1,7 @@
 {
   "name": "HAPPYAD",
   "short_name": "HAPPYAD",
-  "description": "HAPPYAD - reseau social, marketplace et installation PWA.",
+  "description": "HAPPYAD – réseau social, marketplace, notifications rapides et installation PWA.",
   "start_url": "./index.html?source=pwa&v=16zj",
   "scope": "./",
   "display": "standalone",
@@ -90,6 +90,30 @@
     }
   ],
   "shortcuts": [
+    {
+      "name": "Notifications",
+      "short_name": "Notifications",
+      "url": "./index.html?v=16zj#notifications",
+      "icons": [
+        {
+          "src": "./icons/happyad-icon-v535center1-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "url": "./index.html?v=16zj#messages",
+      "icons": [
+        {
+          "src": "./icons/happyad-icon-v535center1-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
     {
       "name": "Vidéos",
       "short_name": "Vidéos",

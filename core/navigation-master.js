@@ -28,6 +28,8 @@
     photo:'modules/photo.html',
     publish:'modules/publish.html',
     map:'modules/map.html',
+    notifications:'modules/notifications.html',
+    messages:'messages.html',
     boutique:'boutique.html'
   };
 
@@ -88,6 +90,8 @@
     if(page==='profile')title='Mon profil';
     else if(page==='profile_public')title='Profil';
     else if(page==='boutique')title='Boutique';
+    else if(page==='messages')title='Messages';
+    else if(page==='notifications')title='Notifications';
     else if(page==='video')title='Vidéos';
     else if(page==='photo')title='Photos';
     else if(page==='publish')title='Publication';
@@ -173,33 +177,14 @@
       else if(file==='photo.html')prefix='modules/photo.html';
       else if(file==='publish.html')prefix='modules/publish.html';
       else if(file==='map.html')prefix='modules/map.html';
+      else if(file==='notifications.html')prefix='modules/notifications.html';
+      else if(file==='messages.html')prefix='messages.html';
       else if(file==='boutique.html')prefix='boutique.html';
       else if(file==='index.html'||file==='')prefix='index.html';
       return prefix+(u.search||'')+(u.hash||'');
     }catch(_e){return url;}
   }
   function pathOf(url){return rootUrl(url).split('#')[0].split('?')[0];}
-  function publicUidFromUrl(url){
-    try{
-      var u=new URL(rootUrl(url),location.href);
-      return String(u.searchParams.get('uid')||u.searchParams.get('user_id')||u.searchParams.get('profile_uid')||u.searchParams.get('auth_user_id')||u.searchParams.get('account_uid')||u.searchParams.get('owner')||u.searchParams.get('owner_id')||'').trim();
-    }catch(_e){return '';}
-  }
-  function isValidPublicProfileUrl(url){
-    try{
-      var r=rootUrl(url), p=pathOf(r);
-      if(p!=='modules/user.html')return false;
-      return !!publicUidFromUrl(r);
-    }catch(_e){return false;}
-  }
-  function normalizeRouteForOpen(page,url){
-    page=String(page||'home');url=rootUrl(url||pages[page]||'index.html');
-    if(page==='visitorProfile')page='profile_public';
-    if(page==='myProfile')page='profile';
-    if(page==='profile_public'&&!isValidPublicProfileUrl(url))return {view:'profile',url:'modules/user.html',invalidPublic:true};
-    if(pathOf(url)==='modules/user.html'&&/[?&]public=1(?:&|$)/.test(rootUrl(url))&&!isValidPublicProfileUrl(url))return {view:'profile',url:'modules/user.html',invalidPublic:true};
-    return {view:page,url:url,invalidPublic:false};
-  }
   function pageOf(url,forced){
     if(forced){
       forced=String(forced||'');
@@ -208,11 +193,13 @@
       if(pages[forced])return forced;
     }
     var r=rootUrl(url), p=pathOf(r);
-    if(p==='modules/user.html')return isValidPublicProfileUrl(r)?'profile_public':'profile';
+    if(p==='modules/user.html')return (/[?&](public=1|uid=|profile_uid=)/.test(r))?'profile_public':'profile';
     if(p==='modules/video.html')return 'video';
     if(p==='modules/photo.html')return 'photo';
     if(p==='modules/publish.html')return 'publish';
     if(p==='modules/map.html')return 'map';
+    if(p==='modules/notifications.html')return 'notifications';
+    if(p==='messages.html')return 'messages';
     if(p==='boutique.html')return 'boutique';
     return 'home';
   }
@@ -220,7 +207,7 @@
   function readProfileJson(k){try{return JSON.parse(localStorage.getItem(k)||'null')||null;}catch(_e){return null;}}
   function validProfileUser(u){
     if(!u||typeof u!=='object')return false;
-    var id=String(u.id||u.user_id||u.uid||u.uuid||u.auth_id||u.auth_user_id||u.authUserId||u.account_uid||u.accountUid||u.profile_id||u.owner_id||'').trim().toLowerCase();
+    var id=String(u.id||u.user_id||u.uid||u.uuid||u.auth_id||u.profile_id||u.owner_id||'').trim().toLowerCase();
     var nm=String(u.name||u.full_name||u.display_name||'').trim().toLowerCase();
     if(id.indexOf('guest')===0||id.indexOf('logged_out')===0)return false;
     if(nm==='utilisateur'||nm==='utilisateur happyad'||nm.indexOf('aucun compte')>=0)return false;
@@ -229,7 +216,7 @@
   function currentProfileIds(){
     var out=[],seen={};
     function add(v){v=String(v||'').trim();if(!v)return;var k=v.toLowerCase();if(!seen[k]){seen[k]=1;out.push(v);}}
-    function addUser(u){if(!validProfileUser(u))return;add(u.id);add(u.user_id);add(u.uid);add(u.uuid);add(u.auth_id);add(u.auth_user_id);add(u.authUserId);add(u.account_uid);add(u.accountUid);add(u.profile_id);add(u.owner_id);add(u.email);}
+    function addUser(u){if(!validProfileUser(u))return;add(u.id);add(u.user_id);add(u.uid);add(u.uuid);add(u.auth_id);add(u.profile_id);add(u.owner_id);add(u.email);}
     try{if(typeof window.currentUser==='function')addUser(window.currentUser()||{});}catch(_e){}
     try{if(window.UserStore) addUser(window.UserStore.data||{});}catch(_e){}
     ['HAPPYAD_LOGGED_USER','HAPPYAD_CURRENT_USER','HAPPYAD_USER','HAPPYAD_USER_V1','HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL'].forEach(function(k){addUser(readProfileJson(k)||{});});
@@ -243,26 +230,7 @@
     return false;
   }
   function profileUidFromUrl(url){
-    return publicUidFromUrl(url);
-  }
-  function activePublicProfileUid(){
-    try{var u=String(sessionStorage.getItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID')||'').trim();if(u)return u;}catch(_e){}
-    try{var u2=String(localStorage.getItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID')||localStorage.getItem('HAPPYAD_ACTIVE_PROFILE_UID')||'').trim();if(u2)return u2;}catch(_e2){}
-    try{var ap=readProfileJson('HAPPYAD_ACTIVE_PROFILE')||{};var id=String(ap.id||ap.user_id||ap.uid||ap.auth_user_id||ap.authUserId||ap.account_uid||ap.accountUid||ap.profile_uid||ap.owner_id||ap.creator_id||'').trim();if(id&&ap.__happyadUidLocked)return id;}catch(_e3){}
-    return '';
-  }
-  function ensurePublicProfileUrl(url,extra){
-    url=rootUrl(url||'modules/user.html?public=1');
-    var uid=profileUidFromUrl(url)||String((extra&&extra.uid)||(extra&&extra.profile&&profileUidFromUrl('modules/user.html?uid='+encodeURIComponent(extra.profile.id||extra.profile.user_id||extra.profile.uid||'')))||'').trim()||activePublicProfileUid();
-    if(!uid)return '';
-    try{
-      var u=new URL(url,location.href);
-      u.searchParams.set('public','1');
-      u.searchParams.set('uid',uid);
-      return 'modules/user.html'+(u.search||'')+(u.hash||'');
-    }catch(_e){
-      return 'modules/user.html?public=1&uid='+encodeURIComponent(uid);
-    }
+    try{var u=new URL(rootUrl(url),location.href);return String(u.searchParams.get('uid')||u.searchParams.get('user_id')||u.searchParams.get('profile_uid')||u.searchParams.get('owner')||u.searchParams.get('owner_id')||'').trim();}catch(_e){return '';}
   }
   function isHome(url){return pageOf(url)==='home';}
   function frameId(page){return 'happyadAppFrame_'+String(page||'page').replace(/[^a-zA-Z0-9_-]/g,'_');}
@@ -385,8 +353,7 @@
   function currentNavState(){try{var s=history.state;return s&&s[NAV_FLAG]?s:null;}catch(_e){return null;}}
   function rememberReloadRouteV16ZH(page,url){
     try{
-      var nr=normalizeRouteForOpen(page,url);
-      page=nr.view;url=nr.url;
+      page=String(page||'home');url=rootUrl(url||pages[page]||'index.html');
       var data={view:page,url:url,t:Date.now(),version:MASTER_VERSION};
       sessionStorage.setItem(RESTORE_KEY_V16ZH,JSON.stringify(data));
       sessionStorage.setItem('HAPPYAD_ACTIVE_APP_VIEW',page);
@@ -396,20 +363,20 @@
   function readReloadRouteV16ZH(){
     try{
       var s=currentNavState();
-      if(s&&s.view&&String(s.view)!=='home'){var hs=normalizeRouteForOpen(String(s.view),s.url||pages[s.view]||'index.html');if(!hs.invalidPublic)return {view:hs.view,url:hs.url,source:'history-state'};}
+      if(s&&s.view&&String(s.view)!=='home'){return {view:String(s.view),url:rootUrl(s.url||pages[s.view]||'index.html'),source:'history-state'};}
     }catch(_hs){}
     try{
       var raw=sessionStorage.getItem(RESTORE_KEY_V16ZH);
       var r=raw?JSON.parse(raw):null;
       if(r&&r.view&&String(r.view)!=='home'){
-        var rr=normalizeRouteForOpen(String(r.view),r.url||pages[r.view]||'index.html');
-        if(!rr.invalidPublic&&(pageOf(rr.url,rr.view)===rr.view||pages[rr.view]))return {view:rr.view,url:rr.url,source:'session-route'};
+        var u=rootUrl(r.url||pages[r.view]||'index.html');
+        if(pageOf(u,String(r.view))===String(r.view)||pages[String(r.view)])return {view:String(r.view),url:u,source:'session-route'};
       }
     }catch(_r){}
     try{
       var p=String(sessionStorage.getItem('HAPPYAD_ACTIVE_APP_VIEW')||'home');
-      var sr=normalizeRouteForOpen(p,sessionStorage.getItem('HAPPYAD_LAST_APP_URL')||pages[p]||'index.html');
-      if(sr.view&&sr.view!=='home'&&!sr.invalidPublic&&(pageOf(sr.url,sr.view)===sr.view||pages[sr.view]))return {view:sr.view,url:sr.url,source:'session-active'};
+      var u=rootUrl(sessionStorage.getItem('HAPPYAD_LAST_APP_URL')||pages[p]||'index.html');
+      if(p&&p!=='home'&&(pageOf(u,p)===p||pages[p]))return {view:p,url:u,source:'session-active'};
     }catch(_a){}
     return null;
   }
@@ -420,6 +387,8 @@
       var hash=String(u.hash||'').replace(/^#/,'').trim().toLowerCase();
       var key=app||hash;
       if(!key)return null;
+      if(key==='notifications')return {view:'notifications',url:'modules/notifications.html',source:'url'};
+      if(key==='messages')return {view:'messages',url:'messages.html',source:'url'};
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/user.html',source:'url'};
@@ -448,6 +417,8 @@
       else if(page==='photo')sel='a[href^="modules/photo.html"]';
       else if(page==='profile')sel='a[href^="modules/user.html"]';
       else if(page==='publish')sel='a[href^="modules/publish.html"]';
+      else if(page==='notifications')sel='a[href^="modules/notifications.html"]';
+      else if(page==='messages')sel='a[href^="messages.html"]';
       else if(page==='boutique')sel='a[href^="boutique.html"],[data-happyad-app-route^="boutique.html"]';
       var a=document.querySelector('.bottom '+sel);if(a)a.classList.add('active');
     }catch(_e){}
@@ -465,7 +436,7 @@
     return false;
   }
   function isSoftOpenPage(page,url){return page&&page!=='home'&&!isNoSkeletonPage(page,url);}
-  function isHeavySoftPage(page){return page==='profile'||page==='profile_public'||page==='boutique'||page==='publish'||page==='map'||page==='video'||page==='photo';}
+  function isHeavySoftPage(page){return page==='profile'||page==='profile_public'||page==='boutique'||page==='messages'||page==='notifications'||page==='publish'||page==='map'||page==='video'||page==='photo';}
   function isDirectMediaPage(page){return page==='video';}
   function prefetchUrl(url){
     try{
@@ -485,6 +456,8 @@
         try{prefetchUrl('modules/user.html');}catch(_p1){}
         try{setTimeout(function(){prefetchUrl('modules/video.html');},260);}catch(_pv){}
         try{setTimeout(function(){prefetchUrl('boutique.html');},520);}catch(_p2){}
+        try{setTimeout(function(){prefetchUrl('messages.html');},900);}catch(_p3){}
+        try{setTimeout(function(){prefetchUrl('modules/notifications.html');},1300);}catch(_p4){}
       };
       if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:2200});
       else setTimeout(run,1600);
@@ -503,6 +476,7 @@
     if(page==='video')return hasPost(activeUrl)?120:180;
     if(page==='profile'||page==='profile_public')return 1250;
     if(page==='boutique')return 1100;
+    if(page==='messages'||page==='notifications')return 850;
     return 620;
   }
   function maxSkeletonMs(page){
@@ -510,6 +484,7 @@
     if(page==='video')return hasPost(activeUrl)?1150:900;
     if(page==='profile'||page==='profile_public')return 7200;
     if(page==='boutique')return 6500;
+    if(page==='messages'||page==='notifications')return 5200;
     return 4300;
   }
   function frameLooksReady(fr,page){
@@ -530,6 +505,10 @@
         var hasShopWords=/(boutique|panier|produit|produits|catégorie|acheter|support|commande)/.test(txt);
         var shopLoading=/(chargement|préparation|loading)/.test(txt)&&!hasShopWords;
         return (hasShopNode||hasShopWords)&&!shopLoading;
+      }
+      if(page==='messages'||page==='notifications'){
+        var blocked=/(chargement|loading|préparation)/.test(txt)&&txt.length<80;
+        return !blocked;
       }
       if(page==='video'){
         /* V16R: la centrale vidéo doit apparaître vite. On attend seulement que le document ne soit plus vide,
@@ -660,28 +639,11 @@
     fr.setAttribute('data-happyad-page',page);
     return fr;
   }
-  function resetVisitorFrameForUrl(url){
-    try{
-      var fr=document.getElementById(frameId('profile_public'));
-      if(!fr)return;
-      if(sameFrameUrl(fr,url))return;
-      pauseFrame(fr,'visitor-profile-new-target');
-      fr.classList.remove('on');
-      fr.removeAttribute('data-happyad-src');
-      fr.removeAttribute('data-happyad-loading');
-      fr.removeAttribute('data-happyad-defer-visible');
-      fr.style.opacity='0';
-      fr.style.visibility='hidden';
-      try{fr.remove();}catch(_r){try{fr.parentNode&&fr.parentNode.removeChild(fr);}catch(_x){}}
-    }catch(_e){}
-  }
   function sameFrameUrl(fr,url){
     try{return rootUrl(fr.getAttribute('data-happyad-src')||'')===rootUrl(url||'');}catch(_e){return false;}
   }
   function loadFrame(page,url){
-    var root=ensureShell();if(!root)return false;
-    if(page==='profile_public')resetVisitorFrameForUrl(url);
-    var fr=ensureFrame(page,url);if(!fr)return false;
+    var root=ensureShell(), fr=ensureFrame(page,url);if(!root||!fr)return false;
     var mustReload=!sameFrameUrl(fr,url);
     if(page==='video'&&hasPost(url))mustReload=true;
     var directMedia=isDirectMediaPage(page);
@@ -758,20 +720,13 @@
   }
   function open(url,extra){
     extra=extra||{};url=rootUrl(url||'index.html');var page=pageOf(url,extra.page);
-    var normalized=normalizeRouteForOpen(page,url);
-    if(normalized.invalidPublic){page=normalized.view;url=normalized.url;extra.replace=true;}
     if(page==='profile_public'){
-      url=ensurePublicProfileUrl(url,extra);
-      if(!url){try{console.warn('HAPPYAD profile_public blocked: missing uid');}catch(_w){} return false;}
       var __profileUid=profileUidFromUrl(url);
       if(__profileUid&&isOwnProfileUid(__profileUid)){
         try{localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE');}catch(_ap){}
         try{sessionStorage.removeItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID');sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_MODE','my');}catch(_ss){}
         url='modules/user.html';
         page='profile';
-      }else if(__profileUid){
-        try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',__profileUid);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL',url);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',__profileUid);localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',__profileUid);}catch(_uid){}
-        if(activePage==='profile_public'&&activeUrl&&rootUrl(activeUrl)!==rootUrl(url))extra.replace=true;
       }
     }
     if(page==='home')return close('open-home',extra.fromPop||extra.replace);
@@ -884,7 +839,7 @@
   try{window.addEventListener('message',function(ev){
     try{
       var d=ev&&ev.data;if(!d)return;
-      if(d==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_APP_PAGE'){
+      if(d==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_NATIVE_CHAT'){
         ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
         return close('module-internal-back-v11b');
       }
@@ -934,10 +889,8 @@
     try{
       var r=routeFromLocationV16ZH()||readReloadRouteV16ZH();
       if(!r||!r.view||String(r.view)==='home')return false;
-      var nr=normalizeRouteForOpen(String(r.view),r.url||pages[r.view]||'index.html');
-      if(nr.invalidPublic)return false;
-      var page=nr.view;
-      var url=nr.url;
+      var page=String(r.view);
+      var url=rootUrl(r.url||pages[page]||'index.html');
       if(!pages[page]&&page!=='profile_public')return false;
       prepareBootRestoreShellV16ZJ(page,url);
       try{history.replaceState(state(page,url),'',location.href);}catch(_st){}

@@ -1,7 +1,7 @@
-/* HAPPYAD V27 - Service worker PWA actif, publication Storage réparée. */
+/* HAPPYAD V16ZJ - Service worker PWA actif, restauration page ouverte après actualisation. */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v27-publication-storage-fix-20260709';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v16zj-20260704-no-home-flash';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

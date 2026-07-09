@@ -170,7 +170,7 @@
       <div class="statActions">
         <button class="statActionBtn primary" onclick="openRevenueDetails()"><span data-ico="stats"></span> Revenus</button>
         <button class="statActionBtn" onclick="show('cart')"><span data-ico="cart"></span> Commandes</button>
-        
+        <button class="statActionBtn" onclick="show('messages')"><span data-ico="message"></span> Messages</button>
         <button class="statActionBtn" onclick="refreshStats()"><span data-ico="stats"></span> Actualiser</button>
       </div>
       <div class="card">
@@ -189,6 +189,21 @@
         </div>
       </div>
       <div id="sellerOrdersList"></div>
+    </section>
+
+    <section class="module" id="messages">
+      <div class="messageBridge happyadMessagesBridge">
+        <div class="bridgeCard">
+          <div class="section"><h3>Messages HAPPYAD</h3><span>Centrale</span></div>
+          <div class="accessLine"><span data-ico="message"></span><span>Profil, nom et badge HAPPYAD.</span></div>
+          <button class="btn" style="width:100%" onclick="openHappyadMessages('central')"><span data-ico="message" class="icoMini"></span> Ouvrir Messages HAPPYAD</button>
+        </div>
+        <div class="bridgeCard">
+          <h3>Revendications boutique</h3>
+          <p>Les dossiers de commande restent dans la boutique.</p>
+          <button class="btn dark" style="width:100%" onclick="openResolution()"><span data-ico="shield" class="icoMini"></span> Centre de résolution</button>
+        </div>
+      </div>
     </section>
 
 
@@ -229,7 +244,7 @@
     <section class="module" id="cart"><div id="cartRows"></div></section>
   </main>
 
-  <nav class="bottomNav" id="bottomNav"><button class="nav active" onclick="show('home')"><span class="navIcon" data-ico="home"></span>Accueil</button><button class="nav" onclick="show('profile')"><span class="navIcon" data-ico="user"></span>Profil</button><button class="nav" onclick="show('cart')"><span class="navIcon" data-ico="cart"></span>Panier</button></nav>
+  <nav class="bottomNav" id="bottomNav"><button class="nav active" onclick="show('home')"><span class="navIcon" data-ico="home"></span>Accueil</button><button class="nav" onclick="show('messages')"><span class="navIcon" data-ico="message"></span>Messages</button><button class="nav" onclick="show('profile')"><span class="navIcon" data-ico="user"></span>Profil</button><button class="nav" onclick="show('cart')"><span class="navIcon" data-ico="cart"></span>Panier</button></nav>
 
 
   <div class="paymentOverlay" id="paymentOverlay" onclick="closePaymentPopup(event)">
@@ -274,6 +289,8 @@
 
 
 <!-- HAPPYAD Boutique Resolution Chat Module V32: séparé et facilement extractible -->
+<link rel="stylesheet" href="modules/css/resolution-chat-style.css?v=532">
+<script src="modules/js/resolution-chat-script.js?v=532" data-module-id="resolution-chat-script"></script>
 
 <link rel="stylesheet" href="modules/css/v34-claim-visible-final.css?v=532">
 
@@ -281,6 +298,8 @@
 <script src="modules/js/04-cart-orders.js?v=532"></script>
 
 
+<link rel="stylesheet" href="modules/css/happyad-message-bridge-style.css?v=532">
+<script src="modules/js/happyad-message-bridge-final.js?v=532" data-module-id="happyad-message-bridge-final"></script>
 
 
 <!-- V56 : correction finale réception + note étoile popup unique -->
@@ -290,6 +309,8 @@
 
 
 <!-- V71: correction directe ouverture Voir chat + lecture seule après opération terminée -->
+<link rel="stylesheet" href="modules/css/happyad-v71-chat-open-readonly-style.css?v=532">
+<script src="modules/js/happyad-v71-chat-open-readonly-fix.js?v=532" data-module-id="happyad-v71-chat-open-readonly-fix"></script>
 
 
 <!-- V75 : mots allégés commander + réception -->
@@ -310,6 +331,8 @@
 <script src="modules/js/11-cart-orders.js?v=532"></script>
 
 <!-- V35 FIX: boutons revendication connectés au vrai chat de résolution -->
+<script src="modules/js/v35-claim-chat-direct-fix.js?v=532" data-module-id="v35-claim-chat-direct-fix"></script>
+<link rel="stylesheet" href="modules/css/v35-claim-chat-style.css?v=532">
 
 <!-- V36: revendication cachée après validation + notation client -->
 <link rel="stylesheet" href="modules/css/v36-rating-claim-final-style.css?v=532">
@@ -372,6 +395,8 @@
 
 
 <!-- V64 FINAL : after completed operation, keep only fine notification + Voir (client and seller) -->
+<link rel="stylesheet" href="modules/css/happyad-v64-final-notification-style.css?v=532">
+<script src="modules/js/happyad-v64-final-notification-fix.js?v=532" data-module-id="happyad-v64-final-notification-fix"></script>
 
 
 <!-- V67 : fine notification only + clickable proof fullscreen + proof visible inside revendication chat -->
@@ -381,8 +406,11 @@
 
 <!-- V68 : classement commandes/livraisons + chat lecture seule après opération terminée -->
 <link rel="stylesheet" href="modules/css/happyad-v68-order-tabs-readonly-style.css?v=532">
+<script src="modules/js/happyad-v68-order-tabs-readonly-chat-fix.js?v=532" data-module-id="happyad-v68-order-tabs-readonly-chat-fix"></script>
 
 <!-- V72 FINAL: Voir chat vraiment lecture seule après opération terminée -->
+<link rel="stylesheet" href="modules/css/happyad-v72-final-readonly-chat-style.css?v=532">
+<script src="modules/js/happyad-v72-final-readonly-chat-script.js?v=532" data-module-id="happyad-v72-final-readonly-chat-script"></script>
 
 <!-- V73: interface achat/livraison et voir chat allégés -->
 <link rel="stylesheet" href="modules/css/happyad-v73-light-interface-style.css?v=532">
@@ -418,7 +446,10 @@ window.HAPPYAD_BOUTIQUE_IN_MAIN_APP = true;
 <link rel="stylesheet" href="modules/css/happyad-v117-profile-star-top-clean-style.css?v=532">
 <link rel="stylesheet" href="modules/css/happyad-v119-profile-publication-actions-vertical.css?v=532">
 <script src="modules/js/happyad-v107-boutique-real-card-media-safe.js?v=532" data-module-id="happyad-v107-boutique-real-card-media-safe"></script>
+<script src="modules/js/happyad-v109-boutique-profile-photo-open-safe.js?v=532" data-module-id="happyad-v109-boutique-profile-photo-open-safe"></script>
+<script src="modules/js/happyad-v110-detail-cart-message-safe.js?v=532" data-module-id="happyad-v110-detail-cart-message-safe"></script>
 <script src="modules/js/happyad-v111-cart-image-click-safe.js?v=532" data-module-id="happyad-v111-cart-image-click-safe"></script>
+<script src="modules/js/happyad-v112-hide-owner-message-cart-safe.js?v=532" data-module-id="happyad-v112-hide-owner-message-cart-safe"></script>
 <script src="modules/js/happyad-v113-real-product-description-safe.js?v=532" data-module-id="happyad-v113-real-product-description-safe"></script>
 <script src="modules/js/happyad-v114-profile-hero-avatar-safe.js?v=532" data-module-id="happyad-v114-profile-hero-avatar-safe"></script>
 <script src="modules/js/happyad-v115-profile-photo-publiccard-safe.js?v=532" data-module-id="happyad-v115-profile-photo-publiccard-safe"></script>
@@ -537,7 +568,7 @@ window.HAPPYAD_BOUTIQUE_IN_MAIN_APP = true;
       var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
       var href=a.getAttribute('href')||'';
       var clean=href.replace(/^\.\//,'').replace(/^\.\.\//,'');
-      if(clean==='index.html'||clean==='/'||clean.indexOf('modules/')===0||clean.indexOf('boutique.html')===0){
+      if(clean==='index.html'||clean==='/'||clean.indexOf('modules/')===0||clean.indexOf('messages.html')===0||clean.indexOf('boutique.html')===0){
         if(askParent(clean)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false;}
       }
     }catch(_e){}

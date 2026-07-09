@@ -15,7 +15,7 @@
   function readJson(k){try{return JSON.parse(localStorage.getItem(k)||'null')||null;}catch(_e){return null;}}
   function validUser(u){
     if(!u||typeof u!=='object')return false;
-    var id=clean(u.id||u.user_id||u.uid||u.uuid||u.auth_id||u.auth_user_id||u.authUserId||u.account_uid||u.accountUid||u.profile_id||u.owner_id);
+    var id=clean(u.id||u.user_id||u.uid||u.uuid||u.auth_id||u.profile_id||u.owner_id);
     var nm=lower(u.name||u.full_name||u.display_name||'');
     if(id.indexOf('guest')===0||id.indexOf('logged_out')===0)return false;
     if(nm==='utilisateur'||nm==='utilisateur happyad'||nm.indexOf('aucun compte')>=0)return false;
@@ -31,7 +31,7 @@
   }
   function currentIds(){
     var u=currentUser()||{};
-    var ids=[u.id,u.user_id,u.uid,u.uuid,u.auth_id,u.auth_user_id,u.authUserId,u.account_uid,u.accountUid,u.profile_id,u.owner_id,u.email];
+    var ids=[u.id,u.user_id,u.uid,u.uuid,u.auth_id,u.profile_id,u.owner_id,u.email];
     try{ids.push(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){}
     return uniq(ids);
   }
@@ -46,25 +46,16 @@
     try{
       if(typeof window.postOwnerData==='function'){
         var o=window.postOwnerData(x)||{};
-        var oid=clean(o.id||o.user_id||o.uid||o.uuid||o.auth_id||o.auth_user_id||o.authUserId||o.account_uid||o.accountUid);
+        var oid=clean(o.id||o.user_id||o.uid||o.uuid||o.auth_id);
         if(oid)return oid;
       }
     }catch(_e){}
-    return clean(x.uid||x.user_id||x.userId||x.auth_user_id||x.authUserId||x.account_uid||x.accountUid||x.creatorId||x.creator_id||x.ownerId||x.owner_id||x.author_id||x.profile_id||x.requestedUid||x.id);
+    return clean(x.uid||x.user_id||x.userId||x.creatorId||x.creator_id||x.ownerId||x.owner_id||x.author_id||x.profile_id||x.requestedUid||x.id);
   }
   function avatarOf(p){p=p||{};return clean(p.avatar||p.avatar_url||p.author_avatar||p.creator_avatar||p.photo||p.profile_photo||p.image_url||p.picture);}
   function nameOf(p){p=p||{};return clean(p.name||p.full_name||p.display_name||p.creatorName||p.creator_name||p.username||p.handle)||'Utilisateur HAPPYAD';}
-  function badgeOf(p){
-    p=p||{};
-    var vals=[p.badge,p.user_badge,p.badge_type,p.certification,p.verified_badge,p.role_badge,p.profile_badge,p.account_badge];
-    for(var i=0;i<vals.length;i++){
-      var v=clean(vals[i]).toLowerCase();
-      if(v&&v!=='aucun'&&v!=='none'&&v!=='false'&&v!=='0'&&v!=='null'&&v!=='undefined'&&v!=='true')return v;
-    }
-    return '';
-  }
   function normalizeProfile(p){
-    p=p||{};var id=uidOf(p), nm=nameOf(p), av=avatarOf(p), hd=clean(p.handle||p.username), bg=badgeOf(p);
+    p=p||{};var id=uidOf(p), nm=nameOf(p), av=avatarOf(p), hd=clean(p.handle||p.username), bg=clean(p.badge||p.user_badge||p.verified_badge||p.badge_type||p.certification||p.certified||p.is_verified);
     return {id:id,user_id:id,uid:id,name:nm,full_name:clean(p.full_name)||nm,display_name:clean(p.display_name)||nm,username:clean(p.username)||hd,handle:hd,avatar:av,avatar_url:av,badge:bg,user_badge:bg,__happyadUidLocked:true,source:MASTER_VERSION,at:Date.now?Date.now():new Date().getTime()};
   }
   function allPostsFor(uid){
@@ -75,7 +66,7 @@
       if(uid&&Array.isArray(arr)){
         return arr.filter(function(x){
           try{if(typeof window.happyadOwnerOfPostV463==='function')return String(window.happyadOwnerOfPostV463(x))===String(uid);}catch(_e){}
-          return String(x&& (x.creatorId||x.creator_id||x.user_id||x.userId||x.auth_user_id||x.authUserId||x.account_uid||x.accountUid||x.ownerId||x.owner_id||x.uid)||'')===String(uid);
+          return String(x&& (x.creatorId||x.creator_id||x.user_id||x.userId||x.ownerId||x.owner_id||x.uid)||'')===String(uid);
         });
       }
     }catch(_e){}
@@ -87,17 +78,14 @@
       if(typeof window.happyadWarmPublicProfileCacheV463==='function'){
         window.happyadWarmPublicProfileCacheV463(n,Array.isArray(posts)?posts:allPostsFor(n.id),makeActive!==false);
       }else{
-        if(makeActive!==false)localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));
+        localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));
       }
-      if(makeActive!==false){localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',n.id);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',n.id);}
-    }catch(_e){try{if(makeActive!==false){localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',n.id);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',n.id);}}catch(_x){}}
-    if(makeActive!==false){try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',n.id);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL','modules/user.html?public=1&uid='+esc(n.id));}catch(_s){}}
+    }catch(_e){try{localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));}catch(_x){}}
+    try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',n.id);}catch(_s){}
     return n;
   }
   function clearPublicProfileState(){
     try{sessionStorage.removeItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID');}catch(_e){}
-    try{sessionStorage.removeItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL');}catch(_e){}
-    try{localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE_UID');localStorage.removeItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID');}catch(_e){}
     try{localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE');}catch(_e){}
     try{delete window.__HAPPYAD_ACTIVE_PROFILE_RAM;}catch(_e){window.__HAPPYAD_ACTIVE_PROFILE_RAM=null;}
   }
@@ -128,7 +116,7 @@
   function openViewer(p,uid){return openVisitor(uid||uidOf(p),p||{},{});}
   function openFromUrl(url,opts){
     opts=opts||{};
-    try{var u=new URL(String(url||''),location.href);var uid=u.searchParams.get('uid')||u.searchParams.get('user_id')||u.searchParams.get('profile_uid')||u.searchParams.get('auth_user_id')||u.searchParams.get('account_uid')||u.searchParams.get('owner')||'';if(uid&&isOwnUid(uid))return openMy(opts);if(uid)return openVisitor(uid,{},opts);}catch(_e){}
+    try{var u=new URL(String(url||''),location.href);var uid=u.searchParams.get('uid')||u.searchParams.get('user_id')||u.searchParams.get('profile_uid')||u.searchParams.get('owner')||'';if(uid&&isOwnUid(uid))return openMy(opts);if(uid)return openVisitor(uid,{},opts);}catch(_e){}
     return openMy(opts);
   }
 

@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="manifest" href="manifest.webmanifest?v=16z">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/happyad-icon-v535center1-192.png?v=16y">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/happyad-icon-v535center1-180.png?v=16y">
+<title>Messages HAPPYAD</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+window.HAPPYAD_SUPABASE_URL=window.HAPPYAD_SUPABASE_URL||"https://txjjyhupbejgjcianrmr.supabase.co";
+window.HAPPYAD_SUPABASE_KEY=window.HAPPYAD_SUPABASE_KEY||"sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
+</script>
+<style>
+html,body{margin:0;height:100%;background:#000;color:white;font-family:Arial,sans-serif;overflow:hidden}body{display:flex;flex-direction:column;max-width:520px;margin:0 auto;background:radial-gradient(circle at 50% -20%,rgba(47,128,255,.13),transparent 34%),#07131d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+.header{height:68px;flex:0 0 68px;background:rgba(18,28,40,.98);display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.back{font-size:34px;cursor:pointer;line-height:1;color:#fff;flex:0 0 28px;text-align:center}
+.avatar{width:48px;height:48px;min-width:48px;border-radius:50%;background:#ff9d00;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#111;overflow:hidden;border:1px solid rgba(255,255,255,.15)}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.nameWrap{min-width:0;display:flex;flex-direction:column;gap:1px;flex:1}
+.name{font-size:21px;font-weight:1000;letter-spacing:-.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;max-width:100%}
+.status{display:none!important}
+.headActions{display:flex;align-items:center;gap:0;margin-left:auto;color:#fff;font-size:28px;opacity:.95;min-width:28px;justify-content:flex-end}.headActions span{line-height:1}
+.happyBadgeMark{position:relative!important;display:inline-block!important;width:18px!important;height:18px!important;margin-left:3px!important;vertical-align:-2px!important;overflow:visible!important;font-size:0!important;line-height:1!important;flex:0 0 18px!important;clip-path:polygon(50% 0%,58% 12%,71% 6%,76% 20%,91% 22%,88% 38%,100% 50%,88% 62%,91% 78%,76% 80%,71% 94%,58% 88%,50% 100%,42% 88%,29% 94%,24% 80%,9% 78%,12% 62%,0% 50%,12% 38%,9% 22%,24% 20%,29% 6%,42% 12%)!important}
+.happyBadgeMark:before{content:''!important;position:absolute!important;inset:0!important;clip-path:inherit!important;z-index:0!important}
+.happyBadgeMark:after{content:'✓'!important;position:absolute!important;top:50%!important;left:50%!important;transform:translate(-50%,-52%)!important;color:#fff!important;font-size:11px!important;font-weight:1000!important;line-height:1!important;text-shadow:0 0 3px rgba(255,255,255,.75)!important;z-index:1!important}
+.happyBadgeMark.violet:before,.happyBadgeMark.purple:before{background:linear-gradient(135deg,#e9d5ff,#c084fc,#9333ea)!important;box-shadow:0 0 3px rgba(147,51,234,.45),0 0 8px rgba(109,40,217,.25)!important}
+.happyBadgeMark.bleu:before,.happyBadgeMark.blue:before{background:linear-gradient(135deg,#6fd4ff,#38b6ff,#0090ff)!important;box-shadow:0 0 3px rgba(79,195,255,.45),0 0 8px rgba(0,120,255,.25)!important}
+.happyBadgeMark.yellow:before,.happyBadgeMark.jaune:before{background:linear-gradient(135deg,#fff4a8,#ffc247,#ff8a00)!important;box-shadow:0 0 3px rgba(255,194,71,.42),0 0 8px rgba(255,138,0,.22)!important}
+.chat{flex:1;min-height:0;padding:12px 12px 8px;overflow-y:auto;box-sizing:border-box;background:radial-gradient(circle at 20% 0%,rgba(255,138,0,.035),transparent 28%),radial-gradient(circle at 80% 18%,rgba(47,128,255,.06),transparent 30%)}
+.dayChip{width:max-content;margin:6px auto 12px;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);font-size:12px;font-weight:900;color:#d8dee9}
+.empty{margin:22vh auto 0;max-width:390px;background:rgba(27,42,58,.88);border:1px solid rgba(90,112,138,.55);border-radius:22px;text-align:center;padding:20px 18px;font-size:17px;line-height:1.35;color:#fff}
+.msg{position:relative;max-width:76%;width:max-content;min-width:72px;padding:9px 12px 16px;border-radius:17px;margin:8px 0;color:#ffeab5;background:linear-gradient(135deg,rgba(162,116,24,.42),rgba(97,77,30,.34));border:1px solid rgba(255,194,71,.12);box-shadow:0 6px 18px rgba(0,0,0,.16);word-wrap:break-word;white-space:pre-wrap;line-height:1.22;font-size:17px}
+.msg.them{margin-right:auto;border-bottom-left-radius:5px}.msg.me{margin-left:auto;color:#dfeeff;background:linear-gradient(135deg,rgba(47,128,255,.34),rgba(28,64,112,.40));border:1px solid rgba(80,150,255,.16);border-bottom-right-radius:5px}
+.msgMeta{position:absolute;right:10px;bottom:3px;font-size:10.5px;color:rgba(255,255,255,.55);white-space:nowrap}.msg.them .msgMeta{color:rgba(255,235,180,.55)}.ticks{font-weight:1000;color:#76c8ff;margin-left:3px}.deletedText{font-style:italic;color:rgba(255,255,255,.62)}.msg.deleted{opacity:.82}
+.inputbar{min-height:68px;max-height:158px;flex:0 0 auto;background:rgba(18,28,40,.98);display:flex;gap:7px;align-items:flex-end;padding:8px 10px;box-sizing:border-box;border-top:1px solid rgba(255,255,255,.06)}
+.toolBtn,.sendBtn{border:0;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;font-weight:1000}.toolBtn{width:37px;height:37px;margin-bottom:5px;background:rgba(255,255,255,.05);color:#dce7f3;font-size:22px;border:1px solid rgba(255,255,255,.07)}
+.inputWrap{flex:1;min-width:0;min-height:46px;max-height:142px;border-radius:24px;background:#1f2e40;display:flex;align-items:flex-end;gap:6px;padding:7px 10px;border:1px solid rgba(255,255,255,.07)}
+.inputWrap .emoji{color:#c8d5e4;font-size:22px;line-height:1;flex:0 0 auto;margin-bottom:4px}textarea#msgInput{flex:1;min-width:0;border:0;outline:0;background:transparent;color:white;padding:4px 2px;font-size:17px;line-height:22px;height:26px;min-height:26px;max-height:118px;resize:none;overflow-y:auto}textarea#msgInput::placeholder{color:#8f9aaa}.sendBtn{width:48px;height:48px;margin-bottom:2px;background:linear-gradient(135deg,#ff9d00,#ff7a00);color:#111;font-size:22px;box-shadow:0 8px 22px rgba(255,138,0,.22)}
+
+.iconBtn{border:0;background:transparent;color:#dce7f3;font-size:24px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer}
+.headActions .iconBtn{width:34px;height:44px;font-size:28px}
+.inputWrap .emojiBtn{border:0;background:transparent;color:#c8d5e4;font-size:22px;line-height:1;flex:0 0 auto;margin:0 0 4px 0;padding:0;display:grid;place-items:center;cursor:pointer}
+.popupLayer{position:fixed;inset:0;display:none;z-index:50;background:rgba(0,0,0,.18)}
+.popupLayer.show{display:block}
+.popupBox{position:absolute;left:10px;right:10px;bottom:76px;max-width:500px;margin:0 auto;background:rgba(18,28,40,.98);border:1px solid rgba(255,255,255,.10);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.42);overflow:hidden;color:white}
+.emojiPanel{max-height:280px;display:flex;flex-direction:column}
+.emojiTabs{display:flex;gap:6px;overflow-x:auto;padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.emojiTabs button{border:0;background:rgba(255,255,255,.07);color:white;border-radius:999px;padding:7px 10px;font-size:16px;white-space:nowrap}
+.emojiTabs button.active{background:linear-gradient(135deg,#ff9d00,#ff7a00);color:#111;font-weight:900}
+.emojiGrid{padding:10px;display:grid;grid-template-columns:repeat(8,1fr);gap:6px;overflow-y:auto}
+.emojiGrid button{border:0;background:rgba(255,255,255,.04);border-radius:12px;font-size:24px;padding:8px 0;line-height:1.1}
+.sheetList{padding:10px;display:flex;flex-direction:column;gap:8px}
+.sheetList button{border:0;background:rgba(255,255,255,.065);color:white;border-radius:14px;padding:13px 14px;text-align:left;font-size:16px;font-weight:800}
+.sheetList button.danger{background:rgba(255,60,90,.16);color:#ffd5dd}
+.menuPanel{left:auto;right:10px;bottom:auto;top:76px;max-width:270px}
+textarea#msgInput{scrollbar-width:thin}
+
+.fileCard{margin-top:4px;min-width:210px;max-width:100%;border-radius:15px;overflow:hidden;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}
+.fileCard img{display:block;width:100%;max-height:240px;object-fit:cover;background:#08131d;cursor:pointer}
+.fileCard video{display:block;width:100%;max-height:260px;background:#000;border-radius:12px}
+.fileCard audio{display:block;width:100%;min-width:220px;margin-top:4px}
+.fileInfo{display:flex;align-items:center;gap:8px;padding:9px 10px;font-size:14px;color:#dbe8f6;word-break:break-word}
+.fileIcon{font-size:22px;flex:0 0 auto}.fileName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fileSize{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.fileActions{display:flex;gap:8px;padding:0 10px 10px}.fileActions a,.fileActions button{border:0;text-decoration:none;background:rgba(255,255,255,.09);color:#fff;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:800}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;z-index:90;align-items:center;justify-content:center;padding:18px}.viewer.show{display:flex}.viewer img,.viewer video{max-width:100%;max-height:82vh;border-radius:16px}.viewerClose{position:absolute;top:18px;right:18px;border:0;border-radius:50%;width:42px;height:42px;background:rgba(255,255,255,.14);color:#fff;font-size:26px}.viewerSave{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:#ff8a00;color:#111;border-radius:999px;padding:10px 18px;text-decoration:none;font-weight:900}
+.ticks.sent{color:rgba(255,255,255,.55)}.ticks.delivered{color:#76c8ff}.ticks.read{color:#ffd44a;text-shadow:0 0 5px rgba(255,212,74,.35)}
+
+
+.msg.deleted{opacity:.72;font-style:italic;color:rgba(255,255,255,.62)}
+.msgMenuPanel{left:12px;right:12px;bottom:78px;max-width:420px}
+
+@media(max-width:380px){.headActions{gap:8px;font-size:22px}.name{font-size:19px}.msg{font-size:16px}.inputbar{gap:6px;padding-left:8px;padding-right:8px}.toolBtn{width:35px;height:35px}}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <div class="back" onclick="return happyadMessageBack()">‹</div>
+  <div id="avatar" class="avatar"><span id="avatarLetter">H</span></div>
+  <div class="nameWrap">
+    <div class="name"><span id="chatName">Utilisateur</span><span id="badge" class="badge"></span></div>
+    <div id="chatStatus" class="status"></div>
+  </div>
+  <div class="headActions"><button id="menuBtn" class="iconBtn" type="button" title="Menu">⋮</button></div>
+</div>
+
+<div id="chat" class="chat"></div>
+
+<div class="inputbar">
+  <button id="plusBtn" class="toolBtn plus" type="button">＋</button>
+    <div class="inputWrap">
+    <button id="emojiBtn" class="emojiBtn" type="button">☺</button>
+    <textarea id="msgInput" placeholder="Message" rows="1"></textarea>
+    
+  </div>
+  <button class="sendBtn" onclick="sendMsg()" type="button">➤</button>
+</div>
+
+<div id="mediaViewer" class="viewer"><button id="viewerClose" class="viewerClose" type="button">×</button><div id="viewerBody"></div><a id="viewerSave" class="viewerSave" href="#" download>Enregistrer</a></div>
+
+<input id="filePicker" type="file" multiple style="display:none" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,*/*">
+<div id="emojiLayer" class="popupLayer"><div class="popupBox emojiPanel"><div id="emojiTabs" class="emojiTabs"></div><div id="emojiGrid" class="emojiGrid"></div></div></div>
+<div id="plusLayer" class="popupLayer"><div class="popupBox"><div class="sheetList">
+  <button id="pickFilesBtn" type="button">📁 Choisir dans le téléphone</button>
+  <button id="pickPhotoBtn" type="button">🖼️ Photo ou vidéo</button>
+  <button id="pickAudioBtn" type="button">🎵 Audio</button>
+</div></div></div>
+<div id="menuLayer" class="popupLayer"><div class="popupBox menuPanel"><div class="sheetList">
+  <button id="blockUserBtn" type="button">🚫 Bloquer</button>
+  <button id="reportUserBtn" type="button">🚨 Signaler</button>
+  <button id="clearChatBtn" class="danger" type="button">🗑️ Supprimer tout le contenu conversation</button>
+</div></div></div>
+<div id="msgMenuLayer" class="popupLayer"><div class="popupBox msgMenuPanel"><div class="sheetList">
+  <button id="deleteForMeBtn" type="button">🗑️ Supprimer pour moi</button>
+  <button id="deleteForAllBtn" class="danger" type="button">🗑️ Supprimer pour tous</button>
+  <button id="cancelMsgMenuBtn" type="button">Fermer</button>
+</div></div></div>
+
+<script>
+const params = new URLSearchParams(location.search || '');
+const CHATKEY = 'HAPPYAD_CHAT_MESSAGES_V2';
+const OPEN_NAME_KEY = 'HAPPYAD_OPEN_CHAT_NAME';
+const OPEN_PROFILE_KEY = 'HAPPYAD_OPEN_CHAT_PROFILE';
+const NOTIF_CONV_CACHE_BASE='HAPPYAD_NOTIF_CONVERSATIONS_STABLE_V133';
+const NOTIF_CONV_LAST_OPEN_KEY='HAPPYAD_NOTIF_LAST_OPEN_CONVERSATION_V134';
+const NOTIF_CONV_ALL_CACHE_BASE='HAPPYAD_NOTIF_CONVERSATIONS_ALL_STABLE_V135';
+const NOTIF_CONV_ALL_SCOPE_BASE='HAPPYAD_NOTIF_CONVERSATIONS_ALL_SCOPE_V135_';
+const CONV_READ_SCOPE_BASE='HAPPYAD_CONVERSATIONS_READ_KEYS_V1_';
+const NOTIF_SNAPSHOT_SCOPE_BASE='HAPPYAD_NOTIF_MESSAGES_READY_SNAPSHOT_V1_';
+const NOTIF_DEEP_LOCAL_KEY='HAPPYAD_NOTIF_MESSAGES_DEEP_LOCAL_V2';
+const NOTIF_CENTER_KEY='HAPPYAD_NOTIFICATION_CENTER_LIVE_V473';
+const NOTIF_AUTOSAVE_KEY='HAPPYAD_NOTIF_AUTOSAVE_SAFE_V475';
+const NOTIF_AUTOSAVE_SCOPE_BASE='HAPPYAD_NOTIF_AUTOSAVE_SCOPE_V475_';
+
+const PARAM_CONV_ID = clean(params.get('conversation_id'));
+const PARAM_USER_ID = clean(params.get('user_id'));
+/* V484: quand Messages est ouvert par index.html, le bouton retour doit fermer la couche interne.
+   Il ne doit plus faire history.back(), sinon l'iframe peut revenir vers une ancienne URL vide et afficher "Aucun message". */
+const HAPPYAD_NATIVE_CHAT = (clean(params.get('native'))==='1') || (function(){try{return !!(window.parent && window.parent!==window);}catch(e){return false;}})();
+function happyadCloseNativeParent(){
+  try{
+    if(window.parent && window.parent!==window){
+      if(typeof window.parent.happyadCloseNativeChat==='function'){window.parent.happyadCloseNativeChat();return true;}
+      window.parent.postMessage('HAPPYAD_CLOSE_NATIVE_CHAT','*');return true;
+    }
+  }catch(e){}
+  return false;
+}
+function happyadMessageBack(){
+  if(happyadCloseNativeParent()) return false;
+  if(HAPPYAD_NATIVE_CHAT) return false;
+  /* En ouverture seule, revenir à l'accueil plutôt que naviguer vers une ancienne conversation vide. */
+  try{location.replace('index.html');}catch(_e){try{window.location.href='index.html';}catch(__e){}}
+  return false;
+}
+function happyadSb(){
+  try{
+    if(window.happyadSupabase) return window.happyadSupabase;
+    if(window.parent && window.parent!==window && window.parent.happyadSupabase){
+      window.happyadSupabase=window.parent.happyadSupabase;
+      return window.happyadSupabase;
+    }
+    if(window.supabase && window.supabase.createClient){
+      window.happyadSupabase = window.supabase.createClient(window.HAPPYAD_SUPABASE_URL, window.HAPPYAD_SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      return window.happyadSupabase;
+    }
+  }catch(e){}
+  return null;
+}
+function activeUserObj(){
+  const keys=['HAPPYAD_LOGGED_USER','HAPPYAD_CURRENT_USER','HAPPYAD_USER','HAPPYAD_USER_V1','HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL'];
+  // Ne jamais utiliser HAPPYAD_ACTIVE_PROFILE ici: ce peut être le profil ouvert (l'autre personne), pas moi.
+  function valid(v){
+    if(!v || typeof v!=='object' || !Object.keys(v).length) return false;
+    const id=String(v.id||v.user_id||v.uid||v.uuid||v.auth_id||'').trim().toLowerCase();
+    const nm=String(v.name||v.full_name||v.display_name||'').trim().toLowerCase();
+    if(id.indexOf('guest')===0 || id.indexOf('logged_out')===0) return false;
+    if(nm==='utilisateur' || nm==='utilisateur happyad' || nm.indexOf('aucun compte')>-1) return false;
+    return !!(id || v.email || v.handle || v.username || nm);
+  }
+  for(const k of keys){const v=safeJson(localStorage.getItem(k),null); if(valid(v)) return v;}
+  return {};
+}
+function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||'').trim());}
+function idFromObj(u){return clean(u && (u.id || u.user_id || u.uid || u.uuid || u.auth_id || u.email || u.handle || u.username || u.name || ''));}
+function uuidFromObj(u){
+  const vals=[u&&u.id,u&&u.user_id,u&&u.uid,u&&u.uuid,u&&u.auth_id];
+  for(const v of vals){if(isUuid(v)) return clean(v);}
+  return '';
+}
+function myId(){return uuidFromObj(activeUserObj()) || idFromObj(activeUserObj());}
+function notifConvCacheScope(){
+  try{
+    const u=activeUserObj()||{};
+    const raw=[myId(),u.id,u.user_id,u.uid,u.uuid,u.auth_id,u.email,u.handle,u.username,u.name,u.full_name,u.display_name].map(x=>clean(x)).filter(Boolean)[0]||'local';
+    return raw.replace(/[^a-zA-Z0-9_.@-]/g,'_').slice(0,90)||'local';
+  }catch(_e){return 'local';}
+}
+function notifConvCacheKey(){return NOTIF_CONV_CACHE_BASE+'_'+notifConvCacheScope();}
+function conversationReadKey(){return CONV_READ_SCOPE_BASE+notifConvCacheScope();}
+function readConversationReadKeys(){try{return JSON.parse(localStorage.getItem(conversationReadKey())||'{}')||{}}catch(_e){return {}}}
+function happyadLimitKeyMap(m,limit){try{const entries=Object.entries(m||{}).sort(function(a,b){return Number(b[1]||0)-Number(a[1]||0)}).slice(0,limit||2000);return Object.fromEntries(entries)}catch(_e){return m||{}}}
+function saveConversationReadKeys(m){try{localStorage.setItem(conversationReadKey(),JSON.stringify(happyadLimitKeyMap(m,8000)))}catch(_e){}}
+function conversationReadStableKey(c){return notifConvMergeKey(c)||clean(c&&(c.conversation_id||c.id));}
+function isConversationReadLocal(c){try{const k=conversationReadStableKey(c);return !!(k&&readConversationReadKeys()[k]);}catch(_e){return false}}
+function markConversationReadLocal(c){try{const k=conversationReadStableKey(c);if(!k)return;const m=readConversationReadKeys();m[k]=Date.now();saveConversationReadKeys(m);}catch(_e){}}
+function notifConvAllScopeKey(){return NOTIF_CONV_ALL_SCOPE_BASE+notifConvCacheScope();}
+function readNotifConvArray(k){try{const v=safeJson(localStorage.getItem(k),[]);return Array.isArray(v)?v:[]}catch(_e){return []}}
+function writeNotifConvArray(k,v){try{localStorage.setItem(k,JSON.stringify(v||[]));}catch(_e){}}
+function happyadNotifSnapshotScope(){try{const u=activeUserObj&&activeUserObj()||{};const raw=[u.id,u.user_id,u.uid,u.uuid,u.auth_id,u.email,u.handle,u.username,u.name,u.full_name].map(x=>clean(x)).filter(Boolean)[0]||'global';return raw.replace(/[^a-zA-Z0-9_.@-]/g,'_').slice(0,90)||'global';}catch(_e){return 'global';}}
+function happyadNotifSnapshotKey(){return NOTIF_SNAPSHOT_SCOPE_BASE+happyadNotifSnapshotScope();}
+function happyadEmptyNotifSnapshot(){return {notifications:[],conversations:[],counts:{total:0,unread:0},updated_at:0};}
+function happyadNotifAutoSaveScopeKey(){return NOTIF_AUTOSAVE_SCOPE_BASE+happyadNotifSnapshotScope();}
+function happyadReadNotifAutoSave(){
+  try{const v=JSON.parse(localStorage.getItem(happyadNotifAutoSaveScopeKey())||sessionStorage.getItem(happyadNotifAutoSaveScopeKey())||'null');if(v&&typeof v==='object'&&(Array.isArray(v.notifications)||Array.isArray(v.conversations)))return v;}catch(_e){}
+  try{const box=JSON.parse(localStorage.getItem(NOTIF_AUTOSAVE_KEY)||'null');const scope=happyadNotifSnapshotScope();if(box&&box.scopes&&box.scopes[scope])return box.scopes[scope];if(box&&box.last_scope&&box.scopes&&box.scopes[box.last_scope])return box.scopes[box.last_scope];}catch(_b){}
+  return null;
+}
+function happyadWriteNotifAutoSaveSnapshot(obj){
+  try{
+    if(!obj||typeof obj!=='object')return;
+    const old=happyadReadNotifAutoSave()||happyadEmptyNotifSnapshot();
+    const notifications=Array.isArray(obj.notifications)?obj.notifications:(old.notifications||[]);
+    const conversations=mergeNotifConvList(old.conversations||[],obj.conversations||[]).slice(0,800);
+    const unreadNotif=(notifications||[]).filter(n=>n&&n.unread===true).length;
+    const unreadConv=(conversations||[]).filter(c=>c&&c._has_unread_for_me===true).length;
+    const next=Object.assign({},old,obj,{version:475,scope:happyadNotifSnapshotScope(),updated_at:Date.now(),notifications:notifications,conversations:conversations,counts:{total:(notifications||[]).length+(conversations||[]).length,unread:unreadNotif+unreadConv}});
+    localStorage.setItem(happyadNotifAutoSaveScopeKey(),JSON.stringify(next));
+    try{sessionStorage.setItem(happyadNotifAutoSaveScopeKey(),JSON.stringify(next));}catch(_s){}
+    const box=JSON.parse(localStorage.getItem(NOTIF_AUTOSAVE_KEY)||'null')||{version:475,last_scope:'',scopes:{}};
+    box.version=475;box.last_scope=next.scope;box.updated_at=Date.now();box.scopes=box.scopes&&typeof box.scopes==='object'?box.scopes:{};box.scopes[next.scope]=next;
+    localStorage.setItem(NOTIF_AUTOSAVE_KEY,JSON.stringify(box));
+  }catch(_e){}
+}
+function happyadReadDeepNotifBox(){try{const v=JSON.parse(localStorage.getItem(NOTIF_DEEP_LOCAL_KEY)||'null');return (v&&typeof v==='object')?v:{version:2,last_scope:'',scopes:{}};}catch(_e){return {version:2,last_scope:'',scopes:{}};}}
+function happyadSaveDeepNotifSnapshot(obj){try{if(!obj||typeof obj!=='object')return;const scope=String(obj.scope||happyadNotifSnapshotScope()||'global');const box=happyadReadDeepNotifBox();box.scopes=box.scopes&&typeof box.scopes==='object'?box.scopes:{};box.scopes[scope]=obj;box.last_scope=scope;box.updated_at=Date.now();localStorage.setItem(NOTIF_DEEP_LOCAL_KEY,JSON.stringify(box));}catch(_e){}}
+function happyadReadNotifSnapshot(){try{let auto=happyadReadNotifAutoSave();if(auto&&typeof auto==='object'&&(((auto.notifications||[]).length)||((auto.conversations||[]).length)))return auto;let v=JSON.parse(localStorage.getItem(happyadNotifSnapshotKey())||sessionStorage.getItem(happyadNotifSnapshotKey())||'null');if(v&&typeof v==='object'&&(Array.isArray(v.notifications)||Array.isArray(v.conversations)))return v;try{const c=JSON.parse(localStorage.getItem(NOTIF_CENTER_KEY)||'null');const scope=happyadNotifSnapshotScope();if(c&&c.scopes&&c.scopes[scope]&&(Array.isArray(c.scopes[scope].notifications)||Array.isArray(c.scopes[scope].conversations)))return c.scopes[scope];if(c&&c.last_scope&&c.scopes&&c.scopes[c.last_scope]&&(Array.isArray(c.scopes[c.last_scope].notifications)||Array.isArray(c.scopes[c.last_scope].conversations)))return c.scopes[c.last_scope];}catch(_center){}const box=happyadReadDeepNotifBox();const scope=happyadNotifSnapshotScope();v=box.scopes&&(box.scopes[scope]||box.scopes[box.last_scope]);return (v&&typeof v==='object')?v:happyadEmptyNotifSnapshot();}catch(_e){return happyadEmptyNotifSnapshot();}}
+function happyadWriteNotifSnapshotConversations(convs){try{const old=happyadReadNotifSnapshot();const cs=mergeNotifConvList(old.conversations||[],convs||[]).slice(0,600);const unreadNotif=(old.notifications||[]).filter(n=>n&&n.unread===true).length;const unreadConv=cs.filter(c=>c&&c._has_unread_for_me===true).length;const obj=Object.assign({},old,{version:1,scope:happyadNotifSnapshotScope(),updated_at:Date.now(),conversations:cs,counts:{total:(old.notifications||[]).length+cs.length,unread:unreadNotif+unreadConv}});localStorage.setItem(happyadNotifSnapshotKey(),JSON.stringify(obj));try{sessionStorage.setItem(happyadNotifSnapshotKey(),JSON.stringify(obj));}catch(_s){}try{happyadSaveDeepNotifSnapshot(obj);}catch(_deep){}try{const box=JSON.parse(localStorage.getItem(NOTIF_CENTER_KEY)||'null')||{version:473,last_scope:'',scopes:{}};box.version=473;box.last_scope=obj.scope;box.updated_at=Date.now();box.scopes=box.scopes&&typeof box.scopes==='object'?box.scopes:{};box.scopes[obj.scope]=obj;localStorage.setItem(NOTIF_CENTER_KEY,JSON.stringify(box));}catch(_center){}try{happyadWriteNotifAutoSaveSnapshot(obj);}catch(_auto){}}catch(_e){}}
+function notifConvKeys(){
+  const out=[notifConvCacheKey(),NOTIF_CONV_CACHE_BASE,NOTIF_CONV_ALL_CACHE_BASE,notifConvAllScopeKey()];
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.indexOf(NOTIF_CONV_ALL_SCOPE_BASE)===0||k.indexOf(NOTIF_CONV_CACHE_BASE+'_')===0)&&out.indexOf(k)<0)out.push(k);}}catch(_e){}
+  return out;
+}
+function notifConvPool(){let pool=[];try{notifConvKeys().forEach(function(k){pool=pool.concat(readNotifConvArray(k));});}catch(_e){}try{const last=safeJson(localStorage.getItem(NOTIF_CONV_LAST_OPEN_KEY),null);if(last&&typeof last==='object')pool.push(last);}catch(_e){}return pool;}
+function notifConvSortValue(c){return Date.parse(c&&(c.last_at||c.updated_at||c.created_at)||'')||Number(c&&c._happyad_cache_arrived_at||0)||Number(c&&c.ts||0)||0;}
+function notifConvMergeKey(c){return clean(c&&(c.conversation_id||c.id||c.room_id||c.chat_id||c.thread_id))||clean(c&&(c._other_id||c.other_user_id||c.receiver_id||c.user2_id||c.user1_id));}
+function cleanNotifConvCard(c){if(!c)return null;const out=Object.assign({},c);out.conversation_id=clean(out.conversation_id||out.room_id||out.chat_id||out.thread_id||out.id);out.id=out.conversation_id;out._other_id=clean(out._other_id||out.other_user_id||out.user2_id||out.receiver_id);out.last_message=clean(out.last_message||out.message||out.text)||'Message';out._happyad_cache_arrived_at=Number(out._happyad_cache_arrived_at||0)||notifConvSortValue(out)||Date.now();return (out.conversation_id||out._other_id)?out:null;}
+function mergeNotifConvCard(oldC,newC){oldC=oldC||{};newC=newC||{};const freshTime=notifConvSortValue(newC),oldTime=notifConvSortValue(oldC);const base=Object.assign({},oldC,newC);base.last_message=clean(newC.last_message||newC.message||newC.text)||clean(oldC.last_message||oldC.message||oldC.text)||'Message';base.last_at=(freshTime>=oldTime?(newC.last_at||newC.updated_at||newC.created_at):(oldC.last_at||oldC.updated_at||oldC.created_at))||base.last_at||new Date().toISOString();base._happyad_cache_arrived_at=Number(newC._happyad_cache_arrived_at||0)||Number(oldC._happyad_cache_arrived_at||0)||freshTime||oldTime||Date.now();base._other_name=clean(newC._other_name||newC.name||newC.full_name||newC.display_name)||clean(oldC._other_name||oldC.name||oldC.full_name||oldC.display_name)||'';base.name=clean(base._other_name||base.name)||base.name;base._other_avatar=avatarOf(newC)||avatarOf(oldC)||base._other_avatar||'';base._other_badge=badgeOf(newC)||badgeOf(oldC)||base._other_badge||'';if(isConversationReadLocal(base)||isConversationReadLocal(oldC)||isConversationReadLocal(newC))base._has_unread_for_me=false;else base._has_unread_for_me=!!(oldC._has_unread_for_me===true||newC._has_unread_for_me===true);return cleanNotifConvCard(base)||base;}
+function mergeNotifConvList(oldList,newList){const map=new Map();(oldList||[]).forEach(function(c){const k=notifConvMergeKey(c);if(k)map.set(k,cleanNotifConvCard(c));});(newList||[]).forEach(function(c){const k=notifConvMergeKey(c);if(k)map.set(k,mergeNotifConvCard(map.get(k),c));});return Array.from(map.values()).filter(Boolean).sort((a,b)=>notifConvSortValue(b)-notifConvSortValue(a)).slice(0,300);}
+function happyadPersistNotifConversationCard(card){
+  try{
+    const clean=cleanNotifConvCard(card); if(!clean)return;
+    const all=mergeNotifConvList(notifConvPool(),[clean]);
+    notifConvKeys().slice(0,4).forEach(function(k){writeNotifConvArray(k,all);});
+    try{happyadWriteNotifSnapshotConversations(all);}catch(_snap){}
+    localStorage.setItem(NOTIF_CONV_LAST_OPEN_KEY,JSON.stringify(clean));
+  }catch(_e){}
+}
+async function myIdAsync(){
+  // IMPORTANT HAPPYAD: l'identité du chat doit venir du profil HAPPYAD actif.
+  // L'auth Supabase peut être le même compte technique sur plusieurs téléphones,
+  // donc on ne l'utilise qu'en secours.
+  const localUuid = uuidFromObj(activeUserObj());
+  if(isUuid(localUuid)) return localUuid;
+  const localId = myId();
+  if(isUuid(localId)) return localId;
+  const c=happyadSb();
+  try{
+    if(c && c.auth && c.auth.getUser){
+      const r=await c.auth.getUser();
+      const id=clean(r && r.data && r.data.user && r.data.user.id);
+      if(isUuid(id)) return id;
+    }
+  }catch(e){}
+  return localId;
+}
+function possibleMineIds(){
+  const u=activeUserObj();
+  return uniqueClean([u&&u.id,u&&u.user_id,u&&u.uid,u&&u.uuid,u&&u.auth_id,u&&u.email,u&&u.handle,u&&u.username,u&&u.name,myId()]);
+}
+function possibleTargetIds(){
+  return uniqueClean([PARAM_USER_ID, profile&&profile.id, profile&&profile.user_id, profile&&profile.uid, profile&&profile.uuid, profile&&profile.auth_id, profile&&profile.email, profile&&profile.handle, profile&&profile.username, rawUser, user]);
+}
+function messageIsMine(m, mineId){
+  const sender=clean(m&&m.sender_id), receiver=clean(m&&m.receiver_id);
+  const mineSet=possibleMineIds().concat([mineId]).map(x=>String(x));
+  const targetSet=possibleTargetIds().map(x=>String(x));
+  // Si l'expéditeur est clairement le profil ouvert, c'est un message reçu.
+  if(targetSet.indexOf(String(sender))>=0) return false;
+  // Si l'expéditeur est clairement moi, c'est un message envoyé.
+  if(mineSet.indexOf(String(sender))>=0) return true;
+  // Dans une conversation à deux, si le destinataire est le profil ouvert, l'expéditeur est moi.
+  if(targetSet.indexOf(String(receiver))>=0) return true;
+  return String(sender)===String(mineId);
+}
+function targetId(){
+  const vals=[PARAM_USER_ID, profile&&profile.id, profile&&profile.user_id, profile&&profile.uid, profile&&profile.uuid, profile&&profile.auth_id];
+  for(const v of vals){if(isUuid(v)) return clean(v);}
+  return clean(PARAM_USER_ID || (profile && (profile.id || profile.user_id || profile.uid || profile.uuid || profile.auth_id || profile.email || profile.handle || profile.username || profile.name)) || rawUser || user);
+}
+function isSelfChat(){
+  try{
+    const t=targetId();
+    if(!t) return false;
+    const mineIds=possibleMineIds().map(x=>String(x).trim()).filter(Boolean);
+    if(mineIds.indexOf(String(t).trim())>=0) return true;
+    const tu=String(user||rawUser||'').replace(/^@+/,'').trim().toLowerCase();
+    const me=activeUserObj()||{};
+    const handles=[me.handle,me.username].map(x=>String(x||'').replace(/^@+/,'').trim().toLowerCase()).filter(Boolean);
+    const names=[me.name,me.full_name,me.display_name].map(x=>String(x||'').trim().toLowerCase()).filter(Boolean);
+    return !!tu && (handles.indexOf(tu)>=0 || names.indexOf(tu)>=0);
+  }catch(e){HAPPYAD_MESSAGES_REMOTE_CHECKED=true;render();return false;}
+}
+function uniqueClean(arr){return Array.from(new Set((arr||[]).map(clean).filter(Boolean)));}
+async function idPairs(){
+  const mine=await myIdAsync();
+  const other=targetId();
+  if(isUuid(mine) && isUuid(other) && String(mine)!==String(other)) return [{me:mine,other:other}];
+  const fallbackMine=myId();
+  const others=uniqueClean([PARAM_USER_ID, profile && profile.id, profile && profile.user_id, profile && profile.uid, profile && profile.uuid, profile && profile.auth_id, profile && profile.email, profile && profile.handle, profile && profile.username, rawUser, user]);
+  const mines=uniqueClean([mine, fallbackMine]).filter(isUuid);
+  const out=[];
+  mines.forEach(me=>others.filter(isUuid).forEach(other=>{ if(me && other && String(me)!==String(other)) out.push({me,other}); }));
+  return out;
+}
+let HAPPYAD_CONVERSATION_ID = PARAM_CONV_ID || '';
+let HAPPYAD_MESSAGES_REMOTE_CHECKED = false;
+async function ensureConversation(){
+  const c=happyadSb(); if(!c) return '';
+  // IMPORTANT: quand Notifications envoie déjà un conversation_id valide,
+  // messages.html doit l'utiliser directement comme avant.
+  // La vérification happyad_conversations ne doit jamais effacer ce bon id,
+  // sinon la page ouvre une conversation vide ou bloque le bouton Ouvrir.
+  if(HAPPYAD_CONVERSATION_ID && isUuid(HAPPYAD_CONVERSATION_ID)) return HAPPYAD_CONVERSATION_ID;
+  if(isSelfChat()){console.warn('HAPPYAD message: conversation avec soi-même bloquée'); return '';}
+  const pairs=await idPairs();
+  if(!pairs.length){console.warn('HAPPYAD message: aucun id UUID valide pour créer conversation'); return '';}
+  for(const pair of pairs){
+    try{
+      let r=await c.from('happyad_conversations')
+        .select('id,user1_id,user2_id,created_at,updated_at')
+        .or('and(user1_id.eq.'+pair.me+',user2_id.eq.'+pair.other+'),and(user1_id.eq.'+pair.other+',user2_id.eq.'+pair.me+')')
+        .order('updated_at',{ascending:false})
+        .limit(1);
+      if(!r.error && Array.isArray(r.data) && r.data[0] && r.data[0].id){
+        HAPPYAD_CONVERSATION_ID=String(r.data[0].id); return HAPPYAD_CONVERSATION_ID;
+      }
+    }catch(e){}
+  }
+  for(const pair of pairs){
+    try{
+      const payload={user1_id:pair.me,user2_id:pair.other,updated_at:new Date().toISOString()};
+      let r=await c.from('happyad_conversations').insert(payload).select('id').single();
+      if(r.error){
+        r=await c.from('happyad_conversations').insert({user1_id:pair.me,user2_id:pair.other}).select('id').single();
+      }
+      if(!r.error && r.data && r.data.id){HAPPYAD_CONVERSATION_ID=String(r.data.id);return HAPPYAD_CONVERSATION_ID;}
+      if(r.error) console.warn('HAPPYAD conversation insert failed', r.error);
+    }catch(e){console.warn('HAPPYAD conversation insert failed',e);}
+  }
+  return '';
+}
+function happyadTrashScope(){
+  // Chaque compte doit avoir sa propre corbeille locale.
+  // Sinon, si deux utilisateurs testent sur le même téléphone/navigateur,
+  // "Supprimer pour moi" cache aussi le message chez l'autre compte.
+  return clean(myId() || (activeUserObj()&&activeUserObj().name) || 'local_user').replace(/[^a-zA-Z0-9_-]/g,'_') || 'local_user';
+}
+function happyadLocalTrashKey(kind){
+  const base = kind==='conversation' ? 'HAPPYAD_TRASHED_CONVERSATIONS_LOCAL' : 'HAPPYAD_TRASHED_MESSAGES_LOCAL';
+  return base + '_' + happyadTrashScope();
+}
+function happyadTrashList(kind){return safeJson(localStorage.getItem(happyadLocalTrashKey(kind)), []);}
+function happyadTrashAdd(kind,id){id=clean(id); if(!id) return; const k=happyadLocalTrashKey(kind); const a=happyadTrashList(kind); if(a.indexOf(id)<0){a.push(id); localStorage.setItem(k,JSON.stringify(a));}}
+function happyadTrashRemove(kind,id){id=clean(id); if(!id) return; const k=happyadLocalTrashKey(kind); const a=happyadTrashList(kind).filter(x=>String(x)!==String(id)); localStorage.setItem(k,JSON.stringify(a));}
+function happyadTrashHas(kind,id){id=clean(id); return !!id && happyadTrashList(kind).indexOf(id)>=0;}
+function happyadConversationCutKey(){return 'HAPPYAD_CONVERSATION_DELETED_AT_LOCAL_' + happyadTrashScope();}
+function happyadConversationCuts(){return safeJson(localStorage.getItem(happyadConversationCutKey()), {});}
+function happyadConversationDeletedAt(conv){conv=clean(conv); if(!conv) return 0; const m=happyadConversationCuts(); return Number(m[conv]||0)||0;}
+function happyadConversationMarkDeleted(conv,ts){conv=clean(conv); if(!conv) return; const m=happyadConversationCuts(); m[conv]=Number(ts||Date.now()); localStorage.setItem(happyadConversationCutKey(),JSON.stringify(m));}
+function happyadAfterConversationDelete(m,cut){ if(!cut) return true; return Number(m && m.time || 0)>cut; }
+
+async function loadSupabaseMessages(){
+  const c=happyadSb(); if(!c){HAPPYAD_MESSAGES_REMOTE_CHECKED=true;render();return false;}
+  const conv=await ensureConversation(); if(!conv){HAPPYAD_MESSAGES_REMOTE_CHECKED=true;render();return false;}
+  happyadTrashRemove('conversation',conv);
+  try{markConversationReadLocal({id:conv,conversation_id:conv,_other_id:targetId()});}catch(_readLocal){}
+  try{
+    let r=await c.from('happyad_messages')
+      .select('*')
+      .eq('conversation_id',conv)
+      .order('created_at',{ascending:true})
+      .limit(500);
+    let rows=(!r.error && Array.isArray(r.data))?r.data:[];
+    if((r.error || !rows.length) && PARAM_USER_ID){
+      const pairs=await idPairs();
+      for(const pair of pairs){
+        try{
+          const q1=await c.from('happyad_messages').select('*').eq('sender_id',pair.me).eq('receiver_id',pair.other).order('created_at',{ascending:true}).limit(500);
+          const q2=await c.from('happyad_messages').select('*').eq('sender_id',pair.other).eq('receiver_id',pair.me).order('created_at',{ascending:true}).limit(500);
+          const both=[];
+          if(q1&&!q1.error&&Array.isArray(q1.data))both.push.apply(both,q1.data);
+          if(q2&&!q2.error&&Array.isArray(q2.data))both.push.apply(both,q2.data);
+          both.sort(function(a,b){return (Date.parse(a.created_at||'')||0)-(Date.parse(b.created_at||'')||0);});
+          if(both.length){rows=both;HAPPYAD_CONVERSATION_ID=clean(both[0].conversation_id)||conv;break;}
+        }catch(_pair){}
+      }
+    }
+    if(r.error && !rows.length){HAPPYAD_MESSAGES_REMOTE_CHECKED=true;render();return false;}
+    const mine=await myIdAsync();
+    const convDeletedAt=happyadConversationDeletedAt(HAPPYAD_CONVERSATION_ID||conv);
+    const list=(rows||[]).filter(function(m){
+      const t=new Date(m.created_at||Date.now()).getTime();
+      // Supprimer pour moi reste local seulement. Supprimer pour tous ne doit pas disparaître silencieusement :
+      // on garde la ligne et on l'affiche comme "Message supprimé" chez les deux comptes.
+      return !happyadTrashHas('message', m.id) && t>convDeletedAt;
+    }).map(m=>{
+      const isDeletedAll = (m.deleted_all===true || String(m.status||'').toLowerCase()==='deleted' || String(m.message||'')==='Message supprimé');
+      const mineMsg = messageIsMine(m,mine);
+      const wasRead = (m.is_read===true || m.status==='read' || !!m.read_at);
+      return {
+        id:m.id, clientId:m.id, text:(isDeletedAll?'Message supprimé':(m.message||'')), me:mineMsg,
+        time:new Date(m.created_at||Date.now()).getTime(),
+        status:(wasRead?'read':'sent'),
+        url:(isDeletedAll?'':(m.media_url||'')), fileType:(isDeletedAll?'':(m.media_type||'')), fileName:(!isDeletedAll&&m.media_url)?String(m.media_url).split('/').pop():'', remote:true,
+        deletedAll:isDeletedAll, conversation_id:m.conversation_id, sender_id:m.sender_id, receiver_id:m.receiver_id, created_at:m.created_at,
+        read_at:m.read_at, is_read:m.is_read
+      };
+    });
+    const data=loadAll();
+    const oldList=getList(data).slice();
+    const mergedList=mergeStableMessages(oldList,list);
+    saveAll(setList(data,mergedList));
+    try{
+      const lastMsg=mergedList.slice().sort(function(a,b){return (msgTimeValue(b)||0)-(msgTimeValue(a)||0);})[0]||{};
+      const cid=clean(HAPPYAD_CONVERSATION_ID||conv||PARAM_CONV_ID);
+      if(cid){
+        const lastText=clean(lastMsg.text||lastMsg.message)||'Message';
+        const lastAt=lastMsg.created_at||((msgTimeValue(lastMsg)||0)?new Date(msgTimeValue(lastMsg)).toISOString():new Date().toISOString());
+        const card={id:cid,conversation_id:cid,user1_id:myId(),user2_id:targetId(),_other_id:targetId(),_other_name:user,name:user,full_name:user,display_name:user,avatar_url:avatarOf(profile),_other_avatar:avatarOf(profile),badge:badgeOf(profile),_other_badge:badgeOf(profile),last_message:lastText,last_at:lastAt,updated_at:lastAt,_has_unread_for_me:false,_last_status:'read'};
+        happyadPersistNotifConversationCard(card);
+      }
+    }catch(_notifCache){}
+    HAPPYAD_MESSAGES_REMOTE_CHECKED=true;
+    render();
+    // Si un nouveau message arrive pendant que la conversation est déjà ouverte,
+    // il doit être marqué lu aussi, pas seulement le premier chargement.
+    if(list.some(function(m){return m && !m.me && m.status!=='read' && !m.deletedAll;})){await markSupabaseRead();}
+    return true;
+  }catch(e){return false;}
+}
+
+/* HAPPYAD V487: message notification durable dans happyad_notifications.
+   Les messages restent affichés via happyad_messages/conversations; cette ligne sert au journal Supabase. */
+async function happyadCreateMessageNotificationV487(c,pair,localMsg,conv,msgRow){
+  try{
+    if(!c||!pair||!pair.me||!pair.other||!conv)return false;
+    var now=(msgRow&&msgRow.created_at)||new Date().toISOString();
+    var text=String((localMsg&&localMsg.text)||'').trim()||'Message';
+    var extra={category:'messages',real_type:'message',conversation_id:String(conv),source_id:String((msgRow&&msgRow.id)||conv+'_'+now),source_table:'happyad_messages'};
+    var payload={user_id:String(pair.other),recipient_id:String(pair.other),actor_id:String(pair.me),type:'message',title:'Nouveau message',body:text,target_type:'message',target_id:String(conv),post_id:null,extra:extra,is_read:false,created_at:now};
+    var lock='HAPPYAD_MSG_NOTIF_DB_V487_'+payload.user_id+'_'+extra.source_id;
+    try{if(localStorage.getItem(lock)==='1')return true;}catch(_l){}
+    try{
+      var ex=await c.from('happyad_notifications').select('id').eq('user_id',payload.user_id).eq('type','message').eq('actor_id',payload.actor_id).eq('target_id',payload.target_id).eq('created_at',payload.created_at).limit(1).maybeSingle();
+      if(ex&&ex.data&&ex.data.id){try{localStorage.setItem(lock,'1')}catch(_s){};return true;}
+    }catch(_find){}
+    var tries=[payload,Object.assign({},payload)];
+    try{delete tries[1].recipient_id;}catch(_d){}
+    tries.push({user_id:payload.user_id,actor_id:payload.actor_id,type:payload.type,title:payload.title,body:payload.body,target_type:payload.target_type,target_id:payload.target_id,extra:payload.extra,is_read:false,created_at:payload.created_at});
+    for(var i=0;i<tries.length;i++){
+      try{var r=await c.from('happyad_notifications').insert(tries[i]); if(r&&!r.error){try{localStorage.setItem(lock,'1')}catch(_s2){};return true;}}catch(_e){}
+    }
+  }catch(e){console.warn('HAPPYAD message notification V487 failed',e)}
+  return false;
+}
+
+async function insertSupabaseMessage(localMsg){
+  const c=happyadSb(); if(!c) return null;
+  if(isSelfChat()){try{toast('Impossible de vous envoyer un message à vous-même');}catch(_e){} return null;}
+  const conv=await ensureConversation(); if(!conv) return null;
+  happyadTrashRemove('conversation',conv);
+  const pairs=await idPairs(); if(!pairs.length) return null;
+  const pair=pairs[0];
+  try{
+    const payload={
+      conversation_id:conv,
+      sender_id:pair.me,
+      receiver_id:pair.other,
+      message:localMsg.text||'',
+      media_url:localMsg.url||localMsg.publicUrl||localMsg.storageUrl||null,
+      media_type:localMsg.fileType||null,
+      is_read:false,
+      created_at:new Date().toISOString()
+    };
+    let r=await c.from('happyad_messages').insert(payload).select('id,created_at,is_read').single();
+    if(r.error){
+      // fallback for schemas without media columns
+      const payload2={conversation_id:conv,sender_id:pair.me,receiver_id:pair.other,message:localMsg.text||'',created_at:new Date().toISOString()};
+      r=await c.from('happyad_messages').insert(payload2).select('id,created_at').single();
+    }
+    if(!r.error && r.data){
+      // V379: un nouveau message doit aussi mettre la conversation en NON LUE
+      // pour le destinataire. Le badge de l'accueil peut alors compter directement
+      // happyad_conversations, sans attendre l'ouverture de Notifications/messages.
+      const nowConv=new Date().toISOString();
+      const convUpdates=[
+        {updated_at:nowConv,last_message:localMsg.text||'',last_sender_id:pair.me,unread_for:pair.other,is_read:false},
+        {updated_at:nowConv,last_message:localMsg.text||'',last_sender_id:pair.me,unread_user_id:pair.other,is_read:false},
+        {updated_at:nowConv,last_message:localMsg.text||'',last_sender_id:pair.me,receiver_id:pair.other,is_read:false},
+        {updated_at:nowConv,unread_for:pair.other,is_read:false},
+        {updated_at:nowConv,unread_user_id:pair.other,is_read:false},
+        {updated_at:nowConv,is_read:false},
+        {updated_at:nowConv}
+      ];
+      for(const up of convUpdates){
+        try{const cu=await c.from('happyad_conversations').update(up).eq('id',conv); if(cu && !cu.error) break;}catch(_e){}
+      }
+      try{localStorage.setItem('HAPPYAD_UNREAD_CONVERSATIONS_COUNT_V1_DIRTY','1');}catch(_e){}
+      try{happyadPersistNotifConversationCard({id:conv,conversation_id:conv,user1_id:pair.me,user2_id:pair.other,_other_id:pair.other,_other_name:user,name:user,full_name:user,display_name:user,avatar_url:avatarOf(profile),_other_avatar:avatarOf(profile),badge:badgeOf(profile),_other_badge:badgeOf(profile),last_message:localMsg.text||'Message',last_at:nowConv,updated_at:nowConv,_has_unread_for_me:false,_last_status:'sent'});}catch(_cache){}
+      try{happyadCreateMessageNotificationV487(c,pair,localMsg,conv,r.data);}catch(_msgNotif){}
+      return r.data;
+    }
+    console.warn('HAPPYAD message Supabase insert failed', r.error);
+  }catch(e){console.warn('HAPPYAD message Supabase insert failed',e);}
+  return null;
+}
+function happyadLocalConversationRead(){try{var n=Math.max(0,Number(localStorage.getItem('HAPPYAD_UNREAD_CONVERSATIONS_COUNT_V1')||0)-1);localStorage.setItem('HAPPYAD_UNREAD_CONVERSATIONS_COUNT_V1',String(n));}catch(_e){}}
+async function markSupabaseRead(){
+  const c=happyadSb(); if(!c) return false;
+  const conv=await ensureConversation(), mine=await myIdAsync(); if(!conv||!mine) return false;
+  const now=new Date().toISOString();
+  const attempts=[
+    {status:'read',read_at:now,is_read:true},
+    {status:'read',read_at:now},
+    {status:'read',is_read:true},
+    {is_read:true},
+    {read_at:now},
+    {status:'read'}
+  ];
+  async function tryUpdate(filterFn){
+    for(const payload of attempts){
+      try{
+        let q=c.from('happyad_messages').update(payload).eq('conversation_id',conv);
+        q=filterFn(q);
+        const r=await q.select('id');
+        if(r && !r.error && Array.isArray(r.data) && r.data.length) return true;
+        if(r && !r.error && !Array.isArray(r.data)) return true;
+      }catch(e){}
+    }
+    return false;
+  }
+  async function markConversationRead(){
+    const updates=[
+      {is_read:true,unread_for:null,read_at:now},
+      {is_read:true,unread_user_id:null,read_at:now},
+      {is_read:true,read_at:now},
+      {unread_for:null},
+      {unread_user_id:null}
+    ];
+    for(const up of updates){
+      try{const r=await c.from('happyad_conversations').update(up).eq('id',conv); if(r && !r.error) return true;}catch(_e){}
+    }
+    return false;
+  }
+  function persistOpenedConversationRead(){
+    try{markConversationReadLocal({id:conv,conversation_id:conv,_other_id:targetId()});}catch(_readLocal){}
+    try{
+      const oid=targetId();
+      const nm=clean(user||profile&&profile.name||profile&&profile.full_name||profile&&profile.display_name)||'Utilisateur HAPPYAD';
+      happyadPersistNotifConversationCard({id:conv,conversation_id:conv,user1_id:mine,user2_id:oid,_other_id:oid,_other_name:nm,name:nm,full_name:nm,display_name:nm,avatar_url:avatarOf(profile),_other_avatar:avatarOf(profile),badge:badgeOf(profile),_other_badge:badgeOf(profile),last_message:'Message',last_at:now,updated_at:now,_has_unread_for_me:false,_last_status:'read'});
+    }catch(_cache){}
+  }
+  // 1) Chemin normal : tous les messages où je suis receiver_id deviennent lus.
+  if(await tryUpdate(q=>q.eq('receiver_id',mine))){await markConversationRead(); happyadLocalConversationRead(); persistOpenedConversationRead(); return true;}
+
+  // 2) Secours professionnel : si receiver_id/identité locale est mal aligné,
+  // on lit les lignes de la conversation et on marque individuellement tous
+  // les messages qui ne sont PAS envoyés par moi.
+  try{
+    const r=await c.from('happyad_messages').select('*').eq('conversation_id',conv).order('created_at',{ascending:true}).limit(500);
+    if(r && !r.error && Array.isArray(r.data)){
+      const ids=r.data.filter(m=>m && m.id && !messageIsMine(m,mine) && !(m.deleted_all===true || String(m.message||'')==='Message supprimé')).map(m=>m.id);
+      if(ids.length){
+        for(const payload of attempts){
+          try{
+            const u=await c.from('happyad_messages').update(payload).in('id',ids).select('id');
+            if(u && !u.error){await markConversationRead(); happyadLocalConversationRead(); persistOpenedConversationRead(); return true;}
+          }catch(e){}
+        }
+      }
+    }
+  }catch(e){}
+  persistOpenedConversationRead();
+  return false;
+}
+
+
+async function happyadArchiveMessageToTrash(localMsg, actionType){
+  const c=happyadSb(); if(!c || !localMsg) return false;
+  try{
+    const conv=await ensureConversation();
+    const actor=await myIdAsync();
+    const payload={
+      original_message_id: isUuid(localMsg.id)?localMsg.id:null,
+      conversation_id: conv || (localMsg.conversation_id||null),
+      actor_id: actor || null,
+      action_type: clean(actionType||'delete_for_me'),
+      message_snapshot: localMsg.text||localMsg.message||'',
+      media_url_snapshot: localMsg.url||localMsg.publicUrl||localMsg.storageUrl||localMsg.downloadUrl||localMsg.fileUrl||null,
+      media_type_snapshot: localMsg.fileType||localMsg.media_type||null,
+      sender_id_snapshot: localMsg.sender_id||null,
+      receiver_id_snapshot: localMsg.receiver_id||null,
+      created_at_snapshot: localMsg.created_at ? new Date(localMsg.created_at).toISOString() : (localMsg.time?new Date(localMsg.time).toISOString():null),
+      deleted_at: new Date().toISOString()
+    };
+    const r=await c.from('happyad_messages_trash').insert(payload);
+    if(r && r.error){console.warn('HAPPYAD messages trash insert failed', r.error); return false;}
+    return true;
+  }catch(e){console.warn('HAPPYAD messages trash insert failed', e); return false;}
+}
+
+async function happyadArchiveConversationToTrash(actionType){
+  const c=happyadSb(); if(!c) return false;
+  try{
+    const conv=await ensureConversation();
+    const actor=await myIdAsync();
+    if(!conv) return false;
+    let conversationSnapshot=null, messagesSnapshot=[];
+    try{
+      const cr=await c.from('happyad_conversations').select('*').eq('id',conv).maybeSingle();
+      if(!cr.error) conversationSnapshot=cr.data||null;
+    }catch(_e){}
+    try{
+      const mr=await c.from('happyad_messages').select('*').eq('conversation_id',conv).order('created_at',{ascending:true}).limit(1000);
+      if(!mr.error) messagesSnapshot=mr.data||[];
+    }catch(_e){}
+    const payload={
+      conversation_id: conv,
+      actor_id: actor || null,
+      action_type: clean(actionType||'clear_conversation'),
+      conversation_snapshot: conversationSnapshot,
+      messages_snapshot: messagesSnapshot,
+      deleted_at: new Date().toISOString()
+    };
+    const r=await c.from('happyad_conversations_trash').insert(payload);
+    if(r && r.error){console.warn('HAPPYAD conversations trash insert failed', r.error); return false;}
+    return true;
+  }catch(e){console.warn('HAPPYAD conversations trash insert failed', e); return false;}
+}
+
+async function happyadSoftDeleteMessageForAll(localMsg){
+  const c=happyadSb(); if(!c || !localMsg || !isUuid(localMsg.id)) return false;
+  try{
+    const attempts=[
+      {message:'Message supprimé'},
+      {message:'Message supprimé',deleted_all:true},
+      {message:'Message supprimé',status:'deleted'},
+      {message:'Message supprimé',media_url:null,media_type:null},
+      {message:'Message supprimé',media_url:null,media_type:null,deleted_all:true}
+    ];
+    for(const payload of attempts){
+      try{
+        const r=await c.from('happyad_messages').update(payload).eq('id',localMsg.id);
+        if(!r || !r.error) return true;
+      }catch(_e){}
+    }
+    console.warn('HAPPYAD soft delete message failed for id', localMsg.id);
+    return false;
+  }catch(e){console.warn('HAPPYAD soft delete message failed', e); return false;}
+}
+
+function clean(v){
+  v = decodeURIComponent(String(v || '')).trim();
+  if(!v || v === 'undefined' || v === 'null') return '';
+  return v;
+}
+function safeJson(raw, fb){try{return JSON.parse(raw || 'null') || fb;}catch(e){return fb;}}
+function first(v){return clean(v).charAt(0).toUpperCase() || 'H';}
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+
+function fileSizeLabel(bytes){
+  bytes=Number(bytes||0); if(!bytes) return '';
+  const u=['o','Ko','Mo','Go']; let i=0,n=bytes;
+  while(n>=1024 && i<u.length-1){n/=1024;i++;}
+  return (i?n.toFixed(n<10?1:0):n.toFixed(0))+' '+u[i];
+}
+function kindOf(m){
+  const t=clean(m.fileType||m.type).toLowerCase(), n=clean(m.fileName||m.name).toLowerCase();
+  if(t.indexOf('image/')===0 || /\.(png|jpe?g|gif|webp|bmp|svg)$/.test(n)) return 'image';
+  if(t.indexOf('video/')===0 || /\.(mp4|webm|mov|m4v|avi|mkv)$/.test(n)) return 'video';
+  if(t.indexOf('audio/')===0 || /\.(mp3|wav|m4a|ogg|aac|flac)$/.test(n)) return 'audio';
+  return 'doc';
+}
+function urlOf(m){return clean(m.localUrl || m.url || m.publicUrl || m.storageUrl || m.downloadUrl || m.fileUrl);}
+function statusClass(m){
+  const st=clean(m.status||'sent').toLowerCase();
+  if(st==='read'||m.read||m.read_at) return 'read';
+  if(st==='delivered'||st==='received'||st==='reçu'||st==='reussi'||st==='réussi') return 'delivered';
+  if(st==='pending'||st==='failed') return st;
+  return 'sent';
+}
+function ticksFor(m){
+  if(!m.me) return '';
+  const c=statusClass(m);
+  if(c==='read') return '<span class="ticks read">✔️✔️ <small>lu</small></span>';
+  if(c==='sent' || c==='delivered' || c==='pending') return '<span class="ticks sent">✔️</span>';
+  return '';
+}
+function renderFile(m){
+  const name=esc(m.fileName||m.name||'Fichier');
+  const url=urlOf(m), kind=kindOf(m), size=fileSizeLabel(m.fileSize||m.size);
+  if(!url){
+    return '<div class="fileCard"><div class="fileInfo"><span class="fileIcon">📎</span><div class="fileName">'+name+(size?'<div class="fileSize">'+size+'</div>':'')+'</div></div></div>';
+  }
+  let body='';
+  if(kind==='image') body='<img src="'+esc(url)+'" alt="'+name+'" onclick="event.stopPropagation();openViewer(\''+esc(url)+'\',\'image\',\''+name+'\')" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'afterbegin\',\'<div class=&quot;fileInfo&quot;><span class=&quot;fileIcon&quot;>🖼️</span><div class=&quot;fileName&quot;>'+name+'<div class=&quot;fileSize&quot;>Aperçu indisponible</div></div></div>\')">';
+  else if(kind==='video') body='<video controls playsinline src="'+esc(url)+'" onclick="event.stopPropagation()"></video>';
+  else if(kind==='audio') body='<div class="fileInfo"><span class="fileIcon">🎵</span><div class="fileName">'+name+(size?'<div class="fileSize">'+size+'</div>':'')+'</div></div><audio controls src="'+esc(url)+'" onclick="event.stopPropagation()"></audio>';
+  else body='<div class="fileInfo"><span class="fileIcon">📄</span><div class="fileName">'+name+(size?'<div class="fileSize">'+size+'</div>':'')+'</div></div>';
+  return '<div class="fileCard">'+body+'<div class="fileActions"><a onclick="event.stopPropagation()" href="'+esc(url)+'" download="'+name+'">Enregistrer</a><a onclick="event.stopPropagation()" href="'+esc(url)+'" target="_blank" rel="noopener">Ouvrir</a></div></div>';
+}
+function openViewer(url,kind,name){
+  const v=qs('mediaViewer'), b=qs('viewerBody'), a=qs('viewerSave');
+  b.innerHTML = kind==='video' ? '<video controls autoplay playsinline src="'+esc(url)+'"></video>' : '<img src="'+esc(url)+'">';
+  a.href=url; a.download=name||'HAPPYAD-media'; v.classList.add('show');
+}
+function closeViewer(){qs('mediaViewer').classList.remove('show');qs('viewerBody').innerHTML='';}
+function parseSeen(v){
+  if(!v) return 0;
+  if(typeof v==='number') return v;
+  const n=Number(v); if(n>1000000000) return n;
+  const d=Date.parse(String(v)); return isNaN(d)?0:d;
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function formatLastSeenExact(ts){
+  const d = new Date(ts);
+  if(isNaN(d.getTime())) return '';
+  const time = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  if(day === today) return 'vu à ' + time;
+  if(day === today - 86400000) return 'vu hier à ' + time;
+  return 'vu le ' + pad2(d.getDate()) + '/' + pad2(d.getMonth()+1) + ' à ' + time;
+}
+function computeOnlineStatus(p){
+  const el=qs('chatStatus'); if(!el) return;
+  // Présence stricte : seul happyad_presence.last_seen est autorisé.
+  // On n'utilise pas is_online / online / status / updated_at pour éviter les faux statuts.
+  const last = parseSeen(p && p.last_seen);
+  const diff = last ? Date.now()-last : Infinity;
+  if(last && diff>=0 && diff<60000){
+    el.innerHTML='<span style="color:#22d77a">●</span> en ligne';
+    return;
+  }
+  if(last){
+    el.innerHTML='<span style="color:#8fa2b8">●</span> '+formatLastSeenExact(last);
+    return;
+  }
+  el.innerHTML='<span style="color:#8fa2b8">●</span> hors ligne';
+}
+
+function qs(id){return document.getElementById(id)}
+function showLayer(id){['emojiLayer','plusLayer','menuLayer','msgMenuLayer'].forEach(function(x){var el=qs(x); if(el) el.classList.toggle('show', x===id);});}
+function closeLayers(){['emojiLayer','plusLayer','menuLayer','msgMenuLayer'].forEach(function(x){var el=qs(x); if(el) el.classList.remove('show');});}
+function insertTextAtCursor(input, text){
+  input.focus();
+  const start=input.selectionStart||0, end=input.selectionEnd||0;
+  input.value=input.value.slice(0,start)+text+input.value.slice(end);
+  input.selectionStart=input.selectionEnd=start+text.length;
+  resizeInput();
+}
+const EMOJIS={
+  '😀':['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🫡','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😮‍💨','🤥','😌','😔','😪','🤤','😴'],
+  '❤️':['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','💕','💞','💓','💗','💖','💘','💝','💟','💌','💤','💢','💥','💫','💦','💨','🕳️','💬','👁️‍🗨️','🗨️','🗯️','💭'],
+  '👍':['👍','👎','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👋','🤚','🖐️','✋','🖖','👏','🙌','🫶','🤲','🤝','🙏','✍️','💪','🦾','🦿','🦵','🦶','👂','👃','🧠','🫀','🫁'],
+  '🐶':['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪰','🪲'],
+  '🍔':['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕'],
+  '⚽':['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','⛹️'],
+  '🚗':['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🦯','🦽','🦼','🛴','🚲','🛵','🏍️','🛺','🚨','🚔','🚍','🚘','🚖','🚡','🚠','🚟','🚃','🚋','🚞','🚝','🚄','🚅','🚈','🚂','✈️','🛫','🛬','🛩️','💺','🚁','🚀','🛸'],
+  '💡':['⌚','📱','💻','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','🗜️','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🪫','🔌','💡','🔦','🕯️'],
+  '🎉':['🎉','🎊','🎈','🎁','🎀','🪄','🪅','🪩','🎇','🎆','✨','🎃','🎄','🎋','🎍','🎎','🎏','🎐','🎑','🧧','🎟️','🎫','🏆','🏅','🥇','🥈','🥉','⚜️','🔱','📢','📣','🔔','🔕','🎵','🎶','🎼','🎤','🎧','📯','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻'],
+  '🚩':['🏳️','🏴','🏁','🚩','🏳️‍🌈','🏳️‍⚧️','🇨🇩','🇺🇬','🇫🇷','🇺🇸','🇬🇧','🇨🇦','🇧🇪','🇷🇼','🇧🇮','🇹🇿','🇰🇪','🇿🇦','🇳🇬','🇬🇭','🇨🇲','🇨🇬','🇦🇴','🇿🇲','🇿🇼','🇲🇿','🇪🇹','🇪🇬','🇲🇦','🇩🇿']
+};
+function renderEmojiPanel(cat){
+  cat=cat||Object.keys(EMOJIS)[0];
+  qs('emojiTabs').innerHTML=Object.keys(EMOJIS).map(function(k){return '<button type="button" class="'+(k===cat?'active':'')+'" data-cat="'+k+'">'+k+'</button>';}).join('');
+  qs('emojiGrid').innerHTML=(EMOJIS[cat]||[]).map(function(e){return '<button type="button" data-emoji="'+e+'">'+e+'</button>';}).join('');
+}
+
+function normBadge(v){return clean(v).toLowerCase();}
+function badgeHtml(v){
+  v = normBadge(v);
+  if(!v || v === 'aucun' || v === 'none' || v === 'null') return '';
+  if(v.indexOf('violet')>=0 || v.indexOf('purple')>=0) return '<span class="happyBadgeMark violet"></span>';
+  if(v.indexOf('jaune')>=0 || v.indexOf('yellow')>=0 || v.indexOf('gold')>=0 || v.indexOf('business')>=0) return '<span class="happyBadgeMark yellow"></span>';
+  if(v.indexOf('bleu')>=0 || v.indexOf('blue')>=0 || v.indexOf('verified')>=0 || v === 'true' || v === '1') return '<span class="happyBadgeMark blue"></span>';
+  return '<span class="happyBadgeMark blue"></span>';
+}
+function isGenericChatName(v){
+  v=clean(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return !v || v==='conversation' || v==='utilisateur' || v==='utilisateur happyad' || v==='message' || v==='message happyad' || v==='messages happyad' || v==='happyad message' || v==='happyad messages' || v==='chargement profil...' || v==='chargement profil…' || v==='vendeur happyad';
+}
+function firstRealName(arr){
+  for(const v of (arr||[])){const n=clean(v); if(n && !isGenericChatName(n)) return n;}
+  return '';
+}
+function nameOf(p){return firstRealName([p&&p.name,p&&p.full_name,p&&p.display_name,p&&p.displayName,p&&p.creatorName,p&&p.seller_name,p&&p.vendor_name,p&&p.username,p&&p.handle]);}
+function publicAvatarUrl(v){
+  v=clean(v);
+  if(!v||/^blob:/i.test(v)) return '';
+  if(/^https?:\/\//i.test(v)||/^data:image\//i.test(v)) return v;
+  if(v.indexOf('/')>-1||/\.(jpg|jpeg|png|webp|gif)(\?|#|$)/i.test(v)){
+    const path=v.replace(/^\/+/, '').replace(/^happyad-media\//,'');
+    try{const c=happyadSb(); if(c&&c.storage&&c.storage.from){const r=c.storage.from('happyad-media').getPublicUrl(path); if(r&&r.data&&r.data.publicUrl)return r.data.publicUrl;}}catch(_e){}
+    const base=clean(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+    return base+'/storage/v1/object/public/happyad-media/'+encodeURI(path);
+  }
+  return v;
+}
+function avatarOf(p){
+  p=p||{};
+  return publicAvatarUrl(p._other_avatar||p.avatar_url||p.avatarUrl||p.avatar||p.user_avatar||p.userAvatar||p.author_avatar||p.authorAvatar||p.actor_avatar||p.actorAvatar||p.creator_avatar||p.creatorAvatar||p.seller_avatar||p.sellerAvatar||p.photo_url||p.photoUrl||p.photoURL||p.photo||p.profile_photo||p.profilePhoto||p.profile_photo_url||p.profilePhotoUrl||p.profile_picture||p.profilePicture||p.profile_picture_url||p.profilePictureUrl||p.profile_pic||p.profilePic||p.profile_pic_url||p.profilePicUrl||p.picture||p.picture_url||p.pictureUrl||p.image||p.image_url||p.imageUrl||p.user_photo||p.userPhoto||p.user_photo_url||p.userPhotoUrl||p.avatar_image||p.avatarImage||p.avatar_image_url||p.avatarImageUrl||p.photo_profil||p.photoProfil||p.profil_photo||p.profilPhoto||p.profil_image||p.profilImage||p.photo_de_profil||p.photoDeProfil||p.photo_de_profil_url||p.photoDeProfilUrl||p.profile_image_url||p.profileImageUrl||p.profile_image||p.profileImage||p.profil_photo_url||p.profilPhotoUrl||p.profil_image_url||p.profilImageUrl||p.photo_profil_url||p.photoProfilUrl||p.profile_avatar_url||p.profileAvatarUrl||p.profile_avatar||p.profileAvatar||p.avatar_path||p.avatarPath||p.photo_path||p.photoPath||p.profile_photo_path||p.profilePhotoPath||p.profile_picture_path||p.profilePicturePath||p.profile_image_path||p.profileImagePath||'');
+}
+function badgeOf(p){return clean(p && (p.badge || p.verifiedBadge || p.verifyLevel || p.userBadge || p.user_badge || p.verified_badge));}
+function handleOf(p){return clean(p && (p.handle || p.username));}
+function sameProfile(p, target){
+  target = clean(target).toLowerCase().replace(/^@+/, '');
+  if(!target || !p) return false;
+  const names = [p&&p.id, p&&p.user_id, p&&p.uid, p&&p.uuid, p&&p.auth_id, p&&p.email, p&&p.creatorId, p&&p.ownerId, p&&p.seller_id, p&&p.vendor_id, nameOf(p), handleOf(p)].map(x=>clean(x).toLowerCase().replace(/^@+/, ''));
+  return names.some(x=>x && x === target);
+}
+function profileHasRealName(p){return !!(p && nameOf(p) && !isGenericChatName(nameOf(p)));}
+function findUserProfile(target){
+  const direct = safeJson(localStorage.getItem(OPEN_PROFILE_KEY), null);
+  if(direct && (sameProfile(direct, target) || sameProfile(direct, PARAM_USER_ID) || (!target && profileHasRealName(direct)) || (isGenericChatName(target) && profileHasRealName(direct)))) return direct;
+  const keys = ['HAPPYAD_ACTIVE_PROFILE','HAPPYAD_PUBLIC_PROFILES','HAPPYAD_PROFILES_CACHE','HAPPYAD_USERS_CACHE','HAPPYAD_LAST_BOUTIQUE_CHAT_PROFILE','HAPPYAD_USER','HAPPYAD_USER_V1'];
+  for(const k of keys){
+    const v = safeJson(localStorage.getItem(k), null);
+    if(!v) continue;
+    const arr = Array.isArray(v) ? v : Object.values(v);
+    const found = arr.find(p=>p && (sameProfile(p, target) || sameProfile(p, PARAM_USER_ID)));
+    if(found) return found;
+    if(!Array.isArray(v) && (sameProfile(v, target) || sameProfile(v, PARAM_USER_ID))) return v;
+    if((!target || isGenericChatName(target)) && !Array.isArray(v) && profileHasRealName(v)) return v;
+  }
+  return null;
+}
+
+let rawUser = clean(params.get('user')) || clean(localStorage.getItem(OPEN_NAME_KEY));
+let profile = findUserProfile(PARAM_USER_ID) || findUserProfile(rawUser);
+/* V484: si un ancien retour interne enlève les paramètres d'URL mais que le profil en mémoire contient déjà la conversation,
+   on restaure l'identifiant pour relire le bon fil au lieu d'afficher une conversation vide. */
+if(!HAPPYAD_CONVERSATION_ID && profile && clean(profile.conversation_id)) HAPPYAD_CONVERSATION_ID=clean(profile.conversation_id);
+let user = nameOf(profile) || (!isGenericChatName(rawUser)?rawUser:'Utilisateur');
+
+function happyadSameAsActiveMe(p){
+  try{
+    const me=activeUserObj()||{};
+    const mine=uniqueClean([me.id,me.user_id,me.uid,me.uuid,me.auth_id,me.email,me.handle,me.username,me.name,me.full_name,me.display_name]).map(x=>String(x).replace(/^@+/,'').toLowerCase());
+    const target=uniqueClean([p&&p.id,p&&p.user_id,p&&p.uid,p&&p.uuid,p&&p.auth_id,p&&p.email,p&&p.handle,p&&p.username,nameOf(p),p&&p.full_name,p&&p.display_name]).map(x=>String(x).replace(/^@+/,'').toLowerCase());
+    return target.some(x=>x&&mine.indexOf(x)>=0);
+  }catch(e){return false;}
+}
+// V416: un lien générique du type "Messages HAPPYAD" ne doit jamais devenir une conversation avec mon propre nom.
+if(!HAPPYAD_NATIVE_CHAT && !PARAM_CONV_ID && !PARAM_USER_ID && isGenericChatName(rawUser) && (!profile || happyadSameAsActiveMe(profile))){
+  try{localStorage.removeItem(OPEN_PROFILE_KEY);}catch(e){}
+  location.replace('modules/notifications.html?cat=messages&source=messages_generic');
+}
+
+const nameEl = document.getElementById('chatName');
+const avatarBox = document.getElementById('avatar');
+const badgeEl = document.getElementById('badge');
+nameEl.textContent = user;
+localStorage.setItem(OPEN_NAME_KEY, user);
+
+function applyChatProfile(p){
+  if(!p) return;
+  profile = Object.assign({}, profile||{}, p||{});
+  const realName = nameOf(profile);
+  if(realName && !isGenericChatName(realName)) user = realName;
+  else if(isGenericChatName(user)) user = (!isGenericChatName(rawUser)?rawUser:'Utilisateur');
+  nameEl.textContent = user;
+  if(!isGenericChatName(user)) localStorage.setItem(OPEN_NAME_KEY, user);
+  const av = avatarOf(profile);
+  if(av){ avatarBox.innerHTML = '<img src="'+esc(av)+'" alt="">'; }
+  else { avatarBox.innerHTML = '<span id="avatarLetter">'+first(user)+'</span>'; }
+  badgeEl.innerHTML = badgeHtml(badgeOf(profile));
+  try{
+    const saved=Object.assign({},profile,{id:targetId()||profile.id,user_id:targetId()||profile.user_id,name:user,full_name:user,display_name:user,conversation_id:HAPPYAD_CONVERSATION_ID||PARAM_CONV_ID||''});
+    localStorage.setItem(OPEN_PROFILE_KEY, JSON.stringify(saved));
+    const cid=clean(HAPPYAD_CONVERSATION_ID||PARAM_CONV_ID||'');
+    if(cid){
+      happyadPersistNotifConversationCard({id:cid,conversation_id:cid,user1_id:myId(),user2_id:targetId(),_other_id:targetId(),_other_name:user,name:user,full_name:user,display_name:user,avatar_url:avatarOf(profile),_other_avatar:avatarOf(profile),badge:badgeOf(profile),_other_badge:badgeOf(profile),last_message:'Message',last_at:new Date().toISOString(),updated_at:new Date().toISOString(),_has_unread_for_me:false,_last_status:'read'});
+    }
+    const box=safeJson(localStorage.getItem('HAPPYAD_PROFILES_CACHE'),{});
+    [saved.id,saved.user_id,saved.uid,saved.uuid,saved.auth_id,saved.name,saved.full_name,saved.display_name,saved.username,saved.handle].forEach(function(k){k=clean(k); if(k)box[k]=Object.assign({},box[k]||{},saved);});
+    localStorage.setItem('HAPPYAD_PROFILES_CACHE',JSON.stringify(box));
+  }catch(_e){}
+}
+applyChatProfile(profile || {name:user});
+
+async function loadRemoteChatProfile(){
+  const c=happyadSb(); if(!c) return;
+  const ids=uniqueClean([PARAM_USER_ID, profile&&profile.id, profile&&profile.user_id, profile&&profile.uid, profile&&profile.uuid, profile&&profile.auth_id, profile&&profile.email, profile&&profile.handle, profile&&profile.username, rawUser, user]).filter(x=>x && !isGenericChatName(x));
+  const fields=['id','user_id','uid','uuid','auth_id','email','handle','username','name','full_name','display_name'];
+  let fallbackProfile=null;
+  for(const table of ['profiles','happyad_profiles']){
+    for(const field of fields){
+      for(const id of ids){
+        try{
+          const r=await c.from(table).select('*').eq(field,id).limit(1);
+          if(r && !r.error && Array.isArray(r.data) && r.data[0]){
+            fallbackProfile=fallbackProfile||r.data[0];
+            applyChatProfile(r.data[0]);
+            if(avatarOf(r.data[0])) return;
+          }
+        }catch(_e){}
+      }
+    }
+  }
+  try{
+    for(const id of ids){
+      let r=null;
+      try{
+        const q=isUuid(id)?c.from('happyad_presence').select('user_id,name,avatar_url,badge,last_seen').eq('user_id',id).limit(1):c.from('happyad_presence').select('user_id,name,avatar_url,badge,last_seen').eq('name',id).order('last_seen',{ascending:false}).limit(1);
+        r=await q;
+      }catch(_exact){}
+      if((!r || r.error || !Array.isArray(r.data) || !r.data[0]) && !isUuid(id)){
+        try{r=await c.from('happyad_presence').select('user_id,name,avatar_url,badge,last_seen').ilike('name','%'+String(id).replace(/[%_]/g,' ')+'%').order('last_seen',{ascending:false}).limit(1);}catch(_like){}
+      }
+      if(r && !r.error && Array.isArray(r.data) && r.data[0]){applyChatProfile(Object.assign({id:r.data[0].user_id,user_id:r.data[0].user_id,full_name:r.data[0].name,display_name:r.data[0].name},r.data[0])); if(avatarOf(r.data[0])||!fallbackProfile) return;}
+    }
+  }catch(_e){}
+  if(fallbackProfile) applyChatProfile(fallbackProfile);
+}
+loadRemoteChatProfile();
+function targetPresenceKeys(){
+  return uniqueClean([PARAM_USER_ID, profile&&profile.id, profile&&profile.user_id, profile&&profile.uid, profile&&profile.uuid, profile&&profile.auth_id, profile&&profile.name, profile&&profile.full_name, profile&&profile.display_name, profile&&profile.username, profile&&profile.handle, rawUser, user]);
+}
+async function queryPresenceByKey(c, id){
+  id=clean(id); if(!id) return null;
+  const cols='user_id,name,avatar_url,badge,last_seen';
+  try{
+    if(isUuid(id)){
+      const r=await c.from('happyad_presence').select(cols).eq('user_id', id).maybeSingle();
+      if(r && r.data) return r.data;
+    }
+  }catch(_e){}
+  try{
+    const r=await c.from('happyad_presence').select(cols).eq('name', id).order('last_seen',{ascending:false}).limit(1);
+    if(r && Array.isArray(r.data) && r.data[0]) return r.data[0];
+  }catch(_e){}
+  try{
+    const r=await c.from('happyad_presence').select(cols).ilike('name', id).order('last_seen',{ascending:false}).limit(1);
+    if(r && Array.isArray(r.data) && r.data[0]) return r.data[0];
+  }catch(_e){}
+  return null;
+}
+async function loadRemotePresence(){
+  const c=happyadSb(); if(!c) {computeOnlineStatus(profile); return;}
+  const ids=targetPresenceKeys();
+  for(const id of ids){
+    const row=await queryPresenceByKey(c,id);
+    if(row){ computeOnlineStatus(row); return; }
+  }
+  computeOnlineStatus({});
+}
+async function updateMyPresence(){
+  const c=happyadSb(); if(!c) return;
+  const me=activeUserObj();
+  const uid=uuidFromObj(me) || idFromObj(me);
+  if(!uid) return;
+  const row={user_id:uid,name:nameOf(me)||idFromObj(me),avatar_url:avatarOf(me),badge:badgeOf(me),last_seen:new Date().toISOString()};
+  try{ await c.from('happyad_presence').upsert(row,{onConflict:'user_id'}); return; }catch(_e){}
+  try{ await c.from('happyad_presence').insert(row); }catch(_e){}
+}
+function watchRemotePresence(){
+  const c=happyadSb(); if(!c || !c.channel) return;
+  const ids=targetPresenceKeys();
+  const uuid=ids.find(isUuid);
+  try{
+    const channel=c.channel('happyad_presence_chat_'+Date.now());
+    if(uuid){ channel.on('postgres_changes',{event:'*',schema:'public',table:'happyad_presence',filter:'user_id=eq.'+uuid}, payload=>{ if(payload && payload.new) computeOnlineStatus(payload.new); }); }
+    else { channel.on('postgres_changes',{event:'*',schema:'public',table:'happyad_presence'}, payload=>{ const n=payload&&payload.new; if(n && targetPresenceKeys().map(x=>x.toLowerCase()).includes(clean(n.name).toLowerCase())) computeOnlineStatus(n); }); }
+    channel.subscribe();
+  }catch(_e){}
+}
+// HAPPYAD CONFIRMER15: présence/en ligne supprimée volontairement.
+
+function loadAll(){return safeJson(localStorage.getItem(CHATKEY), {});}
+const HAPPYAD_CHAT_CACHE_THREAD_LIMIT=350;
+const HAPPYAD_CHAT_CACHE_KEY_LIMIT=100;
+function happyadChatTimeValue(m){return Number(m&&m.time||0)||Date.parse(m&&m.created_at||m&&m.updated_at||'')||Number(m&&m._happyad_cache_arrived_at||0)||0;}
+function happyadTrimChatThread(list,limit){
+  list=Array.isArray(list)?list.filter(Boolean):[];
+  limit=Math.max(40,Number(limit||HAPPYAD_CHAT_CACHE_THREAD_LIMIT));
+  return list.sort(function(a,b){return happyadChatTimeValue(a)-happyadChatTimeValue(b);}).slice(-limit);
+}
+function happyadLastChatThreadTime(list){try{list=Array.isArray(list)?list:[];return list.reduce(function(mx,m){return Math.max(mx,happyadChatTimeValue(m));},0);}catch(_e){return 0}}
+function happyadPruneAllChatCache(data,threadLimit,keyLimit){
+  const out={}; data=(data&&typeof data==='object')?data:{};
+  Object.keys(data).forEach(function(k){if(Array.isArray(data[k]))out[k]=happyadTrimChatThread(data[k],threadLimit);});
+  const keys=Object.keys(out).sort(function(a,b){return happyadLastChatThreadTime(out[b])-happyadLastChatThreadTime(out[a]);});
+  keyLimit=Math.max(20,Number(keyLimit||HAPPYAD_CHAT_CACHE_KEY_LIMIT));
+  keys.slice(keyLimit).forEach(function(k){delete out[k];});
+  return out;
+}
+function saveAll(data){
+  try{localStorage.setItem(CHATKEY, JSON.stringify(happyadPruneAllChatCache(data||{},HAPPYAD_CHAT_CACHE_THREAD_LIMIT,HAPPYAD_CHAT_CACHE_KEY_LIMIT)));}
+  catch(e){
+    try{localStorage.setItem(CHATKEY, JSON.stringify(happyadPruneAllChatCache(data||{},120,35)));}
+    catch(_e){try{localStorage.removeItem(CHATKEY);}catch(_r){}}
+  }
+}
+function threadKeys(){
+  const keys = [user, rawUser, handleOf(profile), profile && profile.id, profile && profile.user_id].map(clean).filter(Boolean);
+  return Array.from(new Set(keys));
+}
+function getList(data){
+  const priority=[];
+  if(HAPPYAD_CONVERSATION_ID) priority.push('conv:'+HAPPYAD_CONVERSATION_ID);
+  if(PARAM_CONV_ID) priority.push('conv:'+PARAM_CONV_ID);
+  if(PARAM_USER_ID) priority.push('uid:'+PARAM_USER_ID, PARAM_USER_ID);
+  threadKeys().forEach(k=>priority.push(k));
+  const seen={}; let merged=[], found=false;
+  for(const k of priority){
+    const key=clean(k);
+    if(!key||seen[key]) continue;
+    seen[key]=1;
+    if(Array.isArray(data[key])){merged=mergeStableMessages(merged,data[key]); found=true;}
+  }
+  if(found) return merged;
+  // Secours cache spécial : si le nom/uid a changé, on récupère la conversation par ses copies stables.
+  try{
+    Object.keys(data||{}).forEach(function(k){
+      if(!Array.isArray(data[k]))return;
+      const ok=(HAPPYAD_CONVERSATION_ID&&k==='conv:'+HAPPYAD_CONVERSATION_ID)||(PARAM_CONV_ID&&k==='conv:'+PARAM_CONV_ID)||(PARAM_USER_ID&&(k==='uid:'+PARAM_USER_ID||k===PARAM_USER_ID));
+      if(ok){merged=mergeStableMessages(merged,data[k]);found=true;}
+    });
+  }catch(_e){}
+  return found?merged:[];
+}
+function setList(data, list){
+  const cleanList=Array.isArray(list)?list:[];
+  const keys=threadKeys();
+  const primary=user || rawUser || PARAM_USER_ID || 'Utilisateur';
+  data[primary]=cleanList;
+  keys.forEach(function(k){ if(k && !isGenericChatName(k)) data[k]=cleanList; });
+  if(HAPPYAD_CONVERSATION_ID) data['conv:'+HAPPYAD_CONVERSATION_ID]=cleanList;
+  if(PARAM_CONV_ID) data['conv:'+PARAM_CONV_ID]=cleanList;
+  if(PARAM_USER_ID) data['uid:'+PARAM_USER_ID]=cleanList;
+  return data;
+}
+function msgTimeValue(m){return Number(m&&m.time||0)||Date.parse(m&&m.created_at||'')||0;}
+function msgMergeKey(m){
+  if(!m) return '';
+  const id=clean(m.id); if(id && id.indexOf('m')!==0) return 'id:'+id;
+  const cid=clean(m.clientId); if(cid) return 'client:'+cid;
+  const fp=[clean(m.conversation_id),clean(m.sender_id),clean(m.receiver_id),clean(m.text||m.message),String(msgTimeValue(m)||'')].join('|');
+  return fp.replace(/\|/g,'')?'fp:'+fp:'';
+}
+function mergeOneMessage(oldM,newM){
+  oldM=oldM||{}; newM=newM||{};
+  const out=Object.assign({},oldM,newM);
+  out.text = newM.text!==undefined ? newM.text : (oldM.text||'');
+  out.url = newM.url || oldM.url || '';
+  out.fileType = newM.fileType || oldM.fileType || '';
+  out.fileName = newM.fileName || oldM.fileName || '';
+  out.time = msgTimeValue(newM) || msgTimeValue(oldM) || Date.now();
+  out.me = Object.prototype.hasOwnProperty.call(newM,'me') ? !!newM.me : !!oldM.me;
+  out.remote = !!(oldM.remote || newM.remote);
+  out.deletedAll = !!(oldM.deletedAll || newM.deletedAll);
+  out.deletedForMe = !!oldM.deletedForMe;
+  if(newM.status==='read' || oldM.status==='read') out.status='read';
+  else if(newM.status) out.status=newM.status;
+  else if(oldM.status) out.status=oldM.status;
+  return out;
+}
+function mergeStableMessages(oldList, remoteList){
+  oldList=Array.isArray(oldList)?oldList:[]; remoteList=Array.isArray(remoteList)?remoteList:[];
+  if(!remoteList.length) return oldList.slice().sort((a,b)=>msgTimeValue(a)-msgTimeValue(b));
+  const out=[], pos=new Map();
+  function addOrMerge(m){
+    if(!m) return;
+    const keys=[msgMergeKey(m)];
+    if(m.id) keys.push('id:'+clean(m.id));
+    if(m.clientId) keys.push('client:'+clean(m.clientId));
+    let hit=-1;
+    for(const k of keys){ if(k && pos.has(k)){hit=pos.get(k); break;} }
+    if(hit>=0){
+      out[hit]=mergeOneMessage(out[hit],m);
+      keys.forEach(k=>{if(k)pos.set(k,hit);});
+    }else{
+      const idx=out.length; out.push(Object.assign({},m)); keys.forEach(k=>{if(k)pos.set(k,idx);});
+    }
+  }
+  oldList.forEach(addOrMerge);
+  remoteList.forEach(addOrMerge);
+  return out.filter(Boolean).sort((a,b)=>msgTimeValue(a)-msgTimeValue(b));
+}
+function visibleRows(list){
+  // Supprimer pour moi = cacher seulement chez moi.
+  // Supprimer pour tous = garder la bulle visible avec le texte "Message supprimé" chez les deux.
+  return list.map(function(m,i){return {m:m,i:i};}).filter(function(r){return r.m && !r.m.deletedForMe;});
+}
+function messageDayLabel(ts){
+  const d=new Date(ts||Date.now());
+  if(isNaN(d.getTime())) return '';
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const day=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+  if(day===today) return 'Aujourd\'hui';
+  if(day===today-86400000) return 'Hier';
+  return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function renderRowsByRealDate(rows){
+  let html='', lastLabel='';
+  rows.forEach(function(r){
+    var m=r.m, idx=r.i;
+    var label=messageDayLabel(m.time||Date.now());
+    if(label!==lastLabel){ html+='<div class="dayChip">'+esc(label)+'</div>'; lastLabel=label; }
+    var when='';
+    try{when=new Date(m.time||Date.now()).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}catch(e){when='';}
+    var deleted=!!m.deletedAll;
+    var content = deleted ? '<span class="deletedText">🗑️ Message supprimé</span>' : (m.fileName ? renderFile(m) : esc(m.text || ''));
+    html += '<div class="msg '+(m.me?'me':'them')+(deleted?' deleted':'')+'" data-msg-idx="'+idx+'" onclick="openMsgMenu(event,'+idx+')">'+content+'<span class="msgMeta">'+when+' '+ticksFor(m)+'</span></div>';
+  });
+  return html;
+}
+function render(){
+  const box=document.getElementById('chat');
+  const data=loadAll();
+  const list=getList(data);
+  const rows=visibleRows(list);
+  const stableChatKey=clean(HAPPYAD_CONVERSATION_ID||PARAM_CONV_ID||PARAM_USER_ID||(profile&&profile.conversation_id)||user||rawUser||'');
+  if(!rows.length){
+    const loading = !HAPPYAD_MESSAGES_REMOTE_CHECKED && (PARAM_CONV_ID || PARAM_USER_ID || HAPPYAD_CONVERSATION_ID || !isGenericChatName(user));
+    /* V484: ne pas remplacer une conversation déjà affichée par "Aucun message" pendant un retour/cache/relecture interne. */
+    if(window.__happyadLastChatHtmlV484 && (HAPPYAD_NATIVE_CHAT || loading) && (!window.__happyadLastChatKeyV484 || window.__happyadLastChatKeyV484===stableChatKey || !stableChatKey)){
+      box.innerHTML=window.__happyadLastChatHtmlV484;
+      return;
+    }
+    box.innerHTML = loading
+      ? '<div class="empty"><b>Chargement des messages...</b><br><br>La conversation se prépare en arrière-plan.<br><br>💬</div>'
+      : '<div class="empty"><b>Aucun message ici pour l’instant...</b><br><br>Écrivez, envoyez un fichier ou enregistrez un vocal.<br><br>💬</div>';
+    return;
+  }
+  box.innerHTML=renderRowsByRealDate(rows);
+  window.__happyadLastChatHtmlV484=box.innerHTML;
+  window.__happyadLastChatKeyV484=stableChatKey;
+  box.scrollTop=box.scrollHeight;
+}
+function markDelivered(t){
+  // HAPPYAD CONFIRMER15: plus d'indicateur delivered/sent visible.
+}
+async function sendMsg(){
+  const input=document.getElementById('msgInput');
+  if(isSelfChat()){try{toast('Impossible de vous envoyer un message à vous-même');}catch(_e){} return;}
+  if(blockedList().indexOf(user)>=0){alert('Utilisateur bloqué. Débloque d’abord pour envoyer.');return;}
+  const text=input.value.trim();
+  if(!text)return;
+  const data=loadAll();
+  const list=getList(data).slice();
+  const clientId='m'+Date.now()+Math.random().toString(16).slice(2);
+  const localMsg={id:clientId,clientId:clientId,text:text,me:true,time:Date.now(),status:'pending'};
+  list.push(localMsg);
+  saveAll(setList(data,list));
+  input.value='';
+  input.style.height='26px';
+  render();
+  const saved=await insertSupabaseMessage(localMsg);
+  const data2=loadAll();
+  const list2=getList(data2).slice();
+  const m=list2.find(x=>x && x.clientId===clientId);
+  if(m){
+    if(saved&&saved.id){m.id=saved.id;m.clientId=saved.id;m.status='sent';m.time=new Date(saved.created_at||Date.now()).getTime();}
+    else {m.status='failed';}
+    saveAll(setList(data2,list2));
+  }
+  await loadSupabaseMessages();
+  render();
+}
+var ta=document.getElementById('msgInput');
+function resizeInput(){
+  ta.style.height='26px';
+  ta.style.height=Math.min(ta.scrollHeight,118)+'px';
+  ta.style.overflowY = ta.scrollHeight>118 ? 'auto' : 'hidden';
+}
+ta.addEventListener('input',resizeInput);
+ta.addEventListener('keydown',function(e){ if(e.key==='Enter' && !e.shiftKey){e.preventDefault();sendMsg();} });
+qs('viewerClose').addEventListener('click',closeViewer);
+qs('mediaViewer').addEventListener('click',function(e){if(e.target===this) closeViewer();});
+renderEmojiPanel();
+qs('emojiBtn').addEventListener('click',function(e){e.stopPropagation();renderEmojiPanel();showLayer('emojiLayer');});
+qs('emojiTabs').addEventListener('click',function(e){var b=e.target.closest('button[data-cat]'); if(b) renderEmojiPanel(b.dataset.cat);});
+qs('emojiGrid').addEventListener('click',function(e){var b=e.target.closest('button[data-emoji]'); if(!b) return; insertTextAtCursor(ta,b.dataset.emoji);});
+qs('plusBtn').addEventListener('click',function(e){e.stopPropagation();showLayer('plusLayer');});
+qs('menuBtn').addEventListener('click',function(e){e.stopPropagation();showLayer('menuLayer');});
+['emojiLayer','plusLayer','menuLayer','msgMenuLayer'].forEach(function(id){qs(id).addEventListener('click',function(e){if(e.target===this) closeLayers();});});
+qs('pickFilesBtn').addEventListener('click',function(){qs('filePicker').accept='*/*';qs('filePicker').click();closeLayers();});
+qs('pickPhotoBtn').addEventListener('click',function(){qs('filePicker').accept='image/*,video/*';qs('filePicker').click();closeLayers();});
+qs('pickAudioBtn').addEventListener('click',function(){qs('filePicker').accept='audio/*';qs('filePicker').click();closeLayers();});
+function readFileAsDataURL(file){
+  return new Promise(function(resolve,reject){
+    const reader=new FileReader();
+    reader.onload=function(){resolve(reader.result);};
+    reader.onerror=function(){reject(reader.error||new Error('Lecture fichier impossible'));};
+    reader.readAsDataURL(file);
+  });
+}
+qs('filePicker').addEventListener('change',async function(){
+  if(!this.files || !this.files.length) return;
+  if(blockedList().indexOf(user)>=0){alert('Utilisateur bloqué. Débloque d’abord pour envoyer.');this.value='';return;}
+  const files=Array.from(this.files);
+  const data=loadAll(); const list=getList(data).slice();
+  for(const f of files){
+    const clientId='m'+Date.now()+Math.random().toString(16).slice(2);
+    try{
+      const dataUrl=await readFileAsDataURL(f);
+      list.push({id:clientId,clientId:clientId,text:'',me:true,time:Date.now(),status:'sent',fileName:f.name,fileType:f.type,fileSize:f.size,localUrl:dataUrl,localOnly:true});
+    }catch(err){
+      list.push({id:clientId,clientId:clientId,text:'',me:true,time:Date.now(),status:'sent',fileName:f.name,fileType:f.type,fileSize:f.size,error:'lecture_impossible'});
+    }
+  }
+  try{saveAll(setList(data,list));}
+  catch(e){alert('Fichier trop grand pour le cache local du prototype. Pour la version officielle, il sera envoyé vers Supabase Storage.');}
+  this.value=''; render();
+  // Média local prototype: Supabase Storage sera branché pour les fichiers persistants officiels.
+});
+function blockedList(){return safeJson(localStorage.getItem('HAPPYAD_BLOCKED_USERS'), []);}
+qs('blockUserBtn').addEventListener('click',function(){
+  var arr=blockedList(); if(arr.indexOf(user)<0) arr.push(user);
+  localStorage.setItem('HAPPYAD_BLOCKED_USERS',JSON.stringify(arr)); closeLayers(); alert(user+' est bloqué.');
+});
+qs('reportUserBtn').addEventListener('click',function(){
+  var reports=safeJson(localStorage.getItem('HAPPYAD_REPORTS'), []);
+  reports.unshift({type:'message_user',user:user,time:Date.now(),status:'pending'});
+  localStorage.setItem('HAPPYAD_REPORTS',JSON.stringify(reports)); closeLayers(); alert('Signalement enregistré.');
+});
+qs('clearChatBtn').addEventListener('click',async function(){
+  closeLayers();
+  if(!confirm('Supprimer tout le contenu de cette conversation ?')) return;
+  await happyadArchiveConversationToTrash('clear_conversation');
+  try{const conv=await ensureConversation(); happyadConversationMarkDeleted(conv,Date.now());}catch(_e){}
+  const data=loadAll(); threadKeys().forEach(function(k){delete data[k];}); saveAll(data); render();
+});
+let selectedMsgIndex=null;
+function openMsgMenu(e,idx){
+  if(e){e.stopPropagation();}
+  selectedMsgIndex=idx;
+  showLayer('msgMenuLayer');
+}
+function updateSelectedMessage(fn){
+  if(selectedMsgIndex===null || selectedMsgIndex===undefined) return;
+  const data=loadAll(); const list=getList(data).slice();
+  const m=list[selectedMsgIndex]; if(!m) return;
+  fn(m);
+  saveAll(setList(data,list));
+  selectedMsgIndex=null;
+  closeLayers();
+  render();
+}
+qs('deleteForMeBtn').addEventListener('click',async function(){
+  if(selectedMsgIndex===null || selectedMsgIndex===undefined) return;
+  const data=loadAll(); const list=getList(data).slice();
+  const m=list[selectedMsgIndex]; if(!m) return;
+  await happyadArchiveMessageToTrash(m,'delete_for_me');
+  happyadTrashAdd('message', m.id);
+  m.deletedForMe=true;
+  saveAll(setList(data,list));
+  selectedMsgIndex=null; closeLayers(); render();
+});
+qs('deleteForAllBtn').addEventListener('click',async function(){
+  if(!confirm('Supprimer ce message pour tous ?')) return;
+  if(selectedMsgIndex===null || selectedMsgIndex===undefined) return;
+  const data=loadAll(); const list=getList(data).slice();
+  const m=list[selectedMsgIndex]; if(!m) return;
+  await happyadArchiveMessageToTrash(m,'delete_for_all');
+  await happyadSoftDeleteMessageForAll(m);
+  // Garder une trace visible chez les deux comptes au lieu de supprimer localement la bulle.
+  m.text='Message supprimé';
+  m.url=''; m.publicUrl=''; m.storageUrl=''; m.downloadUrl=''; m.fileUrl='';
+  m.fileName=''; m.fileType='';
+  m.deletedAll=true;
+  saveAll(setList(data,list));
+  selectedMsgIndex=null; closeLayers(); render();
+});
+qs('cancelMsgMenuBtn').addEventListener('click',function(){selectedMsgIndex=null;closeLayers();});
+render();
+loadSupabaseMessages().then(markSupabaseRead);
+(async function happyadMessagesRealtimeV1(){
+  try{
+    const c=happyadSb();
+    if(!c || !c.channel) return;
+    const conv=await ensureConversation();
+    if(!conv) return;
+    const ch=c.channel('happyad_messages_chat_'+conv);
+    ch.on('postgres_changes',{event:'*',schema:'public',table:'happyad_messages',filter:'conversation_id=eq.'+conv},function(){
+      setTimeout(loadSupabaseMessages,60);
+    });
+    ch.subscribe();
+  }catch(e){}
+})();
+window.addEventListener('focus',function(){setTimeout(loadSupabaseMessages,90);});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(loadSupabaseMessages,90);});
+</script>
+
+
+
+<!-- === HAPPYAD V480 MESSAGE BACK SAFE INSIDE APP SHELL === -->
+<script id="happyad-v484-message-back-native-safe">
+(function(){
+  if(window.__HAPPYAD_V484_MESSAGE_BACK_NATIVE_SAFE__) return;
+  window.__HAPPYAD_V484_MESSAGE_BACK_NATIVE_SAFE__=true;
+  function closeParent(){
+    try{
+      if(window.parent&&window.parent!==window){
+        if(typeof window.parent.happyadCloseNativeChat==='function'){window.parent.happyadCloseNativeChat();return true;}
+        if(typeof window.parent.happyadCloseAppPage==='function'){window.parent.happyadCloseAppPage();return true;}
+        window.parent.postMessage('HAPPYAD_CLOSE_NATIVE_CHAT','*');return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('.back');
+    if(!b) return;
+    try{
+      if(closeParent()){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false;}
+    }catch(_e){}
+  },true);
+  window.addEventListener('popstate',function(e){try{if(closeParent()){e.preventDefault&&e.preventDefault();}}catch(_e){}});
+})();
+</script>
+
+
+<style id="happyad-v503-global-tap-orange-css">
+.happyadTapOrange,.happyadTapOrange *,button:active,a:active,.nav:active,[role="button"]:active{color:#ff8a00!important;border-color:rgba(255,138,0,.72)!important}
+.happyadTapOrange svg,.happyadTapOrange svg *,button:active svg,a:active svg,.nav:active svg{stroke:#ff8a00!important}
+</style>
+<script id="happyad-v503-global-tap-orange-js">
+(function(){if(window.__HAPPYAD_V503_GLOBAL_TAP_ORANGE__)return;window.__HAPPYAD_V503_GLOBAL_TAP_ORANGE__=true;function o(el){try{if(!el||!el.classList)return;el.classList.add('happyadTapOrange');clearTimeout(el.__happyadTapOrangeT);el.__happyadTapOrangeT=setTimeout(function(){try{el.classList.remove('happyadTapOrange');}catch(e){}},260);}catch(e){}}['pointerdown','touchstart','mousedown','click'].forEach(function(ev){try{document.addEventListener(ev,function(e){try{var el=e.target&&e.target.closest&&e.target.closest('button,a,.nav,[role="button"],.chip,.round,.topBtn,.actionBtn,.filterBtn,.sortBtn,.catCard');if(el)o(el);}catch(x){}},{capture:true,passive:true});}catch(e){}});})();
+</script>
+
+</body>
+</html>
