@@ -1,7 +1,7 @@
-/* HAPPYAD V26 - Service worker PWA actif, messages reçus synchronisés dans les conversations. */
+/* HAPPYAD V27 - Service worker PWA actif, publication Storage réparée. */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v26-message-thread-sync-20260709';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v27-publication-storage-fix-20260709';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

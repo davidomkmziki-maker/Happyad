@@ -711,6 +711,9 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
     }
     if(up.error){
       const msg=up.error.message||up.error.error_description||JSON.stringify(up.error);
+      if(/database schema is invalid|schema is invalid|incompatible/i.test(msg)){
+        throw new Error('Storage Supabase invalide côté serveur: exécute SUPABASE_STORAGE_MEDIA_REPAIR_V27.sql dans Supabase puis réessaie. Détail: '+msg);
+      }
       throw new Error('Storage upload: '+msg);
     }
     setProgress(78,'Publication en cours');
@@ -945,7 +948,13 @@ return {source:'story',id:storyId};
     if(fileKind(file)==='video' && sizeMb>60){throw new Error('Vidéo boutique trop lourde pour une lecture fluide : maximum 60 Mo.');}
     const ms=fileKind(file)==='video'?Math.max(240000,Math.min(900000,Math.ceil(sizeMb*4500))):90000;
     const up=await withTimeout(c.storage.from('happyad-media').upload(path,file,{upsert:true,cacheControl:'31536000',contentType:file.type||'application/octet-stream'}),ms,'Upload média boutique '+(index+1));
-    if(up.error)throw new Error('Storage boutique '+(index+1)+' : '+(up.error.message||JSON.stringify(up.error)));
+    if(up.error){
+      const msg=up.error.message||up.error.error_description||JSON.stringify(up.error);
+      if(/database schema is invalid|schema is invalid|incompatible/i.test(msg)){
+        throw new Error('Storage Supabase invalide côté serveur: exécute SUPABASE_STORAGE_MEDIA_REPAIR_V27.sql dans Supabase puis réessaie. Détail: '+msg);
+      }
+      throw new Error('Storage boutique '+(index+1)+' : '+msg);
+    }
     const pub=c.storage.from('happyad-media').getPublicUrl(path);
     return {url:(pub&&pub.data&&pub.data.publicUrl)||'',path:path,type:fileKind(file)};
   }
