@@ -710,7 +710,18 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
       clearInterval(keepAuthAlive);
     }
     if(up.error){
-      const msg=up.error.message||up.error.error_description||JSON.stringify(up.error);
+      const detailParts=[];
+      try{if(up.error.statusCode)detailParts.push('statusCode='+up.error.statusCode)}catch(_d1){}
+      try{if(up.error.status)detailParts.push('status='+up.error.status)}catch(_d2){}
+      try{if(up.error.error)detailParts.push('error='+up.error.error)}catch(_d3){}
+      try{if(up.error.message)detailParts.push('message='+up.error.message)}catch(_d4){}
+      let msg=detailParts.join(' | ') || up.error.message || up.error.error_description || JSON.stringify(up.error);
+      if(/database schema is invalid|schema is invalid|incompatible/i.test(msg)){
+        throw new Error('Storage Supabase refuse côté serveur. Le bucket existe, mais le service Storage/API du projet répond schema invalide. Exécute SUPABASE_STORAGE_OWNER_SAFE_V29.sql. Si ça reste pareil, vérifie Status/Logs Supabase ou redémarre le projet Supabase. Détail: '+msg);
+      }
+      if(/must be owner|owner of table objects/i.test(msg)){
+        throw new Error('Storage Supabase: impossible de modifier storage.objects depuis SQL Editor. N’exécute plus V28. Utilise SUPABASE_STORAGE_OWNER_SAFE_V29.sql puis vérifie les policies dans Storage Dashboard. Détail: '+msg);
+      }
       throw new Error('Storage upload: '+msg);
     }
     setProgress(78,'Publication en cours');
@@ -945,7 +956,13 @@ return {source:'story',id:storyId};
     if(fileKind(file)==='video' && sizeMb>60){throw new Error('Vidéo boutique trop lourde pour une lecture fluide : maximum 60 Mo.');}
     const ms=fileKind(file)==='video'?Math.max(240000,Math.min(900000,Math.ceil(sizeMb*4500))):90000;
     const up=await withTimeout(c.storage.from('happyad-media').upload(path,file,{upsert:true,cacheControl:'31536000',contentType:file.type||'application/octet-stream'}),ms,'Upload média boutique '+(index+1));
-    if(up.error)throw new Error('Storage boutique '+(index+1)+' : '+(up.error.message||JSON.stringify(up.error)));
+    if(up.error){
+      const msg=up.error.message||up.error.error_description||JSON.stringify(up.error);
+      if(/database schema is invalid|schema is invalid|incompatible/i.test(msg)){
+        throw new Error('Storage Supabase invalide côté serveur: exécute SUPABASE_STORAGE_DEEP_REPAIR_V28.sql dans Supabase puis réessaie. Si ça reste pareil, le service Storage du projet doit être redémarré côté Supabase. Détail: '+msg);
+      }
+      throw new Error('Storage boutique '+(index+1)+' : '+msg);
+    }
     const pub=c.storage.from('happyad-media').getPublicUrl(path);
     return {url:(pub&&pub.data&&pub.data.publicUrl)||'',path:path,type:fileKind(file)};
   }
@@ -1412,7 +1429,7 @@ return {source:'story',id:storyId};
       if(p==='index.html'||p==='/index.html'||href==='../index.html'||href==='index.html'||href==='/'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close();return false;
       }
-      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'||p==='messages.html'||p==='notifications.html'||p==='modules/notifications.html'){
+      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();send(c);return false;
       }
     }catch(_e){}
