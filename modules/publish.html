@@ -308,6 +308,35 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
     setTimeout(()=>{ const box=$("publishProgress"); if(box) box.classList.remove("show"); },1400);
   }
 
+
+  /* V30 — Après publication terminée, retour direct vers l'accueil réel.
+     Le module peut être ouvert dans l'iframe de index.html ou seul depuis modules/publish.html. */
+  function returnHomeAfterPublish(reason){
+    reason=String(reason||'publish-success');
+    try{safeLocalFlag('HAPPYAD_HOME_REFRESH_NEEDED','1');}catch(_e){}
+    try{safeLocalFlag('HAPPYAD_PROFILE_REFRESH_NEEDED',String(Date.now()));}catch(_e){}
+    try{safeLocalFlag('HAPPYAD_RADAR_REFRESH_NEEDED','1');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_ALL_POSTS_LAST_SYNC');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_SESSION_ALL_POSTS_V104');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_HOME_POSTS_LAST_SYNC');}catch(_e){}
+    try{
+      if(window.parent&&window.parent!==window){
+        try{window.parent.postMessage({type:'HAPPYAD_PUBLISH_SUCCESS_RETURN_HOME',reason:reason,ts:Date.now()},'*');}catch(_pm){}
+        try{
+          if(window.parent.HappyNavigation&&typeof window.parent.HappyNavigation.close==='function')window.parent.HappyNavigation.close('publish-success-'+reason);
+          setTimeout(function(){try{if(typeof window.parent.happyadRefreshHomePostsNow==='function')window.parent.happyadRefreshHomePostsNow('publish-'+reason);}catch(_r){}},120);
+          setTimeout(function(){try{if(typeof window.parent.fetchRadarItems==='function')window.parent.fetchRadarItems().then(function(){try{window.parent.renderRadarHome&&window.parent.renderRadarHome();}catch(_rr){}});else if(typeof window.parent.renderRadarHome==='function')window.parent.renderRadarHome();}catch(_radar){}},180);
+          return true;
+        }catch(_direct){
+          try{window.parent.postMessage({type:'HAPPYAD_CLOSE_APP_PAGE',reason:'publish-success-'+reason},'*');return true;}catch(_close){}
+        }
+      }
+    }catch(_e){}
+    try{if(typeof window.happyadCloseAppPage==='function'){window.happyadCloseAppPage();return true;}}catch(_legacy){}
+    try{window.location.replace('../index.html?happyad_publish_done=1&t='+Date.now());}catch(_r){window.location.href='../index.html';}
+    return true;
+  }
+
   function clearHeavyPublicationCaches(){
     try{
       [
@@ -1219,7 +1248,7 @@ return {source:'story',id:storyId};
         finishProgress("Produit publié dans Boutique et HAPPYAD");
         toast("Produit publié dans Boutique et HAPPYAD");
         safeLocalFlag("HAPPYAD_HOME_REFRESH_NEEDED","1");
-        setTimeout(()=>{window.location.href="../index.html";},900);
+        setTimeout(()=>{returnHomeAfterPublish('boutique');},350);
         return;
       }
       if(state.kind==='photo'){localPost.imageCrop=Object.assign({},state.crop||{scale:1,x:0,y:0});}
@@ -1297,7 +1326,7 @@ return {source:'story',id:storyId};
         finishProgress('Publication groupée publiée');
         toast('Publication groupée publiée');
         safeLocalFlag('HAPPYAD_HOME_REFRESH_NEEDED','1');
-        setTimeout(()=>{window.location.href='../index.html';},900);
+        setTimeout(()=>{returnHomeAfterPublish('grouped-photos');},350);
         return;
       }
       try{ localPost=await savePostToSupabase(localPost,state.file); }
@@ -1307,7 +1336,7 @@ return {source:'story',id:storyId};
         finishProgress((state.mode==='live'?'Live':'Story')+" envoyé dans le Radar");
         toast((state.mode==='live'?'Live':'Story')+" envoyé dans le Radar");
         safeLocalFlag('HAPPYAD_RADAR_REFRESH_NEEDED','1')
-        setTimeout(()=>{window.location.href="../index.html";},900);
+        setTimeout(()=>{returnHomeAfterPublish('story-live');},350);
         return;
       }
       saveMediaBestEffort({id,blob:state.file,type:state.file.type,kind:state.kind,name:state.file.name||"media"});
@@ -1350,7 +1379,7 @@ return {source:'story',id:storyId};
       finishProgress("Publication publiée");
       toast("Publication publiée");
       safeLocalFlag("HAPPYAD_HOME_REFRESH_NEEDED","1");
-      setTimeout(()=>{window.location.href="../index.html";},900);
+      setTimeout(()=>{returnHomeAfterPublish('normal');},350);
     }catch(err){
       console.error(err);
       const m=(err&&err.message)?err.message:String(err||'Erreur inconnue');

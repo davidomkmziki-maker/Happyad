@@ -1,7 +1,7 @@
-/* HAPPYAD V29 - Service worker PWA actif, diagnostic Storage owner-safe. */
+/* HAPPYAD V32 - Service worker PWA actif, sponsor Radar DB fallback + retour accueil publication. */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v29-storage-owner-safe-20260709';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v32-sponsor-radar-db-fallback-20260710';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_APP_SHELL = [

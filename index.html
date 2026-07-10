@@ -2802,6 +2802,8 @@ function happyadSponsorStoreCurrent(index,p,items){
 const HAPPYAD_FIXED_RADAR_BUCKET='happyad-media';
 const HAPPYAD_FIXED_RADAR_CONFIG_PATH='happyad-admin/radar-fixed-config.json';
 const HAPPYAD_FIXED_RADAR_CACHE_KEY='HAPPYAD_FIXED_RADAR_PUBLIC_CONFIG_V1';
+const HAPPYAD_FIXED_RADAR_DB_TABLE='happyad_admin_radar_fixed';
+const HAPPYAD_FIXED_RADAR_DB_ID='main';
 let happyadFixedRadarLoading=false;
 let happyadFixedRadarLastCheck=0;
 function happyadFixedRadarPublicUrl(path){
@@ -2817,6 +2819,27 @@ function happyadFixedRadarPublicUrl(path){
 }
 function happyadFixedRadarReadCache(){try{return JSON.parse(localStorage.getItem(HAPPYAD_FIXED_RADAR_CACHE_KEY)||'null')||null}catch(e){return null}}
 function happyadFixedRadarSaveCache(cfg){try{localStorage.setItem(HAPPYAD_FIXED_RADAR_CACHE_KEY,JSON.stringify(cfg||{}))}catch(e){}}
+function happyadFixedRadarDbRowToCfg(row){
+  if(!row)return null;
+  return {active:!!row.active,type:row.type||'fixed_image',imagePath:row.image_path||'db:happyad_admin_radar_fixed/main',imageUrl:row.image_url||'',version:Number(row.version||0),updatedAt:row.updated_at||'',source:'db'};
+}
+function happyadFetchFixedRadarDb(){
+  try{
+    const c=(typeof happyadSb==='function')?happyadSb():null;
+    if(c&&c.from){
+      return c.from(HAPPYAD_FIXED_RADAR_DB_TABLE).select('*').eq('id',HAPPYAD_FIXED_RADAR_DB_ID).maybeSingle().then(function(r){
+        if(r&&r.error)return null;
+        return happyadFixedRadarDbRowToCfg(r&&r.data);
+      }).catch(function(){return null});
+    }
+  }catch(e){}
+  try{
+    const base=String(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+    const key=String(window.HAPPYAD_SUPABASE_KEY||'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD');
+    const url=base+'/rest/v1/'+HAPPYAD_FIXED_RADAR_DB_TABLE+'?id=eq.'+encodeURIComponent(HAPPYAD_FIXED_RADAR_DB_ID)+'&select=*';
+    return fetch(url,{cache:'no-store',headers:{apikey:key,Authorization:'Bearer '+key}}).then(function(res){if(!res.ok)return null;return res.json();}).then(function(rows){return happyadFixedRadarDbRowToCfg(rows&&rows[0]);}).catch(function(){return null});
+  }catch(e){return Promise.resolve(null)}
+}
 function happyadFixedRadarActive(cfg){return !!(cfg&&cfg.active&&cfg.imageUrl&&String(cfg.imageUrl).trim())}
 function happyadFixedRadarFallbackToSponsor(track){
   try{
@@ -2845,10 +2868,27 @@ function happyadFetchFixedRadar(track,afterInactive){
     const now=Date.now();
     if(happyadFixedRadarLoading||now-happyadFixedRadarLastCheck<45000)return;
     happyadFixedRadarLoading=true;happyadFixedRadarLastCheck=now;
-    const url=happyadFixedRadarPublicUrl(HAPPYAD_FIXED_RADAR_CONFIG_PATH)+'?t='+Math.floor(now/60000);
-    fetch(url,{cache:'no-store'}).then(function(res){if(!res.ok)throw new Error('no-config');return res.json();}).then(function(cfg){
-      happyadFixedRadarSaveCache(cfg);
-      if(happyadFixedRadarActive(cfg)){happyadApplyFixedRadar(track,cfg);}else{try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}; if(typeof afterInactive==='function'){afterInactive();}else if(typeof happyadRenderDynamicSponsorOriginal==='function'){happyadRenderDynamicSponsorOriginal();}}
+
+    // V32: la DB est prioritaire. Elle permet d'afficher l'image fixe même quand Supabase Storage refuse l'upload.
+    happyadFetchFixedRadarDb().then(function(dbCfg){
+      if(dbCfg && (dbCfg.active || dbCfg.imageUrl || Number(dbCfg.version||0)>0)){
+        happyadFixedRadarSaveCache(dbCfg);
+        if(happyadFixedRadarActive(dbCfg)){
+          happyadApplyFixedRadar(track,dbCfg);
+        }else{
+          try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}
+          if(typeof afterInactive==='function'){afterInactive();}else if(typeof happyadRenderDynamicSponsorOriginal==='function'){happyadRenderDynamicSponsorOriginal();}
+        }
+        return 'done';
+      }
+      return null;
+    }).then(function(done){
+      if(done==='done')return;
+      const url=happyadFixedRadarPublicUrl(HAPPYAD_FIXED_RADAR_CONFIG_PATH)+'?t='+Math.floor(now/60000);
+      return fetch(url,{cache:'no-store'}).then(function(res){if(!res.ok)throw new Error('no-config');return res.json();}).then(function(cfg){
+        happyadFixedRadarSaveCache(cfg);
+        if(happyadFixedRadarActive(cfg)){happyadApplyFixedRadar(track,cfg);}else{try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}; if(typeof afterInactive==='function'){afterInactive();}else if(typeof happyadRenderDynamicSponsorOriginal==='function'){happyadRenderDynamicSponsorOriginal();}}
+      });
     }).catch(function(){try{if(track){delete track.dataset.fixedRadar;try{track.removeAttribute('data-fixed-radar')}catch(_r){}}}catch(_d){}; if(typeof afterInactive==='function')afterInactive(); else if(typeof happyadRenderDynamicSponsorOriginal==='function')happyadRenderDynamicSponsorOriginal();}).finally(function(){happyadFixedRadarLoading=false;});
   }catch(e){happyadFixedRadarLoading=false;if(typeof afterInactive==='function')afterInactive();}
 }
@@ -6896,7 +6936,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     if(window.__HAPPYAD_PWA_DISABLED__)return;
     if(!('serviceWorker' in navigator))return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1')return;
-    navigator.serviceWorker.register('./service-worker.js?v=29storageownersafe',{scope:'./',updateViaCache:'none'}).then(function(reg){try{reg.update();}catch(_e){}try{if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_w){}try{if(navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});}catch(_m){}}).catch(function(e){try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}});
+    navigator.serviceWorker.register('./service-worker.js?v=32sponsorradardb',{scope:'./',updateViaCache:'none'}).then(function(reg){try{reg.update();}catch(_e){}try{if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_w){}try{if(navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});}catch(_m){}}).catch(function(e){try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}});
   }catch(e){}
 })();
 </script>
@@ -9186,4 +9226,38 @@ html,body{background:#000!important;}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){render(cachedTotal());scheduleRefresh(500);},{once:true});else{render(cachedTotal());scheduleRefresh(500);}
 })();
 </script>
+
+<script id="happyad-v30-publish-return-home-js">
+(function(){
+  if(window.__HAPPYAD_V30_PUBLISH_RETURN_HOME__)return;window.__HAPPYAD_V30_PUBLISH_RETURN_HOME__=true;
+  function touchFlags(){
+    try{localStorage.setItem('HAPPYAD_HOME_REFRESH_NEEDED','1');}catch(_e){}
+    try{localStorage.setItem('HAPPYAD_PROFILE_REFRESH_NEEDED',String(Date.now()));}catch(_e){}
+    try{localStorage.setItem('HAPPYAD_RADAR_REFRESH_NEEDED','1');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_ALL_POSTS_LAST_SYNC');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_SESSION_ALL_POSTS_V104');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_HOME_POSTS_LAST_SYNC');}catch(_e){}
+  }
+  function refreshHome(reason){
+    reason=String(reason||'publish');
+    touchFlags();
+    try{if(window.HappyNavigation&&typeof window.HappyNavigation.close==='function')window.HappyNavigation.close('publish-success-'+reason);}catch(_e){}
+    setTimeout(function(){
+      try{if(typeof window.happyadRefreshHomePostsNow==='function')window.happyadRefreshHomePostsNow('publish-'+reason);}catch(_r){}
+      try{
+        if(typeof window.fetchRadarItems==='function')window.fetchRadarItems().then(function(){try{if(typeof window.renderRadarHome==='function')window.renderRadarHome();}catch(_rr){}});
+        else if(typeof window.renderRadarHome==='function')window.renderRadarHome();
+      }catch(_radar){}
+    },120);
+    setTimeout(function(){try{window.scrollTo({top:0,behavior:'smooth'});}catch(_s){try{window.scrollTo(0,0);}catch(_s2){}}},260);
+    return true;
+  }
+  window.happyadReturnHomeAfterPublishV30=refreshHome;
+  try{window.addEventListener('message',function(ev){
+    try{var d=ev&&ev.data;if(!d||d.type!=='HAPPYAD_PUBLISH_SUCCESS_RETURN_HOME')return;ev.stopImmediatePropagation&&ev.stopImmediatePropagation();refreshHome(d.reason||'message');}catch(_e){}
+  },true);}catch(_e){}
+  try{if(new URLSearchParams(location.search).get('happyad_publish_done'))refreshHome('standalone');}catch(_e){}
+})();
+</script>
+<script>window.HAPPYAD_PUBLIC_VERSION="V32_SPONSOR_RADAR_DB_FALLBACK";</script>
 </body></html>
