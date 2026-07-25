@@ -1,16 +1,18 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V747__)return;
-  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V747__=true;
+  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V748__)return;
+  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V748__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V747_FAST_OPEN_REPLY_CLOSE';
+  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V748_READY_REAL_FAST_STABLE';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV747';
-  var FRAME_URL='modules/assistance.html?v=747-fast-open-reply-close';
+  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV748';
+  var FRAME_URL='modules/assistance.html?v=748-ready-real-fast-stable';
   var CONTEXT_KEY='happyad_support_user_context_v27';
-  var host=null,frame=null,parentClose=null,openState=false,ready=false,documentLoaded=false;
-  var lastContext=null,lastFocus=null,prewarmStarted=false,prewarmTimer=0,closeLock=false;
+  var host=null,frame=null,parentClose=null;
+  var openState=false,ready=false,documentLoaded=false;
+  var lastContext=null,lastFocus=null,prewarmStarted=false,prewarmTimer=0;
+  var closeLock=false,readyPollTimer=0,readyPollStartedAt=0,lastClosePointerAt=0;
 
   function clean(v){return String(v==null?'':v).trim()}
   function localUser(){try{return Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{})}catch(_e){return {}}}
@@ -43,18 +45,49 @@
     if(!frame||!frame.contentWindow||!lastContext)return false;
     try{frame.contentWindow.postMessage({type:'HAPPYAD_ASSISTANCE_CONTEXT',detail:lastContext},location.origin);return true}catch(_e){return false}
   }
-  function fastCloseEvent(event){
+  function closeFromPointer(event){
+    var now=Date.now();
+    if(now-lastClosePointerAt<260)return;
+    lastClosePointerAt=now;
     try{event&&event.preventDefault&&event.preventDefault()}catch(_e){}
     try{event&&event.stopPropagation&&event.stopPropagation()}catch(_e){}
     try{event&&event.stopImmediatePropagation&&event.stopImmediatePropagation()}catch(_e){}
-    requestClose('parent-fast-x');
+    requestClose('parent-x');
   }
   function bindParentClose(){
-    if(!parentClose||parentClose.__happyadFastCloseBound)return;
-    parentClose.__happyadFastCloseBound=true;
-    parentClose.addEventListener('pointerdown',fastCloseEvent,{capture:true,passive:false});
-    parentClose.addEventListener('touchstart',fastCloseEvent,{capture:true,passive:false});
-    parentClose.addEventListener('click',fastCloseEvent,{capture:true,passive:false});
+    if(!parentClose||parentClose.__happyadCloseV748Bound)return;
+    parentClose.__happyadCloseV748Bound=true;
+    parentClose.style.touchAction='manipulation';
+    if(window.PointerEvent){
+      parentClose.addEventListener('pointerup',closeFromPointer,{capture:true,passive:false});
+    }else{
+      parentClose.addEventListener('touchend',closeFromPointer,{capture:true,passive:false});
+    }
+    parentClose.addEventListener('click',closeFromPointer,{capture:true,passive:false});
+  }
+  function frameIsActuallyReady(){
+    if(!frame||!documentLoaded)return false;
+    try{
+      var win=frame.contentWindow;
+      var doc=frame.contentDocument;
+      return !!(
+        win&&win.HappyadAssistance&&
+        doc&&doc.documentElement&&doc.documentElement.classList.contains('happyad-ready')&&
+        doc.getElementById('chat')&&
+        doc.getElementById('composer')
+      );
+    }catch(_e){return false}
+  }
+  function stopReadyPoll(){
+    if(readyPollTimer){clearTimeout(readyPollTimer);readyPollTimer=0}
+  }
+  function pollFrameReady(){
+    stopReadyPoll();
+    if(ready)return;
+    if(frameIsActuallyReady()){markReady('verified-module-ready');return}
+    if(!readyPollStartedAt)readyPollStartedAt=Date.now();
+    if(Date.now()-readyPollStartedAt>5000)return;
+    readyPollTimer=setTimeout(pollFrameReady,60);
   }
   function ensureHost(){
     if(host&&frame)return host;
@@ -65,24 +98,27 @@
       host.className='happyadAssistanceHostV738';
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
-      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV747" type="button" tabindex="-1" aria-hidden="true"></button>';
+      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV748" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
     parentClose=document.getElementById(PARENT_CLOSE_ID);
     bindParentClose();
-    if(frame&&!frame.__happyadAssistanceV747Bound){
-      frame.__happyadAssistanceV747Bound=true;
+    if(frame&&!frame.__happyadAssistanceV748Bound){
+      frame.__happyadAssistanceV748Bound=true;
       frame.addEventListener('load',function(){
         documentLoaded=true;
-        markReady('frame-load');
+        readyPollStartedAt=Date.now();
         sendContext();
+        pollFrameReady();
       });
     }
     return host;
   }
   function markReady(){
+    if(ready)return;
     ready=true;
+    stopReadyPoll();
     if(host)host.classList.add('ready');
     sendContext();
     if(openState){try{frame&&frame.focus()}catch(_e){}}
@@ -91,8 +127,9 @@
     ensureHost();
     if(prewarmStarted||!frame)return false;
     prewarmStarted=true;
+    readyPollStartedAt=0;
     frame.setAttribute('src',FRAME_URL);
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V747',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V748',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
     return true;
   }
   function slowConnection(){
@@ -103,8 +140,13 @@
   }
   function schedulePrewarm(reason,delay){
     if(prewarmStarted||prewarmTimer)return;
-    var run=function(){prewarmTimer=0;if(!prewarmStarted)prepareFrame(reason||'startup-prewarm')};
-    prewarmTimer=setTimeout(run,Math.max(0,Number(delay||0)));
+    var run=function(){prewarmTimer=0;if(!prewarmStarted)prepareFrame(reason||'safe-prewarm')};
+    delay=Math.max(0,Number(delay||0));
+    if('requestIdleCallback'in window&&delay>=500){
+      prewarmTimer=window.requestIdleCallback(run,{timeout:Math.max(1600,delay+700)});
+    }else{
+      prewarmTimer=setTimeout(run,delay);
+    }
   }
   function registerInternal(){
     try{
@@ -132,11 +174,13 @@
     registerInternal();
 
     if(!prewarmStarted)prepareFrame('first-open');
-    if(documentLoaded&&!ready)markReady('already-loaded');
+    sendContext();
     if(ready){
       host.classList.add('ready');
-      sendContext();
       try{frame.focus()}catch(_e){}
+    }else if(documentLoaded){
+      readyPollStartedAt=Date.now();
+      pollFrameReady();
     }
     return true;
   }
@@ -158,7 +202,7 @@
     unregisterInternal();
     try{if(lastFocus&&typeof lastFocus.focus==='function')lastFocus.focus({preventScroll:true})}catch(_e){}
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_CLOSED',{detail:{reason:reason||'close',context:lastContext,at:Date.now()}}))}catch(_e){}
-    setTimeout(function(){closeLock=false},220);
+    setTimeout(function(){closeLock=false},180);
     return true;
   }
   function requestClose(reason){return finalizeClose(reason||'close')}
@@ -176,13 +220,13 @@
   window.addEventListener('HAPPYAD_ASSISTANCE_PREPARE_REQUEST',function(){schedulePrewarm('custom-prepare',0)},true);
   window.addEventListener('HAPPYAD_NAV_CHANGED_V586',function(event){
     var page=clean(event&&event.detail&&event.detail.page).toLowerCase();
-    if(page==='message'||page==='profile')schedulePrewarm('near-assistance-route',40);
+    if(page==='message'||page==='profile')schedulePrewarm('near-assistance-route',180);
   },true);
   window.addEventListener('keydown',function(event){if(openState&&event.key==='Escape'){event.preventDefault();requestClose('escape')}},true);
 
   function start(){
     ensureHost();
-    schedulePrewarm('startup-prewarm',slowConnection()?650:80);
+    schedulePrewarm('safe-idle-prewarm',slowConnection()?2200:950);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
@@ -195,6 +239,6 @@
     isReady:function(){return ready},
     context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}
   });
-  window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
+  window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
   window.HappyadAssistanceMasterV737=api;
 })();
