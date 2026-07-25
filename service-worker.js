@@ -1,7 +1,7 @@
-/* HAPPYAD V746 — Photos Messages par UID réel et profil partagé */
+/* HAPPYAD V747 — Assistance ouverture fluide, réponse immédiate et X direct */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V746-message-profile-avatar-20260725-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V747-assistance-fast-open-reply-close-20260725-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=746-message-profile-avatar',
+  './index.html?v=747-assistance-fast-open-reply-close',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -26,11 +26,11 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=746-message-profile-avatar',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
-  './core/assistance-integration-master-v738.css?v=745-delete-stable-order',
-  './core/assistance-integration-master-v738.js?v=745-delete-stable-order',
+  './core/assistance-integration-master-v738.css?v=747-fast-open-reply-close',
+  './core/assistance-integration-master-v738.js?v=747-fast-open-reply-close',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=738-visible',
-  './core/assistance-supabase-realtime-v745.js?v=745-delete-stable-order'
+  './core/assistance-supabase-realtime-v745.js?v=747-fast-open-reply-close'
 ];
 
 function isHappyCache(name){

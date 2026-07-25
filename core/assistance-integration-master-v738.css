@@ -1,4 +1,4 @@
-/* HAPPYAD V738 — Assistance isolée, fermeture directe et frame préchauffée */
+/* HAPPYAD V747 — Assistance préchauffée, réponse immédiate et X au premier toucher */
 #happyadAssistanceHostV738.happyadAssistanceHostV738{
   position:fixed;inset:0;z-index:2147481200;display:block;overflow:hidden;
   background:#020713;color-scheme:dark;isolation:isolate;contain:layout paint style;
@@ -28,3 +28,26 @@ html.happyadAssistanceOpenV738,body.happyadAssistanceOpenV738{
 }
 @keyframes happyadAssistanceSpinV738{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#happyadAssistanceHostV738 .happyadAssistanceLoadingV738 i{animation:none}}
+
+/* V747 — zone de capture parent au-dessus du X visible de l'iframe.
+   Elle ferme au pointerdown, avant tout délai de click du navigateur mobile. */
+#happyadAssistanceHostV738 .happyadAssistanceParentCloseV747{
+  position:absolute;
+  top:calc(7px + env(safe-area-inset-top));
+  right:max(8px,calc((100vw - 700px)/2 + 8px));
+  z-index:20;
+  width:64px;
+  height:58px;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:18px;
+  background:transparent;
+  opacity:0;
+  pointer-events:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+#happyadAssistanceHostV738.show .happyadAssistanceParentCloseV747{
+  pointer-events:auto;
+}
