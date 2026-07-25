@@ -1,13 +1,13 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V748__)return;
-  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V748__=true;
+  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V749__)return;
+  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V749__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V748_READY_REAL_FAST_STABLE';
+  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V749_DIRECT_PREWARM_TIMELINE_STABLE';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV748';
-  var FRAME_URL='modules/assistance.html?v=748-ready-real-fast-stable';
+  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV749';
+  var FRAME_URL='modules/assistance.html?v=749-timeline-stable-invisible-direct';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null,parentClose=null;
   var openState=false,ready=false,documentLoaded=false;
@@ -55,8 +55,8 @@
     requestClose('parent-x');
   }
   function bindParentClose(){
-    if(!parentClose||parentClose.__happyadCloseV748Bound)return;
-    parentClose.__happyadCloseV748Bound=true;
+    if(!parentClose||parentClose.__happyadCloseV749Bound)return;
+    parentClose.__happyadCloseV749Bound=true;
     parentClose.style.touchAction='manipulation';
     if(window.PointerEvent){
       parentClose.addEventListener('pointerup',closeFromPointer,{capture:true,passive:false});
@@ -98,14 +98,14 @@
       host.className='happyadAssistanceHostV738';
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
-      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV748" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
+      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV749" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
     parentClose=document.getElementById(PARENT_CLOSE_ID);
     bindParentClose();
-    if(frame&&!frame.__happyadAssistanceV748Bound){
-      frame.__happyadAssistanceV748Bound=true;
+    if(frame&&!frame.__happyadAssistanceV749Bound){
+      frame.__happyadAssistanceV749Bound=true;
       frame.addEventListener('load',function(){
         documentLoaded=true;
         readyPollStartedAt=Date.now();
@@ -129,7 +129,7 @@
     prewarmStarted=true;
     readyPollStartedAt=0;
     frame.setAttribute('src',FRAME_URL);
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V748',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V749',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
     return true;
   }
   function slowConnection(){
@@ -220,13 +220,13 @@
   window.addEventListener('HAPPYAD_ASSISTANCE_PREPARE_REQUEST',function(){schedulePrewarm('custom-prepare',0)},true);
   window.addEventListener('HAPPYAD_NAV_CHANGED_V586',function(event){
     var page=clean(event&&event.detail&&event.detail.page).toLowerCase();
-    if(page==='message'||page==='profile')schedulePrewarm('near-assistance-route',180);
+    if(page==='message'||page==='profile')schedulePrewarm('near-assistance-route',40);
   },true);
   window.addEventListener('keydown',function(event){if(openState&&event.key==='Escape'){event.preventDefault();requestClose('escape')}},true);
 
   function start(){
     ensureHost();
-    schedulePrewarm('safe-idle-prewarm',slowConnection()?2200:950);
+    schedulePrewarm('safe-idle-prewarm',slowConnection()?1150:280);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
@@ -239,6 +239,6 @@
     isReady:function(){return ready},
     context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}
   });
-  window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
+  window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
   window.HappyadAssistanceMasterV737=api;
 })();

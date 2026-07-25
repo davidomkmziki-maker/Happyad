@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V745__)return;
-  window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V745__=true;
+  if(window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V749__)return;
+  window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V749__=true;
 
-  var BUILD='HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V745';
+  var BUILD='HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V749_TIMELINE_STABLE_INVISIBLE';
   var DELETED_CHATS_KEY='happyad_support_deleted_v745';
   var syncTimer=0,pullTimer=0,syncing=false,pulling=false,started=false;
   var client=null,currentUser=null,channel=null,lastFingerprint='';
@@ -11,6 +11,12 @@
 
   function api(){return window.HappyadAssistance||null}
   function isLocalWriting(){return !!window.__HAPPYAD_ASSISTANCE_LOCAL_WRITING__}
+  function isUiQuiet(){return Date.now()<Number(window.__HAPPYAD_ASSISTANCE_UI_QUIET_UNTIL__||0)}
+  function deferForUi(action,delay){
+    var remaining=Number(window.__HAPPYAD_ASSISTANCE_UI_QUIET_UNTIL__||0)-Date.now();
+    var wait=Math.max(Number(delay||220),remaining+80);
+    if(action==='sync')scheduleSync(wait);else schedulePull(wait);
+  }
   function clean(v){return String(v==null?'':v).trim()}
   function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(_e){return null}}
   function now(){return new Date().toISOString()}
@@ -186,6 +192,7 @@
   async function syncAll(){
     if(syncing||applyingRemote)return;
     if(isLocalWriting()){scheduleSync(240);return;}
+    if(isUiQuiet()){deferForUi('sync',260);return;}
     var c=getClient();var a=api();if(!c||!a)return;
     if(!currentUser&&!(await getAuthUser()))return;
     syncing=true;
@@ -198,11 +205,11 @@
         if(after!==before)changed=true;
       }
       if(changed)replaceChats(rows,a.getCurrentChatId&&a.getCurrentChatId());
-      emit('HAPPYAD_ASSISTANCE_REMOTE_SYNCED_V745',{count:rows.length,at:Date.now()});
+      emit('HAPPYAD_ASSISTANCE_REMOTE_SYNCED_V749',{count:rows.length,at:Date.now()});
       schedulePull(80);
     }catch(error){
       console.warn('HAPPYAD Assistance sync V745',error);
-      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V745',{phase:'sync',message:errText(error)});
+      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V749',{phase:'sync',message:errText(error)});
       scheduleSync(3500);
     }finally{syncing=false}
   }
@@ -217,6 +224,7 @@
       agentConnectionAnnounced:!!row.assigned_agent_id,closedBy:meta.closedBy||'',
       createdAt:meta.createdAt||row.created_at||now(),updatedAt:row.updated_at||meta.updatedAt||now(),
       lastActivityAt:row.last_message_at||meta.lastActivityAt||meta.updatedAt||row.created_at||now(),messages:[],
+      nextTimelineOrder:Number(meta.nextTimelineOrder||1),
       remoteCaseId:row.id,remoteCaseNumber:row.case_number||'',remoteStatus:row.status||''
     };
   }
@@ -226,7 +234,7 @@
     return {
       id:m.client_message_id||('remote-'+m.id),remoteId:m.id,role:role,text:m.body||'',time:m.created_at||now(),
       feedback:role==='admin'&&semantic!=='agent-connected',feedbackResult:'',origin:role==='admin'?'admin':'bot',
-      semantic:semantic,agentName:m.sender_name||''
+      semantic:semantic,agentName:m.sender_name||'',timelineOrder:0
     };
   }
   function mergeCase(local,row,messages){
@@ -236,21 +244,71 @@
     chat.lastActivityAt=row.last_message_at||chat.lastActivityAt||chat.createdAt||chat.updatedAt;
     chat.agentName=row.assigned_agent_name||chat.agentName||'';chat.agentConnected=!!row.assigned_agent_id;
     chat.agentConnectionAnnounced=chat.agentConnected||chat.agentConnectionAnnounced;
-    var byId={};(chat.messages||[]).forEach(function(m){byId[String(m.id)]=m});
-    messages.forEach(function(m){
-      var lm=m&&m.metadata&&m.metadata.local_message?clone(m.metadata.local_message):null;
-      if(!lm)lm=genericLocalMessage(m);
-      if(m.sender_type==='agent'){
-        lm.role='admin';lm.origin='admin';lm.feedback=true;lm.semantic=lm.semantic||'agent-reply';lm.agentName=m.sender_name||row.assigned_agent_name||'';
-      }
-      if(m.sender_type==='system'&&m.event_key&&String(m.event_key).indexOf('agent-connected:')===0){
-        lm.role='admin';lm.origin='admin';lm.feedback=false;lm.semantic='agent-connected';lm.agentName=m.sender_name||row.assigned_agent_name||'';
-        chat.agentConnected=true;chat.agentConnectionAnnounced=true;chat.agentName=lm.agentName;
-      }
-      lm.id=lm.id||m.client_message_id||('remote-'+m.id);lm.remoteId=m.id;lm.time=lm.time||m.created_at||now();
-      if(!byId[String(lm.id)]){chat.messages.push(lm);byId[String(lm.id)]=lm}
+
+    var current=Array.isArray(chat.messages)?chat.messages:[];
+    var byId={},byRemote={},maxOrder=0;
+    current.forEach(function(message,index){
+      var id=clean(message&&message.id);
+      var remote=clean(message&&message.remoteId);
+      if(id)byId[id]=message;if(remote)byRemote[remote]=message;
+      var order=Number(message&&message.timelineOrder);
+      if(Number.isFinite(order)&&order>maxOrder)maxOrder=order;
+      if(!Number.isFinite(order)||order<=0){message.timelineOrder=index+1;maxOrder=Math.max(maxOrder,index+1)}
     });
-    chat.messages=(chat.messages||[]).sort(function(a,b){var d=new Date(a.time||0)-new Date(b.time||0);return d||clean(a.id).localeCompare(clean(b.id))});
+
+    var incoming=(messages||[]).map(function(remoteMessage,index){
+      var localMessage=remoteMessage&&remoteMessage.metadata&&remoteMessage.metadata.local_message?clone(remoteMessage.metadata.local_message):null;
+      if(!localMessage)localMessage=genericLocalMessage(remoteMessage);
+      if(remoteMessage.sender_type==='agent'){
+        localMessage.role='admin';localMessage.origin='admin';localMessage.feedback=true;
+        localMessage.semantic=localMessage.semantic||'agent-reply';
+        localMessage.agentName=remoteMessage.sender_name||row.assigned_agent_name||'';
+      }
+      if(remoteMessage.sender_type==='system'&&remoteMessage.event_key&&String(remoteMessage.event_key).indexOf('agent-connected:')===0){
+        localMessage.role='admin';localMessage.origin='admin';localMessage.feedback=false;
+        localMessage.semantic='agent-connected';localMessage.agentName=remoteMessage.sender_name||row.assigned_agent_name||'';
+        chat.agentConnected=true;chat.agentConnectionAnnounced=true;chat.agentName=localMessage.agentName;
+      }
+      localMessage.id=localMessage.id||remoteMessage.client_message_id||('remote-'+remoteMessage.id);
+      localMessage.remoteId=remoteMessage.id;
+      localMessage.time=localMessage.time||remoteMessage.created_at||now();
+      localMessage.__remoteIndex=index;
+      return localMessage;
+    }).sort(function(left,right){
+      var lo=Number(left.timelineOrder),ro=Number(right.timelineOrder);
+      var lv=Number.isFinite(lo)&&lo>0?lo:Number.MAX_SAFE_INTEGER;
+      var rv=Number.isFinite(ro)&&ro>0?ro:Number.MAX_SAFE_INTEGER;
+      if(lv!==rv)return lv-rv;
+      var time=(Date.parse(left.time||'')||0)-(Date.parse(right.time||'')||0);
+      return time||left.__remoteIndex-right.__remoteIndex;
+    });
+
+    incoming.forEach(function(localMessage){
+      var existing=byId[clean(localMessage.id)]||byRemote[clean(localMessage.remoteId)]||null;
+      if(existing){
+        existing.remoteId=localMessage.remoteId||existing.remoteId;
+        if(!existing.agentName&&localMessage.agentName)existing.agentName=localMessage.agentName;
+        if(existing.role==='admin'){existing.feedback=true;existing.origin='admin'}
+        return;
+      }
+      var order=Number(localMessage.timelineOrder);
+      if(!Number.isFinite(order)||order<=0){order=++maxOrder;localMessage.timelineOrder=order}
+      else maxOrder=Math.max(maxOrder,order);
+      delete localMessage.__remoteIndex;
+      current.push(localMessage);
+      byId[clean(localMessage.id)]=localMessage;
+      if(localMessage.remoteId)byRemote[clean(localMessage.remoteId)]=localMessage;
+    });
+
+    /* L'ordre local est la source de vérité. Une confirmation Supabase enrichit
+       les messages mais ne déplace jamais un élément déjà affiché. */
+    current.sort(function(left,right){
+      var lo=Number(left&&left.timelineOrder),ro=Number(right&&right.timelineOrder);
+      if(Number.isFinite(lo)&&Number.isFinite(ro)&&lo!==ro)return lo-ro;
+      return 0;
+    });
+    chat.messages=current;
+    chat.nextTimelineOrder=Math.max(Number(chat.nextTimelineOrder||1),maxOrder+1);
     if(chat.messages.length){var last=chat.messages[chat.messages.length-1];chat.lastActivityAt=row.last_message_at||last.time||chat.lastActivityAt;}
     chat.adminHasReplied=chat.messages.some(function(m){return m.role==='admin'&&m.semantic!=='agent-connected'});
     if(['waiting_agent','assigned','answered','waiting_user'].indexOf(row.status)>=0){
@@ -260,7 +318,7 @@
     if(row.status==='resolved'||row.status==='closed'){
       chat.status='resolved';chat.state='resolved';chat.closedBy=row.closed_by?'admin':(chat.closedBy||'user');
       if(!chat.messages.some(function(m){return m.kind==='card'&&m.cardType==='resolved'})){
-        chat.messages.push({id:'remote-resolved-'+row.id,role:'system',kind:'card',cardType:'resolved',time:row.resolved_at||row.closed_at||row.updated_at||now()});
+        chat.messages.push({id:'remote-resolved-'+row.id,role:'system',kind:'card',cardType:'resolved',time:row.resolved_at||row.closed_at||row.updated_at||now(),timelineOrder:chat.nextTimelineOrder++});
       }
     }
     return chat;
@@ -274,6 +332,7 @@
   async function pullRemote(){
     if(pulling)return;
     if(isLocalWriting()){schedulePull(260);return;}
+    if(isUiQuiet()){deferForUi('pull',280);return;}
     var c=getClient(),a=api();if(!c||!a)return;
     if(!currentUser&&!(await getAuthUser()))return;
     pulling=true;
@@ -295,7 +354,7 @@
       var fingerprint=remoteFingerprint(cases,allMessages);
       var requestedCurrent=a.getCurrentChatId&&a.getCurrentChatId();
       if(initialPullDone&&fingerprint===lastFingerprint){
-        emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V745',{cases:cases.length,messages:allMessages.length,unchanged:true,at:Date.now()});
+        emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V749',{cases:cases.length,messages:allMessages.length,unchanged:true,at:Date.now()});
         return;
       }
       if(!initialPullDone&&cases.length){
@@ -313,10 +372,10 @@
           c.rpc('happyad_assistance_mark_read',{p_case_id:row.id,p_last_message_id:last&&last.id||null}).then(function(){});
         }
       }
-      emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V745',{cases:cases.length,messages:allMessages.length,at:Date.now()});
+      emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V749',{cases:cases.length,messages:allMessages.length,at:Date.now()});
     }catch(error){
       console.warn('HAPPYAD Assistance pull V745',error);
-      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V745',{phase:'pull',message:errText(error)});
+      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V749',{phase:'pull',message:errText(error)});
       schedulePull(3500);
     }finally{pulling=false}
   }
@@ -350,10 +409,10 @@
   function startRealtime(){
     var c=getClient();if(!c||!currentUser)return;
     stopRealtime();
-    channel=c.channel('happyad-assistance-user-v745-'+currentUser.id)
-      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_cases'},function(){schedulePull(160)})
-      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_messages'},function(){schedulePull(160)})
-      .subscribe(function(status){emit('HAPPYAD_ASSISTANCE_REALTIME_STATUS_V745',{status:status})});
+    channel=c.channel('happyad-assistance-user-v749-'+currentUser.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_cases'},function(){schedulePull(isUiQuiet()?520:220)})
+      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_messages'},function(){schedulePull(isUiQuiet()?520:220)})
+      .subscribe(function(status){emit('HAPPYAD_ASSISTANCE_REALTIME_STATUS_V749',{status:status})});
   }
   async function start(){
     if(started)return;var a=api();if(!a){retryTimer=setTimeout(start,120);return}
@@ -371,11 +430,12 @@
 
   window.addEventListener('HAPPYAD_ASSISTANCE_LOCAL_CHANGED_V40',function(){scheduleSync(isLocalWriting()?260:120)});
   window.addEventListener('HAPPYAD_ASSISTANCE_CHAT_DELETED_V745',function(event){deleteRemoteCase(event&&event.detail||{});schedulePull(40)});
-  window.addEventListener('HAPPYAD_ASSISTANCE_WRITING_FINISHED_V745',function(){scheduleSync(40);schedulePull(180)});
+  window.addEventListener('HAPPYAD_ASSISTANCE_WRITING_FINISHED_V745',function(){scheduleSync(80);schedulePull(320)});
+  window.addEventListener('HAPPYAD_ASSISTANCE_WRITING_FINISHED_V749',function(){scheduleSync(80);schedulePull(320)});
   window.addEventListener('HAPPYAD_ASSISTANCE_CONTEXT_CHANGED_V40',function(){scheduleSync(100);schedulePull(80)});
-  window.addEventListener('focus',function(){schedulePull(160)});
+  window.addEventListener('focus',function(){schedulePull(isUiQuiet()?520:220)});
   window.addEventListener('online',function(){start();flushRemoteDeletions();schedulePull(40);scheduleSync(80)});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)schedulePull(80)});
-  window.HappyadAssistanceRealtimeV745=Object.freeze({build:BUILD,start:start,sync:syncAll,pull:pullRemote,isConnected:function(){return !!(started&&currentUser&&channel)}});
+  window.HappyadAssistanceRealtimeV749=Object.freeze({build:BUILD,start:start,sync:syncAll,pull:pullRemote,isConnected:function(){return !!(started&&currentUser&&channel)}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
