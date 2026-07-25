@@ -1,4 +1,0 @@
-/* Extracted from index.html. Keep load order. */
-.cancelPendingBox{border:1px solid rgba(255,122,0,.35);background:rgba(255,122,0,.10);border-radius:18px;padding:12px 14px;color:#ffd1a1;font-weight:900;margin:10px 0}
-.sellerCancelledBox{border:1px solid rgba(255,122,0,.34);background:rgba(255,122,0,.08);border-radius:18px;padding:12px 14px;color:#ffd6b0;margin:12px 0;font-weight:850}
-.orderButtons.oneBtn{grid-template-columns:1fr!important}.deliveryStatus.cancel{background:rgba(255,122,0,.13)!important;color:#ffd2a8!important;border-color:rgba(255,122,0,.35)!important}

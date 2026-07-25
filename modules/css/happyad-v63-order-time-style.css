@@ -1,8 +1,0 @@
-/* Extracted from index.html. Keep load order. */
-.orderTimeMeta{border:1px solid rgba(33,212,135,.22);background:rgba(33,212,135,.075);border-radius:17px;padding:11px 12px;margin:10px 0 12px;color:#e7fff3;font-weight:900;line-height:1.35}
-.orderTimeMeta .line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:3px 0}
-.orderTimeMeta .line span{color:#aeb2c1;font-size:12px;font-weight:900}
-.orderTimeMeta .line b{color:#fff;font-size:13px;text-align:right}
-.orderTimeMeta .zone{border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:8px;color:#ffd7b0;font-size:12px;font-weight:950}
-.orderTimeMeta.done{border-color:rgba(255,122,0,.25);background:rgba(255,122,0,.07)}
-.orderTimeMeta.late{border-color:rgba(255,76,76,.24);background:rgba(255,76,76,.08)}
