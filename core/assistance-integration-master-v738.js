@@ -3,10 +3,10 @@
   if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V738__)return;
   window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V738__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V740_SUPABASE_REALTIME_SINGLE_FRAME';
+  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V745_DELETE_STABLE_ORDER';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var FRAME_URL='modules/assistance.html?v=743-realtime-silent';
+  var FRAME_URL='modules/assistance.html?v=745-delete-stable-order';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null,openState=false,ready=false,documentLoaded=false;
   var lastContext=null,lastFocus=null,prewarmStarted=false,openedOnce=false,prewarmTimer=0;

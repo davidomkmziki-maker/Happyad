@@ -30,7 +30,7 @@
 <script src="../core/return-reset-master-v584.js?v=584"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>HappyAD - Messages</title>
+  <title>HappyAD - Messages V746</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (function(){
@@ -3386,7 +3386,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V711_MESSAGES_SHARED_VIDEO_RETURN_SCROLL_LOCK';
+      const MASTER_VERSION = 'V746_MESSAGES_PROFILE_AVATAR_UID_REAL';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -5657,7 +5657,20 @@
         if(composerViewportFrame) cancelAnimationFrame(composerViewportFrame);
         composerViewportFrame = requestAnimationFrame(() => {
           composerViewportFrame = 0;
-          syncMessageVisualViewport();
+          window.addEventListener('storage',event => {
+        const key = clean(event && event.key);
+        if(!key || /HAPPYAD_(PROFILE|USER|CURRENT|LOGGED|CENTRAL|AUTHOR).*?(AVATAR|IDENTITY|USER)?/i.test(key)) refreshConnectedIdentitySoon(30);
+      });
+      try{
+        const identityBroadcastV746 = new BroadcastChannel('happyad-profile-identity-v746');
+        identityBroadcastV746.onmessage = event => {
+          const detail = event && event.data || {};
+          const id = clean(detail.user_id || detail.id);
+          if(isUuid(id)) refreshConversationProfile(id).catch(() => false);
+        };
+      }catch(_e){}
+
+      syncMessageVisualViewport();
           if(!composerShell || !chatView || chatView.classList.contains('hidden')) return;
           const composerIsActive = document.activeElement === messageInput || !!editingMessage || !!replyingTo;
           if(!composerIsActive) return;
@@ -8356,20 +8369,75 @@
         }
       }
 
+      /* HAPPYAD V746 — identité Messages par UID réel.
+         Les anciens maîtres n'acceptaient que quelques colonnes photo et
+         s'arrêtaient parfois sur un cache contenant le nom mais pas l'avatar. */
+      function unwrapAvatarValue(value){
+        const raw = clean(value);
+        const match = raw.match(/^url\(["']?(.*?)["']?\)$/i);
+        return match ? clean(match[1]) : raw;
+      }
+
+      function invalidAvatarValue(value){
+        const url = unwrapAvatarValue(value);
+        const lower = url.toLowerCase();
+        return !url || url === '👤' || url === '🧑' || url === 'avatar' || url === 'user' ||
+          ['none','null','undefined','aucun','default'].includes(lower) ||
+          lower.includes('placeholder') || lower.includes('default-avatar') ||
+          lower.includes('profile-placeholder');
+      }
+
+      function normalizeAvatarUrl(value){
+        let url = unwrapAvatarValue(value);
+        if(invalidAvatarValue(url) || url.length > 120000) return '';
+        if(/^data:image\/(?:png|jpe?g|webp|gif|avif);/i.test(url)) return url.length > 160 ? url : '';
+        if(/^blob:/i.test(url)) return url;
+        if(/^https?:\/\//i.test(url)) return url;
+        if(/^\/storage\/v1\/object\//i.test(url)) return SUPABASE_URL.replace(/\/+$/,'') + url;
+        let path = url.replace(/^\/+/, '');
+        let bucket = 'happyad-media';
+        const bucketMatch = path.match(/^(happyad-media|avatars|profile-photos|profile-images)\/(.+)$/i);
+        if(bucketMatch){ bucket = bucketMatch[1]; path = bucketMatch[2]; }
+        if(path.indexOf('/') < 0 && !/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(path)) return '';
+        return SUPABASE_URL.replace(/\/+$/,'') + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + encodeURI(path);
+      }
+
       function safeAvatar(value){
-        const url = clean(value);
-        if(!url || url.length > 2048 || /^data:image\//i.test(url)) return '';
-        return url;
+        return normalizeAvatarUrl(value);
       }
 
       function profileName(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
-        return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle) || 'Utilisateur HAPPYAD';
+        const nested = profile.profile || profile.user || profile.author || profile.creator || profile.owner || {};
+        return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle ||
+          nested.full_name || nested.display_name || nested.name || nested.username || nested.handle) || 'Utilisateur HAPPYAD';
       }
 
       function profileAvatar(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
-        return safeAvatar(profile.avatar_url || profile.avatar || profile.photo_url || profile.photo || profile.profile_photo || profile.profile_image_url || profile.profile_picture);
+        const nested = profile.profile || profile.user || profile.author || profile.creator || profile.owner || {};
+        const metadata = profile.metadata && typeof profile.metadata === 'object' ? profile.metadata : {};
+        const userMetadata = profile.user_metadata && typeof profile.user_metadata === 'object' ? profile.user_metadata : {};
+        return safeAvatar(
+          profile.avatar_url || profile.avatarUrl || profile.avatar || profile.user_avatar || profile.userAvatar ||
+          profile.creator_avatar || profile.creatorAvatar || profile.author_avatar || profile.authorAvatar ||
+          profile.profile_photo_url || profile.profilePhotoUrl || profile.profile_photo || profile.profilePhoto ||
+          profile.profile_picture_url || profile.profilePictureUrl || profile.profile_picture || profile.profilePicture ||
+          profile.profile_image_url || profile.profileImageUrl || profile.profile_image || profile.profileImage ||
+          profile.photo_url || profile.photoUrl || profile.photo || profile.picture || profile.picture_url ||
+          profile.image_url || profile.imageUrl || profile.profile_avatar_url || profile.profileAvatarUrl ||
+          profile.profile_pic_url || profile.profilePicUrl || profile.profile_pic || profile.profilePic ||
+          profile.user_photo_url || profile.userPhotoUrl || profile.user_photo || profile.userPhoto ||
+          profile.photo_profil_url || profile.photoProfilUrl || profile.photo_profil || profile.photoProfil ||
+          profile.profil_photo_url || profile.profilPhotoUrl || profile.profil_photo || profile.profilPhoto ||
+          profile.photo_de_profil_url || profile.photoDeProfilUrl || profile.photo_de_profil || profile.photoDeProfil ||
+          profile.avatar_path || profile.avatarPath || profile.photo_path || profile.photoPath ||
+          profile.profile_photo_path || profile.profilePhotoPath || profile.profile_picture_path || profile.profilePicturePath ||
+          profile.profile_image_path || profile.profileImagePath ||
+          nested.avatar_url || nested.avatar || nested.photo_url || nested.profile_photo_url || nested.picture ||
+          userMetadata.avatar_url || userMetadata.avatar || userMetadata.picture ||
+          metadata.avatar_url || metadata.avatar || metadata.picture
+        );
       }
 
       function normalizeBadgeValue(value){
@@ -8585,52 +8653,147 @@
         return user;
       }
 
-      async function fetchProfile(userId){
-        const id = clean(userId);
-        if(!isUuid(id)) return null;
-        if(profileMap.has(id)) return profileMap.get(id);
-        const sb = getClient();
-        if(!sb || !sb.from) return null;
-        const result = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
-        if(result.error) throw new Error(clean(result.error.message) || 'Profil introuvable.');
-        if(!result.data) return null;
-        profileMap.set(id, result.data);
-        return result.data;
+      function readLocalJson(key){
+        try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch(_e){ return null; }
       }
 
-      async function fetchProfiles(userIds){
+      function connectedProfileId(profile){
+        profile = profile && typeof profile === 'object' ? profile : {};
+        return clean(profile.id || profile.user_id || profile.uid || profile.uuid || profile.auth_user_id || profile.account_uid);
+      }
+
+      function mergeProfileIdentity(){
+        const sources = Array.from(arguments).filter(value => value && typeof value === 'object');
+        const merged = {};
+        let id = '';
+        let name = '';
+        let avatar = '';
+        let badge = '';
+        let username = '';
+        sources.forEach(source => {
+          if(!id){ const candidateId = connectedProfileId(source); if(isUuid(candidateId)) id = candidateId; }
+          if(!name){ const candidateName = profileName(source); if(candidateName && candidateName !== 'Utilisateur HAPPYAD') name = candidateName; }
+          if(!avatar) avatar = profileAvatar(source);
+          if(!badge) badge = profileBadge(source);
+          if(!username) username = clean(source.username || source.handle);
+          Object.assign(merged,source);
+        });
+        if(id){ merged.id = id; merged.user_id = id; }
+        if(name){ merged.name = name; merged.full_name = name; merged.display_name = name; }
+        if(avatar){ merged.avatar = avatar; merged.avatar_url = avatar; }
+        if(badge){ merged.badge = badge; merged.user_badge = badge; }
+        if(username){ merged.username = username.replace(/^@+/, ''); merged.handle = username; }
+        return merged;
+      }
+
+      function cachedProfileIdentity(userId){
+        const id = clean(userId);
+        if(!isUuid(id)) return null;
+        const candidates = [];
+        const stable = readLocalJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + id);
+        if(stable) candidates.push(stable);
+        const authorMap = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
+        if(authorMap && authorMap[id]) candidates.push(authorMap[id]);
+        const dedicated = readLocalJson('HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:' + id);
+        if(dedicated) candidates.push(dedicated);
+        ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(key => {
+          const value = readLocalJson(key);
+          if(value && connectedProfileId(value) === id) candidates.push(value);
+        });
+        const stableAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + id));
+        if(stableAvatar) candidates.unshift({id:id,user_id:id,avatar:stableAvatar,avatar_url:stableAvatar});
+        const legacyAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V1'));
+        if(legacyAvatar && id === clean(localStorage.getItem('HAPPYAD_AUTH_UID'))){
+          candidates.push({id:id,user_id:id,avatar:legacyAvatar,avatar_url:legacyAvatar});
+        }
+        const cachedConversation = conversations.find(item => item && clean(item.targetId) === id);
+        if(cachedConversation) candidates.push(cachedConversation.target || cachedConversation.fallbackTarget || {});
+        try{
+          if(window.parent && window.parent !== window){
+            if(typeof window.parent.happyadCurrentUser === 'function') candidates.push(window.parent.happyadCurrentUser());
+            if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function'){
+              const avatar = window.parent.HappyadProfileAvatarRecoveryV743.current();
+              if(avatar) candidates.unshift({id:id,user_id:id,avatar:avatar,avatar_url:avatar});
+            }
+            const parentAvatar = window.parent.document && window.parent.document.getElementById('avatarPreview');
+            if(parentAvatar){
+              const background = parentAvatar.dataset && (parentAvatar.dataset.stableAvatar || parentAvatar.dataset.publicAvatarStable) || parentAvatar.style && parentAvatar.style.backgroundImage;
+              if(background) candidates.unshift({id:id,user_id:id,avatar:background,avatar_url:background});
+            }
+          }
+        }catch(_e){}
+        const merged = mergeProfileIdentity.apply(null,candidates);
+        return isUuid(connectedProfileId(merged)) ? merged : null;
+      }
+
+      async function fetchProfile(userId,options){
+        const id = clean(userId);
+        options = options && typeof options === 'object' ? options : {};
+        if(!isUuid(id)) return null;
+        const local = mergeProfileIdentity(profileMap.get(id),cachedProfileIdentity(id));
+        if(profileMap.has(id) && !options.force) return local;
+        const sb = getClient();
+        if(!sb || !sb.from){
+          if(Object.keys(local).length){ profileMap.set(id,local); return local; }
+          return null;
+        }
+        const result = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
+        if(result.error){
+          if(Object.keys(local).length){ profileMap.set(id,local); return local; }
+          throw new Error(clean(result.error.message) || 'Profil introuvable.');
+        }
+        const merged = mergeProfileIdentity(result.data || {},local);
+        if(!isUuid(connectedProfileId(merged))) return null;
+        profileMap.set(id, merged);
+        return merged;
+      }
+
+      async function fetchProfiles(userIds,options){
+        options = options && typeof options === 'object' ? options : {};
         const ids = Array.from(new Set((userIds || []).map(clean).filter(isUuid)));
-        const missing = ids.filter(id => !profileMap.has(id));
-        if(missing.length){
+        const requested = options.force ? ids : ids.filter(id => !profileMap.has(id));
+        if(requested.length){
           const sb = getClient();
-          const result = await sb.from('profiles').select('*').in('id', missing);
-          if(!result.error){
-            (result.data || []).forEach(profile => {
-              if(profile && isUuid(profile.id)) profileMap.set(profile.id, profile);
-            });
+          if(sb && sb.from){
+            const result = await sb.from('profiles').select('*').in('id', requested);
+            if(!result.error){
+              const returned = new Set();
+              (result.data || []).forEach(profile => {
+                const id = clean(profile && profile.id);
+                if(!isUuid(id)) return;
+                returned.add(id);
+                profileMap.set(id,mergeProfileIdentity(profile,profileMap.get(id),cachedProfileIdentity(id)));
+              });
+              requested.forEach(id => {
+                if(returned.has(id)) return;
+                const cached = mergeProfileIdentity(profileMap.get(id),cachedProfileIdentity(id));
+                if(Object.keys(cached).length) profileMap.set(id,cached);
+              });
+            }
           }
         }
         const map = Object.create(null);
-        ids.forEach(id => { if(profileMap.has(id)) map[id] = profileMap.get(id); });
+        ids.forEach(id => {
+          const merged = mergeProfileIdentity(profileMap.get(id),cachedProfileIdentity(id));
+          if(isUuid(connectedProfileId(merged))){ profileMap.set(id,merged); map[id] = merged; }
+        });
         return map;
       }
 
       function targetFromProfile(profile, fallback){
         profile = profile && typeof profile === 'object' ? profile : {};
         fallback = fallback && typeof fallback === 'object' ? fallback : {};
-        const hasProfile = Object.keys(profile).length > 0;
-        const source = hasProfile ? profile : fallback;
-        const id = clean(profile.id || fallback.id || fallback.user_id || fallback.target_id);
+        const merged = mergeProfileIdentity(profile,fallback);
+        const id = clean(connectedProfileId(merged) || fallback.id || fallback.user_id || fallback.target_id);
         if(!isUuid(id)) return null;
+        const name = profileName(merged);
         return {
           id,
           user_id:id,
-          name:profileName(source),
-          avatar:profileAvatar(source) || safeAvatar(fallback.avatar || fallback.avatar_url),
-          /* Une ligne profiles chargée est l'autorité. Si elle n'a aucun badge,
-             on efface tout ancien badge conservé dans le cache conversation. */
-          badge:hasProfile ? profileBadge(profile) : profileBadge(fallback),
-          status:profileHandle(source)
+          name,
+          avatar:profileAvatar(merged),
+          badge:profileBadge(merged),
+          status:profileHandle(merged)
         };
       }
 
@@ -11116,7 +11279,7 @@
           const remote = asArray(results[0]).map(normalizeConversation).filter(Boolean);
           conversations = mergeConversationCollections(conversations,remote);
           if(Array.isArray(results[2])) applyVisibleConversationPreviews(conversations,results[2],{preserveMissing:!!options.silent});
-          const profiles = await fetchProfiles(conversations.map(item => item.targetId));
+          const profiles = await fetchProfiles(conversations.map(item => item.targetId),{force:true});
           conversations.forEach(item => {
             item.target = targetFromProfile(profiles[item.targetId], item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
           });
@@ -11314,7 +11477,7 @@
         messagesConversationId = '';
         if(chatBody){ delete chatBody.dataset.conversationKey; }
         setChatState('Ouverture de la conversation…');
-        const verifiedProfile = await fetchProfile(target.id);
+        const verifiedProfile = await fetchProfile(target.id,{force:true});
         if(token !== openToken) return;
         if(!verifiedProfile || !isUuid(verifiedProfile.id)) throw new Error('Ce profil n’existe pas dans Supabase.');
         const verifiedTarget = targetFromProfile(verifiedProfile, target);
@@ -11366,7 +11529,7 @@
         /* Le Push fournit déjà l'UUID canonique de la conversation.
            On lit donc IndexedDB immédiatement, sans attendre fetchProfile
            ni happyad_msg_open_direct. Le profil se rafraîchit ensuite en silence. */
-        fetchProfile(target.id).then(profile => {
+        fetchProfile(target.id,{force:true}).then(profile => {
           if(token !== openToken || clean(currentConversationId) !== id || !profile) return;
           const verifiedTarget = targetFromProfile(profile,target);
           if(!verifiedTarget) return;
@@ -11398,6 +11561,20 @@
         displayDirect(currentTarget);
         activateConversationView(currentConversationId,token);
         refreshBlockState(currentTarget && currentTarget.id).catch(() => {});
+        /* L'en-tête de la conversation vérifie toujours la photo réelle par UID,
+           même lorsque la liste a été peinte depuis IndexedDB hors connexion. */
+        if(currentTarget && isUuid(currentTarget.id)){
+          fetchProfile(currentTarget.id,{force:true}).then(profile => {
+            if(token !== openToken || clean(currentConversationId) !== clean(item.id) || !profile) return;
+            const verifiedTarget = targetFromProfile(profile,currentTarget);
+            if(!verifiedTarget) return;
+            currentTarget = verifiedTarget;
+            item.target = verifiedTarget;
+            displayDirect(verifiedTarget);
+            renderConversations(searchInput && searchInput.value);
+            queuePersistConversations();
+          }).catch(() => {});
+        }
         if(token !== openToken) return;
         await loadMessages(currentConversationId, token).catch(error => {
           if(token === openToken){
@@ -13374,11 +13551,9 @@
 
       const CONNECTED_IDENTITY_CACHE_PREFIX = 'HAPPYAD_MSG_CONNECTED_PROFILE_V1:';
       let connectedIdentitySignature = '';
-
-      function connectedProfileId(profile){
-        profile = profile && typeof profile === 'object' ? profile : {};
-        return clean(profile.id || profile.user_id || profile.uid || profile.auth_id || profile.auth_user_id || profile.authUserId || profile.account_uid || profile.accountUid);
-      }
+      let profileRealtimeChannel = null;
+      let lastProfileAvatarSynced = '';
+      let profileRefreshTimer = 0;
 
       function connectedIdentityCacheKey(userId){
         const id = clean(userId);
@@ -13398,39 +13573,50 @@
         const candidates = [];
         const dedicatedKey = connectedIdentityCacheKey(id);
         if(dedicatedKey) candidates.push(readConnectedIdentityCandidate(dedicatedKey));
+        const stable = readConnectedIdentityCandidate('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + id);
+        if(stable) candidates.unshift(stable);
+        const authors = readConnectedIdentityCandidate('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
+        if(authors && authors[id]) candidates.unshift(authors[id]);
+        const stableAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + id));
+        if(stableAvatar) candidates.unshift({id:id,user_id:id,avatar:stableAvatar,avatar_url:stableAvatar});
         [
           'HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL',
           'HAPPYAD_USER',
           'HAPPYAD_CURRENT_USER',
           'HAPPYAD_LOGGED_USER',
           'HAPPYAD_USER_V1'
-        ].forEach(key => candidates.push(readConnectedIdentityCandidate(key)));
+        ].forEach(key => {
+          const value = readConnectedIdentityCandidate(key);
+          if(value && connectedProfileId(value) === id) candidates.push(value);
+        });
         try{
-          if(window.parent && window.parent !== window && typeof window.parent.happyadCurrentUser === 'function'){
-            candidates.push(window.parent.happyadCurrentUser());
+          if(window.parent && window.parent !== window){
+            if(typeof window.parent.happyadCurrentUser === 'function') candidates.push(window.parent.happyadCurrentUser());
+            if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function'){
+              const recovered = window.parent.HappyadProfileAvatarRecoveryV743.current();
+              if(recovered) candidates.unshift({id:id,user_id:id,avatar:recovered,avatar_url:recovered});
+            }
+            const avatarElement = window.parent.document && window.parent.document.getElementById('avatarPreview');
+            if(avatarElement){
+              const avatarValue = avatarElement.dataset && (avatarElement.dataset.stableAvatar || avatarElement.dataset.publicAvatarStable) || avatarElement.style && avatarElement.style.backgroundImage;
+              if(avatarValue) candidates.unshift({id:id,user_id:id,avatar:avatarValue,avatar_url:avatarValue});
+            }
           }
         }catch(_e){}
-        for(const candidate of candidates){
-          if(!candidate || typeof candidate !== 'object') continue;
-          const candidateId = connectedProfileId(candidate);
-          if(candidateId !== id) continue;
-          const name = profileName(candidate);
-          const avatar = profileAvatar(candidate);
-          const badge = profileBadge(candidate);
-          if(name !== 'Utilisateur HAPPYAD' || avatar || badge) return candidate;
-        }
-        return null;
+        if(authUser && clean(authUser.id) === id && authUser.user_metadata) candidates.push(Object.assign({id:id,user_id:id},authUser.user_metadata));
+        const merged = mergeProfileIdentity.apply(null,candidates);
+        return isUuid(connectedProfileId(merged)) ? merged : null;
       }
 
       function normalizedConnectedIdentity(profile,user){
-        const source = profile && typeof profile === 'object' ? profile : (user && user.user_metadata || {});
         const id = clean(connectedProfileId(profile) || user && user.id || authUser && authUser.id);
+        const merged = mergeProfileIdentity(profile,cachedConnectedIdentity(id),user && user.user_metadata || {});
         return {
           id:isUuid(id) ? id : '',
-          name:profileName(source) || 'Messages',
-          avatar:profileAvatar(source),
-          badge:profileBadge(source),
-          handle:clean(source && (source.username || source.handle))
+          name:profileName(merged) || 'Messages',
+          avatar:profileAvatar(merged),
+          badge:profileBadge(merged),
+          handle:clean(merged && (merged.username || merged.handle))
         };
       }
 
@@ -13450,18 +13636,53 @@
             username:identity.handle,
             cached_at:new Date().toISOString()
           }));
+          const authorMap = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1') || {};
+          authorMap[identity.id] = Object.assign({},authorMap[identity.id] || {},{
+            id:identity.id,user_id:identity.id,name:identity.name,full_name:identity.name,
+            avatar:identity.avatar,avatar_url:identity.avatar,badge:identity.badge,user_badge:identity.badge
+          });
+          localStorage.setItem('HAPPYAD_AUTHOR_PROFILE_CACHE_V1',JSON.stringify(authorMap));
+          ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(storageKey => {
+            const current = readLocalJson(storageKey);
+            if(!current || connectedProfileId(current) !== identity.id) return;
+            localStorage.setItem(storageKey,JSON.stringify(Object.assign({},current,{
+              id:identity.id,user_id:identity.id,name:identity.name,full_name:identity.name,
+              avatar:identity.avatar || profileAvatar(current),avatar_url:identity.avatar || profileAvatar(current),
+              badge:identity.badge || profileBadge(current),user_badge:identity.badge || profileBadge(current)
+            })));
+          });
           return true;
         }catch(_e){ return false; }
+      }
+
+      async function syncCurrentAvatarToProfiles(identity){
+        if(!identity || !isUuid(identity.id)) return false;
+        const avatar = safeAvatar(identity.avatar);
+        if(!/^https?:\/\//i.test(avatar) || avatar === lastProfileAvatarSynced) return false;
+        const sb = getClient();
+        if(!sb || !sb.from) return false;
+        lastProfileAvatarSynced = avatar;
+        try{
+          const current = await sb.from('profiles').select('id,avatar_url').eq('id',identity.id).maybeSingle();
+          if(current && !current.error && safeAvatar(current.data && current.data.avatar_url) === avatar) return true;
+          const updated = await sb.from('profiles').update({avatar_url:avatar}).eq('id',identity.id);
+          if(updated && updated.error){ lastProfileAvatarSynced = ''; return false; }
+          profileMap.set(identity.id,mergeProfileIdentity({id:identity.id,avatar_url:avatar},profileMap.get(identity.id),cachedConnectedIdentity(identity.id)));
+          try{ localStorage.setItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + identity.id,avatar); }catch(_e){}
+          try{
+            const channel = new BroadcastChannel('happyad-profile-identity-v746');
+            channel.postMessage({type:'avatar',user_id:identity.id,avatar_url:avatar});
+            channel.close();
+          }catch(_e){}
+          return true;
+        }catch(_e){ lastProfileAvatarSynced = ''; return false; }
       }
 
       function applyConnectedIdentity(profile,user,options){
         options = options && typeof options === 'object' ? options : {};
         const identity = normalizedConnectedIdentity(profile,user);
         const signature = JSON.stringify([identity.id,identity.name,identity.avatar,identity.badge,identity.handle]);
-        if(signature === connectedIdentitySignature){
-          if(options.persist === true) persistConnectedIdentity(identity);
-          return false;
-        }
+        const changed = signature !== connectedIdentitySignature;
         if(connectedUserName && connectedUserName.textContent !== identity.name) connectedUserName.textContent = identity.name;
         if(currentUserInitials){
           const value = initials(identity.name);
@@ -13469,12 +13690,15 @@
         }
         if(currentUserPhoto){
           const previousAvatar = clean(currentUserPhoto.dataset.happyadAvatar);
-          if(previousAvatar !== identity.avatar){
+          if(previousAvatar !== identity.avatar || !currentUserAvatar.classList.contains('has-photo')){
             currentUserPhoto.dataset.happyadAvatar = identity.avatar;
-            if(identity.avatar){
-              currentUserPhoto.src = identity.avatar;
-              if(currentUserAvatar) currentUserAvatar.classList.add('has-photo');
-            }else{
+            currentUserPhoto.onload = function(){ if(currentUserAvatar) currentUserAvatar.classList.add('has-photo'); };
+            currentUserPhoto.onerror = function(){
+              if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
+              currentUserPhoto.removeAttribute('src');
+            };
+            if(identity.avatar) currentUserPhoto.src = identity.avatar;
+            else{
               currentUserPhoto.removeAttribute('src');
               if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
             }
@@ -13483,7 +13707,70 @@
         setBadge(currentUserBadge,identity.badge);
         connectedIdentitySignature = signature;
         if(options.persist === true) persistConnectedIdentity(identity);
-        return true;
+        if(options.sync !== false && identity.avatar) syncCurrentAvatarToProfiles(identity).catch(() => false);
+        return changed;
+      }
+
+      function refreshConnectedIdentitySoon(delay){
+        clearTimeout(profileRefreshTimer);
+        profileRefreshTimer = setTimeout(() => {
+          if(!authUser || !isUuid(authUser.id)) return;
+          try{
+            if(window.parent && window.parent !== window && window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.repair === 'function'){
+              window.parent.HappyadProfileAvatarRecoveryV743.repair(true);
+            }
+          }catch(_e){}
+          const cached = cachedConnectedIdentity(authUser.id);
+          if(cached) applyConnectedIdentity(cached,authUser,{persist:true,sync:true});
+          fetchProfile(authUser.id,{force:true}).then(profile => {
+            if(profile){ authProfile = profile; applyConnectedIdentity(profile,authUser,{persist:true,sync:true}); }
+          }).catch(() => {});
+        },Math.max(0,finiteNumber(delay,80)));
+      }
+
+      function knownProfileId(id){
+        if(!isUuid(id)) return false;
+        if(authUser && clean(authUser.id) === id) return true;
+        if(currentTarget && clean(currentTarget.id) === id) return true;
+        return conversations.some(item => item && clean(item.targetId) === id);
+      }
+
+      async function refreshConversationProfile(userId){
+        const id = clean(userId);
+        if(!knownProfileId(id)) return false;
+        profileMap.delete(id);
+        const profile = await fetchProfile(id,{force:true}).catch(() => null);
+        if(!profile) return false;
+        let changed = false;
+        conversations.forEach(item => {
+          if(!item || clean(item.targetId) !== id) return;
+          const next = targetFromProfile(profile,item.target || item.fallbackTarget);
+          if(!next) return;
+          const before = JSON.stringify(item.target || item.fallbackTarget || {});
+          item.target = next;
+          if(JSON.stringify(next) !== before) changed = true;
+        });
+        if(currentTarget && clean(currentTarget.id) === id){
+          const next = targetFromProfile(profile,currentTarget);
+          if(next){ currentTarget = next; if(activeMessageView === 'chat') displayDirect(next); changed = true; }
+        }
+        if(authUser && clean(authUser.id) === id) applyConnectedIdentity(profile,authUser,{persist:true,sync:false});
+        if(changed){ renderConversations(searchInput && searchInput.value); queuePersistConversations(); }
+        return changed;
+      }
+
+      function subscribeProfileIdentityRealtime(){
+        if(profileRealtimeChannel || !authUser || !isUuid(authUser.id)) return;
+        const sb = getClient();
+        if(!sb || !sb.channel) return;
+        try{
+          profileRealtimeChannel = sb.channel('happyad_message_profiles_v746_' + authUser.id)
+            .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},payload => {
+              const id = clean(payload && ((payload.new && payload.new.id) || (payload.old && payload.old.id)));
+              if(!knownProfileId(id)) return;
+              setTimeout(() => refreshConversationProfile(id).catch(() => false),40);
+            }).subscribe();
+        }catch(_e){ profileRealtimeChannel = null; }
       }
 
       async function boot(){
@@ -13520,14 +13807,17 @@
           }
           if(!localShown) localShown = await hydrateInboxFromLocalUser(user.id).catch(() => false);
           const cachedIdentity = cachedConnectedIdentity(user.id);
-          applyConnectedIdentity(cachedIdentity || null,user,{persist:false});
+          applyConnectedIdentity(cachedIdentity || null,user,{persist:false,sync:true});
 
-          /* Le profil réseau ne bloque jamais l'affichage local et ne remplace
-             l'identité affichée que si une donnée réelle a changé. */
-          fetchProfile(user.id).then(profile => {
+          /* Le titre Messages peint immédiatement le meilleur cache disponible,
+             puis vérifie le profil réel sans effacer une photo locale plus complète. */
+          fetchProfile(user.id,{force:true}).then(profile => {
             authProfile = profile || null;
-            if(authProfile) applyConnectedIdentity(authProfile,user,{persist:true});
+            if(authProfile) applyConnectedIdentity(authProfile,user,{persist:true,sync:true});
           }).catch(() => { authProfile = null; });
+          refreshConnectedIdentitySoon(180);
+          setTimeout(() => refreshConnectedIdentitySoon(0),1100);
+          subscribeProfileIdentityRealtime();
           refreshUnreadTotal().catch(() => {});
           return user;
         })().catch(error => {
@@ -13991,10 +14281,11 @@
       }
       window.addEventListener('resize',() => { restoreNewConversationFabPosition(); if(personSelectorOpen) setPersonSelectorHeight(personSelectorSheet && personSelectorSheet.getBoundingClientRect().height,false); scheduleMessageLayoutRepair('resize'); },{passive:true});
       window.addEventListener('orientationchange',() => scheduleMessageLayoutRepair('orientation'),{passive:true});
-      window.addEventListener('pageshow',() => scheduleMessageLayoutRepair('pageshow'),{passive:true});
+      window.addEventListener('pageshow',() => { scheduleMessageLayoutRepair('pageshow'); refreshConnectedIdentitySoon(40); },{passive:true});
       window.addEventListener('online',() => {
         scheduleTextOutboxFlush(40);
         scheduleSilentReconnectSync(160);
+        refreshConnectedIdentitySoon(80);
       });
       syncMessageVisualViewport();
       let authRecoveryPromiseV595 = null;
@@ -14044,6 +14335,7 @@
       function applySignedOutV595(){
         authUser = null;
         authProfile = null;
+        if(profileRealtimeChannel){ try{ getClient().removeChannel(profileRealtimeChannel); }catch(_e){} profileRealtimeChannel = null; }
         bootPromise = null;
         reconnectSyncPromise = null;
         conversations = [];
@@ -14080,6 +14372,7 @@
         }
         else if(data.type === 'HAPPYAD_AUTH_SIGNED_IN_V595') recoverAuthenticatedSessionV595(data.detail || {});
         else if(data.type === 'HAPPYAD_AUTH_SIGNED_OUT_V595') applySignedOutV595();
+        else if(data.type === 'HAPPYAD_PROFILE_AVATAR_RECOVERED_V743' || data.type === 'HAPPYAD_PROFILE_IDENTITY_V746') refreshConnectedIdentitySoon(20);
       }, true);
 
       try{ window.parent.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_START'}, '*'); }catch(_e){}
@@ -14097,6 +14390,7 @@
           if(activeViewOnceAudio) closeViewOnceAudio();
         }else{
           scheduleMessageLayoutRepair('visible');
+          refreshConnectedIdentitySoon(50);
         }
       });
       window.addEventListener('blur', () => {

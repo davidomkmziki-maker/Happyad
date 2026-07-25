@@ -31,7 +31,7 @@
     profile_public:'modules/user.html?public=1',
     video:'modules/video.html',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=738-assistance-visible',
+    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=746-message-profile-avatar',
     publish:'modules/publish.html',
     map:'modules/map.html'
   };
@@ -573,7 +573,7 @@
   function persistentMainUrl(page){
     page=String(page||'');
     if(page==='video')return 'modules/video.html';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=738-assistance-visible';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=746-message-profile-avatar';
     if(page==='profile')return 'modules/user.html';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';

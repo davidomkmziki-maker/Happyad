@@ -1,7 +1,7 @@
-/* HAPPYAD V743 — Photo profil restaurée + Assistance Realtime silencieuse */
+/* HAPPYAD V746 — Photos Messages par UID réel et profil partagé */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V743-profile-avatar-assistance-silent-20260725-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V746-message-profile-avatar-20260725-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=743-profile-avatar-assistance-silent',
+  './index.html?v=746-message-profile-avatar',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -17,20 +17,20 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=738-assistance-message-route',
+  './core/navigation-master-v668.js?v=746-message-profile-avatar',
   './core/auth-session-master-v598.js?v=742-profile-identity-nondestructive',
   './core/profile-identity-stable-master-v741.js?v=743-avatar-safe',
   './core/profile-avatar-recovery-master-v743.js?v=743-avatar-legacy-recovery',
   './core/card-author-avatar-master-v742.js?v=743-card-avatar-safe',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=738-assistance-message-route',
+  './core/main-tabs-master-v615.js?v=746-message-profile-avatar',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
-  './core/assistance-integration-master-v738.css?v=743-realtime-silent',
-  './core/assistance-integration-master-v738.js?v=743-realtime-silent',
+  './core/assistance-integration-master-v738.css?v=745-delete-stable-order',
+  './core/assistance-integration-master-v738.js?v=745-delete-stable-order',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=738-visible',
-  './core/assistance-supabase-realtime-v743.js?v=743-realtime-silent'
+  './core/assistance-supabase-realtime-v745.js?v=745-delete-stable-order'
 ];
 
 function isHappyCache(name){
