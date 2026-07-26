@@ -1,7 +1,7 @@
-/* HAPPYAD V772 — Accueil : structure album stable avant hydratation */
+/* HAPPYAD V773 — Accueil : actions chargées une seule fois par tranche */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V772-home-album-stable-shell-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V773-home-actions-batch-unique-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';

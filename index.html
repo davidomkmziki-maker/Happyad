@@ -1802,7 +1802,7 @@ async function fetchRemotePosts(userOnly, force){
         if(!userOnly && postsKey(cleaned)!==postsKey(ALL_POSTS||[])){ALL_POSTS=cleaned;saveStablePosts(cleaned);render();}
       }catch(_e){}
     }).catch(function(e){console.warn('home deleted posts background sync',e);});}catch(_e){}
-    try{happyadPrimeHomeActionsBatch(arr).then(function(){try{refreshHomeVisibleActionsNow();}catch(_e){}}).catch(function(e){console.warn('home action preload background',e);});}catch(_e){}
+    try{happyadPrimeHomeActionsBatch(arr).catch(function(e){console.warn('home action preload background',e);});}catch(_e){}
     try{enrichAuthorProfiles(c,arr).then(function(enriched){
       try{
         enriched=uniq(enriched||arr);
@@ -2097,7 +2097,27 @@ async function syncPostCountsSupabase(postId,contentType){const c=happyadSb();if
 function happyadBroadcastActionLocal(postId){try{localStorage.setItem('HAPPYAD_ACTION_FAST_SYNC_V1',JSON.stringify({id:String(postId),t:Date.now()}));}catch(e){}}
 window.addEventListener('storage',function(e){try{if(e.key==='HAPPYAD_ACTION_FAST_SYNC_V1'&&e.newValue){var r=JSON.parse(e.newValue||'{}');if(r&&r.id)loadContentActionsFromSupabase(r.id,'photo');}}catch(_e){}});
 async function loadAllContentLikesFromSupabase(posts){const c=happyadSb();if(!c||!Array.isArray(posts)||!posts.length)return;const ids=[...new Set(posts.map(p=>String(p&&p.id||'')).filter(Boolean))].slice(0,12);await Promise.allSettled(ids.map(id=>loadContentActionsFromSupabase(id,'photo')))}
-async function refreshHomeVisibleActionsNow(){try{const cards=[...document.querySelectorAll('#list .miniCard[data-post-id]')];if(!cards.length)return;const ids=[...new Set(cards.map(c=>String(c.dataset.postId||'')).filter(Boolean))];await Promise.allSettled(ids.map(function(id){const p=(ALL_POSTS||[]).find(x=>String(x&&x.id)===String(id));return loadContentActionsFromSupabase(id,(p&&isVideo(p))?'video':'photo');}));ids.forEach(refreshLikeEverywhere);}catch(e){console.warn('home visible actions refresh',e)}}
+const HAPPYAD_HOME_ACTION_REFRESH_AT_V773=new Map();
+async function refreshHomeVisibleActionsNow(options){
+  try{
+    options=options||{};
+    /* V773 : ne jamais relire toutes les cartes accumulées. On ne considère que
+       les cartes proches de l'écran, au maximum douze, avec un TTL par publication. */
+    let cards=[...document.querySelectorAll('#list .miniCard[data-post-id][data-happyad-near-viewport-v763="1"]')];
+    if(!cards.length)cards=[...document.querySelectorAll('#list .miniCard[data-post-id]')].slice(0,8);
+    if(!cards.length)return;
+    const ids=[...new Set(cards.map(function(c){return String(c.dataset.postId||'');}).filter(Boolean))].slice(0,12);
+    const now=Date.now(),ttl=options.force===true?0:60000;
+    const posts=ids.map(function(id){return (ALL_POSTS||[]).find(function(x){return String(x&&x.id||'')===id;});}).filter(Boolean).filter(function(p){
+      const id=String(p&&p.id||'');
+      return !ttl||now-Number(HAPPYAD_HOME_ACTION_REFRESH_AT_V773.get(id)||0)>=ttl;
+    });
+    ids.forEach(refreshLikeEverywhere);
+    if(!posts.length)return;
+    posts.forEach(function(p){HAPPYAD_HOME_ACTION_REFRESH_AT_V773.set(String(p.id||''),now);});
+    await happyadPrimeHomeActionsBatch(posts);
+  }catch(e){console.warn('home visible actions refresh',e)}
+}
 async function toggleContentActionSupabase(postId,contentType,actionType,nextValue){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour enregistrer cette action');const id=String(postId);if(actionType==='share'){const row={post_id:id,content_id:id,content_type:contentType,action_type:'share',user_id:user.id,liked:true};const ins=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(ins.error)throw ins.error;}else{const safeActionType=(actionType==='fav'?'favorite':actionType);const row={post_id:id,content_id:id,content_type:contentType,action_type:safeActionType,user_id:user.id,liked:!!nextValue};const up=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(up.error)throw up.error;}happyadBroadcastActionLocal(id);setTimeout(function(){syncPostCountsSupabase(id,contentType)},0);return getA(id)}
 async function toggleContentLikeSupabase(postId,contentType,nextLiked){return toggleContentActionSupabase(postId,contentType,'like',nextLiked)}
 function refreshContentLikeFromSupabase(card,p){if(!card||!p)return;registerLikeCard(card,p);refreshCardAction(card,p.id);loadContentActionsFromSupabase(p.id,isVideo(p)?'video':'photo')}
@@ -3231,9 +3251,10 @@ function observeHomeCard(card,p,video){
   refreshCardAction(card,p.id);
   bindAction(card,p,p.title||'Publication HAPPYAD');
   registerLikeCard(card,p);
-  /* V616: aucune hydratation en masse pendant la construction du fragment.
-     IntersectionObserver hydrate uniquement les cartes proches de l'écran. */
-  if(!('IntersectionObserver' in window)){hydrateMedia(card,p,video);refreshContentLikeFromSupabase(card,p);return;}
+  /* HAPPYAD V773 : l'IntersectionObserver ne lance plus une requête d'actions
+     carte par carte. Les actions sont chargées une seule fois par lot lors de
+     l'ajout de la tranche ; ici, l'observer reste maître uniquement des médias. */
+  if(!('IntersectionObserver' in window)){hydrateMedia(card,p,video);return;}
   if(!HAPPYAD_HOME_CARD_IO){
     HAPPYAD_HOME_CARD_IO=new IntersectionObserver(function(entries){
       entries.forEach(function(en){
@@ -3243,8 +3264,10 @@ function observeHomeCard(card,p,video){
              navigateur ne garde plus loading=lazy sur une carte déjà proche. */
           c.dataset.happyadNearViewportV763='1';
           hydrateMedia(c,pp,vv);
-          if(!c.dataset.actionsReady){c.dataset.actionsReady='1';refreshContentLikeFromSupabase(c,pp);}
-        }else if(vv){stopHomeCardVideo(c);/* ne pas vider mediaReady: la carte reste hydratée et stable */}
+        }else{
+          delete c.dataset.happyadNearViewportV763;
+          if(vv)stopHomeCardVideo(c);/* ne pas vider mediaReady: la carte reste hydratée et stable */
+        }
       });
     },{root:null,rootMargin:'1800px 0px 1400px 0px',threshold:0});
   }
@@ -4010,13 +4033,17 @@ function happyadRenderHomeWindowV616(items,mode,opts){
     }
     var wanted={};
     var ordered=[];
+    var newActionPostsV773=[];
     for(var i=0;i<loaded;i++){
       var item=items[i];
       var id=happyadHomeVirtualIdV616(item,i);
       wanted[id]=1;
       var card=reusable[id]||createCard(item);
       card.dataset.virtualIndex=String(i);
-      if(!reusable[id])card.dataset.happyadProgressiveNewV764='1';
+      if(!reusable[id]){
+        card.dataset.happyadProgressiveNewV764='1';
+        newActionPostsV773.push(item);
+      }
       ordered.push(card);
     }
 
@@ -4037,7 +4064,11 @@ function happyadRenderHomeWindowV616(items,mode,opts){
 
     var homeAppendOnlyV766=happyadHomeAppendOnlyV766(oldCards,ordered,previousMode,mode);
     happyadRestoreHomeViewportAnchorV766(homeAnchorV766,{appendOnly:homeAppendOnlyV766});
-    requestAnimationFrame(function(){try{refreshHomeVisibleActionsNow();}catch(_e){}});
+    /* V773 : une tranche nouvelle reçoit un seul chargement groupé. Les anciennes
+       cartes ne sont plus relues, et aucune requête individuelle n'est lancée. */
+    if(newActionPostsV773.length){
+      Promise.resolve().then(function(){return happyadPrimeHomeActionsBatch(newActionPostsV773);}).catch(function(e){console.warn('home new cards actions batch',e);});
+    }
   }finally{HAPPYAD_HOME_WINDOW_BUSY_V616=false;}
 }
 function happyadShiftHomeWindowV616(direction){
@@ -4234,7 +4265,7 @@ async function happyadLoadMoreRemotePosts(){
         HAPPYAD_LAST_RENDER_SIG='';
         render({feedOnly:true,reason:'pagination-remote-v771'});
       }
-      try{happyadPrimeHomeActionsBatch(fresh).then(function(){refreshHomeVisibleActionsNow();}).catch(function(e){console.warn('home more actions background',e);});}catch(_e){}
+      try{happyadPrimeHomeActionsBatch(fresh).catch(function(e){console.warn('home more actions background',e);});}catch(_e){}
       try{enrichAuthorProfiles(c,fresh).then(function(enriched){
         try{
           const merged2=happyadSaveHomeFastCache([].concat(ALL_POSTS||[],enriched||fresh));
@@ -4345,7 +4376,7 @@ async function happyadRunHomeBootV655(){
   if(ALL_POSTS.length){
     happyadPostsLoading=false;
     render();
-    happyadPrimeHomeActionsBatch((ALL_POSTS||[]).slice(0,HAPPYAD_HOME_REMOTE_PAGE)).then(function(){refreshHomeVisibleActionsNow();}).catch(function(e){console.warn('home action preload background',e)});
+    happyadPrimeHomeActionsBatch((ALL_POSTS||[]).slice(0,HAPPYAD_HOME_REMOTE_PAGE)).catch(function(e){console.warn('home action preload background',e)});
   }
   else{happyadRenderHomeSkeletonV407();}
   fetchRadarItems().then(()=>{renderRadarHome();}).catch(()=>{});
@@ -10286,7 +10317,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 </script>
 
-<script>window.HAPPYAD_PUBLIC_VERSION="V772_ACCUEIL_ALBUM_STRUCTURE_STABLE";</script>
+<script>window.HAPPYAD_PUBLIC_VERSION="V773_ACCUEIL_ACTIONS_PAR_TRANCHE_UNIQUE";</script>
 <style id="happyad-v595-action-counters-stable">
 #list.homeTimeline .miniActions,.feedGrid .miniActions,.hScroller .miniActions{
   display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
