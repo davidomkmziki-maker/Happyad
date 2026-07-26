@@ -1,4 +1,4 @@
-/* HAPPYAD V755 — ouverture/fermeture Assistance uniquement */
+/* HAPPYAD V756 — fermeture visuelle immédiate + bouclier tactile court */
 #happyadAssistanceHostV738.happyadAssistanceHostV738{
   position:fixed;inset:0;z-index:2147481200;display:block;overflow:hidden;
   background:#020713;color-scheme:dark;isolation:isolate;contain:layout paint style;
@@ -23,10 +23,17 @@
   width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.13);
   border-top-color:#4f7cff;animation:happyadAssistanceSpinV738 .72s linear infinite;
 }
-#happyadAssistanceHostV738.closing{
+#happyadAssistanceHostV738.closing,
+#happyadAssistanceHostV738.closingDirectV756{
   opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  background:transparent!important;
 }
-#happyadAssistanceHostV738.closing .happyadAssistanceFrameV738{pointer-events:none!important}
+#happyadAssistanceHostV738.closing .happyadAssistanceFrameV738,
+#happyadAssistanceHostV738.closingDirectV756 .happyadAssistanceFrameV738{
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+#happyadAssistanceHostV738.closing .happyadAssistanceLoadingV738,
+#happyadAssistanceHostV738.closingDirectV756 .happyadAssistanceLoadingV738{display:none!important}
 html.happyadAssistanceOpenV738,body.happyadAssistanceOpenV738{overflow:hidden!important;overscroll-behavior:none!important}
 @keyframes happyadAssistanceSpinV738{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#happyadAssistanceHostV738 .happyadAssistanceLoadingV738 i{animation:none}}

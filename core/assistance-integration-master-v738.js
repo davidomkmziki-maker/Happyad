@@ -1,12 +1,12 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V755__)return;
-  window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V755__=true;
+  if(window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V756__)return;
+  window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V756__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V755_MINIMAL';
+  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V756_DIRECT_CLOSE_PROFILE_PERSISTENT';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var FRAME_URL='modules/assistance.html?v=755-open-close-minimal';
+  var FRAME_URL='modules/assistance.html?v=756-direct-close';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null;
   var isOpen=false,isReady=false,frameStarted=false,closeTimer=0,openLockUntil=0;
@@ -56,8 +56,8 @@
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
-    if(frame&&!frame.__happyadV755Bound){
-      frame.__happyadV755Bound=true;
+    if(frame&&!frame.__happyadV756Bound){
+      frame.__happyadV756Bound=true;
       frame.addEventListener('load',function(){sendContext();pollReady()});
     }
     return host;
@@ -111,7 +111,7 @@
     if(closeTimer){clearTimeout(closeTimer);closeTimer=0}
     if(isOpen){sendContext();return true}
     isOpen=true;
-    host.classList.remove('closing');
+    host.classList.remove('closing','closingDirectV756');
     host.classList.add('show');
     host.setAttribute('aria-hidden','false');
     host.removeAttribute('inert');
@@ -126,7 +126,7 @@
   }
   function finishClose(reason){
     if(!host)return false;
-    host.classList.remove('show','closing');
+    host.classList.remove('show','closing','closingDirectV756');
     host.setAttribute('aria-hidden','true');
     host.setAttribute('inert','');
     document.documentElement.classList.remove('happyadAssistanceOpenV738');
@@ -138,11 +138,15 @@
   function close(reason){
     if(!isOpen||closeTimer)return false;
     isOpen=false;
-    if(host)host.classList.add('closing');
-    /* Le clic du X se termine dans l’iframe. Le host reste au-dessus quelques
-       millisecondes, sans focus ni bouton transparent, puis la page précédente
-       redevient interactive. */
-    closeTimer=setTimeout(function(){closeTimer=0;finishClose(reason||'close')},110);
+    if(host){
+      /* V756 : la page précédente redevient visible immédiatement. Le host
+         transparent reste néanmoins au-dessus jusqu'à la fin du clic Android,
+         afin qu'aucun bouton derrière ne reçoive le même geste. */
+      host.classList.add('closing','closingDirectV756');
+      host.setAttribute('aria-hidden','false');
+      host.removeAttribute('inert');
+    }
+    closeTimer=setTimeout(function(){closeTimer=0;finishClose(reason||'close')},120);
     return true;
   }
   function sameOrigin(event){return !event.origin||event.origin===location.origin}
@@ -166,6 +170,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
   var api=Object.freeze({version:VERSION,open:open,close:close,prepare:prepare,isOpen:function(){return isOpen},isReady:function(){return isReady},context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}});
+  window.HappyadAssistanceMasterV756=api;
   window.HappyadAssistanceMasterV755=api;
   /* Alias de compatibilité : aucun autre moteur n’est créé. */
   window.HappyadAssistanceMasterV751=window.HappyadAssistanceMasterV750=window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=window.HappyadAssistanceMasterV737=api;
