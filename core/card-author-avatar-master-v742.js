@@ -2,7 +2,8 @@
   'use strict';
   if(window.__HAPPYAD_CARD_AUTHOR_AVATAR_MASTER_V742__)return;
   window.__HAPPYAD_CARD_AUTHOR_AVATAR_MASTER_V742__=true;
-  var VERSION='CARD_AUTHOR_AVATAR_MASTER_V742';
+
+  var VERSION='CARD_AUTHOR_AVATAR_MASTER_V742_V763_HOME_STABLE';
   var AUTHOR_KEY='HAPPYAD_AUTHOR_PROFILE_CACHE_V1';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var CACHE_KEYS=[
@@ -10,19 +11,24 @@
     'HAPPYAD_POSTS_CACHE_V1','HAPPYAD_CACHED_POSTS_V1','HAPPYAD_FEED_CACHE_V1','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1',
     'HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1'
   ];
-  var busy=false,pending=false,lastFetch=0,observer=null;
+  var busy=false,pending=false,lastFetch=0,observer=null,observerTimer=0,cacheRepairTimer=0;
+  var mapMemo=null,mapMemoRaw='';
+
   function clean(v){v=String(v==null?'':v).trim();return (!v||v==='null'||v==='undefined'||v==='[object Object]')?'':v;}
   function json(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?f:v;}catch(_e){return f;}}
-  function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(_e){}}
+  function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_e){return false;}}
   function uidOf(p){p=p||{};return clean(p.creatorId||p.creator_id||p.user_id||p.userId||p.ownerId||p.owner_id||p.author_id||p.authorId||p.profile_id||p.profileId||p.auth_user_id||p.authUserId||p.account_uid||p.accountUid||p.uid||p.uuid);}
   function avatarOf(p){p=p||{};return clean(p.avatar_url||p.avatarUrl||p.avatar||p.user_avatar||p.userAvatar||p.creator_avatar||p.creatorAvatar||p.author_avatar||p.authorAvatar||p.profile_photo_url||p.profilePhotoUrl||p.profile_photo||p.profilePhoto||p.profile_picture_url||p.profilePictureUrl||p.profile_picture||p.profilePicture||p.photo_url||p.photoUrl||p.photo||p.image_url||p.imageUrl||p.picture||p.profile_image_url||p.profileImageUrl||p.profile_avatar_url||p.profileAvatarUrl);}
   function nameOf(p){p=p||{};return clean(p.full_name||p.display_name||p.name||p.creatorName||p.creator_name||p.user_name||p.author_name||p.username||p.handle);}
   function handleOf(p){p=p||{};return clean(p.username||p.handle||p.user_name).replace(/^@+/,'');}
-  function normBadge(v){v=clean(v).toLowerCase();return (!v||v==='aucun'||v==='none'||v==='null'||v==='undefined')?'':v;}
+  function normBadge(v){v=clean(v).toLowerCase();return (!v||v==='aucun'||v==='none'||v==='null'||v==='undefined'||v==='false'||v==='0')?'':v;}
   function badgeOf(p){p=p||{};return normBadge(p.badge||p.user_badge||p.userBadge||p.profile_badge||p.badge_type||p.certification||p.verified_badge);}
   function currentUid(){return clean(localStorage.getItem('HAPPYAD_AUTH_UID')||uidOf(json(USER_KEY,{})));}
+  function client(){try{return window.happyadSupabase||(typeof window.happyadSb==='function'&&window.happyadSb())||null;}catch(_e){return null;}}
   function publicAvatar(v){
-    v=clean(v).replace(/^url\(["']?(.*?)["']?\)$/i,'$1');var l=v.toLowerCase();if(!v||/^blob:/i.test(v)||v==='👤'||v==='🧑'||l==='none'||l==='null'||l==='undefined'||l.indexOf('placeholder')>-1)return '';
+    v=clean(v).replace(/^url\(["']?(.*?)["']?\)$/i,'$1');
+    var l=v.toLowerCase();
+    if(!v||/^blob:/i.test(v)||v==='👤'||v==='🧑'||l==='none'||l==='null'||l==='undefined'||l.indexOf('placeholder')>-1)return '';
     if(/^https?:\/\//i.test(v)||/^data:image\/(?:png|jpe?g|webp|gif|avif);/i.test(v))return v;
     if(v.indexOf('/')<0&&!/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(v))return '';
     var path=v.replace(/^\/+/, '').replace(/^happyad-media\//,'');
@@ -30,72 +36,182 @@
     var base=clean(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
     return base+'/storage/v1/object/public/happyad-media/'+encodeURI(path);
   }
-  function client(){try{return window.happyadSupabase||(typeof window.happyadSb==='function'&&window.happyadSb())||null;}catch(_e){return null;}}
   function stable(uid){return uid?json('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:'+uid,{}):{};}
   function publicStable(uid){return uid?json('HAPPYAD_PUBLIC_PROFILE_STABLE_'+uid,{}):{};}
-  function authorMap(){var m=json(AUTHOR_KEY,{});return m&&typeof m==='object'&&!Array.isArray(m)?m:{};}
+  function normalize(p){
+    p=p||{};
+    var id=clean(p.id||p.user_id||p.uid||p.uuid||p.auth_user_id||p.account_uid||uidOf(p));
+    if(!id)return null;
+    var n=nameOf(p)||'Utilisateur HAPPYAD',h=handleOf(p),av=publicAvatar(avatarOf(p));
+    return {id:id,user_id:id,name:n,full_name:n,handle:h,username:h,avatar:av,avatar_url:av,badge:badgeOf(p),role:clean(p.role)};
+  }
+  function better(old,next){
+    old=old||{};next=next||{};
+    var nn=nameOf(next),on=nameOf(old);
+    var name=(nn&&!/^(utilisateur happyad|happyad)$/i.test(nn))?nn:(on||'Utilisateur HAPPYAD');
+    var av=publicAvatar(avatarOf(next))||publicAvatar(avatarOf(old));
+    var h=handleOf(next)||handleOf(old);
+    return {id:next.id||old.id,user_id:next.user_id||old.user_id,name:name,full_name:name,handle:h,username:h,avatar:av,avatar_url:av,badge:badgeOf(next)||badgeOf(old),role:clean(next.role)||clean(old.role)};
+  }
+  function sig(p){p=p||{};return [clean(p.id||p.user_id),nameOf(p),handleOf(p),publicAvatar(avatarOf(p)),badgeOf(p),clean(p.role)].join('|');}
+  function authorMap(){
+    var raw='';try{raw=localStorage.getItem(AUTHOR_KEY)||'';}catch(_e){}
+    if(mapMemo&&raw===mapMemoRaw)return mapMemo;
+    var m={};try{m=JSON.parse(raw||'{}')||{};}catch(_e){m={};}
+    if(!m||typeof m!=='object'||Array.isArray(m))m={};
+    mapMemo=m;mapMemoRaw=raw;return m;
+  }
+  function saveAuthorMap(map){
+    var raw='';try{raw=JSON.stringify(map||{});}catch(_e){return false;}
+    if(raw===mapMemoRaw){mapMemo=map;return false;}
+    try{localStorage.setItem(AUTHOR_KEY,raw);mapMemo=map;mapMemoRaw=raw;return true;}catch(_e){return false;}
+  }
   function localIdentity(uid){
+    if(!uid)return null;
     var cache=authorMap(),me=json(USER_KEY,{}),s=stable(uid),ps=publicStable(uid),a=cache[uid]||{};
-    var own=uid&&uid===currentUid()?me:{};
+    var own=uid===currentUid()?me:{};
     return normalize(Object.assign({},a,ps,s,own,{id:uid,user_id:uid}));
   }
-  function normalize(p){p=p||{};var id=clean(p.id||p.user_id||p.uid||p.uuid||p.auth_user_id||p.account_uid||uidOf(p));if(!id)return null;var av=publicAvatar(avatarOf(p));return {id:id,user_id:id,name:nameOf(p)||'Utilisateur HAPPYAD',full_name:nameOf(p)||'Utilisateur HAPPYAD',handle:handleOf(p),username:handleOf(p),avatar:av,avatar_url:av,badge:badgeOf(p),role:clean(p.role)};}
-  function better(old,next){old=old||{};next=next||{};return {id:next.id||old.id,user_id:next.user_id||old.user_id,name:(nameOf(next)&&!/^(utilisateur happyad|happyad)$/i.test(nameOf(next)))?nameOf(next):(nameOf(old)||'Utilisateur HAPPYAD'),full_name:(nameOf(next)&&!/^(utilisateur happyad|happyad)$/i.test(nameOf(next)))?nameOf(next):(nameOf(old)||'Utilisateur HAPPYAD'),handle:handleOf(next)||handleOf(old),username:handleOf(next)||handleOf(old),avatar:publicAvatar(avatarOf(next))||publicAvatar(avatarOf(old)),avatar_url:publicAvatar(avatarOf(next))||publicAvatar(avatarOf(old)),badge:badgeOf(next)||badgeOf(old),role:clean(next.role)||clean(old.role)};}
   function remember(rows){
-    var map=authorMap();(rows||[]).forEach(function(raw){var n=normalize(raw);if(!n)return;map[n.id]=better(map[n.id],n);});
-    write(AUTHOR_KEY,map);return map;
+    var map=authorMap(),changed=false;
+    (rows||[]).forEach(function(raw){
+      var n=normalize(raw);if(!n)return;
+      var merged=better(map[n.id],n);
+      if(sig(merged)!==sig(map[n.id])){map[n.id]=merged;changed=true;}
+    });
+    if(changed)saveAuthorMap(map);
+    return {map:map,changed:changed};
   }
   function arrays(){
-    var out=[];try{if(Array.isArray(window.ALL_POSTS))out.push(window.ALL_POSTS);}catch(_e){}
-    CACHE_KEYS.forEach(function(k){var v=json(k,null);if(Array.isArray(v))out.push(v);else if(v&&Array.isArray(v.posts))out.push(v.posts);else if(v&&Array.isArray(v.data))out.push(v.data);});return out;
+    var out=[];
+    try{if(Array.isArray(window.ALL_POSTS))out.push(window.ALL_POSTS);}catch(_e){}
+    CACHE_KEYS.forEach(function(k){var v=json(k,null);if(Array.isArray(v))out.push(v);else if(v&&Array.isArray(v.posts))out.push(v.posts);else if(v&&Array.isArray(v.data))out.push(v.data);});
+    return out;
   }
-  function allPosts(){var out=[],seen={};arrays().forEach(function(arr){arr.forEach(function(p){var id=clean(p&&p.id);if(!id||seen[id])return;seen[id]=1;out.push(p);});});return out;}
-  function postById(id){id=clean(id);if(!id)return null;var all=allPosts();for(var i=0;i<all.length;i++)if(clean(all[i]&&all[i].id)===id)return all[i];return null;}
+  function allPosts(){
+    var out=[],seen={};
+    arrays().forEach(function(arr){arr.forEach(function(p){var id=clean(p&&p.id);if(!id||seen[id])return;seen[id]=1;out.push(p);});});
+    return out;
+  }
+  function postById(id,index){id=clean(id);if(!id)return null;if(index&&index[id])return index[id];var all=allPosts();for(var i=0;i<all.length;i++)if(clean(all[i]&&all[i].id)===id)return all[i];return null;}
+  function postIndex(){var out={};allPosts().forEach(function(p){var id=clean(p&&p.id);if(id&&!out[id])out[id]=p;});return out;}
   function patchPost(p,profile){
-    if(!p||!profile)return p;var uid=uidOf(p)||profile.id;if(!uid||uid!==profile.id)return p;var n=better(normalize(p)||{id:uid,user_id:uid},profile),q=Object.assign({},p);
-    q.creatorId=uid;q.creator_id=uid;q.user_id=uid;
-    if(n.name){q.creatorName=n.name;q.creator_name=n.name;q.display_name=n.name;q.full_name=n.name;q.user_name=n.name;}
-    if(n.handle){q.handle='@'+n.handle;q.username=n.handle;}
-    if(n.avatar){q.avatar=n.avatar;q.avatar_url=n.avatar;q.creator_avatar=n.avatar;q.author_avatar=n.avatar;q.user_avatar=n.avatar;}
-    if(n.badge){q.badge=n.badge;q.user_badge=n.badge;q.userBadge=n.badge;}
+    if(!p||!profile)return p;
+    var uid=uidOf(p)||profile.id;if(!uid||uid!==profile.id)return p;
+    var n=better(normalize(p)||{id:uid,user_id:uid},profile),q=p,changed=false;
+    function set(k,v){if(v!=null&&String(q[k]==null?'':q[k])!==String(v)){if(!changed){q=Object.assign({},p);changed=true;}q[k]=v;}}
+    set('creatorId',uid);set('creator_id',uid);set('user_id',uid);
+    if(n.name){set('creatorName',n.name);set('creator_name',n.name);set('display_name',n.name);set('full_name',n.name);set('user_name',n.name);}
+    if(n.handle){set('handle','@'+n.handle);set('username',n.handle);}
+    if(n.avatar){set('avatar',n.avatar);set('avatar_url',n.avatar);set('creator_avatar',n.avatar);set('author_avatar',n.avatar);set('user_avatar',n.avatar);}
+    if(n.badge){set('badge',n.badge);set('user_badge',n.badge);set('userBadge',n.badge);}
     return q;
   }
-  function repairCaches(map){
-    try{if(Array.isArray(window.ALL_POSTS))window.ALL_POSTS=window.ALL_POSTS.map(function(p){var u=uidOf(p),pr=map[u];return pr?patchPost(p,pr):p;});}catch(_e){}
-    CACHE_KEYS.forEach(function(k){try{var v=json(k,null),shape='array',arr=v;if(v&&Array.isArray(v.posts)){arr=v.posts;shape='posts';}else if(v&&Array.isArray(v.data)){arr=v.data;shape='data';}if(!Array.isArray(arr))return;var changed=false,next=arr.map(function(p){var pr=map[uidOf(p)];if(!pr)return p;var n=patchPost(p,pr);if(JSON.stringify(n)!==JSON.stringify(p))changed=true;return n;});if(changed){if(shape==='posts'){v.posts=next;write(k,v);}else if(shape==='data'){v.data=next;write(k,v);}else write(k,next);}}catch(_e){}});
+  function repairCachesNow(map){
+    try{
+      if(Array.isArray(window.ALL_POSTS)){
+        var changed=false,next=window.ALL_POSTS.map(function(p){var pr=map[uidOf(p)];if(!pr)return p;var n=patchPost(p,pr);if(n!==p)changed=true;return n;});
+        if(changed)window.ALL_POSTS=next;
+      }
+    }catch(_e){}
+    CACHE_KEYS.forEach(function(k){
+      try{
+        var v=json(k,null),shape='array',arr=v;
+        if(v&&Array.isArray(v.posts)){arr=v.posts;shape='posts';}
+        else if(v&&Array.isArray(v.data)){arr=v.data;shape='data';}
+        if(!Array.isArray(arr))return;
+        var changed=false,next=arr.map(function(p){var pr=map[uidOf(p)];if(!pr)return p;var n=patchPost(p,pr);if(n!==p)changed=true;return n;});
+        if(!changed)return;
+        if(shape==='posts'){v.posts=next;write(k,v);}else if(shape==='data'){v.data=next;write(k,v);}else write(k,next);
+      }catch(_e){}
+    });
+  }
+  function scheduleCacheRepair(map){
+    clearTimeout(cacheRepairTimer);
+    cacheRepairTimer=setTimeout(function(){
+      var run=function(){repairCachesNow(map);};
+      try{if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:1800});else setTimeout(run,0);}catch(_e){setTimeout(run,0);}
+    },900);
   }
   function initials(v){v=nameOf(v)||clean(v)||'H';return (v.charAt(0)||'H').toUpperCase();}
   function esc(v){return clean(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function badgeHtml(v){try{return typeof window.badgeMarkHtml==='function'?window.badgeMarkHtml(v):'';}catch(_e){return '';}}
+  function sameImage(img,url){
+    if(!img||!url)return false;
+    var a=clean(img.getAttribute('src')||img.src),b=clean(url);
+    if(a===b)return true;
+    try{return new URL(a,location.href).href===new URL(b,location.href).href;}catch(_e){return false;}
+  }
   function paintCard(card,p,profile){
-    if(!card||!profile)return;var top=card.querySelector('.miniTop'),box=top&&top.querySelector('.avatar'),title=top&&top.querySelector('.creator b');if(!top)return;
-    card.dataset.happyadOwnerUid=profile.id||uidOf(p)||'';
-    if(box){var av=publicAvatar(profile.avatar);if(av){box.innerHTML='<img src="'+esc(av)+'" alt="">';var img=box.querySelector('img');if(img)img.onerror=function(){try{this.remove();box.textContent=initials(profile.name);box.dataset.avatarFailed='1';}catch(_e){}setTimeout(function(){hydrate(true);},400);};}else if(!box.querySelector('img'))box.textContent=initials(profile.name);}
-    if(title&&profile.name){title.innerHTML=esc(profile.name)+badgeHtml(profile.badge);}
+    if(!card||!profile)return;
+    var top=card.querySelector('.miniTop'),box=top&&top.querySelector('.avatar'),title=top&&top.querySelector('.creator b');if(!top)return;
+    var uid=profile.id||uidOf(p)||'';
+    if(uid&&card.dataset.happyadOwnerUid!==uid)card.dataset.happyadOwnerUid=uid;
+    if(box){
+      var av=publicAvatar(profile.avatar),img=box.querySelector('img');
+      if(av&&!sameImage(img,av)){
+        var next=document.createElement('img');next.alt='';next.src=av;
+        next.onerror=function(){
+          try{if(next.parentNode===box){next.remove();box.textContent=initials(profile.name);box.dataset.avatarFailed='1';}}catch(_e){}
+          if(!card.__happyadAvatarRetryV763){card.__happyadAvatarRetryV763=1;setTimeout(function(){hydrate(false,[card]);},1200);}
+        };
+        box.replaceChildren(next);delete box.dataset.avatarFailed;
+      }else if(!av&&!img){var ini=initials(profile.name);if(box.textContent!==ini)box.textContent=ini;}
+    }
+    if(title&&profile.name){var desired=esc(profile.name)+badgeHtml(profile.badge);if(title.innerHTML!==desired)title.innerHTML=desired;}
   }
-  function paintAll(map){
-    try{document.querySelectorAll('.miniCard[data-post-id]').forEach(function(card){var p=postById(card.dataset.postId),uid=uidOf(p)||clean(card.dataset.happyadOwnerUid),pr=map[uid]||localIdentity(uid);if(pr)paintCard(card,p||{},pr);});}catch(_e){}
+  function cardsFromNode(node){
+    var out=[];if(!node||node.nodeType!==1)return out;
+    if(node.matches&&node.matches('.miniCard[data-post-id]'))out.push(node);
+    if(node.querySelectorAll)node.querySelectorAll('.miniCard[data-post-id]').forEach(function(c){out.push(c);});
+    return out;
   }
-  function collectProfilesFromPosts(){var rows=[];allPosts().forEach(function(p){var uid=uidOf(p);if(!uid)return;rows.push(Object.assign({},p,{id:uid,user_id:uid}));});return rows;}
-  function idsNeeding(map){var ids={};allPosts().forEach(function(p){var uid=uidOf(p);if(!uid)return;var pr=map[uid]||localIdentity(uid);if(!pr||!publicAvatar(pr.avatar)||!nameOf(pr)||/^(utilisateur happyad|happyad)$/i.test(nameOf(pr)))ids[uid]=1;});return Object.keys(ids).slice(0,120);}
+  function paintCards(cards,map){
+    try{
+      var idx=postIndex();
+      (cards||[]).forEach(function(card){var p=postById(card.dataset.postId,idx),uid=uidOf(p)||clean(card.dataset.happyadOwnerUid),pr=map[uid]||localIdentity(uid);if(pr)paintCard(card,p||{},pr);});
+    }catch(_e){}
+  }
+  function allLoadedCards(){try{return Array.prototype.slice.call(document.querySelectorAll('#list .miniCard[data-post-id],.hScroller .miniCard[data-post-id]'));}catch(_e){return [];}}
+  function collectProfilesFromPosts(){var rows=[];allPosts().forEach(function(p){var uid=uidOf(p);if(uid)rows.push(Object.assign({},p,{id:uid,user_id:uid}));});return rows;}
+  function idsNeeding(map){
+    var ids={};
+    allPosts().forEach(function(p){var uid=uidOf(p);if(!uid)return;var pr=map[uid]||localIdentity(uid);if(!pr||!publicAvatar(pr.avatar)||!nameOf(pr)||/^(utilisateur happyad|happyad)$/i.test(nameOf(pr)))ids[uid]=1;});
+    return Object.keys(ids).slice(0,120);
+  }
   async function fetchProfiles(ids){
     var c=client();if(!c||!c.from||!ids.length)return [];
     var rows=[];
-    for(var i=0;i<ids.length;i+=40){var part=ids.slice(i,i+40);try{var r=await c.from('profiles').select('*').in('id',part);if(r&&!r.error&&Array.isArray(r.data))rows=rows.concat(r.data);}catch(_e){}
+    for(var i=0;i<ids.length;i+=40){
+      var part=ids.slice(i,i+40);
+      try{var r=await c.from('profiles').select('*').in('id',part);if(r&&!r.error&&Array.isArray(r.data))rows=rows.concat(r.data);}catch(_e){}
       var missing=part.filter(function(id){return !rows.some(function(x){return clean(x&&x.id)===id||clean(x&&x.user_id)===id;});});
       if(missing.length){try{var r2=await c.from('profiles').select('*').in('user_id',missing);if(r2&&!r2.error&&Array.isArray(r2.data))rows=rows.concat(r2.data);}catch(_e2){}}
     }
     return rows;
   }
-  async function hydrate(force){
-    if(busy){pending=true;return;}var now=Date.now();if(!force&&now-lastFetch<1400){paintAll(authorMap());return;}busy=true;lastFetch=now;
+  async function hydrate(force,cards){
+    if(busy){pending=true;return;}
+    var now=Date.now();
+    if(!force&&now-lastFetch<3200){paintCards(cards&&cards.length?cards:allLoadedCards(),authorMap());return;}
+    busy=true;lastFetch=now;
     try{
-      var localRows=collectProfilesFromPosts();var me=json(USER_KEY,{});if(uidOf(me)||clean(me.id))localRows.push(me);var map=remember(localRows);
+      var localRows=collectProfilesFromPosts(),me=json(USER_KEY,{});if(uidOf(me)||clean(me.id))localRows.push(me);
+      var localResult=remember(localRows),map=localResult.map;
       Object.keys(map).forEach(function(id){map[id]=better(localIdentity(id),map[id]);});
-      repairCaches(map);paintAll(map);
-      var ids=idsNeeding(map),remote=await fetchProfiles(ids);if(remote.length){map=remember(remote);Object.keys(map).forEach(function(id){map[id]=better(localIdentity(id),map[id]);});repairCaches(map);paintAll(map);}
-    }catch(e){try{console.warn('HAPPYAD V742 card author hydrate',e);}catch(_e){}}finally{busy=false;if(pending){pending=false;setTimeout(function(){hydrate(true);},80);}}
+      paintCards(cards&&cards.length?cards:allLoadedCards(),map);
+      if(localResult.changed)scheduleCacheRepair(map);
+      var ids=idsNeeding(map),remote=await fetchProfiles(ids);
+      if(remote.length){
+        var remoteResult=remember(remote);map=remoteResult.map;
+        Object.keys(map).forEach(function(id){map[id]=better(localIdentity(id),map[id]);});
+        paintCards(allLoadedCards(),map);
+        if(remoteResult.changed)scheduleCacheRepair(map);
+      }
+    }catch(e){try{console.warn('HAPPYAD V763 card author hydrate',e);}catch(_e){}}
+    finally{busy=false;if(pending){pending=false;setTimeout(function(){hydrate(false);},360);}}
   }
+
   var oldOwner=window.postOwnerData;
   if(typeof oldOwner==='function'&&!oldOwner.__v742){window.postOwnerData=function(p){var base={};try{base=oldOwner.apply(this,arguments)||{};}catch(_e){}var uid=uidOf(p)||clean(base.id||base.user_id),pr=uid?localIdentity(uid):null;return pr?better(base,pr):base;};window.postOwnerData.__v742=true;}
   var oldMap=window.mapHappyPost;
@@ -103,10 +219,29 @@
   var oldSlim=window.happyadSlimHomePostV407;
   if(typeof oldSlim==='function'&&!oldSlim.__v742){window.happyadSlimHomePostV407=function(p){var q=oldSlim.apply(this,arguments);var uid=uidOf(p)||uidOf(q);if(uid){q.creatorId=uid;q.creator_id=uid;q.user_id=uid;}var pr=uid?localIdentity(uid):null;return pr?patchPost(q,pr):q;};window.happyadSlimHomePostV407.__v742=true;}
   var oldCard=window.createCard;
-  if(typeof oldCard==='function'&&!oldCard.__v742){window.createCard=function(p){var uid=uidOf(p),pr=uid?localIdentity(uid):null;if(pr)p=patchPost(p,pr);var card=oldCard.call(this,p);setTimeout(function(){paintCard(card,p,pr||localIdentity(uid));hydrate(false);},0);return card;};window.createCard.__v742=true;}
-  function boot(){hydrate(true);setTimeout(function(){hydrate(true);},700);setTimeout(function(){hydrate(true);},2600);try{observer=new MutationObserver(function(ms){var hit=ms.some(function(m){return Array.prototype.some.call(m.addedNodes||[],function(n){return n&&n.nodeType===1&&(n.matches&&n.matches('.miniCard')||n.querySelector&&n.querySelector('.miniCard'));});});if(hit)setTimeout(function(){hydrate(false);},20);});observer.observe(document.documentElement,{subtree:true,childList:true});}catch(_e){}}
-  window.HappyadCardAuthorAvatarV742={version:VERSION,hydrate:hydrate};
+  if(typeof oldCard==='function'&&!oldCard.__v742){window.createCard=function(p){var uid=uidOf(p),pr=uid?localIdentity(uid):null;if(pr)p=patchPost(p,pr);var card=oldCard.call(this,p);Promise.resolve().then(function(){paintCard(card,p,pr||localIdentity(uid));});return card;};window.createCard.__v742=true;}
+
+  function bindObserver(){
+    try{
+      var root=document.getElementById('list')||document.body;if(!root||observer)return;
+      observer=new MutationObserver(function(ms){
+        var cards=[];ms.forEach(function(m){Array.prototype.forEach.call(m.addedNodes||[],function(n){cards=cards.concat(cardsFromNode(n));});});
+        if(!cards.length)return;
+        paintCards(cards,authorMap());
+        clearTimeout(observerTimer);observerTimer=setTimeout(function(){hydrate(false,cards);},420);
+      });
+      observer.observe(root,{subtree:true,childList:true});
+    }catch(_e){}
+  }
+  function boot(){
+    bindObserver();
+    setTimeout(function(){hydrate(true);},160);
+    setTimeout(function(){hydrate(false);},2200);
+  }
+  window.HappyadCardAuthorAvatarV742={version:VERSION,hydrate:hydrate,paint:function(){paintCards(allLoadedCards(),authorMap());}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){setTimeout(function(){hydrate(true);},20);});
-  window.addEventListener('focus',function(){hydrate(false);});window.addEventListener('online',function(){hydrate(true);});window.addEventListener('pageshow',function(){hydrate(false);});
+  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){paintCards(allLoadedCards(),authorMap());setTimeout(function(){hydrate(false);},320);});
+  window.addEventListener('focus',function(){hydrate(false);});
+  window.addEventListener('online',function(){hydrate(true);});
+  window.addEventListener('pageshow',function(e){if(e&&e.persisted)hydrate(false);});
 })();

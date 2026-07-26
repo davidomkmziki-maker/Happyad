@@ -15,7 +15,7 @@
     'HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_PROFILE_POSTS_CACHE_V1',
     'HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_STORIES_CACHE_V1'
   ];
-  var busy=false,lastRun=0,channel=null;
+  var busy=false,lastRun=0,channel=null,lastPersistSig='';
 
   /* V758 — l'avatar du compte connecté ne doit jamais être injecté dans un
      Profil visiteur. La récupération V743 reste active dans le parent et dans
@@ -153,17 +153,33 @@
     try{if(Array.isArray(window.ALL_POSTS))window.ALL_POSTS=window.ALL_POSTS.map(patch);}catch(_e){}
     CACHE_KEYS.forEach(function(k){try{var raw=read(k,null),shape='array',arr=raw;if(raw&&Array.isArray(raw.posts)){arr=raw.posts;shape='posts';}else if(raw&&Array.isArray(raw.data)){arr=raw.data;shape='data';}if(!Array.isArray(arr))return;var changed=false,next=arr.map(function(p){var n=patch(p);if(n!==p)changed=true;return n;});if(!changed)return;if(shape==='posts'){raw.posts=next;write(k,raw);}else if(shape==='data'){raw.data=next;write(k,raw);}else write(k,next);}catch(_e){}});
   }
+  function cachedAvatar(uid){
+    return normalize(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:'+uid)||rawAvatar(read(STABLE_PREFIX+uid,{}))||rawAvatar(read(USER_KEY,{}))||localStorage.getItem(AVATAR_KEY));
+  }
   function persist(uid,url,source){
     if(visitorSurfaceV758())return;
-    USER_KEYS.forEach(function(k){var x=read(k,{});var id=uidOf(x);if(id&&id!==uid)return;x=Object.assign({},x,{id:uid,user_id:uid,avatar:url,avatar_url:url});write(k,x);});
-    var stable=read(STABLE_PREFIX+uid,{});write(STABLE_PREFIX+uid,Object.assign({},stable,{id:uid,user_id:uid,avatar:url,avatar_url:url,avatar_recovered_source_v743:source,avatar_recovered_at_v743:new Date().toISOString()}));
-    try{localStorage.setItem(AVATAR_KEY,url);localStorage.setItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:'+uid,url);localStorage.setItem('HAPPYAD_AUTH_UID',uid);localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');}catch(_e){}
-    var authors=read(AUTHOR_KEY,{});authors[uid]=Object.assign({},authors[uid]||{},{id:uid,user_id:uid,avatar:url,avatar_url:url});write(AUTHOR_KEY,authors);
-    try{if(window.UserStore){window.UserStore.data=Object.assign({},window.UserStore.data||{},{id:uid,user_id:uid,avatar:url,avatar_url:url});if(window.UserStore.save)window.UserStore.save();}}catch(_e){}
-    patchCaches(uid,url);
+    url=normalize(url);if(!uid||!url)return;
+    var before=cachedAvatar(uid),changed=before!==url,sig=uid+'|'+url;
+    if(changed||lastPersistSig!==sig){
+      USER_KEYS.forEach(function(k){
+        var x=read(k,{}),id=uidOf(x);if(id&&id!==uid)return;
+        if(normalize(rawAvatar(x))===url&&uidOf(x)===uid)return;
+        x=Object.assign({},x,{id:uid,user_id:uid,avatar:url,avatar_url:url});write(k,x);
+      });
+      var stable=read(STABLE_PREFIX+uid,{});
+      if(normalize(rawAvatar(stable))!==url)write(STABLE_PREFIX+uid,Object.assign({},stable,{id:uid,user_id:uid,avatar:url,avatar_url:url,avatar_recovered_source_v743:source,avatar_recovered_at_v743:new Date().toISOString()}));
+      try{localStorage.setItem(AVATAR_KEY,url);localStorage.setItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:'+uid,url);localStorage.setItem('HAPPYAD_AUTH_UID',uid);localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');}catch(_e){}
+      var authors=read(AUTHOR_KEY,{}),old=authors&&authors[uid]||{};
+      if(normalize(rawAvatar(old))!==url){authors[uid]=Object.assign({},old,{id:uid,user_id:uid,avatar:url,avatar_url:url});write(AUTHOR_KEY,authors);}
+      try{if(window.UserStore&&normalize(rawAvatar(window.UserStore.data||{}))!==url){window.UserStore.data=Object.assign({},window.UserStore.data||{},{id:uid,user_id:uid,avatar:url,avatar_url:url});if(window.UserStore.save)window.UserStore.save();}}catch(_e){}
+      if(changed){
+        patchCaches(uid,url);
+        try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_AVATAR_RECOVERED_V743',{detail:{uid:uid,avatar:url,source:source}}));}catch(_e){}
+        try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_IDENTITY_V741',{detail:{profile:{id:uid,user_id:uid,avatar:url,avatar_url:url}}}));}catch(_e){}
+      }
+      lastPersistSig=sig;
+    }
     paint(uid,url);
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_AVATAR_RECOVERED_V743',{detail:{uid:uid,avatar:url,source:source}}));}catch(_e){}
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_IDENTITY_V741',{detail:{profile:{id:uid,user_id:uid,avatar:url,avatar_url:url}}}));}catch(_e){}
   }
   function paint(uid,url){
     if(visitorSurfaceV758())return;
@@ -177,7 +193,7 @@
   }
   async function repair(force){
     if(visitorSurfaceV758())return;
-    var now=Date.now();if(busy||(!force&&now-lastRun<2500))return;busy=true;lastRun=now;
+    var now=Date.now();if(busy||(!force&&now-lastRun<6000))return;busy=true;lastRun=now;
     try{
       var uid=currentUid();if(!uid)return;
       var list=collectLocal(uid),remote=await collectRemote(uid,list),picked=await choose(list);
@@ -193,19 +209,34 @@
     if(visitorSurfaceV758())return;
     try{var uid=currentUid(),c=client();if(!uid||!c||!c.channel||channel)return;channel=c.channel('happyad_profile_avatar_v743_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'id=eq.'+uid},function(){setTimeout(function(){repair(true);},80);}).subscribe();}catch(_e){}
   }
-  window.HappyadProfileAvatarRecoveryV743=Object.freeze({build:BUILD+'+V758_VISITOR_ISOLATION',repair:repair,current:function(){var uid=currentUid();return uid?normalize(rawAvatar(read(USER_KEY,{}))):'';},isVisitorSurface:visitorSurfaceV758});
-  function boot(){setTimeout(function(){repair(true);subscribe();},80);setTimeout(function(){repair(true);},1200);setTimeout(function(){repair(false);},4200);}
+  function previewNeedsRepair(){
+    if(visitorSurfaceV758())return false;
+    try{
+      var av=document.getElementById('avatarPreview');
+      if(!av)return false;
+      var uid=currentUid(),cached=uid?cachedAvatar(uid):'';
+      var shown=normalize((av.dataset&&av.dataset.stableAvatar)||(av.style&&av.style.backgroundImage)||'');
+      return !cached||!shown||shown!==cached;
+    }catch(_e){return false;}
+  }
+  function paintCached(){var uid=currentUid(),url=uid?cachedAvatar(uid):'';if(uid&&url)paint(uid,url);return !!url;}
+  window.HappyadProfileAvatarRecoveryV743=Object.freeze({build:BUILD+'+V758_VISITOR_ISOLATION+V763_HOME_STABLE',repair:repair,current:function(){var uid=currentUid();return uid?cachedAvatar(uid):'';},isVisitorSurface:visitorSurfaceV758});
+  function boot(){
+    paintCached();
+    setTimeout(function(){repair(true);subscribe();},520);
+    setTimeout(function(){if(!paintCached())repair(true);},4600);
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('online',function(){repair(true);});
-  window.addEventListener('focus',function(){repair(false);});
-  window.addEventListener('pageshow',function(){repair(false);});
-  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){repair(false);});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)repair(false);});
+  window.addEventListener('focus',function(){if(previewNeedsRepair())repair(false);});
+  window.addEventListener('pageshow',function(e){paintCached();if(e&&e.persisted&&previewNeedsRepair())repair(false);});
+  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){paintCached();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){paintCached();if(previewNeedsRepair())repair(false);}});
   try{
     var mutationTimer=0;
     new MutationObserver(function(records){
-      var relevant=records.some(function(record){return Array.prototype.some.call(record.addedNodes||[],function(node){return node&&node.nodeType===1&&(node.matches&&node.matches('.miniCard,.avatar,img,#avatarPreview')||node.querySelector&&node.querySelector('.miniCard .avatar img,#avatarPreview'));});});
-      if(relevant){clearTimeout(mutationTimer);mutationTimer=setTimeout(function(){repair(false);},180);}
+      var relevant=records.some(function(record){return Array.prototype.some.call(record.addedNodes||[],function(node){return node&&node.nodeType===1&&(node.id==='avatarPreview'||node.querySelector&&node.querySelector('#avatarPreview'));});});
+      if(relevant){clearTimeout(mutationTimer);mutationTimer=setTimeout(function(){if(!paintCached()||previewNeedsRepair())repair(false);},220);}
     }).observe(document.documentElement,{childList:true,subtree:true});
   }catch(_e){}
 })();

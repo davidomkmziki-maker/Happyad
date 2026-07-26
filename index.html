@@ -458,7 +458,7 @@ html.happyadRadarBootUserV599 #happyadGuestRadarStableV599{display:none!importan
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
-<script id="happyad-auth-storage-quota-master-v752" src="core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
+<script id="happyad-auth-storage-quota-master-v752" src="core/auth-storage-quota-master-v752.js?v=763-home-cache-safe"></script>
 <script src="core/post-options-master-v693.js?v=693-global-poster-immediate"></script>
 <style id="happyad-v107-hide-home-count">#postCount{display:none!important}
 /* V114 — Home officiel: rectangle dynamique, Radar Pour Toi, lives, recherche simple */
@@ -1570,7 +1570,7 @@ function happyadReadHomeBootCachesV407(){
 }
 function happyadWriteHomeBootSnapshotV407(arr){try{arr=happyadSanitizeHomeCacheV643(arr).slice(0,HAPPYAD_HOME_MAX_POSTS).map(happyadSlimHomePostV407);if(arr.length)localStorage.setItem(HAPPYAD_HOME_BOOT_CACHE,JSON.stringify(arr));}catch(e){}return arr;}
 function happyadRenderHomeSkeletonV407(){try{var list=document.getElementById('list');if(!list)return;if(list.querySelector('.miniCard:not(.happyadSkeletonCard)'))return;if(list.querySelector('.happyadSkeletonCard')){list.className='homeTimeline happyadHomeBootSkeleton';return;}list.className='homeTimeline happyadHomeBootSkeleton';var one='<div class="miniCard happyadSkeletonCard" aria-hidden="true"><div class="happyadSkeletonTop"><div class="happyadSkeletonAvatar"></div><div class="happyadSkeletonLines"><div class="happyadSkeletonLine long"></div><div class="happyadSkeletonLine short"></div></div></div><div class="happyadSkeletonMedia"></div><div class="happyadSkeletonBody"><div class="happyadSkeletonLine long"></div><div class="happyadSkeletonLine short"></div></div><div class="happyadSkeletonActions"></div></div>';list.innerHTML=one+one;try{renderSponsor()}catch(_s){}try{renderRadarHome()}catch(_r){}try{bindHomeSearchAndQuickPost()}catch(_b){}}catch(e){}}
-function happyadPreloadFirstHomeMediaV407(items){try{var done={};(items||[]).slice(0,3).forEach(function(p){var url=(p&&((String(p.kind||p.mediaType||'').toLowerCase().indexOf('video')>=0)?(p.posterUrl||p.poster_url||p.thumbnailUrl||p.thumbnail_url||p.coverUrl||p.cover_url):(p.thumbnailUrl||p.thumbnail_url||p.mediaUrl||p.media_url)))||'';if(!url||done[url])return;done[url]=1;var img=new Image();try{img.decoding='async';img.loading='eager';img.fetchPriority='high';}catch(_e){}img.src=url;});}catch(e){}}
+function happyadPreloadFirstHomeMediaV407(items){try{var done={};(items||[]).slice(0,6).forEach(function(p){var url=(p&&((String(p.kind||p.mediaType||'').toLowerCase().indexOf('video')>=0)?(p.posterUrl||p.poster_url||p.thumbnailUrl||p.thumbnail_url||p.coverUrl||p.cover_url):(p.thumbnailUrl||p.thumbnail_url||p.mediaUrl||p.media_url)))||'';if(!url||done[url])return;done[url]=1;var img=new Image();try{img.decoding='async';img.loading='eager';img.fetchPriority='high';}catch(_e){}img.src=url;});}catch(e){}}
 
 function happyadSb(){if(window.happyadSupabase)return window.happyadSupabase;if(window.supabase&&window.supabase.createClient){window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});return window.happyadSupabase;}return null}
 
@@ -2718,7 +2718,8 @@ function happyadVideoPosterUrl(p,url){
 function happyadHomeMediaAttrsV616(card){
   try{
     var idx=Number(card&&card.dataset&&card.dataset.virtualIndex);
-    var priority=Number.isFinite(idx)&&idx>=0&&idx<3&&Number(window.__happyadHomeWindowStartV616||0)===0;
+    var near=!!(card&&card.dataset&&card.dataset.happyadNearViewportV763==='1');
+    var priority=near||(Number.isFinite(idx)&&idx>=0&&idx<6&&Number(window.__happyadHomeWindowStartV616||0)===0);
     return priority?' loading="eager" fetchpriority="high" decoding="async"':' loading="lazy" fetchpriority="auto" decoding="async"';
   }catch(_e){return ' loading="lazy" fetchpriority="auto" decoding="async"';}
 }
@@ -3078,12 +3079,15 @@ function observeHomeCard(card,p,video){
     HAPPYAD_HOME_CARD_IO=new IntersectionObserver(function(entries){
       entries.forEach(function(en){
         const c=en.target;const pp=c.__happyadPost;const vv=!!c.__happyadVideo;
-        if(en.isIntersecting&&en.intersectionRatio>0.05){
+        if(en.isIntersecting){
+          /* V763 : préparer le média environ deux écrans avant son arrivée. Le
+             navigateur ne garde plus loading=lazy sur une carte déjà proche. */
+          c.dataset.happyadNearViewportV763='1';
           hydrateMedia(c,pp,vv);
           if(!c.dataset.actionsReady){c.dataset.actionsReady='1';refreshContentLikeFromSupabase(c,pp);}
         }else if(vv){stopHomeCardVideo(c);/* ne pas vider mediaReady: la carte reste hydratée et stable */}
       });
-    },{root:null,rootMargin:'480px 0px',threshold:[0,0.05,0.18,0.65]});
+    },{root:null,rootMargin:'1800px 0px 1400px 0px',threshold:0});
   }
   card.__happyadPost=p;card.__happyadVideo=video;HAPPYAD_HOME_CARD_IO.observe(card);
 }
@@ -7360,7 +7364,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=762-public-profile-posts-uid',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=763-home-feed-stable',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9468,12 +9472,12 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
-<script src="core/navigation-master-v668.js?v=762-public-profile-posts-uid"></script>
+<script src="core/navigation-master-v668.js?v=763-home-feed-stable"></script>
 <script src="core/auth-session-master-v598.js?v=752-auth-storage-quota-retry"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=758-visitor-isolation"></script>
-<script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=758-visitor-isolation"></script>
-<script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=743-card-avatar-safe"></script>
-<script src="core/main-tabs-master-v615.js?v=762-public-profile-posts-uid"></script>
+<script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=763-home-stable"></script>
+<script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=763-home-stable"></script>
+<script src="core/main-tabs-master-v615.js?v=763-home-feed-stable"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -9986,7 +9990,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 </script>
 
-<script>window.HAPPYAD_PUBLIC_VERSION="V727_OUVERTURE_UNIQUE_CHARGEMENT_STABLE";</script>
+<script>window.HAPPYAD_PUBLIC_VERSION="V763_ACCUEIL_SCROLL_MEDIAS_STABLES";</script>
 <style id="happyad-v595-action-counters-stable">
 #list.homeTimeline .miniActions,.feedGrid .miniActions,.hScroller .miniActions{
   display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;

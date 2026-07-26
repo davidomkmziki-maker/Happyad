@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_AUTH_STORAGE_QUOTA_MASTER_V752__)return;
   window.__HAPPYAD_AUTH_STORAGE_QUOTA_MASTER_V752__=true;
 
-  var VERSION='HAPPYAD_AUTH_STORAGE_QUOTA_V752_IDB_FALLBACK';
+  var VERSION='HAPPYAD_AUTH_STORAGE_QUOTA_V752_IDB_FALLBACK_V763_HOME_SAFE';
   var DB_NAME='HAPPYAD_AUTH_STORAGE_V752';
   var STORE_NAME='auth';
   var memory={};
@@ -21,6 +21,23 @@
     'HAPPYAD_FAST_OPEN_PHOTO_V1','HAPPYAD_FAST_OPEN_VIDEO_V1','HAPPYAD_FIXED_RADAR_PUBLIC_CONFIG_V1',
     'HAPPYAD_MSG_CONNECTED_PROFILE_V1:','HAPPYAD_VIDEO_THUMB_V1_','HAPPYAD_SPONSOR_STATE_V1',
     'HAPPYAD_SPONSOR_MEDIA_CACHE_V1','HAPPYAD_PHOTO_FAST_CACHE','HAPPYAD_VIDEO_FAST_CACHE'
+  ];
+
+
+  /* V763 — Les listes structurelles de l'Accueil ne sont plus supprimées au
+     premier dépassement de quota. Les miniatures et caches médias lourds sont
+     évacués d'abord; les snapshots de publications sont compactés en dernier. */
+  var HOME_STRUCTURAL_KEYS=[
+    'HAPPYAD_HOME_BOOT_SNAPSHOT_V1','HAPPYAD_HOME_CONFIRMED_ORDER_V643','HAPPYAD_GLOBAL_POSTS_CACHE_V1',
+    'HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_ALL_POSTS_V1','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1',
+    'HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_PUBLIC_PROFILE_POSTS_CACHE_V1','HAPPYAD_PROFILE_POSTS_CACHE_V1',
+    'HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1'
+  ];
+  var HOME_PRESERVE_KEYS=['HAPPYAD_HOME_CONFIRMED_ORDER_V643','HAPPYAD_GLOBAL_POSTS_CACHE_V1'];
+  var MEDIA_FIRST_PREFIXES=[
+    'HAPPYAD_VIDEO_THUMB_V1_','HAPPYAD_SPONSOR_MEDIA_CACHE_V1','HAPPYAD_PHOTO_FAST_CACHE','HAPPYAD_VIDEO_FAST_CACHE',
+    'HAPPYAD_FAST_OPEN_PHOTO_V1','HAPPYAD_FAST_OPEN_VIDEO_V1','HAPPYAD_VIDEO_CACHE_STABLE_V1','HAPPYAD_PHOTO_STABLE_CACHE_V1',
+    'HAPPYAD_STORIES_CACHE_V1','HAPPYAD_FIXED_RADAR_PUBLIC_CONFIG_V1','HAPPYAD_PROFILE_HOME_PHOTO_BRIDGE_V482'
   ];
 
   var PROTECTED_PARTS=[
@@ -65,29 +82,76 @@
     var key='__HAPPYAD_AUTH_HEADROOM_V752__',value='x'.repeat(Math.max(1024,Number(size||65536)));
     try{localStorage.setItem(key,value);localStorage.removeItem(key);return true;}catch(err){try{localStorage.removeItem(key);}catch(_e){}return false;}
   }
+  function startsWithAny(key,list){for(var i=0;i<list.length;i++)if(key===list[i]||key.indexOf(list[i])===0)return true;return false;}
+  function isStructuralKey(key){return startsWithAny(clean(key),HOME_STRUCTURAL_KEYS);}
+  function cacheShape(raw){
+    try{
+      var value=JSON.parse(raw||'null'),shape='array',arr=value;
+      if(value&&Array.isArray(value.posts)){arr=value.posts;shape='posts';}
+      else if(value&&Array.isArray(value.data)){arr=value.data;shape='data';}
+      if(!Array.isArray(arr))return null;
+      return {value:value,shape:shape,arr:arr};
+    }catch(_e){return null;}
+  }
+  function compactStructuralKey(key,limit){
+    var raw='';try{raw=localStorage.getItem(key)||'';}catch(_e){return 0;}
+    var parsed=cacheShape(raw);if(!parsed||parsed.arr.length<=limit)return 0;
+    var before=bytes(raw),next=parsed.arr.slice(0,limit);
+    try{
+      if(parsed.shape==='posts')parsed.value.posts=next;
+      else if(parsed.shape==='data')parsed.value.data=next;
+      else parsed.value=next;
+      var out=JSON.stringify(parsed.value);localStorage.setItem(key,out);return Math.max(0,before-bytes(out));
+    }catch(_e){return 0;}
+  }
   function cleanupTemporary(reason){
     var now=Date.now();
-    if(now-cleanedAt<500&&canWriteProbe(32768))return {removed:0,bytes:0,reason:reason||''};
+    if(now-cleanedAt<500&&canWriteProbe(32768))return {removed:0,bytes:0,compacted:0,reason:reason||''};
     cleanedAt=now;
     var candidates=[];
     try{
       for(var i=0;i<localStorage.length;i++){
         var key=localStorage.key(i);if(!key)continue;
         var value='';try{value=localStorage.getItem(key)||'';}catch(_e){}
-        if(isTemporary(key,value))candidates.push({key:key,size:bytes(key)+bytes(value)});
+        if(!isTemporary(key,value))continue;
+        var structural=isStructuralKey(key);
+        var media=startsWithAny(key,MEDIA_FIRST_PREFIXES)||value.indexOf('data:image/')===0||value.indexOf('data:video/')===0||value.indexOf('data:audio/')===0;
+        candidates.push({key:key,size:bytes(key)+bytes(value),tier:structural?2:(media?0:1)});
       }
     }catch(_e){}
-    candidates.sort(function(a,b){return b.size-a.size||a.key.localeCompare(b.key);});
-    var removed=0,freed=0;
+    candidates.sort(function(a,b){return a.tier-b.tier||b.size-a.size||a.key.localeCompare(b.key);});
+    var removed=0,freed=0,compacted=0;
+
+    /* Phase 1 : médias, miniatures et caches non structurels uniquement. */
     for(var j=0;j<candidates.length;j++){
+      if(candidates[j].tier>=2)continue;
       try{localStorage.removeItem(candidates[j].key);removed++;freed+=candidates[j].size;}catch(_e){}
       if(freed>=262144&&canWriteProbe(65536))break;
     }
+
+    /* Phase 2 : réduire les doublons de listes sans faire disparaître le fil. */
+    if(!canWriteProbe(65536)){
+      HOME_STRUCTURAL_KEYS.forEach(function(k){compacted+=compactStructuralKey(k,36);});
+    }
+
+    /* Phase 3 : supprimer seulement les caches structurels secondaires. Les deux
+       snapshots maîtres restent présents pour l'ouverture immédiate de l'Accueil. */
+    if(!canWriteProbe(65536)){
+      for(var k=0;k<candidates.length;k++){
+        var item=candidates[k];if(item.tier!==2||HOME_PRESERVE_KEYS.indexOf(item.key)>=0)continue;
+        try{localStorage.removeItem(item.key);removed++;freed+=item.size;}catch(_e){}
+        if(canWriteProbe(65536))break;
+      }
+    }
+
+    /* Dernier secours : compacter encore les deux maîtres, jamais les effacer. */
+    if(!canWriteProbe(65536))HOME_PRESERVE_KEYS.forEach(function(k){compacted+=compactStructuralKey(k,18);});
+
     try{
-      ['HAPPYAD_FAST_OPEN_PHOTO_V1','HAPPYAD_FAST_OPEN_VIDEO_V1','HAPPYAD_SESSION_PROFILE_POSTS_V104','HAPPYAD_SESSION_ALL_POSTS_V104'].forEach(function(k){sessionStorage.removeItem(k);});
+      ['HAPPYAD_FAST_OPEN_PHOTO_V1','HAPPYAD_FAST_OPEN_VIDEO_V1'].forEach(function(k){sessionStorage.removeItem(k);});
     }catch(_e){}
-    try{localStorage.setItem('HAPPYAD_AUTH_STORAGE_RECOVERED_V752',JSON.stringify({at:Date.now(),removed:removed,bytes:freed,reason:clean(reason)}));}catch(_e){}
-    return {removed:removed,bytes:freed,reason:reason||''};
+    try{localStorage.setItem('HAPPYAD_AUTH_STORAGE_RECOVERED_V752',JSON.stringify({at:Date.now(),removed:removed,bytes:freed,compacted:compacted,reason:clean(reason),homeSafeV763:true}));}catch(_e){}
+    return {removed:removed,bytes:freed,compacted:compacted,reason:reason||''};
   }
   function openDb(){
     if(dbPromise)return dbPromise;
