@@ -1,7 +1,7 @@
-/* HAPPYAD V777 — Push : avatar exact, badge HAPPYAD et réception hors application */
+/* HAPPYAD V778 — Push : avatar résolu, badge HAPPYAD et réveil hors application renforcé */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V777-push-avatar-badge-background-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V778-push-avatar-resolved-background-focus-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=777-push-avatar-badge-background-shell',
+  './index.html?v=778-push-avatar-resolved-background-focus-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -27,7 +27,7 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=775-message-composer-bottom-stable',
-  './core/push-master.js?v=push-v41-avatar-badge-background',
+  './core/push-master.js?v=push-v42-avatar-resolved-background-focus',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',
@@ -181,6 +181,7 @@ function happyadPushData(data){
     sender_id:String(data.sender_id||''),
     sender_name:String(data.sender_name||''),
     sender_avatar:String(data.sender_avatar||''),
+    sender_avatar_source:String(data.sender_avatar_source||''),
     sender_badge:String(data.sender_badge||''),
     sender_handle:String(data.sender_handle||''),
     message_kind:String(data.message_kind||''),
@@ -204,8 +205,13 @@ function happyadParseTime(value){
 function happyadVisibleClients(){
   return self.clients.matchAll({type:'window',includeUncontrolled:true}).then(function(list){
     return (list||[]).filter(function(client){
-      try{return new URL(client.url).origin===self.location.origin && client.visibilityState==='visible';}
-      catch(_e){return false;}
+      try{
+        /* V778 : une page simplement conservée par Chrome ou dans les récents
+           ne doit pas supprimer le popup système. Seule une fenêtre HAPPYAD
+           réellement visible ET focalisée est considérée au premier plan. */
+        return new URL(client.url).origin===self.location.origin &&
+          client.visibilityState==='visible' && client.focused===true;
+      }catch(_e){return false;}
     });
   }).catch(function(){return [];});
 }
@@ -269,6 +275,10 @@ function happyadNotificationOptions(data,detail){
     timestamp:happyadParseTime(data.sent_at)||Number(data.timestamp||Date.now()),
     data:detail
   };
+  /* Sur Samsung/Chrome, icon peut être placé à droite tandis que l'icône
+     d'application reste à gauche. image donne une seconde voie d'affichage
+     de la photo exacte dans les présentations étendues compatibles. */
+  if(detail.type==='happyad_message' && exactAvatar)options.image=exactAvatar;
   /* L'avatar exact reste l'icône principale. Le badge monochrome HAPPYAD
      identifie l'application dans la barre système Android. */
   if(detail.type==='happyad_message')options.actions=[{action:'reply',title:'Répondre'}];
@@ -279,21 +289,38 @@ function happyadShowNotification(data,detail){
   var title=String(data.title||'HAPPYAD');
   var options=happyadNotificationOptions(data,detail);
   return self.registration.showNotification(title,options).catch(function(firstError){
-    /* Un avatar distant ou une action non prise en charge ne doit jamais bloquer la notification. */
-    var fallback={
+    /* Certains Samsung acceptent l'avatar comme icon mais refusent image.
+       Réessayer d'abord avec le même avatar et le même nom, sans image. */
+    var avatarRetry={
       body:String(data.body||'Vous avez une nouvelle notification.'),
-      icon:'./icons/happyad-icon-v535center1-192.png',
-      badge:'./icons/happyad-notification-badge-96.png',
-      tag:String(data.tag||('happyad-'+String(data.type||'notification'))),
+      icon:options.icon,
+      badge:options.badge,
+      tag:options.tag,
       renotify:true,
       silent:false,
       vibrate:[180,80,180],
-      timestamp:happyadParseTime(data.sent_at)||Date.now(),
+      timestamp:options.timestamp,
       data:detail
     };
-    return self.registration.showNotification('HAPPYAD',fallback).catch(function(secondError){
-      try{console.warn('HAPPYAD notification failed',firstError,secondError);}catch(_e){}
-      throw secondError;
+    if(detail.type==='happyad_message')avatarRetry.actions=[{action:'reply',title:'Répondre'}];
+    return self.registration.showNotification(title,avatarRetry).catch(function(secondError){
+      /* Le logo HAPPYAD est le dernier secours, mais le nom de l'expéditeur
+         reste conservé pour ne pas transformer le message en alerte générique. */
+      var fallback={
+        body:String(data.body||'Vous avez une nouvelle notification.'),
+        icon:'./icons/happyad-icon-v535center1-192.png',
+        badge:'./icons/happyad-notification-badge-96.png',
+        tag:String(data.tag||('happyad-'+String(data.type||'notification'))),
+        renotify:true,
+        silent:false,
+        vibrate:[180,80,180],
+        timestamp:happyadParseTime(data.sent_at)||Date.now(),
+        data:detail
+      };
+      return self.registration.showNotification(title,fallback).catch(function(thirdError){
+        try{console.warn('HAPPYAD notification failed',firstError,secondError,thirdError);}catch(_e){}
+        throw thirdError;
+      });
     });
   });
 }
