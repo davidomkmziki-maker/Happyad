@@ -44,8 +44,12 @@
     return false;
   }
   function isTemporary(key,value){
-    key=clean(key);if(!key||isProtected(key))return false;
+    key=clean(key);if(!key)return false;
+    /* Audit V757 : les préfixes explicitement classés temporaires passent avant
+       la protection large PROFILE/MESSAGE, sinon les plus gros caches n'étaient
+       jamais libérés et le quota Auth pouvait revenir. */
     for(var i=0;i<TEMP_PREFIXES.length;i++)if(key===TEMP_PREFIXES[i]||key.indexOf(TEMP_PREFIXES[i])===0)return true;
+    if(isProtected(key))return false;
     var up=key.toUpperCase();
     if(/(?:CACHE|THUMB|THUMBNAIL|PREPAINT|BOOT_SNAPSHOT|FAST_OPEN|FAST_CACHE|TEMP_MEDIA)/.test(up))return true;
     value=String(value==null?'':value);

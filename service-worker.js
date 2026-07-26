@@ -1,7 +1,7 @@
-/* HAPPYAD V756 — X direct + Mon profil persistant sans rechargement */
+/* HAPPYAD V757 — audit conflits Assistance, Profil persistant et quota Auth */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V756-assistance-close-profile-persistent-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V757-audit-stable-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=756-assistance-close-profile-persistent',
+  './index.html?v=757-audit-stable',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -17,8 +17,8 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=756-profile-persistent',
-  './core/auth-storage-quota-master-v752.js?v=752-auth-quota-idb',
+  './core/navigation-master-v668.js?v=757-profile-audit-stable',
+  './core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable',
   './core/auth-session-master-v598.js?v=752-auth-storage-quota-retry',
   './core/profile-identity-stable-master-v741.js?v=743-avatar-safe',
   './core/profile-avatar-recovery-master-v743.js?v=743-avatar-legacy-recovery',
@@ -27,11 +27,12 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=746-message-profile-avatar',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
-  './core/assistance-integration-master-v738.css?v=756-direct-close',
-  './core/assistance-integration-master-v738.js?v=756-direct-close',
+  './core/overlay-scroll-master-v615.js?v=615',
+  './core/assistance-integration-master-v738.css?v=757-audit-stable',
+  './core/assistance-integration-master-v738.js?v=757-audit-stable',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
-  './core/message-assistance-shortcut-v738.js?v=756-targeted-open',
-  './core/assistance-supabase-realtime-v750.js?v=756-direct-close'
+  './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
+  './core/assistance-supabase-realtime-v750.js?v=757-audit-stable'
 ];
 
 function isHappyCache(name){

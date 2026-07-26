@@ -4,7 +4,7 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V756_OWNER_PROFILE_PERSISTENT_NO_RELOAD';
+  var MASTER_VERSION='NAV_MASTER_V757_OWNER_PROFILE_PERSISTENT_AUDIT_STABLE';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/user.html?public=1&deferred=1&v=601';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
@@ -807,7 +807,10 @@
     else {showVideoDirect(url,false);}
     showLoader(false);
     releaseNavGate('reveal-'+String(source||page||''));
-    try{setTimeout(function(){resumeFrame(fr,page,url,source||MASTER_VERSION);},45);}catch(_m){}
+    /* Audit V757 : Mon profil reçoit un seul HAPPYAD_APP_FRAME_VISIBLE.
+       Les anciens maîtres internes rafraîchissent sur chaque signal visible ; le
+       second signal à +45 ms donnait l'impression d'un rechargement. */
+    if(page!=='profile'){try{setTimeout(function(){resumeFrame(fr,page,url,source||MASTER_VERSION);},45);}catch(_m){}}
   }
   function clearVideoRouteMemory(reason){
     try{sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_e){}

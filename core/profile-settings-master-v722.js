@@ -249,9 +249,9 @@
     var u=userInfo(),detail={source:'settings',returnTarget:'profile-settings',uid:uid(),language:prefs.language,country:u.country,user:{id:uid(),name:u.name,username:u.handle,avatar:u.avatar}};
     try{
       var target=(window.parent&&window.parent!==window)?window.parent:window;
-      var master=target.HappyadAssistanceMasterV755;
+      var master=target.HappyadAssistanceMasterV757;
       if(master&&typeof master.open==='function')return master.open(detail);
-      if(target!==window){target.postMessage({type:'HAPPYAD_ASSISTANCE_V755_OPEN',detail:detail},location.origin);return true}
+      if(target!==window){target.postMessage({type:'HAPPYAD_ASSISTANCE_V757_OPEN',detail:detail},location.origin);return true}
     }catch(_e){}
     toast('Assistance momentanément indisponible.');
     return false

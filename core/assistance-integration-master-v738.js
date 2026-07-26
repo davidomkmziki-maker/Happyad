@@ -1,16 +1,16 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V756__)return;
-  window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V756__=true;
+  if(window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757__)return;
+  window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V756_DIRECT_CLOSE_PROFILE_PERSISTENT';
+  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757_AUDIT_STABLE';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var FRAME_URL='modules/assistance.html?v=756-direct-close';
+  var FRAME_URL='modules/assistance.html?v=757-audit-stable';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null;
   var isOpen=false,isReady=false,frameStarted=false,closeTimer=0,openLockUntil=0;
-  var lastContext=null,prewarmTimer=0,readyPoll=0;
+  var lastContext=null,prewarmTimer=0,readyPoll=0,readyPollCount=0,returnRegistered=false;
 
   function clean(v){return String(v==null?'':v).trim()}
   function localUser(){try{return Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{})}catch(_e){return {}}}
@@ -74,11 +74,16 @@
     stopPoll();
     if(isReady)return;
     if(frameReady()){markReady();return}
+    readyPollCount++;
+    /* Audit V757 : aucun polling infini si le module a une erreur réseau/JS.
+       Le signal READY postMessage reste capable de terminer l'ouverture plus tard. */
+    if(readyPollCount>=50)return;
     readyPoll=setTimeout(pollReady,80);
   }
   function markReady(){
     if(isReady)return;
     isReady=true;
+    readyPollCount=0;
     stopPoll();
     if(host)host.classList.add('ready');
     sendContext();
@@ -91,16 +96,21 @@
     return true;
   }
   function registerReturn(){
+    if(returnRegistered)return true;
     try{
       var master=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
-      if(master&&typeof master.open==='function')master.open('assistance',{onBack:function(){close('physical-back')}});
+      if(master&&typeof master.open==='function'){master.open('assistance',{onBack:function(){close('physical-back')}});returnRegistered=true;return true;}
     }catch(_e){}
+    return false;
   }
   function unregisterReturn(){
+    if(!returnRegistered)return true;
     try{
       var master=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
       if(master&&typeof master.close==='function')master.close('assistance');
     }catch(_e){}
+    returnRegistered=false;
+    return true;
   }
   function open(detail){
     var now=Date.now();
@@ -109,9 +119,11 @@
     saveContext(buildContext(detail));
     ensureHost();
     if(closeTimer){clearTimeout(closeTimer);closeTimer=0}
+    /* Une réouverture pendant le bouclier de fermeture réutilise le même état
+       de retour au lieu d'empiler une seconde entrée. */
     if(isOpen){sendContext();return true}
     isOpen=true;
-    host.classList.remove('closing','closingDirectV756');
+    host.classList.remove('closing','closingDirectV757');
     host.classList.add('show');
     host.setAttribute('aria-hidden','false');
     host.removeAttribute('inert');
@@ -121,12 +133,12 @@
     if(!frameStarted)prepare();
     sendContext();
     if(isReady)host.classList.add('ready');
-    else pollReady();
+    else{readyPollCount=0;pollReady();}
     return true;
   }
   function finishClose(reason){
     if(!host)return false;
-    host.classList.remove('show','closing','closingDirectV756');
+    host.classList.remove('show','closing','closingDirectV757');
     host.setAttribute('aria-hidden','true');
     host.setAttribute('inert','');
     document.documentElement.classList.remove('happyadAssistanceOpenV738');
@@ -139,10 +151,10 @@
     if(!isOpen||closeTimer)return false;
     isOpen=false;
     if(host){
-      /* V756 : la page précédente redevient visible immédiatement. Le host
+      /* V757 : la page précédente redevient visible immédiatement. Le host
          transparent reste néanmoins au-dessus jusqu'à la fin du clic Android,
          afin qu'aucun bouton derrière ne reçoive le même geste. */
-      host.classList.add('closing','closingDirectV756');
+      host.classList.add('closing','closingDirectV757');
       host.setAttribute('aria-hidden','false');
       host.removeAttribute('inert');
     }
@@ -153,11 +165,11 @@
   window.addEventListener('message',function(event){
     if(!sameOrigin(event))return;
     var data=event&&event.data||{};
-    if(data.type==='HAPPYAD_ASSISTANCE_V755_OPEN'){open(data.detail||{});return}
-    if(data.type==='HAPPYAD_ASSISTANCE_V755_PREPARE'){prepare();return}
+    if(data.type==='HAPPYAD_ASSISTANCE_V757_OPEN'||data.type==='HAPPYAD_ASSISTANCE_V755_OPEN'){open(data.detail||{});return}
+    if(data.type==='HAPPYAD_ASSISTANCE_V757_PREPARE'||data.type==='HAPPYAD_ASSISTANCE_V755_PREPARE'){prepare();return}
     if(frame&&event.source&&event.source!==frame.contentWindow)return;
-    if(data.type==='HAPPYAD_ASSISTANCE_V755_CLOSE')close('assistance-x');
-    else if(data.type==='HAPPYAD_ASSISTANCE_V755_READY')markReady();
+    if(data.type==='HAPPYAD_ASSISTANCE_V757_CLOSE'||data.type==='HAPPYAD_ASSISTANCE_V755_CLOSE')close('assistance-x');
+    else if(data.type==='HAPPYAD_ASSISTANCE_V757_READY'||data.type==='HAPPYAD_ASSISTANCE_V755_READY')markReady();
   },true);
   window.addEventListener('keydown',function(event){if(isOpen&&event.key==='Escape'){event.preventDefault();close('escape')}},true);
 
@@ -170,6 +182,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
   var api=Object.freeze({version:VERSION,open:open,close:close,prepare:prepare,isOpen:function(){return isOpen},isReady:function(){return isReady},context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}});
+  window.HappyadAssistanceMasterV757=api;
   window.HappyadAssistanceMasterV756=api;
   window.HappyadAssistanceMasterV755=api;
   /* Alias de compatibilité : aucun autre moteur n’est créé. */
