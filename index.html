@@ -7360,7 +7360,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=757-audit-stable',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=758-visitor-profile-isolation',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9470,8 +9470,8 @@ html,body{background:#000!important;}
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
 <script src="core/navigation-master-v668.js?v=757-profile-audit-stable"></script>
 <script src="core/auth-session-master-v598.js?v=752-auth-storage-quota-retry"></script>
-<script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=743-avatar-safe"></script>
-<script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=743-avatar-legacy-recovery"></script>
+<script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=758-visitor-isolation"></script>
+<script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=758-visitor-isolation"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=743-card-avatar-safe"></script>
 <script src="core/main-tabs-master-v615.js?v=746-message-profile-avatar"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>

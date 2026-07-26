@@ -7,6 +7,21 @@
   var USER_KEYS=[USER_KEY,'HAPPYAD_USER','HAPPYAD_CURRENT_USER','happyad_current_user'];
   var STABLE_PREFIX='HAPPYAD_PROFILE_IDENTITY_STABLE_V741:';
   var busy=false,lastRun=0,channel=null;
+  /* V758 — séparation stricte entre Mon profil et Profil visiteur.
+     Ce maître répare uniquement l'identité du compte connecté. Dans une iframe
+     ouverte avec public=1, il ne doit jamais peindre le DOM visiteur ni écrire
+     l'identité du propriétaire dans les caches du profil demandé. */
+  function visitorSurfaceV758(){
+    try{
+      var qs=new URLSearchParams(location.search||'');
+      var uid=clean(qs.get('uid')||qs.get('user_id')||qs.get('profile_uid')||qs.get('auth_user_id')||qs.get('account_uid')||qs.get('owner')||qs.get('owner_id')||qs.get('creator_id')||qs.get('profile_id'));
+      if(String(qs.get('public')||'')==='1'&&uid)return true;
+      var html=document.documentElement,body=document.body;
+      if(html&&(html.dataset.happyadPublicRouteV669==='1'||html.classList.contains('haPublicProfileSurfaceGateV669')))return true;
+      if(body&&(body.classList.contains('happyadPublicCreatorProfile')||body.classList.contains('haProfileVisitor')||body.classList.contains('happyadVisitorProfilePersistentV601')))return true;
+    }catch(_e){}
+    return false;
+  }
   function clean(v){return String(v==null?'':v).trim();}
   function uuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v));}
   function json(k,f){try{var x=JSON.parse(localStorage.getItem(k)||'null');return x&&typeof x==='object'?x:(f||{});}catch(_e){return f||{};}}
@@ -50,6 +65,7 @@
   }
   function identitySig(p){p=p||{};return [uidOf(p),nameOf(p),handleOf(p),avatarOf(p),badgeOf(p),clean(p.role),clean(p.type),clean(p.bio),clean(p.country)].join('|');}
   function persist(next,source){
+    if(visitorSurfaceV758())return next;
     var uid=uidOf(next);if(!uuid(uid))return next;
     var before=local(uid), changed=identitySig(before)!==identitySig(next);
     USER_KEYS.forEach(function(k){try{localStorage.setItem(k,JSON.stringify(Object.assign({},json(k,{}),next)));}catch(_e){}});
@@ -71,6 +87,7 @@
     ['HAPPYAD_HOME_BOOT_SNAPSHOT_V1','HAPPYAD_HOME_CONFIRMED_ORDER_V643','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_POSTS_CACHE_V1','HAPPYAD_CACHED_POSTS_V1','HAPPYAD_FEED_CACHE_V1','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_STORIES_CACHE_V1'].forEach(function(k){try{var raw=json(k,null),shape='array',a=raw;if(raw&&Array.isArray(raw.posts)){a=raw.posts;shape='posts';}else if(raw&&Array.isArray(raw.data)){a=raw.data;shape='data';}if(!Array.isArray(a))return;var changed=false;var b=a.map(function(p){var n=patch(p);if(n!==p)changed=true;return n;});if(changed){if(shape==='posts'){raw.posts=b;localStorage.setItem(k,JSON.stringify(raw));}else if(shape==='data'){raw.data=b;localStorage.setItem(k,JSON.stringify(raw));}else localStorage.setItem(k,JSON.stringify(b));}}catch(_e){}});
   }
   function paint(next,allowRender){
+    if(visitorSurfaceV758())return;
     try{
       var n=document.getElementById('profileName');if(n&&!poorName(next.name))n.textContent=next.name;
       var h=document.getElementById('profileHandle');if(h&&next.handle)h.textContent='@'+next.handle.replace(/^@+/,'');
@@ -80,6 +97,7 @@
   }
   function client(){try{return window.happyadSupabase||(typeof window.happyadSb==='function'&&window.happyadSb())||null;}catch(_e){return null;}}
   async function refresh(force){
+    if(visitorSurfaceV758())return;
     var now=Date.now();if(busy||(!force&&now-lastRun<1200))return;busy=true;lastRun=now;
     try{
       var uid=currentUid();if(!uid)return;
@@ -91,9 +109,10 @@
     }catch(e){console.warn('HAPPYAD V741 profile identity refresh',e);}finally{busy=false;}
   }
   function subscribe(){
+    if(visitorSurfaceV758())return;
     try{var uid=currentUid(),c=client();if(!uid||!c||!c.channel||channel)return;channel=c.channel('happyad_profile_identity_v741_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'id=eq.'+uid},function(){refresh(true);}).subscribe();}catch(_e){}
   }
-  window.HappyadProfileIdentityV741={version:VERSION,refresh:refresh,current:function(){var uid=currentUid();return uid?merge(uid,{}):{};},persist:persist};
+  window.HappyadProfileIdentityV741={version:VERSION+'+V758_VISITOR_ISOLATION',refresh:refresh,current:function(){var uid=currentUid();return uid?merge(uid,{}):{};},persist:persist,isVisitorSurface:visitorSurfaceV758};
   function boot(){refresh(true);setTimeout(function(){refresh(true);subscribe();},500);setTimeout(function(){refresh(false);},2200);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('HAPPYAD_AUTH_STATE_V595',function(){setTimeout(function(){refresh(true);subscribe();},40);});

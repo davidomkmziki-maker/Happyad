@@ -17,6 +17,21 @@
   ];
   var busy=false,lastRun=0,channel=null;
 
+  /* V758 — l'avatar du compte connecté ne doit jamais être injecté dans un
+     Profil visiteur. La récupération V743 reste active dans le parent et dans
+     Mon profil, mais devient strictement non mutante dans une route public=1. */
+  function visitorSurfaceV758(){
+    try{
+      var qs=new URLSearchParams(location.search||'');
+      var uid=clean(qs.get('uid')||qs.get('user_id')||qs.get('profile_uid')||qs.get('auth_user_id')||qs.get('account_uid')||qs.get('owner')||qs.get('owner_id')||qs.get('creator_id')||qs.get('profile_id'));
+      if(String(qs.get('public')||'')==='1'&&uid)return true;
+      var html=document.documentElement,body=document.body;
+      if(html&&(html.dataset.happyadPublicRouteV669==='1'||html.classList.contains('haPublicProfileSurfaceGateV669')))return true;
+      if(body&&(body.classList.contains('happyadPublicCreatorProfile')||body.classList.contains('haProfileVisitor')||body.classList.contains('happyadVisitorProfilePersistentV601')))return true;
+    }catch(_e){}
+    return false;
+  }
+
   function clean(v){return String(v==null?'':v).trim();}
   function uuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v));}
   function read(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?f:v;}catch(_e){return f;}}
@@ -139,6 +154,7 @@
     CACHE_KEYS.forEach(function(k){try{var raw=read(k,null),shape='array',arr=raw;if(raw&&Array.isArray(raw.posts)){arr=raw.posts;shape='posts';}else if(raw&&Array.isArray(raw.data)){arr=raw.data;shape='data';}if(!Array.isArray(arr))return;var changed=false,next=arr.map(function(p){var n=patch(p);if(n!==p)changed=true;return n;});if(!changed)return;if(shape==='posts'){raw.posts=next;write(k,raw);}else if(shape==='data'){raw.data=next;write(k,raw);}else write(k,next);}catch(_e){}});
   }
   function persist(uid,url,source){
+    if(visitorSurfaceV758())return;
     USER_KEYS.forEach(function(k){var x=read(k,{});var id=uidOf(x);if(id&&id!==uid)return;x=Object.assign({},x,{id:uid,user_id:uid,avatar:url,avatar_url:url});write(k,x);});
     var stable=read(STABLE_PREFIX+uid,{});write(STABLE_PREFIX+uid,Object.assign({},stable,{id:uid,user_id:uid,avatar:url,avatar_url:url,avatar_recovered_source_v743:source,avatar_recovered_at_v743:new Date().toISOString()}));
     try{localStorage.setItem(AVATAR_KEY,url);localStorage.setItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:'+uid,url);localStorage.setItem('HAPPYAD_AUTH_UID',uid);localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');}catch(_e){}
@@ -150,6 +166,7 @@
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_IDENTITY_V741',{detail:{profile:{id:uid,user_id:uid,avatar:url,avatar_url:url}}}));}catch(_e){}
   }
   function paint(uid,url){
+    if(visitorSurfaceV758())return;
     try{
       var av=document.getElementById('avatarPreview');if(!av)return;
       av.style.backgroundImage="url('"+String(url).replace(/'/g,'%27')+"')";
@@ -159,6 +176,7 @@
     }catch(_e){}
   }
   async function repair(force){
+    if(visitorSurfaceV758())return;
     var now=Date.now();if(busy||(!force&&now-lastRun<2500))return;busy=true;lastRun=now;
     try{
       var uid=currentUid();if(!uid)return;
@@ -172,9 +190,10 @@
     }catch(e){console.warn('HAPPYAD V743 avatar recovery',e);}finally{busy=false;}
   }
   function subscribe(){
+    if(visitorSurfaceV758())return;
     try{var uid=currentUid(),c=client();if(!uid||!c||!c.channel||channel)return;channel=c.channel('happyad_profile_avatar_v743_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'id=eq.'+uid},function(){setTimeout(function(){repair(true);},80);}).subscribe();}catch(_e){}
   }
-  window.HappyadProfileAvatarRecoveryV743=Object.freeze({build:BUILD,repair:repair,current:function(){var uid=currentUid();return uid?normalize(rawAvatar(read(USER_KEY,{}))):'';}});
+  window.HappyadProfileAvatarRecoveryV743=Object.freeze({build:BUILD+'+V758_VISITOR_ISOLATION',repair:repair,current:function(){var uid=currentUid();return uid?normalize(rawAvatar(read(USER_KEY,{}))):'';},isVisitorSurface:visitorSurfaceV758});
   function boot(){setTimeout(function(){repair(true);subscribe();},80);setTimeout(function(){repair(true);},1200);setTimeout(function(){repair(false);},4200);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('online',function(){repair(true);});
