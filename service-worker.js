@@ -1,7 +1,7 @@
-/* HAPPYAD V770 — Accueil : pagination sérialisée */
+/* HAPPYAD V772 — Accueil : structure album stable avant hydratation */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V770-home-pagination-serialized-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V772-home-album-stable-shell-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=770-home-pagination-serialized',
+  './index.html?v=772-home-album-stable-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
