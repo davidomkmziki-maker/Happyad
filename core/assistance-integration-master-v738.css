@@ -32,7 +32,7 @@ html.happyadAssistanceOpenV738,body.happyadAssistanceOpenV738{
 /* Zone parent limitée au vrai bouton X. Elle réagit au relâchement du doigt,
    afin d’éviter qu’un touchstart ferme la frame puis transmette un clic fantôme
    à la page HAPPYAD située derrière. */
-#happyadAssistanceHostV738 .happyadAssistanceParentCloseV749{
+#happyadAssistanceHostV738 .happyadAssistanceParentCloseV750{
   position:absolute;
   top:calc(7px + env(safe-area-inset-top));
   right:max(8px,calc((100vw - 700px)/2 + 8px));
@@ -41,4 +41,4 @@ html.happyadAssistanceOpenV738,body.happyadAssistanceOpenV738{
   background:transparent;opacity:0;pointer-events:none;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
-#happyadAssistanceHostV738.show .happyadAssistanceParentCloseV749{pointer-events:auto}
+#happyadAssistanceHostV738.show .happyadAssistanceParentCloseV750{pointer-events:auto}

@@ -1,7 +1,7 @@
-/* HAPPYAD V749 — Timeline Assistance stable, Supabase invisible, ouverture directe */
+/* HAPPYAD V750 — Assistance agent seul, résolution terminale stable, Realtime renforcé */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V749-assistance-timeline-stable-invisible-direct-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V750-assistance-admin-only-terminal-realtime-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=749-assistance-timeline-stable-invisible-direct',
+  './index.html?v=750-assistance-admin-only-terminal-realtime',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -26,11 +26,11 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=746-message-profile-avatar',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
-  './core/assistance-integration-master-v738.css?v=749-timeline-stable-invisible-direct',
-  './core/assistance-integration-master-v738.js?v=749-timeline-stable-invisible-direct',
+  './core/assistance-integration-master-v738.css?v=750-admin-only-terminal-stable',
+  './core/assistance-integration-master-v738.js?v=750-admin-only-terminal-stable',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=738-visible',
-  './core/assistance-supabase-realtime-v749.js?v=749-timeline-stable-invisible-direct'
+  './core/assistance-supabase-realtime-v750.js?v=750-admin-only-terminal-stable'
 ];
 
 function isHappyCache(name){

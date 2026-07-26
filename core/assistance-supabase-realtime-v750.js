@@ -1,13 +1,14 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V749__)return;
-  window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V749__=true;
+  if(window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V750__)return;
+  window.__HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V750__=true;
 
-  var BUILD='HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V749_TIMELINE_STABLE_INVISIBLE';
+  var BUILD='HAPPYAD_ASSISTANCE_SUPABASE_REALTIME_V750_ADMIN_ONLY_TERMINAL_STABLE';
   var DELETED_CHATS_KEY='happyad_support_deleted_v745';
   var syncTimer=0,pullTimer=0,syncing=false,pulling=false,started=false;
   var client=null,currentUser=null,channel=null,lastFingerprint='';
-  var applyingRemote=false,retryTimer=0,initialPullDone=false;
+  var applyingRemote=false,retryTimer=0,initialPullDone=false,reconnectTimer=0;
+  var lastMarkedReadByCase=Object.create(null),channelGeneration=0;
 
   function api(){return window.HappyadAssistance||null}
   function isLocalWriting(){return !!window.__HAPPYAD_ASSISTANCE_LOCAL_WRITING__}
@@ -116,9 +117,16 @@
       body:clean(m.text||m.body||(m.kind==='card'?(m.cardType||'Carte Assistance'):'')),
       message_type:remoteType(m),
       attachments:Array.isArray(m.attachments)?m.attachments:[],
-      event_key:clean(m.event_key||''),
+      event_key:left(clean(m.event_key||m.semantic||m.cardType||''),180),
       created_at:m.time||m.created_at||now(),
-      metadata:{local_message:safeLocalMessage(m),build:BUILD}
+      metadata:{
+        local_message:safeLocalMessage(m),
+        timeline_order:Number(m.timelineOrder||0),
+        timeline_kind:m.kind||'message',
+        timeline_card_type:m.cardType||'',
+        timeline_semantic:m.semantic||'',
+        build:BUILD
+      }
     };
   }
   function left(v,n){return clean(v).slice(0,n)}
@@ -129,10 +137,17 @@
         categoryId:chat.categoryId||'',selectedCategoryId:chat.selectedCategoryId||'',
         selectedTopicId:chat.selectedTopicId||'',country:chat.country||'',
         adminReason:chat.adminReason||'',closedBy:chat.closedBy||'',
+        botLocked:chat.botLocked===true,resolutionPending:chat.resolutionPending===true,
+        resolvedAt:chat.resolvedAt||'',nextTimelineOrder:Number(chat.nextTimelineOrder||1),
         createdAt:chat.createdAt||now(),updatedAt:chat.updatedAt||now(),
         lastActivityAt:chat.lastActivityAt||chat.updatedAt||chat.createdAt||now()
       },
-      integration:'happyad-v745',build:BUILD
+      timeline_manifest:(chat.messages||[]).map(function(message,index){return {
+        id:clean(message&&message.id),order:Number(message&&message.timelineOrder||index+1),
+        role:clean(message&&message.role),kind:clean(message&&message.kind||'message'),
+        card_type:clean(message&&message.cardType),semantic:clean(message&&message.semantic)
+      }}),
+      integration:'happyad-v750',build:BUILD
     };
   }
   function meaningfulChat(chat){
@@ -185,6 +200,7 @@
       var fin=await c.rpc('happyad_assistance_user_finish_case',{p_case_id:remote.id,p_status:'resolved'});
       if(fin.error&&errText(fin.error).indexOf('CASE_ACCESS_DENIED_OR_CLOSED')<0)throw fin.error;
       chat.remoteStatus='resolved';
+      chat.resolutionPending=false;
     }
     chat.remoteSyncedAt=now();
     return chat;
@@ -205,11 +221,11 @@
         if(after!==before)changed=true;
       }
       if(changed)replaceChats(rows,a.getCurrentChatId&&a.getCurrentChatId());
-      emit('HAPPYAD_ASSISTANCE_REMOTE_SYNCED_V749',{count:rows.length,at:Date.now()});
+      emit('HAPPYAD_ASSISTANCE_REMOTE_SYNCED_V750',{count:rows.length,at:Date.now()});
       schedulePull(80);
     }catch(error){
-      console.warn('HAPPYAD Assistance sync V745',error);
-      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V749',{phase:'sync',message:errText(error)});
+      console.warn('HAPPYAD Assistance sync V750',error);
+      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V750',{phase:'sync',message:errText(error)});
       scheduleSync(3500);
     }finally{syncing=false}
   }
@@ -220,6 +236,8 @@
       status:'open',state:'root',categoryId:meta.categoryId||row.category_id||'',
       selectedCategoryId:meta.selectedCategoryId||row.category_id||'',selectedTopicId:meta.selectedTopicId||row.topic_id||'',
       country:meta.country||row.user_country||'',adminReason:meta.adminReason||'',adminHasReplied:false,
+      botLocked:Boolean(meta.botLocked||['waiting_agent','assigned','answered','waiting_user','resolved','closed'].indexOf(row.status)>=0),
+      resolutionPending:Boolean(meta.resolutionPending),resolvedAt:meta.resolvedAt||row.resolved_at||row.closed_at||'',
       agentName:row.assigned_agent_name||'',agentConnected:!!row.assigned_agent_id,
       agentConnectionAnnounced:!!row.assigned_agent_id,closedBy:meta.closedBy||'',
       createdAt:meta.createdAt||row.created_at||now(),updatedAt:row.updated_at||meta.updatedAt||now(),
@@ -311,14 +329,21 @@
     chat.nextTimelineOrder=Math.max(Number(chat.nextTimelineOrder||1),maxOrder+1);
     if(chat.messages.length){var last=chat.messages[chat.messages.length-1];chat.lastActivityAt=row.last_message_at||last.time||chat.lastActivityAt;}
     chat.adminHasReplied=chat.messages.some(function(m){return m.role==='admin'&&m.semantic!=='agent-connected'});
-    if(['waiting_agent','assigned','answered','waiting_user'].indexOf(row.status)>=0){
-      chat.status='waiting_admin';chat.state='waiting_admin';
+    var localTerminal=chat.status==='resolved'&&(chat.resolutionPending||chat.closedBy==='user'||chat.resolvedAt);
+    if(['waiting_agent','assigned','answered','waiting_user'].indexOf(row.status)>=0&&!localTerminal){
+      chat.status='waiting_admin';chat.state='waiting_admin';chat.botLocked=true;
       chat.messages=chat.messages.filter(function(m){return !(m.kind==='card'&&m.cardType==='resolved')});
     }
     if(row.status==='resolved'||row.status==='closed'){
-      chat.status='resolved';chat.state='resolved';chat.closedBy=row.closed_by?'admin':(chat.closedBy||'user');
-      if(!chat.messages.some(function(m){return m.kind==='card'&&m.cardType==='resolved'})){
-        chat.messages.push({id:'remote-resolved-'+row.id,role:'system',kind:'card',cardType:'resolved',time:row.resolved_at||row.closed_at||row.updated_at||now(),timelineOrder:chat.nextTimelineOrder++});
+      chat.status='resolved';chat.state='resolved';chat.botLocked=true;
+      chat.resolutionPending=false;
+      chat.resolvedAt=row.resolved_at||row.closed_at||chat.resolvedAt||row.updated_at||now();
+      chat.closedBy=row.closed_by?'admin':(chat.closedBy||'user');
+      var assistanceApi=api();
+      if(assistanceApi&&typeof assistanceApi.ensureResolvedTimeline==='function'){
+        assistanceApi.ensureResolvedTimeline(chat,{closedBy:chat.closedBy||'admin',resolvedAt:chat.resolvedAt});
+      }else if(!chat.messages.some(function(m){return m.kind==='card'&&m.cardType==='resolved'})){
+        chat.messages.push({id:'remote-resolved-'+row.id,role:'system',kind:'card',cardType:'resolved',time:chat.resolvedAt,timelineOrder:chat.nextTimelineOrder++});
       }
     }
     return chat;
@@ -354,7 +379,7 @@
       var fingerprint=remoteFingerprint(cases,allMessages);
       var requestedCurrent=a.getCurrentChatId&&a.getCurrentChatId();
       if(initialPullDone&&fingerprint===lastFingerprint){
-        emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V749',{cases:cases.length,messages:allMessages.length,unchanged:true,at:Date.now()});
+        emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V750',{cases:cases.length,messages:allMessages.length,unchanged:true,at:Date.now()});
         return;
       }
       if(!initialPullDone&&cases.length){
@@ -365,17 +390,23 @@
       }
       replaceChats(merged,requestedCurrent);initialPullDone=true;lastFingerprint=fingerprint;
       var currentId=requestedCurrent,current=merged.find(function(x){return String(x.id)===String(currentId)});
-      if(current&&current.remoteCaseId){
+      if(current&&current.remoteCaseId&&!document.hidden){
         var row=cases.find(function(x){return x.id===current.remoteCaseId});
         if(row&&Number(row.user_unread_count)>0){
           var last=(grouped[row.id]||[]).slice(-1)[0];
-          c.rpc('happyad_assistance_mark_read',{p_case_id:row.id,p_last_message_id:last&&last.id||null}).then(function(){});
+          var lastId=last&&last.id||'';
+          if(lastId&&lastMarkedReadByCase[row.id]!==lastId){
+            lastMarkedReadByCase[row.id]=lastId;
+            c.rpc('happyad_assistance_mark_read',{p_case_id:row.id,p_last_message_id:lastId}).then(function(result){
+              if(result&&result.error)delete lastMarkedReadByCase[row.id];
+            });
+          }
         }
       }
-      emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V749',{cases:cases.length,messages:allMessages.length,at:Date.now()});
+      emit('HAPPYAD_ASSISTANCE_REMOTE_PULLED_V750',{cases:cases.length,messages:allMessages.length,at:Date.now()});
     }catch(error){
-      console.warn('HAPPYAD Assistance pull V745',error);
-      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V749',{phase:'pull',message:errText(error)});
+      console.warn('HAPPYAD Assistance pull V750',error);
+      emit('HAPPYAD_ASSISTANCE_REMOTE_ERROR_V750',{phase:'pull',message:errText(error)});
       schedulePull(3500);
     }finally{pulling=false}
   }
@@ -389,7 +420,7 @@
     }catch(error){
       var text=errText(error);
       if(text.indexOf('happyad_assistance_user_delete_case')<0&&text.indexOf('PGRST202')<0){
-        console.warn('HAPPYAD Assistance delete V745',error);
+        console.warn('HAPPYAD Assistance delete V750',error);
       }
       return false;
     }
@@ -404,15 +435,28 @@
   }
   function schedulePull(delay){clearTimeout(pullTimer);pullTimer=setTimeout(pullRemote,Math.max(100,Number(delay||220)))}
   function stopRealtime(){
+    clearTimeout(reconnectTimer);reconnectTimer=0;
     try{if(channel&&client)client.removeChannel(channel)}catch(_e){}channel=null;
+  }
+  function scheduleReconnect(delay){
+    clearTimeout(reconnectTimer);
+    reconnectTimer=setTimeout(function(){
+      if(!currentUser||document.hidden)return;
+      startRealtime();schedulePull(80);scheduleSync(140);
+    },Math.max(500,Number(delay||1200)));
   }
   function startRealtime(){
     var c=getClient();if(!c||!currentUser)return;
     stopRealtime();
-    channel=c.channel('happyad-assistance-user-v749-'+currentUser.id)
-      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_cases'},function(){schedulePull(isUiQuiet()?520:220)})
-      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_messages'},function(){schedulePull(isUiQuiet()?520:220)})
-      .subscribe(function(status){emit('HAPPYAD_ASSISTANCE_REALTIME_STATUS_V749',{status:status})});
+    var generation=++channelGeneration;
+    channel=c.channel('happyad-assistance-user-v750-'+currentUser.id+'-'+generation)
+      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_cases'},function(){schedulePull(isUiQuiet()?420:140)})
+      .on('postgres_changes',{event:'*',schema:'public',table:'happyad_assistance_messages'},function(){schedulePull(isUiQuiet()?420:120)})
+      .subscribe(function(status){
+        emit('HAPPYAD_ASSISTANCE_REALTIME_STATUS_V750',{status:status,at:Date.now()});
+        if(status==='SUBSCRIBED'){schedulePull(40);return}
+        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')scheduleReconnect(1400);
+      });
   }
   async function start(){
     if(started)return;var a=api();if(!a){retryTimer=setTimeout(start,120);return}
@@ -431,11 +475,11 @@
   window.addEventListener('HAPPYAD_ASSISTANCE_LOCAL_CHANGED_V40',function(){scheduleSync(isLocalWriting()?260:120)});
   window.addEventListener('HAPPYAD_ASSISTANCE_CHAT_DELETED_V745',function(event){deleteRemoteCase(event&&event.detail||{});schedulePull(40)});
   window.addEventListener('HAPPYAD_ASSISTANCE_WRITING_FINISHED_V745',function(){scheduleSync(80);schedulePull(320)});
-  window.addEventListener('HAPPYAD_ASSISTANCE_WRITING_FINISHED_V749',function(){scheduleSync(80);schedulePull(320)});
+  window.addEventListener('HAPPYAD_ASSISTANCE_WRITING_FINISHED_V750',function(){scheduleSync(80);schedulePull(320)});
   window.addEventListener('HAPPYAD_ASSISTANCE_CONTEXT_CHANGED_V40',function(){scheduleSync(100);schedulePull(80)});
   window.addEventListener('focus',function(){schedulePull(isUiQuiet()?520:220)});
   window.addEventListener('online',function(){start();flushRemoteDeletions();schedulePull(40);scheduleSync(80)});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)schedulePull(80)});
-  window.HappyadAssistanceRealtimeV749=Object.freeze({build:BUILD,start:start,sync:syncAll,pull:pullRemote,isConnected:function(){return !!(started&&currentUser&&channel)}});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){if(!channel)startRealtime();schedulePull(80);scheduleSync(140)}});
+  window.HappyadAssistanceRealtimeV750=window.HappyadAssistanceRealtimeV749=Object.freeze({build:BUILD,start:start,sync:syncAll,pull:pullRemote,isConnected:function(){return !!(started&&currentUser&&channel)}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

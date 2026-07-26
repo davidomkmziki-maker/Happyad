@@ -1,13 +1,13 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V749__)return;
-  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V749__=true;
+  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V750__)return;
+  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V750__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V749_DIRECT_PREWARM_TIMELINE_STABLE';
+  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V750_ADMIN_ONLY_TERMINAL_STABLE';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV749';
-  var FRAME_URL='modules/assistance.html?v=749-timeline-stable-invisible-direct';
+  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV750';
+  var FRAME_URL='modules/assistance.html?v=750-admin-only-terminal-stable';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null,parentClose=null;
   var openState=false,ready=false,documentLoaded=false;
@@ -55,8 +55,8 @@
     requestClose('parent-x');
   }
   function bindParentClose(){
-    if(!parentClose||parentClose.__happyadCloseV749Bound)return;
-    parentClose.__happyadCloseV749Bound=true;
+    if(!parentClose||parentClose.__happyadCloseV750Bound)return;
+    parentClose.__happyadCloseV750Bound=true;
     parentClose.style.touchAction='manipulation';
     if(window.PointerEvent){
       parentClose.addEventListener('pointerup',closeFromPointer,{capture:true,passive:false});
@@ -98,14 +98,14 @@
       host.className='happyadAssistanceHostV738';
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
-      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV749" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
+      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV750" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
     parentClose=document.getElementById(PARENT_CLOSE_ID);
     bindParentClose();
-    if(frame&&!frame.__happyadAssistanceV749Bound){
-      frame.__happyadAssistanceV749Bound=true;
+    if(frame&&!frame.__happyadAssistanceV750Bound){
+      frame.__happyadAssistanceV750Bound=true;
       frame.addEventListener('load',function(){
         documentLoaded=true;
         readyPollStartedAt=Date.now();
@@ -129,7 +129,7 @@
     prewarmStarted=true;
     readyPollStartedAt=0;
     frame.setAttribute('src',FRAME_URL);
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V749',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V750',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
     return true;
   }
   function slowConnection(){
@@ -239,6 +239,6 @@
     isReady:function(){return ready},
     context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}
   });
-  window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
+  window.HappyadAssistanceMasterV750=window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
   window.HappyadAssistanceMasterV737=api;
 })();
