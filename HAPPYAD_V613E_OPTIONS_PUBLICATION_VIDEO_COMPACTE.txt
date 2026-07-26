@@ -1,0 +1,12 @@
+HAPPYAD V613E LITE
+
+- Menu ⋯ unique et partagé pour photo et vidéo.
+- Propriétaire : privé/public/supprimer.
+- Visiteur : signaler.
+- Albums traités comme une publication complète.
+- File locale durable si Supabase est indisponible.
+- Fullscreen vidéo compact au-dessus du menu inférieur.
+- SQL de signalement inclus pour Supabase.
+
+Base : V613D Lite sans Boutique.
+Test Android final requis.

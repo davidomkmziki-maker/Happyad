@@ -1,0 +1,9 @@
+HAPPYAD V596 — AUTH FIRST TAP + LOGIN STATE
+
+- Le popup Connexion / Inscription s’ouvre dès le premier pointerdown sur les actions protégées.
+- Le clic de secours reste actif, avec anti-double-déclenchement.
+- Le bouton Notifications vérifie la session avant d’ouvrir sa page.
+- Les boutons du menu bas sont protégés au premier clic; Vidéos reste public.
+- Les actions des iframes utilisent le même garde V596 au premier contact.
+- Après validation des champs, le bouton Se connecter devient Connexion… et se désactive pendant la requête.
+- Les anciens maîtres V595 ne sont plus chargés dans cette version.

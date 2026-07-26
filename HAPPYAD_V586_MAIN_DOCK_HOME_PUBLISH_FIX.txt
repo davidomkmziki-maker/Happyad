@@ -1,0 +1,10 @@
+HAPPYAD V586
+
+- Suppression visuelle du cercle vide en haut à gauche de la centrale Vidéos.
+- Réactivation du contrôleur officiel HappyNavigation.close pour le bouton Accueil.
+- Fermeture robuste des iframes, du tap shield et des verrous de scroll à l’ouverture de l’Accueil.
+- Conservation/restauration de la position de défilement de l’Accueil.
+- Publication ouverte en plein écran sans barre principale en bas.
+- La barre reste visible uniquement sur Accueil, Vidéos, Messages et Profil.
+- Restauration explicite du défilement vertical de l’Accueil.
+- Cache PWA renouvelé en V586.

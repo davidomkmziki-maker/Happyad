@@ -1,0 +1,18 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 5G1B
+
+Base : Phase 5G1 Photo vue unique.
+
+Problèmes corrigés :
+- `Object not found` au premier clic alors que l'objet Storage existe ;
+- `L’identité d’un accès en vue unique est immuable` au clic suivant.
+
+Cause :
+- la policy Storage consultait directement plusieurs tables soumises à RLS ;
+- une nouvelle réservation modifiait `opened_at`, protégé comme identité immuable.
+
+Correction :
+- fonction SECURITY DEFINER dédiée à l'autorisation de lecture Storage ;
+- policy SELECT Storage qui appelle cette fonction ;
+- conservation stricte de `opened_at` lors des nouvelles réservations.
+
+Aucun changement dans les autres types de message ou modules HAPPYAD.

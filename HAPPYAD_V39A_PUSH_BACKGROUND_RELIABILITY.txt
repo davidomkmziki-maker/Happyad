@@ -1,0 +1,23 @@
+HAPPYAD V39A — PUSH ARRIÈRE-PLAN RENFORCÉ
+
+Base : HAPPYAD V39.zip.
+
+Modifications ciblées :
+- aucune modification du centre Messages, IndexedDB, médias, vue unique ou outbox ;
+- Web Push conserve urgency=high et passe à un TTL de 3 jours ;
+- chaque payload possède push_id et sent_at pour mesurer le retard réel ;
+- le service worker ne peut plus rester bloqué indéfiniment sur la recherche des fenêtres visibles ;
+- si Android livre un Push au moment où l'utilisateur ouvre l'application, la notification retardée est quand même affichée ;
+- si l'avatar distant ou les actions Android empêchent une notification riche, une notification HAPPYAD minimale est affichée en secours ;
+- pushsubscriptionchange renouvelle automatiquement l'abonnement local ;
+- le client réenregistre silencieusement l'abonnement au démarrage, au retour réseau, au focus et après mise à jour du service worker ;
+- une fonction SQL optionnelle désactive seulement les abonnements expirés et les doublons d'une même installation.
+
+À déployer :
+1. le ZIP du site ;
+2. SUPABASE_EDGE_FUNCTION_HAPPYAD_PUSH_PRODUCTION.ts dans l'Edge Function de production ;
+3. SUPABASE_EDGE_FUNCTION_HAPPYAD_PUSH_TEST.ts dans l'Edge Function de test ;
+4. exécuter SUPABASE_HAPPYAD_PUSH_PHASE39A_RELIABILITY.sql une seule fois (recommandé, non bloquant).
+
+Limite Android :
+Un site/PWA ne peut pas modifier automatiquement le réglage système Batterie > Restreint. V39A renforce tout ce qui est contrôlable par le Web Push, mais Android ou le constructeur garde l'autorité finale sur le réveil en arrière-plan.

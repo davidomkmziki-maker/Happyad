@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_AUTH_SESSION_MASTER_V598__)return;
   window.__HAPPYAD_AUTH_SESSION_MASTER_V598__=true;
 
-  var VERSION='AUTH_SESSION_MASTER_V752_AUTH_STORAGE_QUOTA_RECOVERY';
+  var VERSION='AUTH_SESSION_MASTER_V598_SIMPLE_NOTICE';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var session=null;
   var ready=false;
@@ -18,39 +18,8 @@
   var lastNoticeAt=0;
   var lastDirectMode='';
   var lastDirectAt=0;
-  var authOpeningTimerV710=0;
-  var authUnlockAtV710=0;
 
   function clean(v){return String(v==null?'':v).trim();}
-  function happyadHttpOriginV701(value){
-    try{
-      var u=new URL(String(value||''),location.href);
-      if(u.protocol!=='https:'&&u.protocol!=='http:')return '';
-      if(!u.hostname||/\.supabase\.co$/i.test(u.hostname))return '';
-      return u.origin.replace(/\/+$/,'');
-    }catch(_e){return '';}
-  }
-  function happyadRecoveryAppOriginV701(){
-    var candidates=[];
-    try{if(window.top&&window.top!==window)candidates.push(window.top.location.origin);}catch(_e){}
-    try{if(location.ancestorOrigins&&location.ancestorOrigins.length)candidates.push(location.ancestorOrigins[0]);}catch(_e){}
-    try{if(document.referrer)candidates.push(new URL(document.referrer).origin);}catch(_e){}
-    try{candidates.push(location.origin);}catch(_e){}
-    try{candidates.push(localStorage.getItem('HAPPYAD_APP_ORIGIN_V701'));}catch(_e){}
-    for(var i=0;i<candidates.length;i++){
-      var origin=happyadHttpOriginV701(candidates[i]);
-      if(!origin)continue;
-      try{localStorage.setItem('HAPPYAD_APP_ORIGIN_V701',origin);}catch(_e){}
-      return origin;
-    }
-    return '';
-  }
-  function happyadPasswordRecoveryRedirectV701(){
-    var origin=happyadRecoveryAppOriginV701();
-    return origin?origin+'/auth/reset/':'';
-  }
-  window.happyadPasswordRecoveryRedirectV701=happyadPasswordRecoveryRedirectV701;
-  try{happyadRecoveryAppOriginV701();}catch(_e){}
   function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v));}
   function esc(v){return clean(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function client(){
@@ -94,105 +63,56 @@
       ['HAPPYAD_FORCE_LOGOUT','HAPPYAD_FORCE_LOGOUT_UNTIL','HAPPYAD_LOGOUT_LOCK_V1','HAPPYAD_LOGOUT_AT_V1'].forEach(function(k){localStorage.removeItem(k);});
     }catch(_e){}
   }
-  var PROFILE_STABLE_PREFIX_V741='HAPPYAD_PROFILE_IDENTITY_STABLE_V741:';
-  function hasOwnV741(o,k){return !!(o&&Object.prototype.hasOwnProperty.call(o,k));}
-  function firstV741(){for(var i=0;i<arguments.length;i++){var v=clean(arguments[i]);if(v)return v;}return '';}
-  function readJsonV741(k){try{return JSON.parse(localStorage.getItem(k)||'null')||{};}catch(_e){return {};}}
-  function poorNameV741(v){v=clean(v).toLowerCase();return !v||v==='utilisateur'||v==='utilisateur happyad'||v==='happyad'||v==='compte happyad'||v.indexOf('aucun compte')>-1||v.indexOf('chargement profil')>-1;}
-  function poorHandleV741(v){v=clean(v).replace(/^@+/,'').toLowerCase();return !v||v==='happyad'||v==='utilisateur';}
-  function readStableV741(uid){return uid?readJsonV741(PROFILE_STABLE_PREFIX_V741+uid):{};}
-  function readCurrentV741(uid){
-    var keys=['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','happyad_current_user'];
-    var out={};
-    keys.forEach(function(k){var x=readJsonV741(k);var xid=clean(x.id||x.user_id||x.uid);if(!uid||!xid||xid===uid)Object.keys(x||{}).forEach(function(n){if(out[n]==null||out[n]===''||out[n]===false)out[n]=x[n];});});
-    return out;
-  }
-  function profileAvatarV741(p){p=p||{};return firstV741(p.avatar_url,p.avatarUrl,p.avatar,p.user_avatar,p.creator_avatar,p.author_avatar,p.profile_photo_url,p.profilePhotoUrl,p.profile_photo,p.profilePhoto,p.profile_picture_url,p.profilePictureUrl,p.profile_picture,p.profilePicture,p.photo_url,p.photoUrl,p.image_url,p.imageUrl,p.picture,p.profile_image_url,p.profileImageUrl,p.profile_avatar_url,p.profileAvatarUrl);}
-  function profileBadgeV741(p){p=p||{};return firstV741(p.badge,p.user_badge,p.profile_badge,p.badge_type,p.certification,p.verified_badge);}
-  function saveStableV741(u){
-    try{
-      var uid=clean(u&&u.id||u&&u.user_id);if(!uid)return;
-      var old=readStableV741(uid), next=Object.assign({},old,u||{}, {id:uid,user_id:uid,updated_at_local:new Date().toISOString()});
-      if(poorNameV741(next.name||next.full_name||next.display_name))delete next.name;
-      if(!firstV741(next.avatar,next.avatar_url))delete next.avatar;
-      localStorage.setItem(PROFILE_STABLE_PREFIX_V741+uid,JSON.stringify(next));
-    }catch(_e){}
-  }
   function saveWarmUser(user,profile){
     user=user||{};profile=profile||{};
     var meta=user.user_metadata||{};
-    var uid=clean(user.id||profile.id);
-    var current=readCurrentV741(uid), stable=readStableV741(uid);
-    var email=firstV741(user.email,current.email,current.contact,stable.email,stable.contact);
+    var email=clean(user.email);
     var base=(email?email.split('@')[0]:'happyad')||'happyad';
-    var remoteName=firstV741(profile.full_name,profile.display_name,profile.name);
-    var metaName=firstV741(meta.full_name,meta.name,meta.display_name);
-    var keptName=firstV741(current.name,current.full_name,current.display_name,stable.name,stable.full_name,stable.display_name);
-    var name=!poorNameV741(remoteName)?remoteName:(!poorNameV741(keptName)?keptName:(!poorNameV741(metaName)?metaName:base));
-    if(poorNameV741(name))name='Utilisateur HAPPYAD';
-    var remoteHandle=firstV741(profile.username,profile.handle).replace(/^@+/,'');
-    var keptHandle=firstV741(current.handle,current.username,stable.handle,stable.username,meta.username,meta.handle,base).replace(/^@+/,'');
-    var handle=(!poorHandleV741(remoteHandle)?remoteHandle:keptHandle).replace(/\s+/g,'').toLowerCase()||base;
-    var remoteAvatar=profileAvatarV741(profile);
-    var avatar=firstV741(remoteAvatar,meta.avatar_url,meta.picture,meta.avatar,profileAvatarV741(current),profileAvatarV741(stable));
-    var remoteRole=clean(profile.role).toLowerCase(),keptRole=clean(firstV741(current.role,stable.role,meta.role)).toLowerCase();
-    var role=(remoteRole&&!(remoteRole==='user'&&keptRole&&keptRole!=='user'))?remoteRole:(keptRole||remoteRole||'user');
-    var remoteBadge=clean(profileBadgeV741(profile)).toLowerCase(),keptBadge=clean(firstV741(current.badge,stable.badge)).toLowerCase();
-    var remoteBadgeUseful=remoteBadge&&remoteBadge!=='aucun'&&remoteBadge!=='none'&&remoteBadge!=='null'&&remoteBadge!=='undefined';
-    var keptBadgeUseful=keptBadge&&keptBadge!=='aucun'&&keptBadge!=='none'&&keptBadge!=='null'&&keptBadge!=='undefined';
-    var badge=remoteBadgeUseful?remoteBadge:(keptBadgeUseful?keptBadge:'aucun');
-    var next=Object.assign({},stable,current,{
-      id:uid,user_id:uid,name:name,full_name:name,display_name:name,handle:handle,username:handle,
-      email:email,contact:email,avatar:avatar,avatar_url:avatar,
-      bio:firstV741(profile.bio,current.bio,stable.bio),country:firstV741(profile.country,current.country,stable.country),
-      type:firstV741(profile.type,current.type,stable.type,'personal'),role:role,badge:badge,
-      posts:Number(profile.posts!=null?profile.posts:current.posts||stable.posts||0)||0,
-      followers:Number(profile.followers!=null?profile.followers:current.followers||stable.followers||0)||0,
-      following:Number(profile.following!=null?profile.following:current.following||stable.following||0)||0,
-      likes:Number(profile.likes!=null?profile.likes:current.likes||stable.likes||0)||0,
+    var handle=clean(profile.username||profile.handle||meta.username||meta.handle||base).replace(/^@+/,'').replace(/\s+/g,'').toLowerCase()||base;
+    var name=clean(profile.full_name||profile.display_name||profile.name||meta.full_name||meta.name||base)||'Utilisateur HAPPYAD';
+    var next={
+      id:clean(user.id),user_id:clean(user.id),name:name,full_name:name,handle:handle,username:handle,
+      email:email,contact:email,avatar:clean(profile.avatar_url||profile.avatar||meta.avatar_url||meta.picture),
+      avatar_url:clean(profile.avatar_url||profile.avatar||meta.avatar_url||meta.picture),bio:clean(profile.bio),
+      type:clean(profile.type)||'personal',role:clean(profile.role||'user').toLowerCase(),badge:clean(profile.badge||'aucun').toLowerCase(),
+      posts:Number(profile.posts||0)||0,followers:Number(profile.followers||0)||0,following:Number(profile.following||0)||0,likes:Number(profile.likes||0)||0,
       passwordSet:true,contactVerified:!!user.email_confirmed_at
-    });
+    };
     try{
-      ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','happyad_current_user','HAPPYAD_CURRENT_USER'].forEach(function(k){localStorage.setItem(k,JSON.stringify(next));});
+      localStorage.setItem(USER_KEY,JSON.stringify(next));
+      localStorage.setItem('HAPPYAD_USER',JSON.stringify(next));
+      localStorage.setItem('happyad_current_user',JSON.stringify(next));
+      localStorage.setItem('HAPPYAD_CURRENT_USER',JSON.stringify(next));
       localStorage.setItem('HAPPYAD_AUTH_UID',next.id);
       localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');
       removeLogoutLocks();
-      saveStableV741(next);
-      window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_IDENTITY_V741',{detail:{profile:next,source:'auth-session-v741'}}));
     }catch(_e){}
     return next;
   }
   async function fetchOrCreateProfile(user,seed){
     var c=client();if(!c||!c.from||!user||!isUuid(user.id))return null;
-    var profile=null, confirmedMissing=false;
+    var profile=null;
     try{
       var q=await c.from('profiles').select('*').eq('id',user.id).maybeSingle();
-      if(q&&q.error){console.warn('HAPPYAD V741 profile read refused; local identity kept',q.error);return null;}
-      if(q&&q.data)profile=q.data;else confirmedMissing=true;
-    }catch(_e){console.warn('HAPPYAD V741 profile read failed; no automatic overwrite',_e);return null;}
+      if(q&&!q.error&&q.data)profile=q.data;
+    }catch(_e){}
     if(profile)return profile;
-    if(!confirmedMissing)return null;
-    seed=Object.assign({},readStableV741(user.id),readCurrentV741(user.id),seed||{});
+    seed=seed||{};
     var meta=user.user_metadata||{};
     var email=clean(user.email||seed.email);
     var base=(email?email.split('@')[0]:'happyad')||'happyad';
     var payload={
       id:user.id,
-      full_name:firstV741(seed.full_name,seed.name,meta.full_name,meta.name,base)||'Utilisateur HAPPYAD',
-      username:firstV741(seed.username,seed.handle,meta.username,meta.handle,base).replace(/^@+/,'').replace(/\s+/g,'').toLowerCase()||('user_'+Date.now()),
-      avatar_url:firstV741(seed.avatar_url,seed.avatar,meta.avatar_url,meta.picture),
-      bio:firstV741(seed.bio,meta.bio),type:firstV741(seed.type,meta.type,'personal'),role:firstV741(seed.role,'user'),badge:firstV741(seed.badge,'aucun')
+      full_name:clean(seed.full_name||seed.name||meta.full_name||meta.name||base)||'Utilisateur HAPPYAD',
+      username:clean(seed.username||seed.handle||meta.username||meta.handle||base).replace(/^@+/,'').replace(/\s+/g,'').toLowerCase()||('user_'+Date.now()),
+      avatar_url:clean(seed.avatar_url||seed.avatar||meta.avatar_url||meta.picture),
+      bio:clean(seed.bio||meta.bio),type:clean(seed.type||meta.type)||'personal',role:'user',badge:'aucun'
     };
     try{
-      var ins=await c.from('profiles').insert(payload).select('*').maybeSingle();
-      if(ins&&!ins.error&&ins.data)return ins.data;
-      if(ins&&ins.error && /duplicate|unique|already exists|23505/i.test(String(ins.error.message||ins.error.code||''))){
-        var again=await c.from('profiles').select('*').eq('id',user.id).maybeSingle();
-        if(again&&!again.error&&again.data)return again.data;
-      }
-      if(ins&&ins.error)console.warn('HAPPYAD V741 profile create skipped',ins.error);
-    }catch(_e){console.warn('HAPPYAD V741 profile create failed safely',_e);}
-    return null;
+      var up=await c.from('profiles').upsert(payload,{onConflict:'id'}).select('*').maybeSingle();
+      if(up&&!up.error&&up.data)profile=up.data;
+    }catch(_e){}
+    return profile||payload;
   }
   function applySession(next,eventName,options){
     options=options||{};
@@ -245,22 +165,6 @@
       document.body.appendChild(d);setTimeout(function(){try{d.remove();}catch(_e){}},3500);
     }catch(_e){}
   }
-  function authOpeningActiveV710(){return !!(overlay&&Date.now()<authUnlockAtV710);}
-  function armAuthOpeningV710(delay){
-    if(!overlay)return;
-    clearTimeout(authOpeningTimerV710);
-    authUnlockAtV710=Date.now()+Math.max(180,Number(delay)||280);
-    overlay.classList.add('happyadAuthOpeningV710');
-    authOpeningTimerV710=setTimeout(function(){
-      authOpeningTimerV710=0;authUnlockAtV710=0;
-      try{overlay&&overlay.classList.remove('happyadAuthOpeningV710');}catch(_e){}
-    },Math.max(180,Number(delay)||280));
-  }
-  function blockAuthOpeningEventV710(ev){
-    if(!authOpeningActiveV710())return;
-    stop(ev);return false;
-  }
-
   function ensureOverlay(){
     if(overlay&&overlay.isConnected)return overlay;
     var css=document.getElementById('happyadAuthGateCssV595');
@@ -268,9 +172,6 @@
       css=document.createElement('style');css.id='happyadAuthGateCssV595';css.textContent='\
 #happyadAuthGateV595{position:fixed;inset:0;z-index:4000000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#fff}\
 #happyadAuthGateV595.on{display:flex}\
-#happyadAuthGateV595.happyadAuthOpeningV710 .haAuthGatePanel,#happyadAuthGateV595.happyadAuthOpeningV710 .haAuthGatePanel *{pointer-events:none!important}\
-#happyadAuthGateV595.on .haAuthGatePanel{animation:happyadAuthPanelInV710 .2s cubic-bezier(.2,.8,.2,1) both}\
-@keyframes happyadAuthPanelInV710{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}\
 #happyadAuthGateV595 .haAuthGatePanel{position:relative;width:min(440px,100%);max-height:min(88dvh,760px);overflow:auto;border:1px solid rgba(255,255,255,.28);border-radius:26px;background:linear-gradient(180deg,#12151b,#080a0e);box-shadow:0 30px 90px rgba(0,0,0,.72);padding:22px}\
 #happyadAuthGateV595 .haAuthGateClose{position:absolute;right:14px;top:14px;width:40px;height:40px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(255,255,255,.04);color:#fff;font-size:25px;display:grid;place-items:center}\
 #happyadAuthGateV595 .haAuthGateClose:active,#happyadAuthGateV595 button:active{background:rgba(190,196,205,.16)!important;border-color:#fff!important;color:#fff!important;transform:scale(.97) translateY(1px)}\
@@ -293,7 +194,6 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     document.body.appendChild(overlay);panelRoot=overlay.querySelector('#happyadAuthGateRootV595');
     overlay.querySelector('.haAuthGateClose').addEventListener('click',function(e){stop(e);closeOverlay(false);},true);
     overlay.addEventListener('click',function(e){if(e.target===overlay){stop(e);closeOverlay(false);}},true);
-    ['pointerdown','pointerup','click','touchstart','touchend','contextmenu'].forEach(function(type){overlay.addEventListener(type,blockAuthOpeningEventV710,true);});
     return overlay;
   }
   function setStatus(text){try{var s=document.getElementById('happyadAuthStatusV595');if(s)s.textContent=text||'';}catch(_e){}}
@@ -355,25 +255,16 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     broadcast('SIGNED_IN_READY');
     closeOverlay(true);
   }
-  async function signInWithQuotaRecoveryV752(c,email,pass){
-    try{return await c.auth.signInWithPassword({email:email,password:pass});}
-    catch(err){
-      var q=window.HappyadAuthStorageV752;
-      if(!q||!q.isQuota||!q.isQuota(err))throw err;
-      try{await q.recover('login-retry');}catch(_e){}
-      return await c.auth.signInWithPassword({email:email,password:pass});
-    }
-  }
   async function doLogin(e){
     stop(e);if(busy)return;var email=value('happyadAuthEmailV595'),pass=value('happyadAuthPassV595');
     if(!email||!pass){setStatus('Entre Gmail et mot de passe.');return;}
     var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
     busy=true;setStatus('');setSubmitBusy('happyadAuthLoginSubmitV595',true,'Connexion…','Se connecter');
     try{
-      var r=await signInWithQuotaRecoveryV752(c,email,pass);if(r&&r.error)throw r.error;
+      var r=await c.auth.signInWithPassword({email:email,password:pass});if(r&&r.error)throw r.error;
       var user=r&&r.data&&r.data.user;if(!user)throw new Error('Session introuvable.');
       await finishSignedIn(user,{email:email});toast('Connecté ✅');
-    }catch(err){var q=window.HappyadAuthStorageV752;if(q&&q.isQuota&&q.isQuota(err))setStatus('Espace temporaire saturé. HAPPYAD a libéré le cache de chargement. Appuie encore une fois sur Se connecter.');else setStatus('Connexion impossible : '+clean(err&&err.message||err));}
+    }catch(err){setStatus('Connexion impossible : '+clean(err&&err.message||err));}
     finally{busy=false;setSubmitBusy('happyadAuthLoginSubmitV595',false,'Connexion…','Se connecter');}
   }
   async function doForgot(e){
@@ -383,8 +274,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
     busy=true;setStatus('');setSubmitBusy('happyadAuthForgotSubmitV597',true,'Envoi…','Envoyer le lien');
     try{
-      var redirect=happyadPasswordRecoveryRedirectV701();
-      if(!redirect)throw new Error('Adresse actuelle de HAPPYAD introuvable. Ouvre le site en ligne puis réessaie.');
+      var redirect=(location.origin||'').replace(/\/+$/,'')+'/reset-password.html';
       var r=await c.auth.resetPasswordForEmail(email,{redirectTo:redirect});if(r&&r.error)throw r.error;
       setStatus('Lien envoyé. Vérifie ton Gmail.');
     }catch(err){setStatus('Envoi impossible : '+clean(err&&err.message||err));}
@@ -421,8 +311,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   function closeOverlay(authSuccess){
     if(!overlay)return;
-    clearTimeout(authOpeningTimerV710);authOpeningTimerV710=0;authUnlockAtV710=0;
-    overlay.classList.remove('on','happyadAuthOpeningV710');overlay.setAttribute('aria-hidden','true');
+    overlay.classList.remove('on');overlay.setAttribute('aria-hidden','true');
     document.body.classList.remove('happyadAuthGateOpenV595');
     if(authSuccess)resumePending();
   }
@@ -432,7 +321,6 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     if(mode==='login')renderLogin();
     else if(mode==='signup'||mode==='register'||mode==='inscription')renderSignup();
     else renderChoice();
-    armAuthOpeningV710(300);
     overlay.classList.add('on');overlay.setAttribute('aria-hidden','false');document.body.classList.add('happyadAuthGateOpenV595');
   }
   function guestNotice(){toast('Connecte-toi ou crée un compte');return false;}
@@ -530,18 +418,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     guestNotice();
     return false;
   }
-  function holdParentPointerDownV710(e){
-    var target=e&&e.target;if(!target||isAuthOverlayTarget(target)||isPwaInstallTarget(target)||isAuthenticated())return;
-    var direct=target.closest&&target.closest('[data-happyad-auth-direct-v598]');
-    if(!direct&&isHomePhotoViewerControl(target))return;
-    if(!direct&&isAllowedVideoOpen(target))return;
-    if(!direct&&isAllowedHomePhotoOpen(target))return;
-    var act=direct||actionable(target);if(!act)return;
-    /* Ne pas ouvrir le popup au pointerdown : le clic final pourrait tomber sur
-       un bouton qui vient juste d'apparaître. On bloque seulement la propagation. */
-    try{e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}catch(_e){}
-  }
-  document.addEventListener('pointerdown',holdParentPointerDownV710,true);
+  document.addEventListener('pointerdown',gateParentClick,true);
   document.addEventListener('click',gateParentClick,true);
 
   window.addEventListener('message',function(ev){

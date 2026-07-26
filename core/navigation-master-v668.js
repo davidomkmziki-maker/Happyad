@@ -4,7 +4,7 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V757_OWNER_PROFILE_PERSISTENT_AUDIT_STABLE';
+  var MASTER_VERSION='NAV_MASTER_V668_VISITOR_ON_DEMAND_UID_ISOLATED';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/user.html?public=1&deferred=1&v=601';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
@@ -31,7 +31,7 @@
     profile_public:'modules/user.html?public=1',
     video:'modules/video.html',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=761-message-badge-strict',
+    message:'modules/message-center.html',
     publish:'modules/publish.html',
     map:'modules/map.html'
   };
@@ -496,7 +496,7 @@
       if(!key)return null;
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
-      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=761-message-badge-strict',source:'url'};
+      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/user.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
@@ -543,12 +543,7 @@
       if(!fr)return;
       try{fr.removeAttribute('inert');fr.setAttribute('aria-hidden','false');}catch(_a){}
       var msg={type:'HAPPYAD_APP_FRAME_VISIBLE',page:page,url:rootUrl(url),source:source||MASTER_VERSION};
-      /* V756 : Mon profil reçoit un seul signal visible. Le lifecycle interne
-         reprend alors ses workers et émet lui-même son événement RESUME, sans
-         double rafraîchissement du DOM. */
-      if(page!=='profile'){
-        try{fr.contentWindow.postMessage({type:'HAPPYAD_MODULE_RESUME',page:page,url:rootUrl(url),source:source||MASTER_VERSION},'*');}catch(_r){}
-      }
+      try{fr.contentWindow.postMessage({type:'HAPPYAD_MODULE_RESUME',page:page,url:rootUrl(url),source:source||MASTER_VERSION},'*');}catch(_r){}
       try{fr.contentWindow.postMessage(msg,'*');}catch(_v){}
     }catch(_e){}
   }
@@ -578,7 +573,7 @@
   function persistentMainUrl(page){
     page=String(page||'');
     if(page==='video')return 'modules/video.html';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=761-message-badge-strict';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=main-tabs-v614';
     if(page==='profile')return 'modules/user.html';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';
@@ -644,7 +639,7 @@
       window.__HAPPYAD_MAIN_TABS_DIRECT_V625__=true;
       var queue=[
         {page:'video',delay:80},
-        {page:'profile',delay:110},
+        {page:'profile',delay:380},
         {page:'message',delay:820},
         {page:'publish',delay:1320}
       ];
@@ -807,10 +802,7 @@
     else {showVideoDirect(url,false);}
     showLoader(false);
     releaseNavGate('reveal-'+String(source||page||''));
-    /* Audit V757 : Mon profil reçoit un seul HAPPYAD_APP_FRAME_VISIBLE.
-       Les anciens maîtres internes rafraîchissent sur chaque signal visible ; le
-       second signal à +45 ms donnait l'impression d'un rechargement. */
-    if(page!=='profile'){try{setTimeout(function(){resumeFrame(fr,page,url,source||MASTER_VERSION);},45);}catch(_m){}}
+    try{setTimeout(function(){resumeFrame(fr,page,url,source||MASTER_VERSION);},45);}catch(_m){}
   }
   function clearVideoRouteMemory(reason){
     try{sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_e){}
@@ -963,27 +955,11 @@
   function sameFrameUrl(fr,url){
     try{return rootUrl(fr.getAttribute('data-happyad-src')||'')===rootUrl(url||'');}catch(_e){return false;}
   }
-  function ownerProfileFrameReusableV756(fr){
-    try{
-      if(!fr)return false;
-      var declared=rootUrl(fr.getAttribute('data-happyad-src')||'');
-      if(pathOf(declared)!=='modules/user.html'||/[?&]public=1(?:&|$)/.test(declared))return false;
-      var href=String(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
-      if(!href||href==='about:blank')return false;
-      var u=new URL(href,location.href);
-      if(!/(?:^|\/)modules\/user\.html$/i.test(u.pathname)&&!/(?:^|\/)user\.html$/i.test(u.pathname))return false;
-      if(/[?&]public=1(?:&|$)/.test(u.search||''))return false;
-      var d=fr.contentDocument;
-      if(!d||d.readyState==='loading'||!d.body)return false;
-      return true;
-    }catch(_e){return false;}
-  }
   function loadFrame(page,url,extra){
     extra=extra||{};
     var root=ensureShell();if(!root)return false;
     if(page==='profile_public')resetVisitorFrameForUrl(url);
     var fr=ensureFrame(page,url);if(!fr)return false;
-    var ownerReusableV756=page==='profile'&&ownerProfileFrameReusableV756(fr);
     if(page==='profile'){
       /* V687 : un clic explicite sur le bouton Mon profil prépare Publications
          avant que la frame déjà chaude soit rendue visible. Un retour depuis une
@@ -995,14 +971,7 @@
           if(tabsApi&&typeof tabsApi.prepareFreshOpen==='function')tabsApi.prepareFreshOpen('main-tabs-profile-v687');
         }
       }catch(_tabsPrepare){}
-      prepareOwnerProfileOpenV649('load-owner-profile-v756');
-      /* La frame propriétaire déjà peinte ne reçoit plus un second ordre de
-         reconstruction à chaque passage Accueil -> Profil. */
-      if(!ownerReusableV756)deliverOwnerTargetV649(fr,url,extra);
-      else{
-        fr.setAttribute('data-happyad-src','modules/user.html');
-        fr.setAttribute('data-happyad-owner-persistent-v756','1');
-      }
+      prepareOwnerProfileOpenV649('load-owner-profile-v649');deliverOwnerTargetV649(fr,url,extra);
     }
     /* V649 : un clic sur Mon profil verrouille d'abord le mode propriétaire.
        Le profil visiteur persistant reste en cache, mais ne peut plus reprendre l'écran. */
@@ -1016,13 +985,11 @@
     var visitorHasSource=visitorPersistent&&!!String(fr.getAttribute('data-happyad-src')||'').trim();
     var visitorReady=visitorPersistent&&visitorFrameReusableV601(fr);
     var mustReload=visitorPersistent?(!visitorHasSource||!visitorReady):!sameFrameUrl(fr,url);
-    if(page==='profile'&&ownerReusableV756)mustReload=false;
     var directMedia=isDirectMediaPage(page);
-    /* V756 : au premier chargement seulement, Mon profil reste invisible jusqu'à
-       son vrai signal READY; l'Accueil ou la page précédente reste affichée. Une
-       fois peinte, la même iframe est réutilisée sans rechargement. */
-    var ownerFirstPendingV756=page==='profile'&&!ownerReusableV756&&!frameLooksReady(fr,'profile');
-    var deferVisible=visitorPersistent?(mustReload||!visitorReady):ownerFirstPendingV756;
+    /* V625 : toutes les pages utilisent directement leur frame réelle, même lors
+       de la première ouverture. Seul le Profil visiteur reste masqué derrière son
+       squelette jusqu'au verrouillage et au rendu du bon UID. */
+    var deferVisible=visitorPersistent?(mustReload||!visitorReady):false;
     if(visitorPersistent){
       fr.__happyadVisitorOpenRequestedV601=true;
       fr.__happyadVisitorTargetV601={url:rootUrl(url),extra:extra||{}};
@@ -1033,31 +1000,17 @@
        aucun lecteur vidéo direct n'est lancé hors centrale. */
     if(deferVisible){
       showVideoDirect(url,false);
-      if(ownerFirstPendingV756){
-        /* Aucun écran noir/spinner : la surface précédente reste visible jusqu'au
-           premier rendu réel de Mon profil. */
-        showSkeleton(page,url,false);
-        try{
-          fr.classList.add('on');
-          fr.style.opacity='0';
-          fr.style.visibility='hidden';
-          fr.setAttribute('data-happyad-defer-visible','1');
-          fr.setAttribute('data-happyad-skeleton-start',String(Date.now()));
-          fr.removeAttribute('data-happyad-first-render-ready-v623');
-        }catch(_ownerPending){}
-      }else{
-        showSkeleton(page,url,true);
-        try{
-          /* On suspend le média de la surface précédente, mais on ne la masque pas avant le rendu suivant. */
-          root.querySelectorAll('.happyadAppFrame').forEach(function(x){if(x!==fr)pauseFrame(x,'prepare-module-'+page);});
-          fr.classList.remove('on');
-          fr.style.opacity='0';
-          fr.style.visibility='hidden';
-          fr.setAttribute('data-happyad-defer-visible','1');
-          fr.setAttribute('data-happyad-skeleton-start',String(Date.now()));
-          fr.removeAttribute('data-happyad-first-render-ready-v623');
-        }catch(_d){}
-      }
+      showSkeleton(page,url,true);
+      try{
+        /* On suspend le média de la surface précédente, mais on ne la masque pas avant le rendu suivant. */
+        root.querySelectorAll('.happyadAppFrame').forEach(function(x){if(x!==fr)pauseFrame(x,'prepare-module-'+page);});
+        fr.classList.remove('on');
+        fr.style.opacity='0';
+        fr.style.visibility='hidden';
+        fr.setAttribute('data-happyad-defer-visible','1');
+        fr.setAttribute('data-happyad-skeleton-start',String(Date.now()));
+        fr.removeAttribute('data-happyad-first-render-ready-v623');
+      }catch(_d){}
     }else{
       showVideoDirect(url,false);
       showSkeleton(page,url,false);
@@ -1147,9 +1100,7 @@
     var ok=loadFrame(page,url,extra);
     if(ok){
       pushNav(page,url,!!extra.replace);
-      if(page!=='profile'){
-        try{setTimeout(function(){postToFrameV594(page,{type:'HAPPYAD_APP_FRAME_VISIBLE',page:page,url:url,source:extra.source||'main-tabs-v594'});},0);}catch(_v){}
-      }
+      try{setTimeout(function(){postToFrameV594(page,{type:'HAPPYAD_APP_FRAME_VISIBLE',page:page,url:url,source:extra.source||'main-tabs-v594'});},0);}catch(_v){}
     }
     return ok;
   }
@@ -1298,7 +1249,6 @@
       if(page==='video'&&type!=='HAPPYAD_VIDEO_TAB_READY_V594'&&type!=='HAPPYAD_VIDEO_READY')return false;
       fr.setAttribute('data-happyad-first-render-ready-v623','1');
       fr.setAttribute('data-happyad-first-render-reason-v623',type||'ready');
-      if(page==='profile')fr.setAttribute('data-happyad-owner-persistent-v756','1');
       if(fr.getAttribute('data-happyad-defer-visible')==='1'){
         revealFrame(fr,page,fr.getAttribute('data-happyad-route-url-v601')||fr.getAttribute('data-happyad-src')||pages[page]||'',type||'first-render-v625');
       }

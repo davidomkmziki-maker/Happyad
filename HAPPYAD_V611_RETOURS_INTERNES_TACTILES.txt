@@ -1,0 +1,12 @@
+HAPPYAD V611 — RETOURS INTERNES TACTILES
+
+Base : V610 stable.
+
+Correction ciblée :
+- les boutons retour internes réagissent dès le relâchement du doigt sur Android ;
+- le clic synthétique retardé du navigateur est neutralisé pour éviter un double retour ;
+- un déplacement du doigt ou un scroll n’est jamais interprété comme un retour ;
+- aucun appel d’autorisation n’est ajouté ;
+- les chemins existants des photos, notifications, conversations, profil et publication sont conservés.
+
+PWA : cache Service Worker monté en V611 afin que les appareils déjà installés récupèrent la correction.

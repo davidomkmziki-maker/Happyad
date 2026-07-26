@@ -31,7 +31,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#03070d">
-  <title>Notifications — HAPPYAD V735 Story exacte</title>
+  <title>Notifications — HAPPYAD V700 Scroll infini</title>
   <!-- HAPPYAD_NOTIFICATION_CENTER_BADGES_MEDIA_V4 -->
   <style>
 :root {
@@ -2116,54 +2116,33 @@ button.notification-leading {
     } catch {}
   }
 
-  const pendingExactStoryOpensV735 = new Set();
-
-  async function openStoryNotification(item) {
+  function openStoryNotification(item) {
     const storyId = storyIdFrom(item);
     if (!storyId) {
       showToast('Story introuvable.');
       return false;
     }
-    if (pendingExactStoryOpensV735.has(storyId)) return false;
-
-    pendingExactStoryOpensV735.add(storyId);
     markRead(item && item.id);
-
     const metadata = item && item.metadata && typeof item.metadata === 'object' ? item.metadata : {};
     const detail = {
       story_id: storyId,
       id: storyId,
       owner_id: cleanValue(firstDefined(item && item.storyOwnerId, item && item.story_owner_id, metadata.owner_id, metadata.user_id, metadata.creator_id)),
       user_id: cleanValue(firstDefined(item && item.storyOwnerId, item && item.story_owner_id, metadata.user_id, metadata.owner_id, metadata.creator_id)),
-      notification_id: cleanValue(item && item.id),
-      source: 'notification-center-v735-exact-story',
-      author_name: cleanValue(firstDefined(item && item.author_name, item && item.profileName, metadata.author_name))
+      media_url: cleanValue(firstDefined(item && item.media_url, item && item.preview_url, item && item.thumb, metadata.media_url, metadata.preview_url)),
+      preview_url: cleanValue(firstDefined(item && item.preview_url, item && item.thumb, item && item.media_url, metadata.preview_url, metadata.media_url)),
+      thumbnail_url: cleanValue(firstDefined(item && item.thumbnail_url, item && item.preview_url, metadata.thumbnail_url, metadata.preview_url)),
+      media_type: cleanValue(firstDefined(item && item.media_type, item && item.publicationType, metadata.media_type, metadata.content_type, 'photo')),
+      description: cleanValue(firstDefined(item && item.description, metadata.description)),
+      author_name: cleanValue(firstDefined(item && item.author_name, item && item.profileName, metadata.author_name)),
+      created_at: firstDefined(item && item.created_at, metadata.created_at, ''),
+      expires_at: firstDefined(item && item.expires_at, metadata.expires_at, '')
     };
-
     try {
-      const host = appWindow();
-      const storyMaster = host && (host.HappyStoryV699 || host.HappyStoryV629);
-
-      if (storyMaster && typeof storyMaster.openExactNotification === 'function') {
-        await storyMaster.openExactNotification(detail);
-      } else if (window.parent && window.parent !== window) {
-        window.parent.postMessage({
-          type: 'HAPPYAD_OPEN_EXACT_STORY_NOTIFICATION_V735',
-          detail
-        }, '*');
-      } else {
-        window.postMessage({
-          type: 'HAPPYAD_OPEN_EXACT_STORY_NOTIFICATION_V735',
-          detail
-        }, '*');
-      }
-    } catch {
-      showToast('Story indisponible. Réessayez.');
-    } finally {
-      pendingExactStoryOpensV735.delete(storyId);
-      renderNotifications();
-    }
-
+      if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'HAPPYAD_OPEN_SHARED_STORY', detail }, '*');
+      else window.postMessage({ type: 'HAPPYAD_OPEN_SHARED_STORY', detail }, '*');
+    } catch {}
+    renderNotifications();
     return true;
   }
 

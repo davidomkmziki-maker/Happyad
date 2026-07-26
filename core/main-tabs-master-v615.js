@@ -71,7 +71,7 @@
     try{
       if(n&&typeof n.activateMainTab==='function')return n.activateMainTab(page,extra);
       if(n&&typeof n.open==='function'){
-        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=761-message-badge-strict',profile:'modules/user.html',publish:'modules/publish.html'};
+        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=main-tabs-v594',profile:'modules/user.html',publish:'modules/publish.html'};
         return n.open(urls[page]||'index.html',{page:page,source:extra.source||VERSION,force:true});
       }
     }catch(_e){}

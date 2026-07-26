@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V712_INTERNAL_RETURN_PROFILE_SETTINGS';
+  var VERSION='V694_INTERNAL_RETURN_NOTIFICATION_DOCK_RESTORE';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
   var NOTIF_URL='modules/notification-center.html?v=700-infinite-scroll';
@@ -17,8 +17,6 @@
   var notificationRevealTimer=0;
   var lastStableRoute=null;
   var photoReturnRoute=null;
-  var profileSettingsHistoryArmed=false;
-  var profileSettingsPopInstalled=false;
 
   function clean(v){return String(v==null?'':v).trim();}
   function now(){return Date.now?Date.now():(new Date()).getTime();}
@@ -73,40 +71,11 @@
     forceDockHidden(hidden);
     setTimeout(function(){notifyMessageLayout(hidden?'internal-open-v591':'internal-closed-v591');},20);
   }
-
-  function armProfileSettingsHistory(){
-    if(profileSettingsHistoryArmed)return true;
-    try{
-      var base=Object.assign({},history.state||{});
-      base.__happyadProfileSettingsBaseV712=true;
-      History.prototype.replaceState.call(history,base,'',location.href);
-      var active=Object.assign({},base,{__happyadProfileSettingsActiveV712:true,at:now()});
-      History.prototype.pushState.call(history,active,'',location.href);
-      profileSettingsHistoryArmed=true;
-    }catch(_e){profileSettingsHistoryArmed=false;}
-    if(!profileSettingsPopInstalled){
-      profileSettingsPopInstalled=true;
-      try{EventTarget.prototype.addEventListener.call(window,'popstate',function(){
-        if(profileSettingsHistoryArmed&&topLayer()==='profile-settings'){
-          profileSettingsHistoryArmed=false;
-          back('profile-settings');
-        }
-      },true);}catch(_e){}
-    }
-    return profileSettingsHistoryArmed;
-  }
-  function consumeProfileSettingsHistory(){
-    if(!profileSettingsHistoryArmed)return false;
-    profileSettingsHistoryArmed=false;
-    try{History.prototype.go.call(history,-1);return true;}catch(_e){return false;}
-  }
-
   function openLayer(id,options){
     id=clean(id)||'internal';
     var idx=layerIndex(id);if(idx>=0)layers.splice(idx,1);
     layers.push(id);
     if(options&&typeof options.onBack==='function')handlers[id]=options.onBack;
-    if(id==='profile-settings')armProfileSettingsHistory();
     applyDock();
     try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
     return id;
@@ -115,7 +84,6 @@
     id=clean(id);
     if(!id)id=topLayer();
     var idx=layerIndex(id);if(idx>=0)layers.splice(idx,1);
-    if(id==='profile-settings')consumeProfileSettingsHistory();
     delete handlers[id];
     applyDock();
     try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_o){}
@@ -286,7 +254,6 @@
     if(id==='notification')return hideNotification('notification-button-v591');
     if(id==='photo-central')return returnFromCentralPhoto();
     if(id==='message-chat')return postToFrame('message','HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
-    if(id==='profile-settings')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
     if(id==='profile-photo')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
     return false;
   }

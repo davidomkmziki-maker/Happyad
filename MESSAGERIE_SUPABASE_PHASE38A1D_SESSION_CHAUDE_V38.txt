@@ -1,0 +1,20 @@
+HAPPYAD V38 — MESSAGERIE PHASE 38A1D
+
+OBJECTIF
+- Conserver la session Messages chaude entre Accueil et Conversations.
+
+CAUSE CORRIGEE
+- Le centre parent réaffectait le src de l'iframe message-center.html à chaque ouverture.
+- Cela recréait le client Supabase et relançait getSession/boot silencieusement.
+
+CORRECTION
+- L'iframe est créée et chargée une seule fois.
+- Au retour vers l'accueil elle est seulement masquée.
+- À la réouverture elle est seulement réaffichée et reçoit un nouveau contexte par postMessage.
+- IndexedDB, client Supabase, bootPromise et état Realtime restent vivants.
+
+NON MODIFIE
+- SQL Supabase.
+- Messages, conversations et médias.
+- Vue unique.
+- Autres modules du site.

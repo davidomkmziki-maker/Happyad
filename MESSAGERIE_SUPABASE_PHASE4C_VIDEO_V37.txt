@@ -1,0 +1,20 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 4C VIDÉO RÉELLE
+
+Base : Phase 4B3 Photo validée.
+
+Ajouts strictement limités à Messages :
+- sélection photo ou vidéo depuis le bouton + ;
+- compatibilité MP4, M4V, MOV, WEBM, 3GP et OGV ;
+- reconnaissance des vidéos téléchargées même avec MIME application/octet-stream ;
+- maintien de l’autorisation Android jusqu’à la fin de l’upload vidéo ;
+- lecture des dimensions et de la durée réelle ;
+- aperçu vidéo avant envoi ;
+- fermeture immédiate du brouillon au clic Envoyer ;
+- upload dans happyad-message-files avec chemin conversation/user/client/file ;
+- appel happyad_msg_send_media avec kind=video et duration_ms obligatoire ;
+- message local remplacé par la confirmation serveur ;
+- réception Realtime et URL signée ;
+- lecteur vidéo avec contrôles et proportions originales ;
+- pause automatique des vidéos hors conversation, en arrière-plan et lorsqu’une autre vidéo démarre.
+
+Non modifié : SQL, audio 4A, photo 4B3, profils, Radar, boutique, authentification, vidéos du fil principal.

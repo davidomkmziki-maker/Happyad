@@ -1,0 +1,19 @@
+HAPPYAD V38E6 — PHOTO PROFIL + ACTION RÉPONDRE
+
+Base : V38E5 validée.
+
+Corrections ciblées :
+- l'image à droite de la notification utilise la photo HTTPS de l'expéditeur ;
+- si aucune photo valide n'existe, le logo HAPPYAD reste affiché ;
+- ajout du bouton Répondre pour les notifications de messages ;
+- Répondre ouvre directement la conversation et place le focus dans le champ de saisie ;
+- aucune réponse n'est envoyée automatiquement ;
+- aucune modification du cache Messages, de Realtime, server_seq, médias ou vue unique.
+
+INSTALLATION :
+1. Dans Supabase, remplacer le code de la fonction happyad-push-test par SUPABASE_EDGE_FUNCTION_HAPPYAD_PUSH_PRODUCTION.ts puis Deploy updates.
+2. Déployer ce ZIP sur Netlify.
+3. Ouvrir HAPPYAD une fois pour activer le nouveau service worker.
+4. Fermer HAPPYAD et envoyer un nouveau message depuis un autre compte.
+
+Note : le bouton d'action dépend de la présentation choisie par Android/Chrome et peut apparaître après développement de la notification.

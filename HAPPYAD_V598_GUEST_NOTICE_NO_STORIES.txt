@@ -1,0 +1,10 @@
+HAPPYAD V598 — accès visiteur simplifié
+
+- Tous les boutons/actions privés affichent uniquement : « Connecte-toi ou crée un compte ».
+- Le bouton Vidéos et l’ouverture d’une vidéo restent publics.
+- Le fullscreen photo de l’accueil et ses contrôles restent publics.
+- Le popup complet ne s’ouvre plus depuis les autres boutons.
+- Deux boutons seulement ouvrent le popup : Connexion et Inscription dans la zone Radar.
+- Déconnecté : Ta story et toutes les stories Radar sont masquées.
+- Connecté : les stories et Ta story réapparaissent automatiquement.
+- Menu principal traité au pointerdown pour éviter le double-clic et les conflits pointerup/click.

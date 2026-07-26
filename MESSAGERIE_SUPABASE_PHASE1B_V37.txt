@@ -1,0 +1,11 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 1B
+
+Correction ciblée : affichage du texte confirmé par happyad_msg_send_text.
+
+Cause : la RPC retourne message_body, message_kind et message_server_seq, alors que le frontend lisait seulement body, kind et server_seq. Le message optimiste contenant le texte était remplacé par une réponse serveur normalisée avec body vide.
+
+Modifications :
+- modules/message-center.html : normalizeMessage accepte désormais les deux formats de retour.
+- service-worker.js : version de cache mise à jour.
+
+Aucun changement SQL, aucun changement de design, aucun changement sur les autres modules.

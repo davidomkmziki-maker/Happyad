@@ -1,0 +1,467 @@
+[
+  {
+    "file": "core/return-reset-master-v584.js",
+    "change": "created no-return baseline guard",
+    "count": 1
+  },
+  {
+    "file": "boutique.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "reset-password.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/live.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/map.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/posts.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/publish.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/video.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/message-center.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/notification-center.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/share-center.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "load V584 reset before legacy scripts",
+    "count": 1
+  },
+  {
+    "file": "core/message-return-center.js",
+    "change": "deleted legacy return-only master",
+    "count": 1
+  },
+  {
+    "file": "core/notification-return-center.js",
+    "change": "deleted legacy return-only master",
+    "count": 1
+  },
+  {
+    "file": "core/profile-photo-return-master-v577.js",
+    "change": "deleted legacy return-only master",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "removed legacy return master references",
+    "count": 3
+  },
+  {
+    "file": "modules/user.html",
+    "change": "removed legacy return master references",
+    "count": 1
+  },
+  {
+    "file": "service-worker.js",
+    "change": "removed legacy return master references",
+    "count": 2
+  },
+  {
+    "file": "service-worker.js",
+    "change": "cache V584 reset master",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "disable frame close bridge",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "replace navigation history instead of stacking",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "disable navigation back function",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "disable global legacy close api",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "swallow old close/back messages",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "remove navigation popstate controller",
+    "count": 1
+  },
+  {
+    "file": "core/history.js",
+    "change": "disable HappyHistory.back",
+    "count": 1
+  },
+  {
+    "file": "core/router.js",
+    "change": "disable HappyRouter.back",
+    "count": 1
+  },
+  {
+    "file": "boutique.html",
+    "change": "remove boutique back button",
+    "count": 1
+  },
+  {
+    "file": "modules/map.html",
+    "change": "remove map back link",
+    "count": 1
+  },
+  {
+    "file": "modules/video.html",
+    "change": "remove video back button",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "remove photo back button",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "remove photo empty-state return links",
+    "count": 3
+  },
+  {
+    "file": "modules/posts.html",
+    "change": "remove posts back link",
+    "count": 1
+  },
+  {
+    "file": "modules/publish.html",
+    "change": "remove publish editor back button",
+    "count": 1
+  },
+  {
+    "file": "reset-password.html",
+    "change": "remove reset page return link",
+    "count": 1
+  },
+  {
+    "file": "modules/message-center.html",
+    "change": "remove inbox back button",
+    "count": 1
+  },
+  {
+    "file": "modules/message-center.html",
+    "change": "remove chat back button",
+    "count": 1
+  },
+  {
+    "file": "modules/message-center.html",
+    "change": "remove message center back handlers",
+    "count": 1
+  },
+  {
+    "file": "modules/notification-center.html",
+    "change": "remove notification back button",
+    "count": 1
+  },
+  {
+    "file": "modules/notification-center.html",
+    "change": "remove notification back handler",
+    "count": 1
+  },
+  {
+    "file": "core/profile-scroll-master-v569.js",
+    "change": "remove compact profile back control",
+    "count": 1
+  },
+  {
+    "file": "core/profile-scroll-master-v569.js",
+    "change": "remove compact profile back handler",
+    "count": 1
+  },
+  {
+    "file": "core/profile-post-feed-master-v581.js",
+    "change": "remove profile post feed back control",
+    "count": 1
+  },
+  {
+    "file": "core/profile-post-feed-master-v581.js",
+    "change": "remove profile post feed back handler",
+    "count": 1
+  },
+  {
+    "file": "modules/js/01-profile.js",
+    "change": "remove category return control",
+    "count": 1
+  },
+  {
+    "file": "modules/js/v58-product-seller-rating-engine.js",
+    "change": "remove category return control",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove auth choice return buttons",
+    "count": 2
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove forgot password return button",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove auth choice return handler",
+    "count": 2
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove forgot password return handler",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove story back control",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove story back onclick",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove story local return handler",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove story back control",
+    "count": 6
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove story back onclick",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove story local return handler",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove fullscreen photo return control",
+    "count": 2
+  },
+  {
+    "file": "index.html",
+    "change": "make removed fullscreen close handler safe",
+    "count": 2
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove fullscreen photo return control",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "make removed fullscreen close handler safe",
+    "count": 1
+  },
+  {
+    "file": "modules/map.html",
+    "change": "neutralize module close bridge",
+    "count": 1
+  },
+  {
+    "file": "modules/map.html",
+    "change": "neutralize module back api",
+    "count": 1
+  },
+  {
+    "file": "modules/video.html",
+    "change": "neutralize module close bridge",
+    "count": 1
+  },
+  {
+    "file": "modules/video.html",
+    "change": "neutralize module back api",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "neutralize module close bridge",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "neutralize module back api",
+    "count": 1
+  },
+  {
+    "file": "modules/publish.html",
+    "change": "neutralize module close bridge",
+    "count": 1
+  },
+  {
+    "file": "modules/publish.html",
+    "change": "neutralize module back api",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "neutralize module close bridge",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "neutralize module back api",
+    "count": 1
+  },
+  {
+    "file": "modules/video.html",
+    "change": "remove video internal back script",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "remove first photo internal back script",
+    "count": 1
+  },
+  {
+    "file": "HAPPYAD_V584_NO_RETURN_BASELINE.txt",
+    "change": "created change report",
+    "count": 1
+  },
+  {
+    "file": "boutique.html",
+    "change": "remove boutique legacy return block",
+    "count": 1
+  },
+  {
+    "file": "core/navigation-master.js",
+    "change": "remove old home phone-back controller",
+    "count": 1
+  },
+  {
+    "file": "modules/message-center.html",
+    "change": "remove message center close navigation",
+    "count": 1
+  },
+  {
+    "file": "modules/js/01-profile.js",
+    "change": "remove boutique internal back function",
+    "count": 1
+  },
+  {
+    "file": "core/share-master.js",
+    "change": "remove share history return",
+    "count": 1
+  },
+  {
+    "file": "core/share-master.js",
+    "change": "remove share app-page return",
+    "count": 1
+  },
+  {
+    "file": "core/share-master.js",
+    "change": "remove share popstate return",
+    "count": 1
+  },
+  {
+    "file": "core/notification-home-comment-center.js",
+    "change": "remove notification-comment popstate return",
+    "count": 1
+  },
+  {
+    "file": "modules/publish.html",
+    "change": "remove publish success close message",
+    "count": 1
+  },
+  {
+    "file": "modules/publish.html",
+    "change": "remove publish legacy close fallback",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove user parent close bridge",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove profile photo fullscreen return controller",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove home photo fullscreen return controller",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove hard story popstate",
+    "count": 1
+  },
+  {
+    "file": "index.html",
+    "change": "remove story media popstate",
+    "count": 1
+  },
+  {
+    "file": "modules/user.html",
+    "change": "remove story media popstate",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "restored full photo module after overbroad first-pass removal",
+    "count": 1
+  },
+  {
+    "file": "modules/photo.html",
+    "change": "reapplied precise V584 photo return cleanup",
+    "count": 1
+  }
+]

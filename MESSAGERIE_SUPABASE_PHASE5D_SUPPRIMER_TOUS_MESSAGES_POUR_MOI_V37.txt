@@ -1,0 +1,21 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE — PHASE 5D
+
+Fonction ajoutée : supprimer tous les messages d’une conversation uniquement pour le compte connecté.
+
+COMPORTEMENT
+- Ouvrir une conversation puis toucher le menu à trois points en haut à droite.
+- Un seul popup explique que les messages seront retirés uniquement du compte connecté.
+- Le bouton « Supprimer tous les messages pour moi » appelle la RPC happyad_msg_clear_conversation.
+- Aucun deuxième écran de confirmation.
+- Tous les textes, vocaux, photos, vidéos et fichiers existants sont retirés de ce compte.
+- L’autre personne conserve tous ses messages.
+- La conversation reste disponible et peut recevoir de nouveaux messages.
+- Après succès, la liste est rechargée depuis Supabase afin d’empêcher le retour d’anciens messages.
+- En cas d’erreur Supabase, l’affichage précédent est restauré.
+
+SUPABASE
+RPC utilisée : public.happyad_msg_clear_conversation(p_conversation_id uuid).
+Aucune table et aucune policy ne sont modifiées par le ZIP.
+
+BASE
+Phase 5C1 validée : barre de saisie naturelle avec clavier, réponse et modification.

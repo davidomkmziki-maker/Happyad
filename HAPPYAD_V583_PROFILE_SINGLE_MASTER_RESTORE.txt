@@ -1,0 +1,11 @@
+HAPPYAD V583 — RESTAURATION DU MAÎTRE V581
+
+Source : V581 validée.
+
+- Aucun nouveau maître Profil n'a été ajouté.
+- Le fichier existant core/profile-post-feed-master-v581.js reste l'unique maître des photos Profil.
+- Mon profil et Profil visiteur utilisent le même viewer photo vertical/horizontal.
+- Les listes Mon profil et Profil visiteur sont isolées : aucune publication d'un autre profil n'est mélangée.
+- Les cartes vidéo sont totalement ignorées par le maître Photo et continuent vers la centrale Vidéo existante.
+- L'ancien clic Photo délègue au même maître V581 au lieu de rouvrir l'ancien fullscreen.
+- Cache Service Worker, URL du script et en-têtes /core renouvelés pour empêcher le retour à une ancienne version.

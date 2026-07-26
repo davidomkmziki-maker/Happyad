@@ -2,7 +2,7 @@
   "name": "HAPPYAD",
   "short_name": "HAPPYAD",
   "description": "HAPPYAD - réseau social et installation PWA.",
-  "start_url": "./index.html?source=pwa&v=752-auth-storage-quota-idb",
+  "start_url": "./index.html?source=pwa&v=623-direct-surface",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

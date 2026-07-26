@@ -1,0 +1,8 @@
+HAPPYAD V613B LITE — ACCUEIL PUBLICATIONS RESTAURÉES
+
+Cause corrigée : le filtre V613 supprimait toute ligne dont post_type valait boutique, même lorsque cette ancienne valeur ne représentait pas un produit réellement lié.
+
+Nouvelle règle : seule une publication possédant un boutique_product_id explicite est retirée du flux social.
+Les publications sociales historiques, photos et vidéos restent visibles même si leur ancien post_type est imprécis.
+La Boutique, son bouton, ses routes et sa publication produit restent supprimés.
+Protection supplémentaire : une réponse Supabase vide ou lente ne remplace plus un cache local contenant déjà des publications.

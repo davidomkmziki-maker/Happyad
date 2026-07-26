@@ -1,0 +1,26 @@
+HAPPYAD — MESSAGERIE V38C1 MÉDIAS LOCAUX À LA DEMANDE
+
+BASE
+- HAPPYAD_P1_V38_MESSAGES_SUPABASE_PHASE38A2_DIFFERENTIAL_SYNC.zip
+
+OBJECTIF
+- Ne plus recharger les médias ordinaires lourds à chaque ouverture.
+- Garder les bulles et l'historique stables, même si le fichier local a été nettoyé.
+- Ne jamais conserver ni recharger une vue unique déjà consommée.
+
+MÉDIAS ORDINAIRES
+- IndexedDB media_cache stocke les Blobs par bucket + storage_path.
+- Vocaux et audios <= 25 Mo : téléchargement automatique.
+- Photos, vidéos, PDF et documents : téléchargement au toucher.
+- Médias envoyés : copie locale après confirmation Supabase.
+- Nettoyage LRU sous pression de stockage, plafond local dynamique jusqu'à 512 Mo.
+- Repli temporaire en mémoire si le stockage local est plein.
+
+VUE UNIQUE
+- Aucun Blob, URL, miniature ou attachment permanent.
+- Suppression locale après consommation + fermeture.
+- Tombstone permanent par message pour empêcher toute réapparition.
+- L'expéditeur garde « Déjà ouvert » jusqu'à son nettoyage manuel.
+
+SQL
+- Aucun SQL supplémentaire.

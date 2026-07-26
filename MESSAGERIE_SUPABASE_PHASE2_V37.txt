@@ -1,0 +1,27 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 2
+
+Base : Phase 1B (texte corrigé).
+
+Connecté :
+- happyad_msg_mark_delivered
+- happyad_msg_mark_read
+- happyad_msg_get_unread_total
+- badge non lu par conversation via happyad_msg_list_conversations
+- compteur global sur le bouton Messages de l’accueil
+- états visuels : ✓ envoyé, ✓✓ livré, ✓✓ vert lu
+
+Comportement :
+- la liste marque comme livrés les nouveaux messages reçus lors de sa synchronisation ;
+- l’ouverture d’une conversation marque les messages présents comme lus ;
+- le compteur global est recalculé depuis Supabase, sans cache Messages global ;
+- aucun listener Realtime Messages n’est ajouté dans cette phase ;
+- aucun média, suppression ou vue unique n’est connecté.
+
+Compatibilité :
+- plusieurs variantes de noms de paramètres RPC sont essayées pour s’adapter aux signatures existantes ;
+- plusieurs variantes de noms de curseurs livré/lu sont reconnues dans les résultats SQL.
+
+Fichiers modifiés :
+- modules/message-center.html
+- index.html
+- service-worker.js

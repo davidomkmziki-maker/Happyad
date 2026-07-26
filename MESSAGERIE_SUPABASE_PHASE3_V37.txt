@@ -1,0 +1,16 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 3 REALTIME
+
+Base : Phase 2B exact receipts.
+
+Ajouts :
+- Un seul abonnement Realtime global dans index.html.
+- Tables écoutées : happyad_msg_messages, happyad_msg_conversations, happyad_msg_conversation_members, happyad_msg_message_access, happyad_msg_message_deletions.
+- Livraison automatique sur INSERT d’un message reçu lorsque l’application est connectée.
+- Transmission des événements au maître Messages par postMessage.
+- Fusion des nouveaux messages par client_message_id/server_seq sans créer un second listener.
+- Mise à jour immédiate de ✓ vers ✓✓ et ✓✓ vert via conversation_members.
+- Actualisation silencieuse de la liste, des badges et du compteur global.
+- Aucun Realtime média séparé.
+- Aucun changement SQL, Storage, profil, vidéo, Radar, boutique ou authentification.
+
+Règle : un seul canal actif par session Auth. Il est remplacé proprement lors d’un changement de compte.

@@ -1,0 +1,7 @@
+HAPPYAD V613G LITE
+
+Deux corrections seulement :
+1. Fullscreen photo : le bouton trois points reste en haut à droite mais sous le compteur multi-photo, sans cercle ni fond.
+2. Centrale vidéo : le menu inférieur reste fixe et visible ; l’auto-masquage continue normalement dans les autres pages.
+
+Aucun autre module ni comportement n’a été modifié.

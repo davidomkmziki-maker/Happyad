@@ -1,0 +1,10 @@
+HAPPYAD V587 — RETOURS INTERNES UNIQUES
+
+- Barre principale masquée dans le fullscreen photo du profil.
+- Un seul bouton retour vert ferme le fullscreen et restaure exactement le profil ouvert.
+- Barre principale masquée uniquement dans une conversation directe.
+- Un seul bouton retour vert revient à la liste Conversations, où la barre principale réapparaît.
+- Centrale Notifications reconstruite comme écran interne plein écran sans barre principale.
+- Un seul bouton retour vert ferme Notifications et révèle la page précédente.
+- Centrale Photo reçoit également un retour interne vert vers sa page source.
+- Aucun retour global, popstate ou history.back legacy n'est réactivé.

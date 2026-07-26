@@ -1,0 +1,23 @@
+HAPPYAD V619 — VALIDATION STATIQUE
+
+Base: V618 Point 4.
+Portée: Mon profil + Profil visiteur seulement.
+
+Contrôles:
+- 53 fichiers JavaScript externes: syntaxe valide.
+- 191 scripts JavaScript intégrés: syntaxe valide.
+- 3 fichiers CSS + 176 blocs CSS intégrés: aucune erreur de parsing.
+- 134 références locales HTML: aucune référence manquante.
+- Anciennes références actives profile-master-v617/navigation-master-v617: 0.
+- Service Worker versionné V619.
+
+Corrections:
+- Aucun calcul progressif d'opacité/échelle/top à chaque pixel de scroll.
+- En-tête compact activé par seuil stable.
+- Onglets sticky natifs; suppression de la bascule fixed + placeholder.
+- Suppression effective des flous fixes sur l'en-tête et les onglets.
+- Suppression des couches GPU par carte et de content-visibility à taille intrinsèque instable.
+- Retour vers l'Accueil affiché avant le nettoyage des iframes.
+- Délai maximum d'affichage Profil réduit.
+
+Le test tactile final doit être effectué sur Android.

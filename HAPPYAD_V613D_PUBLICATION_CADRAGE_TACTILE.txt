@@ -1,0 +1,17 @@
+HAPPYAD V613D LITE — PUBLICATION CADRAGE TACTILE
+
+Base : V613C Lite.
+
+Corrections :
+- Un seul endroit de cadrage : écran Détails.
+- Déplacement direct avec un doigt.
+- Zoom direct par pincement avec deux doigts.
+- Réinitialisation disponible.
+- Pour la vidéo, seul le petit curseur de choix de l’image de couverture reste.
+- L’écran de sélection affiche le média immédiatement, sans deuxième bloc de réglages.
+- La carte d’accueil est forcée au même carré et réutilise exactement le même zoom/déplacement.
+- Le cadrage est gardé localement par ID de publication même si la colonne Supabase n’est pas encore disponible.
+- Après une publication réussie, le média, l’étape Détails et la fenêtre 100 % sont remis à zéro avant la prochaine ouverture.
+- Le bouton + ouvre donc toujours une nouvelle publication propre après un succès.
+
+Aucune modification de Boutique, Messages, Profil, Radar ou Notifications.

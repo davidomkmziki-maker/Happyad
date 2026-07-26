@@ -1,0 +1,17 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 2B
+
+Base : Phase 2.
+
+Correction universelle pour tous les comptes :
+- happyad_msg_mark_delivered appelé avec les paramètres exacts p_conversation_id et p_through_server_seq ;
+- happyad_msg_mark_read appelé avec les paramètres exacts p_conversation_id et p_through_server_seq ;
+- suppression des anciennes variantes de paramètres qui empêchaient la mise à jour silencieusement ;
+- reconnaissance de last_message_sender_id pour distinguer correctement message reçu et message envoyé ;
+- prise en compte des retours delivered_through_seq et read_through_seq ;
+- alias supplémentaires pour les curseurs my/target dans les résultats des RPC ;
+- aucune règle limitée à Glad, JC ou un UUID particulier ;
+- aucun Realtime ni média ajouté.
+
+Fichiers modifiés :
+- modules/message-center.html
+- service-worker.js

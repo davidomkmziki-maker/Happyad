@@ -1,0 +1,39 @@
+HAPPYAD V613 LITE — BOUTIQUE RETIRÉE
+
+Base: V612 profil visiteur privé verrouillé.
+
+Retiré de la version active:
+- boutique.html et le moteur core/boutique-master.js;
+- tous les anciens CSS/JS chargés uniquement par la Boutique;
+- bouton Boutique et pont d'ouverture dans le profil;
+- routes, deep links, préchargement et retours Boutique;
+- mode Boutique dans la publication et appels aux tables boutique_*;
+- bouton Acheter et chemin panier;
+- cache PWA des fichiers Boutique.
+
+Conservé:
+- publication sociale normale;
+- Accueil, Vidéos, Messages, Notifications, Profil, Radar et PWA;
+- données Supabase existantes: aucune table ni donnée distante n'est supprimée par cette archive frontend.
+
+Les anciens posts marqués post_type=boutique ou boutique_product_id sont masqués dans Accueil et Profil.
+La future Boutique devra être reconstruite comme module séparé avant réintégration.
+
+Nettoyage complémentaire:
+- bouton Acheter retiré des centrales photo et vidéo;
+- ouverture de commande retirée des notifications;
+- raccourci Boutique du profil compact retiré;
+- type Boutique retiré de la carte;
+- anciens posts Boutique masqués dans les flux actifs.
+
+Validation avant livraison:
+- 206 fichiers actifs dans l’archive, contre 277 dans la V612 originale;
+- 71 anciens fichiers retirés et 1 rapport de version ajouté;
+- syntaxe JavaScript contrôlée sur les scripts externes et intégrés;
+- CSS contrôlé sur les fichiers externes et blocs intégrés;
+- aucune référence locale ou entrée de pré-cache manquante;
+- test HTTP local des principales pages réussi.
+
+Important:
+- aucun test tactile Android réel n’a été effectué dans cet environnement;
+- conserver la V612 originale comme sauvegarde avant déploiement de cette V613 Lite.

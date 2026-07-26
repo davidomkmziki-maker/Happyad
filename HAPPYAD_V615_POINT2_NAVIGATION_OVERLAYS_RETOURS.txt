@@ -1,0 +1,17 @@
+HAPPYAD V615 — POINT 2 : NAVIGATION, OUVERTURES, OVERLAYS ET RETOURS
+
+Base : HAPPYAD V614 Point 1.
+
+Corrections :
+- suppression définitive du bouclier tactile plein écran happyadAppTapShield ;
+- verrou de navigation logique limité à 850 ms, sans couche DOM au-dessus de l’interface ;
+- un nouveau clic vers une autre page remplace immédiatement la navigation en attente ;
+- nouveau maître core/overlay-scroll-master-v615.js chargé dans l’Accueil et les 10 modules ;
+- les overlays cachés reçoivent pointer-events:none, aria-hidden et inert ;
+- réactivation automatique lorsqu’un overlay est réellement ouvert ;
+- nettoyage central des anciens verrous de scroll uniquement lorsqu’aucun overlay n’est actif ;
+- Notifications chargées seulement à la première ouverture, sans préchauffage caché ;
+- fermeture Notifications et navigation déclenchent une réconciliation immédiate ;
+- conservation du chargement à la demande et du cycle de vie V614.
+
+Aucun design, flux de publication, message, profil, photo ou vidéo n’a été modifié.

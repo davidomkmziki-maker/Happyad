@@ -1,0 +1,18 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE — PHASE 5B2B
+
+Base utilisée : Phase 5B2A validée.
+
+Correction ciblée :
+- la surbrillance verte du message cité reste visible pendant 5 secondes ;
+- pour un message reçu à gauche, le vert déborde vers la gauche ;
+- pour un message envoyé à droite, le vert déborde vers la droite ;
+- le message reste centré après le clic sur la citation ;
+- la suppression en place, les réponses, les médias et le Realtime restent inchangés.
+
+Fichiers modifiés :
+- modules/message-center.html
+- service-worker.js
+
+Contrôles :
+- syntaxe des trois scripts JavaScript intégrés : OK ;
+- seuls les deux fichiers prévus diffèrent de la Phase 5B2A : OK.

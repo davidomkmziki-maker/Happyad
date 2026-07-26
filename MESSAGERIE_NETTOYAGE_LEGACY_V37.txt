@@ -1,0 +1,22 @@
+HAPPYAD — NETTOYAGE MESSAGERIE LEGACY V37
+
+Cette étape retire uniquement l'ancien moteur Messages.
+
+Supprimé :
+- anciennes RPC Messages V20/V22/V23/V26 ;
+- anciennes tables et insertions directes de secours ;
+- insertions directes Messages ;
+- listeners Realtime Messages legacy ;
+- caches et états de lecture legacy ;
+- résolution par email, handle ou nom ;
+- anciens SQL Messages ;
+- anciennes policies Storage Messages présentes dans les SQL V27/V28.
+
+Conservé :
+- design de la liste et de la conversation ;
+- boutons et navigation visuelle ;
+- ouverture centrale par événement ;
+- ouverture profil visiteur uniquement avec UUID Supabase valide ;
+- autres modules HAPPYAD.
+
+À ce stade, aucun nouveau RPC Messages n'est encore connecté.

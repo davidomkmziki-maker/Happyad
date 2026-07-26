@@ -1,0 +1,20 @@
+HAPPYAD V616 — POINT 3 : ACCUEIL ET PUBLICATIONS FLUIDES
+
+Base active : V615 Point 2.
+
+Cette version traite uniquement le point 3 de stabilisation :
+- première page réduite à 12 publications ;
+- pagination Supabase par groupes de 30 au lieu d'une synchronisation globale allant jusqu'à 3000 ;
+- maximum de 600 publications conservées dans le cache du fil ;
+- aucune réponse distante n'augmente automatiquement le nombre de cartes rendues ;
+- fenêtre DOM limitée à 30 cartes, avec retrait et restauration des cartes éloignées pendant le scroll ;
+- hauteurs compensées par des espaces virtuels afin de préserver la position du scroll ;
+- recyclage des cartes communes lors du déplacement de la fenêtre pour éviter les rechargements visuels ;
+- images miniatures utilisées en priorité quand elles existent ;
+- seulement trois médias préchargés en priorité ;
+- médias des autres cartes chargés paresseusement près de l'écran ;
+- aucune balise vidéo créée dans les cartes de l'Accueil ;
+- IntersectionObserver resserré à 480 px autour de l'écran ;
+- URL Blob libérées lorsque leur carte quitte définitivement la fenêtre DOM.
+
+Le design, les actions, les albums, le cadrage, le fullscreen, le Profil, les Messages, les Notifications et la centrale Vidéo ne sont pas modifiés.

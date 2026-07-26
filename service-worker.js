@@ -1,7 +1,7 @@
-/* HAPPYAD V765 — Fin réelle, cercle compact et cartes Accueil sans déplacement */
+/* HAPPYAD V700 — Notifications scroll infini vertical maître unique */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V765-home-end-scroll-stable-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V700-notification-infinite-scroll-20260723';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,31 +9,46 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=765-home-end-scroll-stable',
+  './index.html?v=700-notification-infinite-scroll',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
+  './icons/happyad-icon-v535center1-maskable-192.png',
+  './icons/happyad-icon-v535center1-maskable-512.png',
   './icons/happyad-notification-badge-96.png',
   './icons/happyad-home-wordmark-v1.svg',
-  './core/startup-master-v727.js?v=727-startup-unique',
-  './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=765-home-end-scroll-stable',
-  './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
-  './core/auth-session-master-v598.js?v=752-auth-storage-quota-retry',
-  './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
-  './core/profile-avatar-recovery-master-v743.js?v=763-home-stable',
-  './core/card-author-avatar-master-v742.js?v=763-home-stable',
-  './core/home-scroll-prepaint-master-v696.js?v=765-scroll-anchor-stable',
-  './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
-  './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=765-home-end-scroll-stable',
-  './core/internal-return-master-v694.js?v=714-profile-settings-return',
-  './core/overlay-scroll-master-v615.js?v=615',
-  './core/assistance-integration-master-v738.css?v=757-audit-stable',
-  './core/assistance-integration-master-v738.js?v=757-audit-stable',
-  './core/message-assistance-shortcut-v738.css?v=738-visible',
-  './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
-  './core/assistance-supabase-realtime-v750.js?v=757-audit-stable'
+  './core/navigation-master-v668.js?v=686-profile-posts-before-reveal',
+  './core/internal-return-master-v694.js?v=694-notification-dock-restore',
+  './core/notification-master-v700.js?v=700-notification-infinite-scroll',
+  './core/notification-infinite-scroll-master-v700.js?v=700-notification-infinite-scroll',
+  './modules/notification-center.html?v=700-notification-infinite-scroll',
+  './core/story-legacy-lock-v629.js?v=629',
+  './core/return-reset-master-v633-story-safe.js?v=633',
+  './core/story-master-v699.js?v=699-reply-chatgpt-four-lines',
+  './core/home-scroll-prepaint-master-v696.js?v=696-scroll-prepaint',
+  './core/photo-fullscreen-zoom-master-v637.js?v=637-fullscreen-only',
+  './core/share-master.js?v=634-story-conversation-share',
+  './core/video-cover-editor-master-v693.js?v=693-global-poster-immediate',
+  './core/post-options-master-v693.js?v=693-global-poster-immediate',
+  './modules/share-center.html?v=634',
+  './modules/message-center.html?v=696-story-reply-direct-card',
+  './modules/publish.html?v=634-story-mentions',
+  './modules/user.html?v=693-global-poster-immediate',
+  './modules/photo.html?v=693-global-poster-immediate',
+  './modules/video.html?v=693-global-poster-immediate',
+  './core/profile-master-v665.js?v=686-delegated-open-posts-default',
+  './core/overlay-scroll-master-v662.js?v=662-profile-fullscreen-zoom-isolated',
+  './core/profile-route-guard-v656.js?v=668-visitor-on-demand-uid-isolated',
+  './modules/css/profile-master-v665.css?v=686-delegated-open-posts-default',
+  './core/actions-layout-master-v678.css?v=678-actions-counts',
+  './core/profile-stats-master-v678.js?v=678-supabase-stable',
+  './core/profile-content-tabs-master-v687.css?v=687-exact-return-context',
+  './core/profile-content-tabs-master-v687.js?v=687-exact-return-context',
+  './core/profile-photo-zoom-master-v651.js?v=651-profile-only',
+  './core/dock-auto-hide-master-v653.js?v=653-dock-return',
+  './core/comment-overlay-dock-master-v681.css?v=681-comment-dock',
+  './core/comment-overlay-dock-master-v681.js?v=681-comment-dock',
+  './core/comment-overlay-client-v681.js?v=681-comment-dock'
 ];
 
 function isHappyCache(name){
@@ -74,39 +89,6 @@ function cacheFirst(request){
     return fetch(request).then(function(response){
       try{if(response && response.ok)caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){cache.put(request,response.clone());});}catch(e){}
       return response;
-    });
-  });
-}
-
-function networkFirstFast(request){
-  return caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){
-    return new Promise(function(resolve,reject){
-      var settled=false;
-      var network=fetch(happyadFreshRequest(request)).then(function(response){
-        try{if(response&&response.ok)cache.put(request,response.clone());}catch(_e){}
-        if(!settled){settled=true;resolve(response);}
-        return response;
-      }).catch(function(error){
-        return cache.match(request).then(function(cached){
-          if(!settled){settled=true;if(cached)resolve(cached);else reject(error);}
-        });
-      });
-      setTimeout(function(){
-        if(settled)return;
-        cache.match(request).then(function(cached){if(cached&&!settled){settled=true;resolve(cached);}}).catch(function(){});
-      },900);
-      return network;
-    });
-  }).catch(function(){return fetch(request);});
-}
-function staleWhileRevalidate(request){
-  return caches.open(HAPPYAD_RUNTIME_CACHE).then(function(cache){
-    return cache.match(request).then(function(cached){
-      var update=fetch(request).then(function(response){
-        try{if(response&&response.ok)cache.put(request,response.clone());}catch(_e){}
-        return response;
-      }).catch(function(){return cached;});
-      return cached||update;
     });
   });
 }
@@ -388,22 +370,16 @@ self.addEventListener('fetch', function(event){
 
   var dest=request.destination||'';
   var path='';try{path=new URL(request.url).pathname;}catch(_e){}
-  /* La version est portée par la query. Une fois préchauffée, l’Assistance
-     doit s’ouvrir depuis le cache immédiatement, sans second passage réseau. */
-  if(/\/modules\/assistance\.html$/i.test(path)){
-    event.respondWith(cacheFirst(request));
-    return;
-  }
   if(/\/modules\/user\.html$/i.test(path) || /profile-(layout|scroll|publications|polish|ui-fixes|performance)/i.test(path)){
-    event.respondWith(networkFirstFast(request));
+    event.respondWith(networkFirst(request));
     return;
   }
   if(request.mode==='navigate' || dest==='document' || /\.html(\?|$)/i.test(new URL(request.url).pathname)){
-    event.respondWith(networkFirstFast(request));
+    event.respondWith(networkFirst(request));
     return;
   }
   if(dest==='script' || dest==='style' || dest==='worker' || /\.(js|css|webmanifest)(\?|$)/i.test(new URL(request.url).pathname)){
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(networkFirst(request));
     return;
   }
   if(dest==='image' || /\.(png|jpg|jpeg|webp|svg|ico)(\?|$)/i.test(new URL(request.url).pathname)){

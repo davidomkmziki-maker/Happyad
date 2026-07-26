@@ -1,0 +1,25 @@
+HAPPYAD V38D2 — RECONNEXION INVISIBLE ET IDENTITÉ STABLE
+
+Base : HAPPYAD V38.zip originale.
+
+Correction strictement ciblée dans modules/message-center.html :
+
+1. L'identité complète du compte connecté est restaurée immédiatement depuis
+   un cache privé lié à son UUID Supabase, avec recours aux caches utilisateur
+   HAPPYAD déjà existants.
+2. Le nom, la photo et le badge ne sont plus réécrits si les données reçues du
+   serveur sont identiques.
+3. Le profil Supabase confirmé est mémorisé sous une clé séparée par UUID :
+   HAPPYAD_MSG_CONNECTED_PROFILE_V1:<user_id>.
+4. La reconnexion Messages utilise uniquement server_seq pour demander les
+   nouveautés. La réparation forcée de la fin d'historique a été retirée du
+   chemin de reconnexion afin de ne pas relire les messages déjà reçus.
+
+Inchangés :
+- service-worker.js ;
+- core/auth-master.js ;
+- structure Supabase ;
+- IndexedDB et clés de conversations/messages ;
+- médias ordinaires et vue unique ;
+- transferts, signalements et suppressions ;
+- centre maître unique modules/message-center.html.

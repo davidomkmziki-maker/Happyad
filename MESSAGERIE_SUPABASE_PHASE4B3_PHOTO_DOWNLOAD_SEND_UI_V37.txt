@@ -1,0 +1,18 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 4B3
+
+Base : Phase 4B2 validée pour la permission Android.
+
+Corrections ciblées :
+- Le sélecteur accepte aussi les images téléchargées dont le fournisseur Android expose un MIME générique (application/octet-stream).
+- Extensions explicites acceptées : JPG, JPEG, JFIF, PNG et WEBP.
+- Le format réel reste contrôlé par les octets avant l’envoi.
+- Dès le clic sur Envoyer, le panneau « Photo prête à envoyer » se ferme immédiatement.
+- La bulle locale optimiste prend le relais pendant l’upload et la confirmation Supabase.
+- Le brouillon ne peut pas être envoyé deux fois pendant l’upload.
+- L’URL locale est libérée après confirmation serveur.
+
+Non modifié :
+- SQL / RPC Supabase
+- Audio 4A
+- Realtime, livré, lu et compteurs
+- Profil, vidéo, Radar, boutique, PWA hors version de cache

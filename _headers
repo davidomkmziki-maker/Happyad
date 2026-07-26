@@ -12,9 +12,6 @@
 /reset-password.html
   Cache-Control: no-cache, no-store, must-revalidate
 
-/auth/reset/*
-  Cache-Control: no-cache, no-store, must-revalidate
-
 /manifest.webmanifest
   Cache-Control: no-cache, no-store, must-revalidate
 

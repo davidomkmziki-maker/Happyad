@@ -1,0 +1,9 @@
+HAPPYAD V605 — MENU AUTO-MASQUÉ
+
+- Le menu principal se cache lorsque le contenu défile vers le haut.
+- Il réapparaît lorsque le contenu redescend.
+- La règle écoute l'Accueil et les iframes persistantes Vidéos, Messages, Profil et Profil visiteur.
+- Le changement de grande page réaffiche toujours le menu.
+- La moitié haute du menu reste transparente.
+- La moitié basse utilise un noir léger uniforme.
+- La surface sous le menu suit le même dégradé et disparaît avec lui.

@@ -1,0 +1,49 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 5B1
+SUPPRIMER POUR MOI PAR APPUI LONG
+
+BASE
+- HAPPYAD_P1_V37_MESSAGES_SUPABASE_PHASE5A_SWIPE_REPLY.zip
+- La réponse par glissement de la Phase 5A reste intacte.
+
+FONCTION AJOUTÉE
+- Appui long de 540 ms sur un message confirmé.
+- Ouverture du menu d’actions HAPPYAD.
+- Option unique de cette phase : « Supprimer pour moi ».
+- Deuxième confirmation avant l’appel Supabase.
+- Appel unique : public.happyad_msg_delete_for_me(p_message_id).
+
+COMPORTEMENT
+- Le message disparaît immédiatement uniquement chez le compte connecté.
+- En cas d’échec Supabase, le message est restauré dans la conversation.
+- L’autre membre conserve le message.
+- Le message cité en cours de composition est annulé s’il vient d’être supprimé.
+- Les compteurs et la liste des conversations sont resynchronisés après suppression.
+- Un événement Realtime sur happyad_msg_message_deletions retire aussi le message sur les autres appareils du même compte.
+
+GESTES
+- Message reçu : glissement vers la droite = répondre.
+- Message envoyé : glissement vers la gauche = répondre.
+- Appui long sans déplacement = menu de suppression.
+- Un déplacement annule automatiquement l’appui long afin d’éviter un conflit avec le geste Répondre.
+- Les messages locaux en attente ou échoués ne déclenchent pas la RPC.
+
+NON MODIFIÉ
+- Aucun SQL ajouté.
+- Aucun accès direct INSERT/UPDATE/DELETE aux tables Messages.
+- Pas encore de « Supprimer pour tous ».
+- Pas encore de modification de message.
+- Aucun changement sur texte, audio, photo, vidéo, fichier, MP3, coches, compteurs ou Realtime global.
+- Aucun changement sur Profil, Radar, Boutique, Auth ou autres modules.
+
+FICHIERS MODIFIÉS
+- modules/message-center.html
+- service-worker.js
+
+TEST
+1. Maintenir un message reçu ou envoyé.
+2. Appuyer sur « Supprimer pour moi ».
+3. Confirmer.
+4. Vérifier qu’il disparaît uniquement sur ce compte.
+5. Vérifier qu’il reste visible chez l’autre personne.
+6. Fermer et rouvrir la conversation : il ne doit pas revenir.
+7. Ouvrir le même compte sur un autre appareil : la suppression doit se synchroniser par Realtime.

@@ -1,0 +1,16 @@
+HAPPYAD V563 — PARTAGE EXACT DES PUBLICATIONS
+
+1. WhatsApp
+- Le lien /s/<post_id> transporte la vraie miniature HTTPS résolue par HAPPYAD.
+- La Netlify Function utilise cette miniature en priorité dans og:image.
+- Un paramètre de version évite que WhatsApp réutilise l'ancien aperçu en cache.
+
+2. Messages HAPPYAD
+- La publication partagée est affichée dans une grande carte verticale proche de l'aperçu WhatsApp.
+- La vraie photo/miniature occupe le haut de la carte.
+- Le titre, la description, le type et l'action d'ouverture apparaissent sous l'image.
+
+3. Ouverture exacte
+- Les cartes internes utilisent post_id et media_type.
+- Les liens externes redirigent vers ?happyad_post=<id>&happyad_type=<photo|video>.
+- Les photos s'ouvrent dans l'accueil et les vidéos dans la centrale Vidéo.

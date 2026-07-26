@@ -1,0 +1,31 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 4D FICHIER
+
+BASE
+- HAPPYAD_P1_V37_MESSAGES_SUPABASE_PHASE4C1_VIDEO_FULLSCREEN_INTERNE.zip
+
+AJOUTS
+- Sélection de documents et fichiers depuis Galerie/Fichiers Android.
+- Photos et vidéos compatibles gardent leurs lecteurs existants.
+- Les autres formats sont envoyés comme kind=file.
+- Upload privé dans happyad-message-files.
+- Chemin canonique : conversation_id/sender_id/client_message_id/file_name.
+- Nom sécurisé, type MIME et taille transmis à happyad_msg_send_media.
+- Brouillon fichier avec nom, extension et taille.
+- Le panneau de brouillon disparaît immédiatement au clic Envoyer.
+- Bulle fichier persistante avec téléchargement/ouverture par URL signée.
+- Fusion optimiste par client_message_id, sans doublon.
+- Réception Realtime et états ✓ / ✓✓ / ✓✓ vert conservés.
+- Suppression de l'upload orphelin si la RPC échoue.
+
+NON MODIFIÉ
+- SQL Supabase.
+- Texte, audio, photo, vidéo et plein écran interne.
+- Profil, Radar, Boutique, Authentification et autres modules.
+
+TESTS CONSEILLÉS
+1. Envoyer un PDF court.
+2. Vérifier réception immédiate sur l'autre téléphone.
+3. Ouvrir/télécharger le PDF.
+4. Fermer et rouvrir la conversation puis retester le fichier.
+5. Tester DOCX, TXT ou ZIP.
+6. Vérifier une seule bulle et les coches livré/lu.

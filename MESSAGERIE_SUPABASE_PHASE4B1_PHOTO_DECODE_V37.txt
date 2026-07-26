@@ -1,0 +1,28 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE PHASE 4B1
+CORRECTION PHOTO ILLISIBLE SUR GALERIE ANDROID
+
+BASE
+- HAPPYAD_P1_V37_MESSAGES_SUPABASE_PHASE4B_PHOTO.zip
+
+PROBLEME CORRIGE
+- Certaines photos JPEG/PNG/WEBP sélectionnées depuis la galerie Android étaient acceptées par le sélecteur, mais l'URL temporaire du fournisseur de fichiers ne pouvait pas être décodée immédiatement.
+- Le système affichait alors : « Photo illisible. » avant même l'upload.
+
+CORRECTION
+- Lecture complète des octets du fichier avant décodage.
+- Détection réelle JPEG/PNG/WEBP par signature du fichier.
+- Reconstruction d'un Blob local stable avec le vrai MIME.
+- Lecture des dimensions avec plusieurs chemins : createImageBitmap, object URL avec nouvelle tentative, puis data URL de secours.
+- Normalisation du fichier avant aperçu et upload.
+- Aucun Base64 n'est envoyé dans Supabase : le Base64 de secours sert uniquement au décodage local si nécessaire.
+
+SCOPE STRICT
+- Audio Phase 4A conservé.
+- Texte, Realtime, livré/lu et compteurs conservés.
+- Aucun changement SQL.
+- Aucun changement vidéo, fichier générique, vue unique, suppression ou réponse.
+- Aucun changement Profil, Profil visiteur, Radar, Boutique ou Auth.
+
+FICHIERS MODIFIES
+- modules/message-center.html
+- service-worker.js (version cache uniquement)

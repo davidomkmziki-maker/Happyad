@@ -1,0 +1,12 @@
+HAPPYAD V37 — MESSAGERIE SUPABASE — PHASE 4D2
+
+Correction ciblée : titre MP3/fichier trop long qui débordait de la bulle.
+
+Modifications :
+- le nom de fichier est limité à deux lignes dans la carte ;
+- coupure propre des noms longs avec ellipsis ;
+- les underscores et mots sans espaces sont coupés sans dépasser ;
+- la zone fichier est contrainte à la largeur de la bulle ;
+- aucune modification Supabase, Realtime, audio, photo, vidéo ou téléchargement.
+
+Base : Phase 4D1 MP3 validée.

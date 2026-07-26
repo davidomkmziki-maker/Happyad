@@ -1,0 +1,16 @@
+HAPPYAD V38 — PHASE 38A1A
+
+OBJECTIF
+- Supprimer l'attente « Connexion à Supabase… » entre Accueil et la liste Conversations.
+
+COMPORTEMENT
+- Lecture immédiate de HAPPYAD_AUTH_UID lorsque la session locale est active.
+- Ouverture immédiate de happyad-msg-v38a1-<user_uuid>.
+- Affichage des conversations IndexedDB avant le réseau.
+- Vérification Supabase, profil et synchronisation en arrière-plan.
+- Isolation stricte si le compte UUID change.
+
+NON MODIFIÉ
+- SQL Supabase.
+- Messages, médias lourds et vues uniques.
+- Autres modules HAPPYAD.

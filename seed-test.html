@@ -1,0 +1,10 @@
+<!doctype html><meta charset=utf-8><script>
+const social=[
+ {id:'social-photo-1',mode:'publish',post_type:'',title:'Social photo',desc:'normal',kind:'photo',mediaUrl:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="blue"/></svg>',creatorId:'u1',creatorName:'Alice',createdAt:Date.now()},
+ {id:'social-video-1',mode:'publish',post_type:'social',title:'Social video',desc:'normal2',kind:'video',mediaUrl:'',thumbnailUrl:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="green"/></svg>',creatorId:'u2',creatorName:'Bob',createdAt:Date.now()-1000},
+ {id:'shop-1',mode:'publish',post_type:'boutique',title:'Product',desc:'shop',kind:'photo',mediaUrl:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="red"/></svg>',creatorId:'u3',creatorName:'Shop',createdAt:Date.now()-2000,boutique_product_id:'p1'}
+];
+for(const k of ['HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_ALL_POSTS_V1','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1']) localStorage.setItem(k,JSON.stringify(social));
+sessionStorage.setItem('HAPPYAD_SESSION_ALL_POSTS_V104',JSON.stringify(social));
+location.replace('index.html?test=1');
+</script>
