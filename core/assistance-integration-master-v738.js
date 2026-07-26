@@ -1,18 +1,19 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V750__)return;
-  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V750__=true;
+  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V751__)return;
+  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V751__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V750_ADMIN_ONLY_TERMINAL_STABLE';
+  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V751_X_SHIELD_OPEN_ATOMIC_AGENT_NEUTRAL';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV750';
-  var FRAME_URL='modules/assistance.html?v=750-admin-only-terminal-stable';
+  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV751';
+  var FRAME_URL='modules/assistance.html?v=751-x-shield-open-atomic-agent-neutral';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null,parentClose=null;
   var openState=false,ready=false,documentLoaded=false;
   var lastContext=null,lastFocus=null,prewarmStarted=false,prewarmTimer=0;
   var closeLock=false,readyPollTimer=0,readyPollStartedAt=0,lastClosePointerAt=0;
+  var closeTimer=0,openRevealTimer=0,hostRevealed=false;
 
   function clean(v){return String(v==null?'':v).trim()}
   function localUser(){try{return Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{})}catch(_e){return {}}}
@@ -45,25 +46,38 @@
     if(!frame||!frame.contentWindow||!lastContext)return false;
     try{frame.contentWindow.postMessage({type:'HAPPYAD_ASSISTANCE_CONTEXT',detail:lastContext},location.origin);return true}catch(_e){return false}
   }
-  function closeFromPointer(event){
-    var now=Date.now();
-    if(now-lastClosePointerAt<260)return;
-    lastClosePointerAt=now;
+  function consumeCloseEvent(event){
     try{event&&event.preventDefault&&event.preventDefault()}catch(_e){}
     try{event&&event.stopPropagation&&event.stopPropagation()}catch(_e){}
     try{event&&event.stopImmediatePropagation&&event.stopImmediatePropagation()}catch(_e){}
-    requestClose('parent-x');
+  }
+  function queueClose(reason,event){
+    consumeCloseEvent(event);
+    if(!openState||closeLock||closeTimer)return false;
+    var now=Date.now();
+    if(now-lastClosePointerAt<180)return true;
+    lastClosePointerAt=now;
+    if(host)host.classList.add('closing');
+    /* Le maître reste au-dessus de la page précédente jusqu’à la fin complète
+       du geste Android. Cela absorbe le click synthétique et interdit tout
+       transfert vers Paramètres, Messages ou Profil derrière la frame. */
+    closeTimer=setTimeout(function(){closeTimer=0;finalizeClose(reason||'x-shield')},96);
+    return true;
   }
   function bindParentClose(){
-    if(!parentClose||parentClose.__happyadCloseV750Bound)return;
-    parentClose.__happyadCloseV750Bound=true;
-    parentClose.style.touchAction='manipulation';
-    if(window.PointerEvent){
-      parentClose.addEventListener('pointerup',closeFromPointer,{capture:true,passive:false});
-    }else{
-      parentClose.addEventListener('touchend',closeFromPointer,{capture:true,passive:false});
-    }
-    parentClose.addEventListener('click',closeFromPointer,{capture:true,passive:false});
+    if(!parentClose||parentClose.__happyadCloseV751Bound)return;
+    parentClose.__happyadCloseV751Bound=true;
+    parentClose.style.touchAction='none';
+    var arm=function(event){
+      consumeCloseEvent(event);
+      try{event&&event.pointerId!=null&&parentClose.setPointerCapture&&parentClose.setPointerCapture(event.pointerId)}catch(_e){}
+    };
+    parentClose.addEventListener('pointerdown',arm,{capture:true,passive:false});
+    parentClose.addEventListener('pointerup',function(event){queueClose('parent-x',event)},{capture:true,passive:false});
+    parentClose.addEventListener('pointercancel',consumeCloseEvent,{capture:true,passive:false});
+    parentClose.addEventListener('touchstart',arm,{capture:true,passive:false});
+    parentClose.addEventListener('touchend',function(event){queueClose('parent-x-touch',event)},{capture:true,passive:false});
+    parentClose.addEventListener('click',function(event){queueClose('parent-x-click',event)},{capture:true,passive:false});
   }
   function frameIsActuallyReady(){
     if(!frame||!documentLoaded)return false;
@@ -98,14 +112,14 @@
       host.className='happyadAssistanceHostV738';
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
-      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV750" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
+      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV751" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
     parentClose=document.getElementById(PARENT_CLOSE_ID);
     bindParentClose();
-    if(frame&&!frame.__happyadAssistanceV750Bound){
-      frame.__happyadAssistanceV750Bound=true;
+    if(frame&&!frame.__happyadAssistanceV751Bound){
+      frame.__happyadAssistanceV751Bound=true;
       frame.addEventListener('load',function(){
         documentLoaded=true;
         readyPollStartedAt=Date.now();
@@ -115,13 +129,31 @@
     }
     return host;
   }
+  function clearOpenRevealTimer(){
+    if(openRevealTimer){clearTimeout(openRevealTimer);openRevealTimer=0}
+  }
+  function revealHost(){
+    if(!host||!openState)return false;
+    hostRevealed=true;
+    host.classList.add('show');
+    host.setAttribute('aria-hidden','false');
+    host.removeAttribute('inert');
+    document.documentElement.classList.add('happyadAssistanceOpenV738');
+    document.body.classList.add('happyadAssistanceOpenV738');
+    if(ready)host.classList.add('ready');
+    return true;
+  }
   function markReady(){
     if(ready)return;
     ready=true;
     stopReadyPoll();
+    clearOpenRevealTimer();
     if(host)host.classList.add('ready');
     sendContext();
-    if(openState){try{frame&&frame.focus()}catch(_e){}}
+    if(openState){
+      revealHost();
+      requestAnimationFrame(function(){try{frame&&frame.focus()}catch(_e){}});
+    }
   }
   function prepareFrame(reason){
     ensureHost();
@@ -129,7 +161,7 @@
     prewarmStarted=true;
     readyPollStartedAt=0;
     frame.setAttribute('src',FRAME_URL);
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V750',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V751',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
     return true;
   }
   function slowConnection(){
@@ -164,23 +196,29 @@
     var context=currentContext(detail);
     saveContext(context);
     ensureHost();
+    if(openState){sendContext();return true}
     lastFocus=document.activeElement;
     openState=true;
-    host.classList.add('show');
-    host.setAttribute('aria-hidden','false');
-    host.removeAttribute('inert');
-    document.documentElement.classList.add('happyadAssistanceOpenV738');
-    document.body.classList.add('happyadAssistanceOpenV738');
+    hostRevealed=false;
+    host.classList.remove('closing');
     registerInternal();
 
     if(!prewarmStarted)prepareFrame('first-open');
     sendContext();
     if(ready){
-      host.classList.add('ready');
-      try{frame.focus()}catch(_e){}
-    }else if(documentLoaded){
+      revealHost();
+      requestAnimationFrame(function(){try{frame&&frame.focus()}catch(_e){}});
+    }else{
       readyPollStartedAt=Date.now();
       pollFrameReady();
+      /* Garder la page précédente nette pendant la très courte préparation.
+         Le voile de chargement n’apparaît qu’en secours si le moteur dépasse
+         190 ms, ce qui supprime le flash noir des ouvertures normales. */
+      clearOpenRevealTimer();
+      openRevealTimer=setTimeout(function(){
+        openRevealTimer=0;
+        if(openState&&!ready)revealHost();
+      },190);
     }
     return true;
   }
@@ -188,24 +226,35 @@
     if(!openState||closeLock)return false;
     closeLock=true;
     openState=false;
+    clearOpenRevealTimer();
     try{
       var active=frame&&frame.contentDocument&&frame.contentDocument.activeElement;
       if(active&&typeof active.blur==='function')active.blur();
     }catch(_e){}
     if(host){
-      host.classList.remove('show');
+      host.classList.remove('show','closing');
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
     }
+    hostRevealed=false;
     document.documentElement.classList.remove('happyadAssistanceOpenV738');
     document.body.classList.remove('happyadAssistanceOpenV738');
     unregisterInternal();
-    try{if(lastFocus&&typeof lastFocus.focus==='function')lastFocus.focus({preventScroll:true})}catch(_e){}
+    /* La restauration du focus est retardée après la fin du geste afin que
+       l’ancien bouton derrière ne reçoive jamais le même toucher. */
+    var focusTarget=lastFocus;
+    setTimeout(function(){
+      try{if(focusTarget&&typeof focusTarget.focus==='function')focusTarget.focus({preventScroll:true})}catch(_e){}
+    },160);
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_CLOSED',{detail:{reason:reason||'close',context:lastContext,at:Date.now()}}))}catch(_e){}
-    setTimeout(function(){closeLock=false},180);
+    setTimeout(function(){closeLock=false},220);
     return true;
   }
-  function requestClose(reason){return finalizeClose(reason||'close')}
+  function requestClose(reason,event){
+    reason=reason||'close';
+    if(/(?:^|-)x(?:-|$)|assistance-x|parent-x/.test(reason))return queueClose(reason,event);
+    return finalizeClose(reason);
+  }
 
   window.addEventListener('message',function(event){
     var data=event&&event.data||{};
@@ -220,13 +269,13 @@
   window.addEventListener('HAPPYAD_ASSISTANCE_PREPARE_REQUEST',function(){schedulePrewarm('custom-prepare',0)},true);
   window.addEventListener('HAPPYAD_NAV_CHANGED_V586',function(event){
     var page=clean(event&&event.detail&&event.detail.page).toLowerCase();
-    if(page==='message'||page==='profile')schedulePrewarm('near-assistance-route',40);
+    if(page==='message'||page==='profile')schedulePrewarm('near-assistance-route',0);
   },true);
   window.addEventListener('keydown',function(event){if(openState&&event.key==='Escape'){event.preventDefault();requestClose('escape')}},true);
 
   function start(){
     ensureHost();
-    schedulePrewarm('safe-idle-prewarm',slowConnection()?1150:280);
+    schedulePrewarm('safe-idle-prewarm',slowConnection()?720:140);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
@@ -239,6 +288,6 @@
     isReady:function(){return ready},
     context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}
   });
-  window.HappyadAssistanceMasterV750=window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
+  window.HappyadAssistanceMasterV751=window.HappyadAssistanceMasterV750=window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
   window.HappyadAssistanceMasterV737=api;
 })();

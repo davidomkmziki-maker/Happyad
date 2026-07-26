@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_MESSAGE_ASSISTANCE_SHORTCUT_V749__)return;
-  window.__HAPPYAD_MESSAGE_ASSISTANCE_SHORTCUT_V749__=true;
+  if(window.__HAPPYAD_MESSAGE_ASSISTANCE_SHORTCUT_V751__)return;
+  window.__HAPPYAD_MESSAGE_ASSISTANCE_SHORTCUT_V751__=true;
 
   var lastOpenAt=0;
   function parentWindow(){try{return window.parent&&window.parent!==window?window.parent:window}catch(_e){return window}}
@@ -24,9 +24,10 @@
   }
   function install(){
     document.querySelectorAll('[data-happyad-assistance-shortcut-v738]').forEach(function(button){
-      if(button.__happyadAssistanceBoundV749)return;
-      button.__happyadAssistanceBoundV749=true;
+      if(button.__happyadAssistanceBoundV751)return;
+      button.__happyadAssistanceBoundV751=true;
       button.addEventListener('pointerdown',prepare,{passive:true});
+      if(window.PointerEvent)button.addEventListener('pointerup',openAssistance,{capture:true,passive:false});
       button.addEventListener('click',openAssistance,true);
     });
     prepare();
