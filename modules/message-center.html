@@ -3573,6 +3573,9 @@
          d’un correspondant. Une valeur vide est volontairement mémorisée afin
          qu’un ancien cache ne puisse pas remettre la photo du compte connecté. */
       const authoritativeProfileAvatarMapV759 = new Map();
+      /* V760 : cache séparé du badge officiel récupéré par UID. La photo reste
+         entièrement gérée par V759 ; cette carte ne modifie que le badge. */
+      const authoritativeProfileBadgeMapV760 = new Map();
 
       /* ======================================================================
          HAPPYAD V38C5 — MÉDIA TÉLÉCHARGÉ DURABLE APRÈS FERMETURE
@@ -8453,25 +8456,111 @@
       }
 
       function normalizeBadgeValue(value){
+        if(value === true || value === 1) return 'bleu';
+        if(value && typeof value === 'object'){
+          return normalizeBadgeValue(
+            value.value || value.type || value.color || value.name || value.badge ||
+            value.user_badge || value.badge_type || value.status || value.level
+          );
+        }
         const badge = clean(value).toLowerCase();
-        if(!badge || ['aucun','none','false','0','1','true','null','undefined','no','non'].includes(badge)) return '';
+        if(!badge || ['aucun','none','false','0','null','undefined','no','non','inactive','disabled'].includes(badge)) return '';
+        if(['1','true','yes','oui','verified','verify','certified','certifie','certifié','approved'].includes(badge)) return 'bleu';
         return badge;
       }
 
       function profileBadge(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
-        const values = [
-          profile.badge, profile.user_badge, profile.userBadge, profile.badge_type,
-          profile.certification, profile.verification_badge, profile.verified_badge,
-          profile.verifiedBadge, profile.blue_badge, profile.verifyBadge,
-          profile.verify_badge, profile.role_badge, profile.profile_badge,
-          profile.account_badge, profile.admin_badge, profile.badge_color
+        const sources = [
+          profile,
+          profile.profile,
+          profile.user,
+          profile.author,
+          profile.creator,
+          profile.owner,
+          profile.metadata,
+          profile.user_metadata,
+          profile.app_metadata,
+          profile.raw_user_meta_data
+        ].filter(value => value && typeof value === 'object');
+        const fields = [
+          'badge','user_badge','userBadge','badge_type','badgeType',
+          'certification','verification_badge','verified_badge','verifiedBadge',
+          'blue_badge','verifyBadge','verify_badge','role_badge','profile_badge',
+          'account_badge','admin_badge','badge_color','badgeColor','badge_value',
+          'badgeValue','badge_name','badgeName','badge_status','badgeStatus',
+          'badge_url','badgeUrl','verified_badge_url','verification_badge_url'
         ];
-        for(const value of values){
-          const badge = normalizeBadgeValue(value);
-          if(badge) return badge;
+        for(const source of sources){
+          for(const field of fields){
+            const badge = normalizeBadgeValue(source[field]);
+            if(badge) return badge;
+          }
+          const positiveFlags = [
+            source.is_verified,source.isVerified,source.verified,source.is_certified,
+            source.isCertified,source.certified,source.badge_enabled,source.badgeEnabled,
+            source.has_badge,source.hasBadge
+          ];
+          if(positiveFlags.some(value => value === true || value === 1 || clean(value).toLowerCase() === 'true')) return 'bleu';
         }
         return '';
+      }
+
+      function badgeForTargetV760(source,targetId){
+        const id = clean(targetId);
+        if(isUuid(id) && authoritativeProfileBadgeMapV760.has(id)){
+          return normalizeBadgeValue(authoritativeProfileBadgeMapV760.get(id));
+        }
+        return profileBadge(source);
+      }
+
+      function applyAuthoritativeProfileBadgeV760(source,targetId,badge,confirmed){
+        const clone = source && typeof source === 'object' ? Object.assign({},source) : {};
+        const id = clean(targetId);
+        const normalized = normalizeBadgeValue(badge);
+        /* V760 ajoute un badge officiel trouvé, mais ne supprime jamais un badge
+           déjà fourni par la conversation lorsque la ligne profiles est ancienne
+           ou incomplète. Cela évite une régression sur les comptes existants. */
+        if(normalized){
+          if(isUuid(id) && confirmed) authoritativeProfileBadgeMapV760.set(id,normalized);
+          clone.badge = normalized;
+          clone.user_badge = normalized;
+          clone.userBadge = normalized;
+        }
+        return clone;
+      }
+
+      /* Récupère uniquement le badge officiel. Les anciens comptes peuvent être
+         rattachés à profiles par user_id alors que les comptes récents utilisent
+         id. La correction ne remplace ni le nom ni la photo du profil. */
+      async function fetchProfileBadgesV760(userIds,seedRows){
+        const ids = Array.from(new Set((userIds || []).map(clean).filter(isUuid)));
+        const wanted = new Set(ids);
+        const badges = Object.create(null);
+        const confirmed = new Set();
+        const absorb = (row,hintedId) => {
+          if(!row || typeof row !== 'object') return;
+          const candidates = [hintedId,row.user_id,row.uid,row.auth_user_id,row.account_uid,row.id].map(clean);
+          const id = candidates.find(value => wanted.has(value));
+          if(!id) return;
+          confirmed.add(id);
+          const badge = profileBadge(row);
+          if(badge && !badges[id]) badges[id] = badge;
+        };
+        (Array.isArray(seedRows) ? seedRows : []).forEach(row => absorb(row,row && row.id));
+        const missing = ids.filter(id => !badges[id]);
+        const sb = getClient();
+        if(missing.length && sb && sb.from){
+          try{
+            const result = await sb.from('profiles').select('*').in('user_id',missing);
+            if(!result.error) (result.data || []).forEach(row => absorb(row,row && row.user_id));
+          }catch(_e){}
+        }
+        ids.forEach(id => {
+          const badge = normalizeBadgeValue(badges[id] || '');
+          if(confirmed.has(id) && badge) authoritativeProfileBadgeMapV760.set(id,badge);
+        });
+        return {badges,confirmed};
       }
 
       function profileHandle(profile){
@@ -8906,8 +8995,10 @@
         }
         const remote = result.data && typeof result.data === 'object' ? result.data : {};
         const remoteAvatar = profileAvatar(remote);
+        const badgeState = await fetchProfileBadgesV760([id],remote && Object.keys(remote).length ? [remote] : []);
         let merged = mergeProfileIdentity(remote,local);
         merged = applyAuthoritativeProfileAvatarV759(merged,id,remoteAvatar);
+        merged = applyAuthoritativeProfileBadgeV760(merged,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
         merged.id = id;
         merged.user_id = id;
         if(!isUuid(connectedProfileId(merged))) return null;
@@ -8924,21 +9015,25 @@
           if(sb && sb.from){
             const result = await sb.from('profiles').select('*').in('id', requested);
             if(!result.error){
+              const rows = result.data || [];
+              const badgeState = await fetchProfileBadgesV760(requested,rows);
               const returned = new Set();
-              (result.data || []).forEach(profile => {
+              rows.forEach(profile => {
                 const id = clean(profile && profile.id);
                 if(!isUuid(id)) return;
                 returned.add(id);
                 const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
                 let merged = mergeProfileIdentity(profile,cached);
                 merged = applyAuthoritativeProfileAvatarV759(merged,id,profileAvatar(profile));
+                merged = applyAuthoritativeProfileBadgeV760(merged,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
                 merged.id = id;
                 merged.user_id = id;
                 profileMap.set(id,merged);
               });
               requested.forEach(id => {
                 if(returned.has(id)) return;
-                const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+                let cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+                cached = applyAuthoritativeProfileBadgeV760(cached,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
                 if(Object.keys(cached).length) profileMap.set(id,cached);
               });
             }
@@ -8948,6 +9043,7 @@
         ids.forEach(id => {
           let merged = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
           if(authoritativeProfileAvatarMapV759.has(id)) merged = applyAuthoritativeProfileAvatarV759(merged,id,authoritativeProfileAvatarMapV759.get(id));
+          if(authoritativeProfileBadgeMapV760.has(id)) merged = applyAuthoritativeProfileBadgeV760(merged,id,authoritativeProfileBadgeMapV760.get(id),true);
           if(isUuid(connectedProfileId(merged))){ merged.id = id; merged.user_id = id; profileMap.set(id,merged); map[id] = merged; }
         });
         return map;
@@ -8967,7 +9063,7 @@
           user_id:id,
           name,
           avatar:avatarForTargetV759(merged,id),
-          badge:profileBadge(merged),
+          badge:badgeForTargetV760(merged,id),
           status:profileHandle(merged)
         };
       }
@@ -8982,7 +9078,7 @@
           user_id:id,
           name:clean(raw.name || raw.full_name || raw.display_name || raw.username || raw.handle) || 'Utilisateur HAPPYAD',
           avatar:avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar,
-          badge:profileBadge(raw),
+          badge:badgeForTargetV760(raw,id),
           status:clean(raw.status || raw.presence) || 'Conversation HAPPYAD'
         };
       }
@@ -9131,8 +9227,26 @@
           const chunk = ids.slice(offset,offset + 80);
           const result = await sb.from('profiles').select('*').in('id',chunk);
           if(result.error) throw new Error(clean(result.error.message) || 'Profils indisponibles.');
-          (result.data || []).forEach(profile => {
-            if(profile && isUuid(profile.id)) profileMap.set(clean(profile.id),profile);
+          const rows = result.data || [];
+          const badgeState = await fetchProfileBadgesV760(chunk,rows);
+          const returned = new Set();
+          rows.forEach(profile => {
+            const id = clean(profile && profile.id);
+            if(!isUuid(id)) return;
+            returned.add(id);
+            const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+            let merged = mergeProfileIdentity(profile,cached);
+            merged = applyAuthoritativeProfileAvatarV759(merged,id,profileAvatar(profile));
+            merged = applyAuthoritativeProfileBadgeV760(merged,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+            merged.id = id;
+            merged.user_id = id;
+            profileMap.set(id,merged);
+          });
+          chunk.forEach(id => {
+            if(returned.has(id)) return;
+            let cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+            cached = applyAuthoritativeProfileBadgeV760(cached,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+            if(Object.keys(cached).length){ cached.id = id; cached.user_id = id; profileMap.set(id,cached); }
           });
         }
         const map = Object.create(null);
@@ -9481,6 +9595,16 @@
             profileMap.set(id,profile);
             profiles.push(profile);
           });
+          const searchIds = profiles.map(profile => clean(profile && profile.id)).filter(isUuid);
+          if(searchIds.length){
+            const badgeState = await fetchProfileBadgesV760(searchIds,profiles);
+            profiles.forEach((profile,index) => {
+              const id = clean(profile && profile.id);
+              const merged = applyAuthoritativeProfileBadgeV760(profile,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+              profiles[index] = merged;
+              profileMap.set(id,merged);
+            });
+          }
           profiles.sort((a,b) => {
             const rank = personSelectorProfileRank(a,term) - personSelectorProfileRank(b,term);
             if(rank) return rank;
