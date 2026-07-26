@@ -1399,7 +1399,7 @@ html body.happyadVideoCoverEditorOpenV693 .bottom.happyadMainDockV585{display:no
 html body.happyadVideoCoverEditorOpenV693 #happyadAppShell{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important}
 html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 </style>
-<link id="happyad-assistance-integration-master-v738-css" rel="stylesheet" href="core/assistance-integration-master-v738.css?v=753-x-pointerdown-shield">
+<link id="happyad-assistance-shell-master-v754-css" rel="stylesheet" href="core/assistance-shell-master-v754.css?v=754-single-master">
 </head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="feedGrid"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
@@ -7360,7 +7360,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=753-x-pointerdown-shield-auth-quota',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=754-assistance-single-master-auth-quota',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9468,12 +9468,12 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
-<script src="core/navigation-master-v668.js?v=746-message-profile-avatar"></script>
+<script src="core/navigation-master-v668.js?v=754-assistance-single-master"></script>
 <script src="core/auth-session-master-v598.js?v=752-auth-storage-quota-retry"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=743-avatar-safe"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=743-avatar-legacy-recovery"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=743-card-avatar-safe"></script>
-<script src="core/main-tabs-master-v615.js?v=746-message-profile-avatar"></script>
+<script src="core/main-tabs-master-v615.js?v=754-assistance-single-master"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -10177,5 +10177,5 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <link id="happyad-actions-layout-master-v678" rel="stylesheet" href="core/actions-layout-master-v678.css?v=678-actions-counts">
 
 <script id="happyad-analytics-master-v731" src="core/analytics-master-v731.js?v=731-local-time-watch-checkpoints"></script>
-<script id="happyad-assistance-integration-master-v738-js" src="core/assistance-integration-master-v738.js?v=753-x-pointerdown-shield"></script>
+<script id="happyad-assistance-shell-master-v754-js" src="core/assistance-shell-master-v754.js?v=754-single-master"></script>
 </body></html>
