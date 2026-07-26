@@ -10370,7 +10370,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 }
 </style>
 <script src="core/story-master-v699.js?v=728-story-analytics-events"></script>
-<script src="core/home-scroll-prepaint-master-v696.js?v=769-stable-style"></script>
+<script src="core/home-scroll-prepaint-master-v696.js?v=774-near-layout-geometry"></script>
 <style id="happyad-v635-story-compact-responsive">
 /* V635 — lecteur Story compact et adaptatif, même rendu depuis Radar et Profil. */
 #happyStoryViewerMasterV629.haStoryV629{
@@ -10529,6 +10529,102 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   color:#aeb3c0!important;
   font-size:12px!important;
   font-weight:900!important;
+}
+</style>
+
+<style id="happyad-v774-home-geometry-master-css">
+/* HAPPYAD V774 — maître final de géométrie de l'Accueil.
+   Les anciennes couches visuelles restent présentes, mais aucune règle liée à la hauteur
+   dynamique du viewport ne peut désormais modifier la taille d'une carte pendant le scroll. */
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard){
+  overflow-anchor:auto!important;
+  box-sizing:border-box!important;
+}
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .miniCardFrame,
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .miniMedia,
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .haAlbumFullTrack,
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .haAlbumFullSlide{
+  transition:none!important;
+  box-sizing:border-box!important;
+}
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .miniMedia,
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .miniBody,
+#list.homeTimeline > .miniCard:not(.happyadSkeletonCard) .miniActions{
+  overflow-anchor:none!important;
+}
+/* Publication photo simple : ratio décidé avant insertion par V765, jamais par la hauteur de l'écran. */
+#list.homeTimeline > .miniCard:not(.videoCard):not(.haAlbumFullPagerCard) .miniMedia{
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:4/5!important;
+}
+#list.homeTimeline > .miniCard:not(.videoCard):not(.haAlbumFullPagerCard) .miniMedia.haPhotoTall{aspect-ratio:3/4!important;}
+#list.homeTimeline > .miniCard:not(.videoCard):not(.haAlbumFullPagerCard) .miniMedia.haPhotoSquare{aspect-ratio:1/1!important;}
+#list.homeTimeline > .miniCard:not(.videoCard):not(.haAlbumFullPagerCard) .miniMedia.haPhotoWide{aspect-ratio:4/3!important;}
+#list.homeTimeline > .miniCard:not(.videoCard):not(.haAlbumFullPagerCard) .miniMedia.haPhotoPanorama{aspect-ratio:16/9!important;}
+/* Vidéo : cadre carré fixe, indépendant des barres système et de l'orientation verticale. */
+#list.homeTimeline > .miniCard.videoCard .miniMedia{
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:1/1!important;
+}
+/* Album V772 : une seule définition finale pour le rail, les diapositives et leurs médias. */
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullScroller{
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullTrack{
+  display:flex!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  gap:14px!important;
+  align-items:flex-start!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x mandatory!important;
+  scroll-behavior:auto!important;
+  touch-action:auto!important;
+  overscroll-behavior-x:contain!important;
+}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullSlide{
+  flex:0 0 100%!important;
+  width:100%!important;
+  min-width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  scroll-snap-align:start!important;
+  scroll-snap-stop:always!important;
+}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:4/5!important;
+  contain:layout paint!important;
+  overflow:hidden!important;
+}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia.haPhotoTall{aspect-ratio:3/4!important;}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia.haPhotoSquare{aspect-ratio:1/1!important;}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia.haPhotoWide{aspect-ratio:4/3!important;}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia.haPhotoPanorama{aspect-ratio:16/9!important;}
+#list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia > img{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  display:block!important;
+  margin:0!important;
 }
 </style>
 </body></html>

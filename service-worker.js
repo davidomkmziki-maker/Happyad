@@ -1,7 +1,7 @@
-/* HAPPYAD V773 — Accueil : actions chargées une seule fois par tranche */
+/* HAPPYAD V774 — Accueil : géométrie CSS unique et cartes préparées avant écran */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V773-home-actions-batch-unique-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V774-home-geometry-near-layout-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
