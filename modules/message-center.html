@@ -3118,6 +3118,17 @@
 
 </style>
 <link id="happyad-message-assistance-shortcut-v738-css" rel="stylesheet" href="../core/message-assistance-shortcut-v738.css?v=738-visible">
+  <style id="happyad-v775-message-composer-stable-css">
+    /* V775 — le compositeur reste ancré au bas et grandit uniquement vers le haut. */
+    #chatView .composer-shell,
+    #chatView .composer,
+    #chatView #messageInput{
+      overflow-anchor:none!important;
+    }
+    #chatView #messageInput{
+      transition:none!important;
+    }
+  </style>
 </head>
 <body>
   <main class="app">
@@ -3387,7 +3398,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V746_MESSAGES_PROFILE_AVATAR_UID_REAL';
+      const MASTER_VERSION = 'V775_MESSAGES_COMPOSER_BOTTOM_STABLE';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -5592,11 +5603,60 @@
 
       let composerViewportFrame = 0;
       let composerViewportTimers = [];
+      let messageChatPinnedV775 = true;
+      let messageIdentitySignalsBoundV775 = false;
+      let messageIdentityBroadcastV775 = null;
+
+      function bindMessageIdentitySignalsV775(){
+        if(messageIdentitySignalsBoundV775) return;
+        messageIdentitySignalsBoundV775 = true;
+        window.addEventListener('storage',event => {
+          const key = clean(event && event.key);
+          if(!key || /HAPPYAD_(PROFILE|USER|CURRENT|LOGGED|CENTRAL|AUTHOR).*?(AVATAR|IDENTITY|USER)?/i.test(key)) refreshConnectedIdentitySoon(30);
+        });
+        try{
+          messageIdentityBroadcastV775 = new BroadcastChannel('happyad-profile-identity-v746');
+          messageIdentityBroadcastV775.onmessage = event => {
+            const detail = event && event.data || {};
+            const id = clean(detail.user_id || detail.id);
+            if(isUuid(id)) refreshConversationProfile(id).catch(() => false);
+          };
+        }catch(_e){ messageIdentityBroadcastV775 = null; }
+      }
 
       function syncMessageVisualViewport(){
         const viewport = window.visualViewport;
         const height = Math.max(320, Math.round(viewport && viewport.height ? viewport.height : (window.innerHeight || document.documentElement.clientHeight || 0)));
         if(height) document.documentElement.style.setProperty('--app-height', height + 'px');
+      }
+
+      function setChatBottomLocallyV775(bottomGap){
+        if(!chatBody || activeMessageView !== 'chat') return false;
+        const gap = Math.max(0,finiteNumber(bottomGap,0));
+        chatBottomScrollGeneration++;
+        chatBody.scrollTop = Math.max(0,chatBody.scrollHeight - chatBody.clientHeight - gap);
+        return true;
+      }
+
+      function preserveChatBottomAfterComposerResizeV775(wasNearBottom,bottomGap){
+        if(!wasNearBottom || !chatBody || activeMessageView !== 'chat') return;
+        requestAnimationFrame(() => setChatBottomLocallyV775(bottomGap));
+      }
+
+      function resizeMessageInputStableV775(){
+        if(!messageInput) return;
+        const beforeGap = chatBody ? Math.max(0,chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight) : 0;
+        const wasNearBottom = !!(chatBody && activeMessageView === 'chat' && beforeGap <= 180);
+        const previousHeight = Math.round(messageInput.getBoundingClientRect().height || messageInput.offsetHeight || 0);
+        messageInput.style.height = 'auto';
+        const naturalHeight = Math.max(44,finiteNumber(messageInput.scrollHeight,44));
+        const targetHeight = Math.min(120,naturalHeight);
+        messageInput.style.height = targetHeight + 'px';
+        messageInput.style.overflowY = naturalHeight > 120 ? 'auto' : 'hidden';
+        if(Math.abs(previousHeight - targetHeight) > 0.5){
+          messageChatPinnedV775 = wasNearBottom;
+          preserveChatBottomAfterComposerResizeV775(wasNearBottom,beforeGap);
+        }
       }
 
       let messageLayoutRepairFrame = 0;
@@ -5669,27 +5729,17 @@
       }
 
       function ensureComposerAboveKeyboard(){
+        const wasNearBottom = !!(chatBody && activeMessageView === 'chat' && chatNearBottom(180));
         if(composerViewportFrame) cancelAnimationFrame(composerViewportFrame);
         composerViewportFrame = requestAnimationFrame(() => {
           composerViewportFrame = 0;
-          window.addEventListener('storage',event => {
-        const key = clean(event && event.key);
-        if(!key || /HAPPYAD_(PROFILE|USER|CURRENT|LOGGED|CENTRAL|AUTHOR).*?(AVATAR|IDENTITY|USER)?/i.test(key)) refreshConnectedIdentitySoon(30);
-      });
-      try{
-        const identityBroadcastV746 = new BroadcastChannel('happyad-profile-identity-v746');
-        identityBroadcastV746.onmessage = event => {
-          const detail = event && event.data || {};
-          const id = clean(detail.user_id || detail.id);
-          if(isUuid(id)) refreshConversationProfile(id).catch(() => false);
-        };
-      }catch(_e){}
-
-      syncMessageVisualViewport();
+          syncMessageVisualViewport();
           if(!composerShell || !chatView || chatView.classList.contains('hidden')) return;
           const composerIsActive = document.activeElement === messageInput || !!editingMessage || !!replyingTo;
-          if(!composerIsActive) return;
-          try{ composerShell.scrollIntoView({block:'end',inline:'nearest'}); }catch(_e){ try{ composerShell.scrollIntoView(false); }catch(_e2){} }
+          if(!composerIsActive || !wasNearBottom) return;
+          /* V775 : le clavier redimensionne seulement le scroller interne.
+             Aucun scrollIntoView ne doit déplacer l'iframe ou la page principale. */
+          requestAnimationFrame(() => setChatBottomLocallyV775(0));
         });
       }
 
@@ -5701,7 +5751,7 @@
       function focusComposerNaturally(){
         if(!messageInput || messageInput.disabled) return;
         requestAnimationFrame(() => {
-          try{ messageInput.focus(); }catch(_e){ try{ messageInput.focus({preventScroll:false}); }catch(_e2){} }
+          try{ messageInput.focus({preventScroll:true}); }catch(_e){ try{ messageInput.focus(); }catch(_e2){} }
           try{
             const end = messageInput.value.length;
             messageInput.setSelectionRange(end,end);
@@ -10770,18 +10820,16 @@
         const generation = ++chatBottomScrollGeneration;
         const apply = () => {
           if(generation !== chatBottomScrollGeneration || !chatBody) return;
-          chatBody.scrollTop = chatBody.scrollHeight;
-          const last = chatBody.querySelector('.msg:last-of-type');
-          if(last){
-            try{ last.scrollIntoView({block:'end',inline:'nearest'}); }catch(_e){}
-            chatBody.scrollTop = chatBody.scrollHeight;
-          }
+          chatBody.scrollTop = Math.max(0,chatBody.scrollHeight - chatBody.clientHeight);
+          messageChatPinnedV775 = true;
         };
+        /* V775 : un seul scroller maître, chatBody. Aucun scrollIntoView
+           sur le dernier message ou le compositeur. */
         requestAnimationFrame(() => {
           apply();
           requestAnimationFrame(apply);
         });
-        [70,180].forEach(delay => setTimeout(apply,delay));
+        setTimeout(apply,80);
       }
 
       function renderMessages(scrollToBottom){
@@ -14238,8 +14286,7 @@
         sendBtn.classList.toggle('has-text', editing || hasText || hasPhoto || hasVideo || hasFile || hasSticker || recording || sending);
         sendBtn.setAttribute('aria-label', sending ? 'Envoi en cours' : (editing ? 'Enregistrer la modification' : (recording ? 'Arrêter et envoyer le vocal' : (hasFile ? 'Envoyer le fichier' : (hasVideo ? 'Envoyer la vidéo' : (hasPhoto ? 'Envoyer la photo' : (hasSticker ? 'Envoyer les stickers' : (hasText ? 'Envoyer' : 'Enregistrer audio'))))))));
         sendBtn.setAttribute('aria-busy', sending ? 'true' : 'false');
-        messageInput.style.height = 'auto';
-        messageInput.style.height = Math.min(120, Math.max(44, messageInput.scrollHeight)) + 'px';
+        resizeMessageInputStableV775();
       }
 
       function microphoneGestureAvailable(){
@@ -14599,15 +14646,28 @@
       if(viewerMenuBtn) viewerMenuBtn.addEventListener('click',event => { event.preventDefault(); event.stopPropagation(); openViewerMenuSheet(); });
       if(draftFullClose) draftFullClose.addEventListener('click', closeOverlays);
       window.addEventListener('keydown', event => { if(event.key === 'Escape') closeOverlays(); });
+      bindMessageIdentitySignalsV775();
+      if(chatBody){
+        messageChatPinnedV775 = chatNearBottom(96);
+        chatBody.addEventListener('scroll',() => {
+          if(!sharedReturnScrollLockedV711()) messageChatPinnedV775 = chatNearBottom(96);
+        },{passive:true});
+      }
       if(window.visualViewport){
         window.visualViewport.addEventListener('resize', ensureComposerAboveKeyboard);
         window.visualViewport.addEventListener('scroll', ensureComposerAboveKeyboard);
       }
       window.addEventListener('resize', ensureComposerAboveKeyboard);
       if(typeof ResizeObserver === 'function' && composerShell){
+        let composerShellHeightV775 = Math.round(composerShell.getBoundingClientRect().height || 0);
         const composerResizeObserver = new ResizeObserver(() => {
+          const nextHeight = Math.round(composerShell.getBoundingClientRect().height || 0);
+          const changed = Math.abs(nextHeight - composerShellHeightV775) > 0.5;
+          composerShellHeightV775 = nextHeight;
           if(sharedReturnScrollLockedV711()) applySharedReturnScrollV711();
-          else if(activeMessageView === 'chat' && chatNearBottom(240)) scrollChatToLatest();
+          else if(changed && activeMessageView === 'chat' && messageChatPinnedV775){
+            requestAnimationFrame(() => setChatBottomLocallyV775(0));
+          }
         });
         composerResizeObserver.observe(composerShell);
       }
