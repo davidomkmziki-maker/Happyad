@@ -1407,6 +1407,14 @@ html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 @keyframes happyadProgressSpinV764{to{transform:rotate(360deg)}}
 </style>
 <link id="happyad-assistance-integration-master-v738-css" rel="stylesheet" href="core/assistance-integration-master-v738.css?v=757-audit-stable">
+
+<style id="happyad-home-pagination-stable-v765-css">
+#list .happyadHomeProgressiveSentinelV764{min-height:2px!important;height:2px!important;padding:0!important;margin:0!important;gap:0!important;overflow:hidden!important}
+#list .happyadHomeProgressiveSentinelV764 i{display:none!important;width:16px!important;height:16px!important}
+#list .happyadHomeProgressiveSentinelV764.is-loading{min-height:34px!important;height:34px!important}
+#list .happyadHomeProgressiveSentinelV764.is-loading i{display:block!important}
+#list .happyadHomeProgressiveSentinelV764.is-done,#list .happyadHomeProgressiveSentinelV764[hidden]{display:none!important;min-height:0!important;height:0!important}
+</style>
 </head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="feedGrid"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
@@ -1420,6 +1428,7 @@ let HAPPYAD_HOME_RENDER_LIMIT=10;
 const HAPPYAD_HOME_PAGE_SIZE=10;
 const HAPPYAD_HOME_PROGRESSIVE_STEP_V764=5;
 const HAPPYAD_HOME_REMOTE_PAGE=20;
+const HAPPYAD_HOME_REMOTE_PROBE_V765=HAPPYAD_HOME_REMOTE_PAGE+1;
 const HAPPYAD_HOME_MAX_POSTS=100;
 const HAPPYAD_HOME_DOM_WINDOW=30;
 const HAPPYAD_HOME_DOM_STEP=10;
@@ -1603,6 +1612,9 @@ function mapHappyPost(r){const mapped={id:r.id,mode:r.mode||'publish',title:r.ti
       var rawPoster=(r&&(r.thumbnail_url||r.thumbnailUrl||r.poster_url||r.posterUrl||r.cover_url||r.coverUrl||r.image_url||r.imageUrl))||(mapped&&(mapped.thumbnailUrl||mapped.thumbnail_url||mapped.posterUrl||mapped.poster_url||mapped.coverUrl||mapped.cover_url))||'';
       var poster=happyadPublicMediaUrlV34(rawPoster);
       if(poster){mapped.thumbnailUrl=poster;mapped.thumbnail_url=poster;mapped.posterUrl=poster;mapped.poster_url=poster;}
+      /* V765 : conserver les dimensions quand elles existent afin de réserver
+         la bonne hauteur avant même le chargement du média. */
+      ['media_width','media_height','image_width','image_height','natural_width','natural_height','width','height','photo_width','photo_height','original_width','original_height','aspect_ratio','media_aspect_ratio','image_aspect_ratio','ratio'].forEach(function(k){if(r&&r[k]!=null&&r[k]!==''&&mapped[k]==null)mapped[k]=r[k];});
     }catch(_e){}
     return mapped;
   };
@@ -1755,14 +1767,16 @@ async function fetchRemotePosts(userOnly, force){
        On vérifie l'utilisateur seulement pour Mon profil/userOnly. */
     if(userOnly){try{const r=await c.auth.getUser();authUser=r&&r.data&&r.data.user; if(authUser){uid=authUser.id;localStorage.setItem('HAPPYAD_AUTH_UID',uid);}}catch(_){ }}
     const firstLimit=userOnly?18:HAPPYAD_HOME_REMOTE_PAGE;
-    let q=c.from('happyad_posts').select('*').is('deleted_at',null).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(firstLimit);
+    const firstQueryLimit=userOnly?firstLimit:HAPPYAD_HOME_REMOTE_PROBE_V765;
+    let q=c.from('happyad_posts').select('*').is('deleted_at',null).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(firstQueryLimit);
     if(userOnly){ if(!uid)return immediate; q=q.eq('user_id',uid); }
     const {data,error}=await q;
     if(error)throw error;
-    let arr=uniq((data||[]).map(mapHappyPost));
+    const firstRowsV765=userOnly?(data||[]):(data||[]).slice(0,HAPPYAD_HOME_REMOTE_PAGE);
+    let arr=uniq(firstRowsV765.map(mapHappyPost));
     if(!userOnly&&arr.length){try{happyadWriteHomeConfirmedSnapshotV643(arr);}catch(_e){}}
     if(!userOnly){
-      var firstPageCursorV694=happyadCursorFromRowsV627(data||[])||happyadOldestCursorFromPostsV627(arr);
+      var firstPageCursorV694=happyadCursorFromRowsV627(firstRowsV765)||happyadOldestCursorFromPostsV627(arr);
       /* V764 : la pagination suit toujours la dernière ligne de la première page
          réellement reçue. L'ancien choix du plus vieux élément du cache sautait
          toutes les publications situées entre la page récente et ce vieux cache. */
@@ -1772,7 +1786,7 @@ async function fetchRemotePosts(userOnly, force){
       }
       HAPPYAD_HOME_REMOTE_NEXT_OFFSET=Math.max(HAPPYAD_HOME_REMOTE_NEXT_OFFSET,arr.length);
     }
-    if(!userOnly && arr.length<firstLimit)HAPPYAD_HOME_REMOTE_DONE=true;
+    if(!userOnly)HAPPYAD_HOME_REMOTE_DONE=((data||[]).length<=HAPPYAD_HOME_REMOTE_PAGE);
     /* HAPPYAD V403: le premier rendu ne doit pas attendre les appels secondaires Supabase.
        Les suppressions distantes, profils auteurs et actions sont synchronisés après l'affichage. */
     try{syncRemoteDeletedPostIds(c).then(function(){
@@ -2770,6 +2784,62 @@ function happyadCssUrlV466(url){
 function happyadSetPhotoBgV466(el,url){
   try{if(el&&url)el.style.setProperty('--ha-photo-bg',happyadCssUrlV466(url));}catch(e){}
 }
+const HAPPYAD_HOME_RATIO_CACHE_KEY_V765='HAPPYAD_HOME_MEDIA_RATIO_CACHE_V765';
+let HAPPYAD_HOME_RATIO_CACHE_V765=null;
+let HAPPYAD_HOME_RATIO_SAVE_TIMER_V765=0;
+function happyadPhotoRatioClassV765(w,h){
+  w=Number(w||0);h=Number(h||0);if(!(w>0&&h>0))return '';
+  var r=w/h;if(r<.72)return 'haPhotoTall';if(r<1.15)return 'haPhotoSquare';if(r<1.55)return 'haPhotoWide';return 'haPhotoPanorama';
+}
+function happyadReadHomeRatioCacheV765(){
+  if(HAPPYAD_HOME_RATIO_CACHE_V765)return HAPPYAD_HOME_RATIO_CACHE_V765;
+  try{var x=JSON.parse(localStorage.getItem(HAPPYAD_HOME_RATIO_CACHE_KEY_V765)||'{}');HAPPYAD_HOME_RATIO_CACHE_V765=(x&&typeof x==='object')?x:{};}catch(_e){HAPPYAD_HOME_RATIO_CACHE_V765={};}
+  return HAPPYAD_HOME_RATIO_CACHE_V765;
+}
+function happyadScheduleHomeRatioSaveV765(){
+  clearTimeout(HAPPYAD_HOME_RATIO_SAVE_TIMER_V765);
+  HAPPYAD_HOME_RATIO_SAVE_TIMER_V765=setTimeout(function(){
+    try{
+      var src=happyadReadHomeRatioCacheV765(),keys=Object.keys(src);
+      if(keys.length>320){keys.sort(function(a,b){return Number((src[b]&&src[b].at)||0)-Number((src[a]&&src[a].at)||0)});var keep={};keys.slice(0,260).forEach(function(k){keep[k]=src[k]});HAPPYAD_HOME_RATIO_CACHE_V765=keep;src=keep;}
+      localStorage.setItem(HAPPYAD_HOME_RATIO_CACHE_KEY_V765,JSON.stringify(src));
+    }catch(_e){}
+  },450);
+}
+function happyadDeclaredPhotoRatioV765(p){
+  try{
+    p=p||{};
+    var pairs=[
+      [p.media_width,p.media_height],[p.image_width,p.image_height],[p.natural_width,p.natural_height],
+      [p.width,p.height],[p.photo_width,p.photo_height],[p.original_width,p.original_height]
+    ];
+    for(var i=0;i<pairs.length;i++){var c=happyadPhotoRatioClassV765(pairs[i][0],pairs[i][1]);if(c)return c;}
+    var raw=p.aspect_ratio||p.media_aspect_ratio||p.image_aspect_ratio||p.ratio||'';
+    if(typeof raw==='number'&&raw>0)return happyadPhotoRatioClassV765(raw,1);
+    var m=String(raw||'').match(/([0-9.]+)\s*[:x\/]\s*([0-9.]+)/i);if(m)return happyadPhotoRatioClassV765(m[1],m[2]);
+  }catch(_e){}
+  return '';
+}
+function happyadHomePhotoRatioForPostV765(p){
+  var direct=happyadDeclaredPhotoRatioV765(p);if(direct)return direct;
+  try{var id=String(p&&p.id||'');var row=id&&happyadReadHomeRatioCacheV765()[id];if(row&&/^haPhoto(Tall|Square|Wide|Panorama)$/.test(String(row.cls||'')))return row.cls;}catch(_e){}
+  return 'haPhotoTall';
+}
+function happyadPrepareHomePhotoRatioV765(box,p){
+  try{
+    if(!box)return 'haPhotoTall';
+    var cls=happyadHomePhotoRatioForPostV765(p);
+    box.classList.remove('haPhotoTall','haPhotoSquare','haPhotoWide','haPhotoPanorama');
+    box.classList.add(cls);box.dataset.happyadRatioLockedV765=cls;return cls;
+  }catch(_e){return 'haPhotoTall';}
+}
+function happyadLearnHomePhotoRatioV765(p,img){
+  try{
+    var id=String(p&&p.id||'').trim();if(!id||!img)return;
+    var cls=happyadPhotoRatioClassV765(img.naturalWidth,img.naturalHeight);if(!cls)return;
+    var cache=happyadReadHomeRatioCacheV765();cache[id]={cls:cls,at:Date.now()};happyadScheduleHomeRatioSaveV765();
+  }catch(_e){}
+}
 function happyadApplyHomePhotoRatioV467(box,img){
   try{
     if(!box||!img)return;
@@ -2988,16 +3058,15 @@ async function hydrateAlbumMedia(card,p){
       (async function(slide,it){
         var media=slide.querySelector('.haAlbumSingleMedia');
         try{
+          happyadPrepareHomePhotoRatioV765(media,it);
           var url=await happyadMediaUrlForPost(it);
           if(!url){media.innerHTML='<div class="happyadAlbumLoading">Média introuvable</div>';return;}
           var im=document.createElement('img');
           im.loading='eager';im.fetchPriority='high';im.decoding='async';im.alt='';
           im.onload=function(){
-            try{
-              var cls=happyadPhotoRatioClassFromImgV468(im);
-              media.classList.remove('haPhotoTall','haPhotoSquare','haPhotoWide','haPhotoPanorama');
-              media.classList.add(cls);
-            }catch(_r){}
+            /* V765 : ne pas changer le ratio pendant que l’utilisateur regarde ou
+               fait défiler la carte. Le ratio appris sera utilisé au prochain rendu. */
+            try{happyadLearnHomePhotoRatioV765(it,im);}catch(_r){}
           };
           im.src=url;
           media.innerHTML='<div class="happyadAlbumBadge">▧ '+(i+1)+'</div>';
@@ -3049,14 +3118,16 @@ async function hydrateAlbumMedia(card,p){
   }catch(e){console.warn('album full pager',e)}
 }
 
-function happyadBindHomePhotoProgressiveV764(card,box,img,primary,fallback,hasCrop){
+function happyadBindHomePhotoProgressiveV764(card,box,img,primary,fallback,hasCrop,p){
   if(!card||!box||!img)return;
   var triedFallback=false;
   function markReady(){
     card.dataset.mediaReady='1';
     card.dataset.mediaRetryV764='0';
     try{card.classList.remove('happyadMediaLoadingV764');}catch(_e){}
-    try{if(!hasCrop)happyadApplyHomePhotoRatioV467(box,img);}catch(_e){}
+    /* V765 : apprendre le vrai ratio pour la prochaine ouverture, sans modifier
+       la hauteur de la carte actuellement visible. */
+    try{happyadLearnHomePhotoRatioV765(p,img);}catch(_e){}
   }
   function fail(){
     var current=String(img.currentSrc||img.getAttribute('src')||'');
@@ -3095,9 +3166,10 @@ async function hydrateMedia(card,p,video){
         var hasCrop=happyadHasCardCropV613D(p);box.classList.toggle('haPhotoUserCropV613D',hasCrop);
         var homePhotoSrcV616=p.thumbnailUrl||p.thumbnail_url||p.mediaUrl;
         var homePhotoFallbackV764=p.mediaUrl||p.media_url||homePhotoSrcV616;
+        happyadPrepareHomePhotoRatioV765(box,p);
         box.innerHTML='<img'+happyadHomeMediaAttrsV616(card)+' src="'+esc(homePhotoSrcV616)+'" alt=""'+happyadCropStyle(p)+'>';
         var homeImgV643=box.querySelector('img');
-        happyadBindHomePhotoProgressiveV764(card,box,homeImgV643,homePhotoSrcV616,homePhotoFallbackV764,hasCrop);
+        happyadBindHomePhotoProgressiveV764(card,box,homeImgV643,homePhotoSrcV616,homePhotoFallbackV764,hasCrop,p);
       }
       return;
     }
@@ -3108,9 +3180,10 @@ async function hydrateMedia(card,p,video){
       if(video){renderHomeVideoPreview(box,p,url);card.dataset.mediaReady='1';card.classList.remove('happyadMediaLoadingV764');}else{
         happyadSetPhotoBgV466(box,url);
         var hasCrop=happyadHasCardCropV613D(p);box.classList.toggle('haPhotoUserCropV613D',hasCrop);
+        happyadPrepareHomePhotoRatioV765(box,p);
         box.innerHTML='<img'+happyadHomeMediaAttrsV616(card)+' src="'+url+'" alt=""'+happyadCropStyle(p)+'>';
         var localImgV643=box.querySelector('img');
-        happyadBindHomePhotoProgressiveV764(card,box,localImgV643,url,'',hasCrop);
+        happyadBindHomePhotoProgressiveV764(card,box,localImgV643,url,'',hasCrop,p);
       }
     }else{
       card.dataset.mediaReady='error';card.classList.remove('happyadMediaLoadingV764');
@@ -3783,6 +3856,7 @@ try{var hpTop=card.querySelector('.miniTop');if(hpTop){hpTop.onclick=function(e)
 var seeBtn=card.querySelector('.miniSeeMore');if(seeBtn){seeBtn.onclick=function(e){e.preventDefault();e.stopPropagation();/* HAPPYAD V330: Voir plus ouvre directement le centre/detail de la publication au lieu de déplier le texte dans l'accueil. */if(video){openLongVideo(p.id);}else{openLongPhoto(p.id);}return false;};}
 
 try{happyadBindHomeDoubleTapLike(card,p);}catch(_dt){}
+if(!video){try{happyadPrepareHomePhotoRatioV765(card.querySelector('.miniMedia'),p);}catch(_ratio){}}
 if(video){var media=card.querySelector('.miniMedia');if(media){media.insertAdjacentHTML('beforeend','<div class="videoHint">Ouvrir vidéo longue</div><div class="happyadVideoViewsBadge">'+happyadFmtViews((getA(p.id)||{}).views||p.views_count||p.video_views_count||0)+'</div>');}else{card.insertAdjacentHTML('beforeend','<div class="happyadVideoViewsBadge">0</div>');}card.onclick=(e)=>{if(e.target.closest('[data-card-act]'))return;openLongVideo(p.id)};}else{card.onclick=(e)=>{if(e.target.closest('[data-card-act]'))return;openLongPhoto(p.id)};}refreshCardAction(card,p.id);observeHomeCard(card,p,video);return card;}
 function section(title,items,filter){const sec=document.createElement('section');sec.className='section';sec.innerHTML='<div class="sectionHead"><div class="sectionTitle">'+esc(title)+'</div><button class="seeMore" data-see="'+esc(filter)+'">voir plus</button></div><div class="hScroller"></div>';const row=sec.querySelector('.hScroller');items.slice(0,10).forEach(p=>row.appendChild(createCard(p)));if(!items.length)row.innerHTML='<div class="sectionEmpty">Aucune publication pour cette catégorie</div>';sec.querySelector('.seeMore').onclick=()=>setFilter(filter);return sec;}
 let HAPPYAD_HOME_WINDOW_START_V616=0;
@@ -3826,8 +3900,34 @@ function happyadHomeMeasureWindowV616(){
 /* HAPPYAD V695 — Accueil sans trou noir au retour rapide vers le haut.
    Les cartes déjà rendues restent dans le DOM. content-visibility garde le coût léger,
    mais aucun moteur ne retire puis ne recrée les publications pendant le scroll. */
+function happyadHomeViewportAnchorV765(){
+  try{
+    if(!list||window.scrollY<80)return null;
+    var cards=[].slice.call(list.querySelectorAll('.miniCard:not(.happyadSkeletonCard)'));
+    var topGuard=48,best=null;
+    for(var i=0;i<cards.length;i++){
+      var r=cards[i].getBoundingClientRect();
+      if(r.bottom>topGuard){best=cards[i];break;}
+    }
+    if(!best)return null;
+    return {id:String(best.dataset.postId||''),top:best.getBoundingClientRect().top,at:Date.now()};
+  }catch(_e){return null;}
+}
+function happyadRestoreHomeViewportAnchorV765(anchor){
+  if(!anchor||!anchor.id)return;
+  requestAnimationFrame(function(){
+    try{
+      var node=[].slice.call(list.querySelectorAll('.miniCard[data-post-id]')).find(function(x){return String(x.dataset.postId||'')===anchor.id;});
+      if(!node)return;
+      var delta=node.getBoundingClientRect().top-Number(anchor.top||0);
+      var limit=Math.max(1400,(window.innerHeight||700)*2.2);
+      if(Math.abs(delta)>1&&Math.abs(delta)<limit)window.scrollBy(0,delta);
+    }catch(_e){}
+  });
+}
 function happyadRenderHomeWindowV616(items,mode,opts){
   if(HAPPYAD_HOME_WINDOW_BUSY_V616)return;
+  var homeAnchorV765=happyadHomeViewportAnchorV765();
   HAPPYAD_HOME_WINDOW_BUSY_V616=true;
   try{
     items=Array.isArray(items)?items:[];opts=opts||{};
@@ -3872,6 +3972,7 @@ function happyadRenderHomeWindowV616(items,mode,opts){
       if(previousMode!==mode||!wanted[id]){happyadDisposeHomeCardV616(card);try{card.remove();}catch(_e){}}
     });
 
+    happyadRestoreHomeViewportAnchorV765(homeAnchorV765);
     requestAnimationFrame(function(){try{refreshHomeVisibleActionsNow();}catch(_e){}});
   }finally{HAPPYAD_HOME_WINDOW_BUSY_V616=false;}
 }
@@ -3977,11 +4078,30 @@ function happyadHomeVisibleTotal(){
     return happyadGroupFeedPosts(visiblePosts()).length;
   }catch(_e){return (ALL_POSTS||[]).length;}
 }
+function happyadUpdateHomePaginationStateV765(){
+  try{
+    var sentinel=document.getElementById('happyadHomePaginationSentinelV694');if(!sentinel)return;
+    var total=happyadHomeVisibleTotal();
+    var localPending=Number(HAPPYAD_HOME_RENDER_LIMIT||0)<Number(total||0);
+    var done=!!(HAPPYAD_HOME_REMOTE_DONE&&!localPending&&!HAPPYAD_HOME_MORE_LOADING);
+    sentinel.hidden=done;
+    sentinel.classList.toggle('is-loading',!!HAPPYAD_HOME_MORE_LOADING);
+    sentinel.classList.toggle('is-done',done);
+    sentinel.setAttribute('aria-busy',HAPPYAD_HOME_MORE_LOADING?'true':'false');
+    if(window.__happyadHomePaginationObserverV694){
+      try{
+        if(done)window.__happyadHomePaginationObserverV694.unobserve(sentinel);
+        else window.__happyadHomePaginationObserverV694.observe(sentinel);
+      }catch(_e){}
+    }
+  }catch(_e){}
+}
 async function happyadLoadMoreRemotePosts(){
   if(HAPPYAD_HOME_MORE_LOADING||HAPPYAD_HOME_REMOTE_DONE)return false;
   const c=happyadSb();
   if(!c)return false;
   HAPPYAD_HOME_MORE_LOADING=true;
+  try{happyadEnsureHomePaginationSentinelV694();happyadUpdateHomePaginationStateV765();}catch(_state){}
   var visibleAdded=false,rawAdded=0,loops=0,lastError=null;
   try{
     /* V764 : avant la première page Supabase, ne jamais partir du plus vieux cache.
@@ -3998,16 +4118,17 @@ async function happyadLoadMoreRemotePosts(){
       var beforeCursor=HAPPYAD_HOME_REMOTE_CURSOR_V627&&Object.assign({},HAPPYAD_HOME_REMOTE_CURSOR_V627);
       var beforeVisible=happyadHomeVisibleTotal();
       var beforeIds=new Set((ALL_POSTS||[]).map(function(x){return String(x&&x.id||'');}));
-      var q=c.from('happyad_posts').select('*').is('deleted_at',null).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(HAPPYAD_HOME_REMOTE_PAGE);
+      var q=c.from('happyad_posts').select('*').is('deleted_at',null).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(HAPPYAD_HOME_REMOTE_PROBE_V765);
       q=happyadApplyCursorV627(q,HAPPYAD_HOME_REMOTE_CURSOR_V627);
       const result=await q;
       if(result&&result.error)throw result.error;
-      const rows=(result&&result.data)||[];
+      const probeRowsV765=(result&&result.data)||[];
+      const rows=probeRowsV765.slice(0,HAPPYAD_HOME_REMOTE_PAGE);
       if(!rows.length){HAPPYAD_HOME_REMOTE_DONE=true;break;}
       var nextCursor=happyadCursorFromRowsV627(rows);
       if(nextCursor){HAPPYAD_HOME_REMOTE_CURSOR_V627=nextCursor;HAPPYAD_HOME_REMOTE_CURSOR_SEEDED_V764=true;}
       HAPPYAD_HOME_REMOTE_NEXT_OFFSET+=rows.length;
-      if(rows.length<HAPPYAD_HOME_REMOTE_PAGE)HAPPYAD_HOME_REMOTE_DONE=true;
+      if(probeRowsV765.length<=HAPPYAD_HOME_REMOTE_PAGE)HAPPYAD_HOME_REMOTE_DONE=true;
       if(beforeCursor&&nextCursor&&happyadCursorCompareV694(beforeCursor,nextCursor)===0){HAPPYAD_HOME_REMOTE_DONE=true;break;}
 
       const fresh=rows.map(mapHappyPost);
@@ -4037,7 +4158,7 @@ async function happyadLoadMoreRemotePosts(){
   }catch(e){lastError=e;console.warn('home load more posts',e);}
   finally{
     HAPPYAD_HOME_MORE_LOADING=false;
-    try{happyadEnsureHomeScrollLoader();}catch(_e){}
+    try{happyadEnsureHomeScrollLoader();happyadUpdateHomePaginationStateV765();}catch(_e){}
     /* Après une page de doublons ou une réponse lente, le sentinel relance proprement
        la vérification si l'utilisateur se trouve encore réellement au bas du fil. */
     if(!lastError&&!visibleAdded&&!HAPPYAD_HOME_REMOTE_DONE&&rawAdded===0){setTimeout(happyadMaybeLoadMoreHome,180);}
@@ -4060,6 +4181,7 @@ function happyadMaybeLoadMoreHome(){
       HAPPYAD_HOME_RENDER_LIMIT=Math.min(total,HAPPYAD_HOME_RENDER_LIMIT+HAPPYAD_HOME_PROGRESSIVE_STEP_V764);
       HAPPYAD_LAST_RENDER_SIG='';
       render();
+      try{happyadUpdateHomePaginationStateV765();}catch(_state){}
       setTimeout(happyadMaybeLoadMoreHome,90);
       return;
     }
@@ -4073,7 +4195,7 @@ function happyadEnsureHomePaginationSentinelV694(){
     if(!sentinel){
       sentinel=document.createElement('div');sentinel.id='happyadHomePaginationSentinelV694';sentinel.setAttribute('aria-hidden','true');
       sentinel.className='happyadHomeProgressiveSentinelV764';
-      sentinel.innerHTML='<i></i><span>Chargement progressif</span>';
+      sentinel.innerHTML='<i aria-hidden="true"></i>';
     }
     /* Le sentinel appartient maintenant à la liste elle-même : il suit toujours
        la dernière publication, même quand la hauteur du shell PWA change. */
@@ -4088,6 +4210,7 @@ function happyadEnsureHomePaginationSentinelV694(){
       window.__happyadHomePaginationSentinelNodeV764=sentinel;
       try{window.__happyadHomePaginationObserverV694.observe(sentinel);}catch(_e){}
     }
+    try{happyadUpdateHomePaginationStateV765();}catch(_state){}
     return sentinel;
   }catch(_e){return null;}
 }
@@ -7438,7 +7561,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=764-home-progressive-stable',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=765-home-end-scroll-stable',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9546,12 +9669,12 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
-<script src="core/navigation-master-v668.js?v=764-home-progressive-stable"></script>
+<script src="core/navigation-master-v668.js?v=765-home-end-scroll-stable"></script>
 <script src="core/auth-session-master-v598.js?v=752-auth-storage-quota-retry"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=758-visitor-isolation"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=763-home-stable"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=763-home-stable"></script>
-<script src="core/main-tabs-master-v615.js?v=764-home-progressive-stable"></script>
+<script src="core/main-tabs-master-v615.js?v=765-home-end-scroll-stable"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -10117,7 +10240,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 }
 </style>
 <script src="core/story-master-v699.js?v=728-story-analytics-events"></script>
-<script src="core/home-scroll-prepaint-master-v696.js?v=764-progressive-media"></script>
+<script src="core/home-scroll-prepaint-master-v696.js?v=765-scroll-anchor-stable"></script>
 <style id="happyad-v635-story-compact-responsive">
 /* V635 — lecteur Story compact et adaptatif, même rendu depuis Radar et Profil. */
 #happyStoryViewerMasterV629.haStoryV629{

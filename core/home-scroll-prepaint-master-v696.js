@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__)return;
   window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__=true;
 
-  var VERSION='V764_HOME_SCROLL_PROGRESSIVE_PREPAINT';
+  var VERSION='V765_HOME_SCROLL_ANCHOR_STABLE';
   var list=null,io=null,raf=0,fastTimer=0,lastY=window.scrollY||0,lastAt=performance.now?performance.now():Date.now();
   function cssUrl(value){return 'url("'+String(value||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")'}
   function installCss(){
