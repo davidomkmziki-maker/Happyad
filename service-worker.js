@@ -1,7 +1,7 @@
-/* HAPPYAD V751 — X protégé, ouverture atomique, annonce agent neutre */
+/* HAPPYAD V753 — X Assistance direct protégé + stockage Auth stable */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V751-assistance-x-shield-open-atomic-agent-neutral-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V753-x-pointerdown-shield-auth-quota-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=750-assistance-admin-only-terminal-realtime',
+  './index.html?v=753-x-pointerdown-shield-auth-quota',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -18,7 +18,8 @@ var HAPPYAD_APP_SHELL = [
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
   './core/navigation-master-v668.js?v=746-message-profile-avatar',
-  './core/auth-session-master-v598.js?v=742-profile-identity-nondestructive',
+  './core/auth-storage-quota-master-v752.js?v=752-auth-quota-idb',
+  './core/auth-session-master-v598.js?v=752-auth-storage-quota-retry',
   './core/profile-identity-stable-master-v741.js?v=743-avatar-safe',
   './core/profile-avatar-recovery-master-v743.js?v=743-avatar-legacy-recovery',
   './core/card-author-avatar-master-v742.js?v=743-card-avatar-safe',
@@ -26,11 +27,11 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=746-message-profile-avatar',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
-  './core/assistance-integration-master-v738.css?v=751-x-shield-open-atomic-agent-neutral',
-  './core/assistance-integration-master-v738.js?v=751-x-shield-open-atomic-agent-neutral',
+  './core/assistance-integration-master-v738.css?v=753-x-pointerdown-shield',
+  './core/assistance-integration-master-v738.js?v=753-x-pointerdown-shield',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
-  './core/message-assistance-shortcut-v738.js?v=751-x-shield-open-atomic-agent-neutral',
-  './core/assistance-supabase-realtime-v750.js?v=751-x-shield-open-atomic-agent-neutral'
+  './core/message-assistance-shortcut-v738.js?v=753-x-pointerdown-shield',
+  './core/assistance-supabase-realtime-v750.js?v=753-x-pointerdown-shield'
 ];
 
 function isHappyCache(name){

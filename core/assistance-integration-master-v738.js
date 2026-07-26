@@ -1,19 +1,19 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V751__)return;
-  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V751__=true;
+  if(window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V753__)return;
+  window.__HAPPYAD_ASSISTANCE_INTEGRATION_MASTER_V753__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V751_X_SHIELD_OPEN_ATOMIC_AGENT_NEUTRAL';
+  var VERSION='HAPPYAD_ASSISTANCE_INTEGRATION_V753_X_POINTERDOWN_SHIELD';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV751';
-  var FRAME_URL='modules/assistance.html?v=751-x-shield-open-atomic-agent-neutral';
+  var PARENT_CLOSE_ID='happyadAssistanceParentCloseV753';
+  var FRAME_URL='modules/assistance.html?v=753-x-pointerdown-shield';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null,parentClose=null;
   var openState=false,ready=false,documentLoaded=false;
   var lastContext=null,lastFocus=null,prewarmStarted=false,prewarmTimer=0;
   var closeLock=false,readyPollTimer=0,readyPollStartedAt=0,lastClosePointerAt=0;
-  var closeTimer=0,openRevealTimer=0,hostRevealed=false;
+  var closeTimer=0,closeFinishTimer=0,openRevealTimer=0,hostRevealed=false,closeArmed=false;
 
   function clean(v){return String(v==null?'':v).trim()}
   function localUser(){try{return Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{})}catch(_e){return {}}}
@@ -51,33 +51,71 @@
     try{event&&event.stopPropagation&&event.stopPropagation()}catch(_e){}
     try{event&&event.stopImmediatePropagation&&event.stopImmediatePropagation()}catch(_e){}
   }
-  function queueClose(reason,event){
+  function clearCloseTimers(){
+    if(closeTimer){clearTimeout(closeTimer);closeTimer=0}
+    if(closeFinishTimer){clearTimeout(closeFinishTimer);closeFinishTimer=0}
+  }
+  function beginProtectedClose(reason,event){
     consumeCloseEvent(event);
-    if(!openState||closeLock||closeTimer)return false;
+    if(!openState||closeLock)return false;
     var now=Date.now();
-    if(now-lastClosePointerAt<180)return true;
+    if(closeArmed)return true;
+    if(now-lastClosePointerAt<120)return true;
     lastClosePointerAt=now;
-    if(host)host.classList.add('closing');
-    /* Le maître reste au-dessus de la page précédente jusqu’à la fin complète
-       du geste Android. Cela absorbe le click synthétique et interdit tout
-       transfert vers Paramètres, Messages ou Profil derrière la frame. */
-    closeTimer=setTimeout(function(){closeTimer=0;finalizeClose(reason||'x-shield')},96);
+    closeArmed=true;
+    clearCloseTimers();
+    if(host)host.classList.add('closing','closingImmediate');
+    /* Réponse visuelle immédiate au premier contact : la frame disparaît,
+       mais le maître transparent reste au-dessus de toute la page jusqu’à la
+       fin du geste Android. Aucun bouton situé derrière ne peut donc recevoir
+       le pointerup ni le click synthétique. */
+    closeTimer=setTimeout(function(){finishProtectedClose(reason||'x-fallback')},520);
     return true;
   }
+  function finishProtectedClose(reason,event){
+    consumeCloseEvent(event);
+    if(!openState)return false;
+    if(!closeArmed)beginProtectedClose(reason,event);
+    if(closeFinishTimer)return true;
+    if(closeTimer){clearTimeout(closeTimer);closeTimer=0}
+    closeFinishTimer=setTimeout(function(){
+      closeFinishTimer=0;
+      closeArmed=false;
+      finalizeClose(reason||'x-pointerdown-shield');
+    },145);
+    return true;
+  }
+  function queueClose(reason,event){
+    var type=String(event&&event.type||'').toLowerCase();
+    if(type==='pointerdown'||type==='touchstart'||type==='mousedown')return beginProtectedClose(reason,event);
+    if(event)return finishProtectedClose(reason,event);
+    beginProtectedClose(reason||'x-direct');
+    return finishProtectedClose(reason||'x-direct');
+  }
   function bindParentClose(){
-    if(!parentClose||parentClose.__happyadCloseV751Bound)return;
-    parentClose.__happyadCloseV751Bound=true;
+    if(!parentClose||parentClose.__happyadCloseV753Bound)return;
+    parentClose.__happyadCloseV753Bound=true;
     parentClose.style.touchAction='none';
     var arm=function(event){
-      consumeCloseEvent(event);
       try{event&&event.pointerId!=null&&parentClose.setPointerCapture&&parentClose.setPointerCapture(event.pointerId)}catch(_e){}
+      beginProtectedClose('parent-x-down',event);
     };
-    parentClose.addEventListener('pointerdown',arm,{capture:true,passive:false});
-    parentClose.addEventListener('pointerup',function(event){queueClose('parent-x',event)},{capture:true,passive:false});
-    parentClose.addEventListener('pointercancel',consumeCloseEvent,{capture:true,passive:false});
-    parentClose.addEventListener('touchstart',arm,{capture:true,passive:false});
-    parentClose.addEventListener('touchend',function(event){queueClose('parent-x-touch',event)},{capture:true,passive:false});
-    parentClose.addEventListener('click',function(event){queueClose('parent-x-click',event)},{capture:true,passive:false});
+    var finish=function(event){finishProtectedClose('parent-x-up',event)};
+    if(window.PointerEvent){
+      parentClose.addEventListener('pointerdown',arm,{capture:true,passive:false});
+      parentClose.addEventListener('pointerup',finish,{capture:true,passive:false});
+      parentClose.addEventListener('pointercancel',finish,{capture:true,passive:false});
+    }else{
+      parentClose.addEventListener('touchstart',arm,{capture:true,passive:false});
+      parentClose.addEventListener('touchend',finish,{capture:true,passive:false});
+      parentClose.addEventListener('touchcancel',finish,{capture:true,passive:false});
+      parentClose.addEventListener('mousedown',arm,{capture:true,passive:false});
+      parentClose.addEventListener('mouseup',finish,{capture:true,passive:false});
+    }
+    parentClose.addEventListener('click',function(event){
+      consumeCloseEvent(event);
+      if(!closeArmed&&openState){beginProtectedClose('parent-x-click',event);finishProtectedClose('parent-x-click',event)}
+    },{capture:true,passive:false});
   }
   function frameIsActuallyReady(){
     if(!frame||!documentLoaded)return false;
@@ -112,14 +150,14 @@
       host.className='happyadAssistanceHostV738';
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
-      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV751" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
+      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe><button id="'+PARENT_CLOSE_ID+'" class="happyadAssistanceParentCloseV753" type="button" tabindex="-1" aria-label="Fermer l’assistance"></button>';
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
     parentClose=document.getElementById(PARENT_CLOSE_ID);
     bindParentClose();
-    if(frame&&!frame.__happyadAssistanceV751Bound){
-      frame.__happyadAssistanceV751Bound=true;
+    if(frame&&!frame.__happyadAssistanceV753Bound){
+      frame.__happyadAssistanceV753Bound=true;
       frame.addEventListener('load',function(){
         documentLoaded=true;
         readyPollStartedAt=Date.now();
@@ -161,7 +199,7 @@
     prewarmStarted=true;
     readyPollStartedAt=0;
     frame.setAttribute('src',FRAME_URL);
-    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V751',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_ASSISTANCE_PREPARED_V753',{detail:{reason:reason||'prepare',at:Date.now()}}))}catch(_e){}
     return true;
   }
   function slowConnection(){
@@ -200,7 +238,7 @@
     lastFocus=document.activeElement;
     openState=true;
     hostRevealed=false;
-    host.classList.remove('closing');
+    host.classList.remove('closing','closingImmediate');
     registerInternal();
 
     if(!prewarmStarted)prepareFrame('first-open');
@@ -231,8 +269,10 @@
       var active=frame&&frame.contentDocument&&frame.contentDocument.activeElement;
       if(active&&typeof active.blur==='function')active.blur();
     }catch(_e){}
+    clearCloseTimers();
+    closeArmed=false;
     if(host){
-      host.classList.remove('show','closing');
+      host.classList.remove('show','closing','closingImmediate');
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
     }
@@ -288,6 +328,6 @@
     isReady:function(){return ready},
     context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}
   });
-  window.HappyadAssistanceMasterV751=window.HappyadAssistanceMasterV750=window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
+  window.HappyadAssistanceMasterV753=window.HappyadAssistanceMasterV752=window.HappyadAssistanceMasterV751=window.HappyadAssistanceMasterV750=window.HappyadAssistanceMasterV749=window.HappyadAssistanceMasterV748=window.HappyadAssistanceMasterV747=window.HappyadAssistanceMasterV740=window.HappyadAssistanceMasterV738=api;
   window.HappyadAssistanceMasterV737=api;
 })();

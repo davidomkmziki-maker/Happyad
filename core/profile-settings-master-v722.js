@@ -211,12 +211,13 @@
   async function submitVerification(e){stop(e);var f=e.currentTarget,b=f.querySelector('button[type=submit]'),kind=f.dataset.verifyKind,note=clean($('haVerifyNoteV722').value);if(note.length<10){status('Ajoute une explication plus précise.','bad');return}disable(b,true,'Envoi...');try{await insertRequest(kind==='business'?'verification_business':'verification_personal',{note:note,account_type:prefs.account_type});saveLocalUser({verificationPending:true});status('Demande envoyée. Son état sera visible dans le compte.','ok');f.reset()}catch(err){status('Envoi impossible : '+clean(err&&err.message||err)+'. Réessaie dans un instant.','bad')}finally{disable(b,false)}}
 
   var STORAGE_CACHE_LOCAL_PREFIXES_V734B=[
-    'HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_ALL_POSTS_V1',
+    'HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_HOME_BOOT_CACHE','HAPPYAD_ALL_POSTS_V1',
     'HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1','HAPPYAD_HOME_BOOT_SNAPSHOT_V1','HAPPYAD_HOME_CONFIRMED_ORDER_V643',
     'HAPPYAD_VIDEO_CACHE_STABLE_V1','HAPPYAD_PHOTO_STABLE_CACHE_V1','HAPPYAD_STORIES_CACHE_V1',
     'HAPPYAD_AUTHOR_PROFILE_CACHE_V1','HAPPYAD_PUBLIC_PROFILE_CACHE_V1','HAPPYAD_PUBLIC_PROFILE_POSTS_CACHE_V1',
     'HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1',
     'HAPPYAD_PROFILE_HOME_PHOTO_BRIDGE_V482','HAPPYAD_FAST_OPEN_PHOTO_V1','HAPPYAD_FAST_OPEN_VIDEO_V1',
+    'HAPPYAD_VIDEO_THUMB_V1_','HAPPYAD_PHOTO_FAST_CACHE','HAPPYAD_VIDEO_FAST_CACHE',
     'HAPPYAD_FIXED_RADAR_PUBLIC_CONFIG_V1','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1'
   ];
   var STORAGE_CACHE_SESSION_KEYS_V734B=[

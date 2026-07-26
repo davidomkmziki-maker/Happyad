@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_AUTH_SESSION_MASTER_V598__)return;
   window.__HAPPYAD_AUTH_SESSION_MASTER_V598__=true;
 
-  var VERSION='AUTH_SESSION_MASTER_V741_PROFILE_IDENTITY_NON_DESTRUCTIVE';
+  var VERSION='AUTH_SESSION_MASTER_V752_AUTH_STORAGE_QUOTA_RECOVERY';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var session=null;
   var ready=false;
@@ -355,16 +355,25 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     broadcast('SIGNED_IN_READY');
     closeOverlay(true);
   }
+  async function signInWithQuotaRecoveryV752(c,email,pass){
+    try{return await c.auth.signInWithPassword({email:email,password:pass});}
+    catch(err){
+      var q=window.HappyadAuthStorageV752;
+      if(!q||!q.isQuota||!q.isQuota(err))throw err;
+      try{await q.recover('login-retry');}catch(_e){}
+      return await c.auth.signInWithPassword({email:email,password:pass});
+    }
+  }
   async function doLogin(e){
     stop(e);if(busy)return;var email=value('happyadAuthEmailV595'),pass=value('happyadAuthPassV595');
     if(!email||!pass){setStatus('Entre Gmail et mot de passe.');return;}
     var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
     busy=true;setStatus('');setSubmitBusy('happyadAuthLoginSubmitV595',true,'Connexion…','Se connecter');
     try{
-      var r=await c.auth.signInWithPassword({email:email,password:pass});if(r&&r.error)throw r.error;
+      var r=await signInWithQuotaRecoveryV752(c,email,pass);if(r&&r.error)throw r.error;
       var user=r&&r.data&&r.data.user;if(!user)throw new Error('Session introuvable.');
       await finishSignedIn(user,{email:email});toast('Connecté ✅');
-    }catch(err){setStatus('Connexion impossible : '+clean(err&&err.message||err));}
+    }catch(err){var q=window.HappyadAuthStorageV752;if(q&&q.isQuota&&q.isQuota(err))setStatus('Espace temporaire saturé. HAPPYAD a libéré le cache de chargement. Appuie encore une fois sur Se connecter.');else setStatus('Connexion impossible : '+clean(err&&err.message||err));}
     finally{busy=false;setSubmitBusy('happyadAuthLoginSubmitV595',false,'Connexion…','Se connecter');}
   }
   async function doForgot(e){
