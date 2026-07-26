@@ -1,7 +1,7 @@
-/* HAPPYAD V780 — Push : activation fiable, diagnostic précis et livraison popup */
+/* HAPPYAD V781 — Push : livraison stable, avatar réel et contrôle volontaire */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V780-push-activation-reliable-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V781-push-avatar-voluntary-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=780-push-activation-reliable-shell',
+  './index.html?v=781-push-avatar-voluntary-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -27,7 +27,7 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=775-message-composer-bottom-stable',
-  './core/push-master.js?v=push-v44-activation-reliable',
+  './core/push-master.js?v=push-v45-voluntary-settings',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',

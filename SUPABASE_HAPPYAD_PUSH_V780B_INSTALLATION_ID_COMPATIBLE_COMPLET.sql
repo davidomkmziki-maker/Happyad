@@ -1,5 +1,5 @@
--- HAPPYAD V776B — PUSH : UN SEUL LIEN ACTIF PAR COMPTE
--- Exécuter ce fichier COMPLET dans Supabase > SQL Editor avant de tester la V776.
+-- HAPPYAD V780B — PUSH : UN SEUL LIEN ACTIF + INSTALLATION_ID COMPATIBLE
+-- Exécuter ce fichier COMPLET dans Supabase > SQL Editor avant de tester la V780B.
 -- Base compatible : happyad_push_subscriptions V39C/V39A.
 -- Cette migration ne touche pas aux tables Messages ni aux notifications internes.
 
@@ -12,6 +12,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.happyad_push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  installation_id text not null,
   device_id text not null,
   endpoint text not null,
   p256dh text not null,
@@ -45,6 +46,9 @@ alter table public.happyad_push_subscriptions
 create unique index if not exists happyad_push_row_id_uidx
   on public.happyad_push_subscriptions(id);
 
+alter table public.happyad_push_subscriptions add column if not exists installation_id text;
+alter table public.happyad_push_subscriptions
+  alter column installation_id type text using installation_id::text;
 alter table public.happyad_push_subscriptions add column if not exists device_id text;
 alter table public.happyad_push_subscriptions add column if not exists endpoint text;
 alter table public.happyad_push_subscriptions add column if not exists p256dh text;
@@ -60,13 +64,17 @@ alter table public.happyad_push_subscriptions add column if not exists updated_a
 alter table public.happyad_push_subscriptions add column if not exists last_seen_at timestamptz default now();
 
 update public.happyad_push_subscriptions
-set device_id = coalesce(nullif(btrim(device_id),''), 'legacy-' || id::text),
+set installation_id = coalesce(nullif(btrim(installation_id),''), nullif(btrim(device_id),''), 'legacy-' || id::text),
+    device_id = coalesce(nullif(btrim(device_id),''), nullif(btrim(installation_id),''), 'legacy-' || id::text),
     app_mode = coalesce(nullif(btrim(app_mode),''), 'unknown'),
     permission = coalesce(nullif(btrim(permission),''), 'granted'),
     enabled = coalesce(enabled,false),
     created_at = coalesce(created_at,now()),
     updated_at = coalesce(updated_at,created_at,now()),
     last_seen_at = coalesce(last_seen_at,updated_at,created_at,now());
+
+alter table public.happyad_push_subscriptions alter column installation_id set not null;
+alter table public.happyad_push_subscriptions alter column device_id set not null;
 
 -- Nettoyage immédiat de tous les anciens liens : garder uniquement la ligne
 -- la plus récemment mise à jour pour chaque compte, qu'elle soit active ou non.
@@ -153,7 +161,7 @@ as $$
 declare
   v_uid uuid := auth.uid();
   v_endpoint text := btrim(coalesce(p_endpoint,''));
-  v_device text := left(btrim(coalesce(p_installation_id,'')),160);
+  v_installation text := left(btrim(coalesce(p_installation_id,'')),160);
   v_row public.happyad_push_subscriptions;
   v_removed integer := 0;
 begin
@@ -161,7 +169,7 @@ begin
     raise exception 'AUTH_REQUIRED' using errcode='28000';
   end if;
   if v_endpoint = '' or btrim(coalesce(p_p256dh,'')) = ''
-     or btrim(coalesce(p_auth_key,'')) = '' or v_device = '' then
+     or btrim(coalesce(p_auth_key,'')) = '' or v_installation = '' then
     raise exception 'PUSH_SUBSCRIPTION_INCOMPLETE' using errcode='22023';
   end if;
 
@@ -173,11 +181,11 @@ begin
   get diagnostics v_removed = row_count;
 
   insert into public.happyad_push_subscriptions(
-    user_id,device_id,endpoint,p256dh,auth_key,expiration_time,
+    user_id,installation_id,device_id,endpoint,p256dh,auth_key,expiration_time,
     platform,user_agent,app_mode,permission,enabled,
     created_at,updated_at,last_seen_at
   ) values (
-    v_uid,v_device,v_endpoint,btrim(p_p256dh),btrim(p_auth_key),p_expiration_time,
+    v_uid,v_installation,v_installation,v_endpoint,btrim(p_p256dh),btrim(p_auth_key),p_expiration_time,
     left(coalesce(p_platform,''),80),left(coalesce(p_user_agent,''),500),
     'browser','granted',true,now(),now(),now()
   )
@@ -189,6 +197,7 @@ begin
     'removed_old_links',v_removed,
     'id',v_row.id,
     'user_id',v_row.user_id,
+    'installation_id',v_row.installation_id,
     'device_id',v_row.device_id,
     'endpoint',v_row.endpoint,
     'enabled',v_row.enabled,
@@ -213,7 +222,7 @@ as $$
 declare
   v_uid uuid := auth.uid();
   v_endpoint text := btrim(coalesce(p_keep_endpoint,''));
-  v_device text := left(btrim(coalesce(p_keep_installation_id,'')),160);
+  v_installation text := left(btrim(coalesce(p_keep_installation_id,'')),160);
   v_removed integer := 0;
   v_active integer := 0;
 begin
@@ -232,7 +241,8 @@ begin
   update public.happyad_push_subscriptions
      set enabled = true,
          permission = 'granted',
-         device_id = case when v_device <> '' then v_device else device_id end,
+         installation_id = case when v_installation <> '' then v_installation else installation_id end,
+         device_id = case when v_installation <> '' then v_installation else device_id end,
          updated_at = now(),
          last_seen_at = now()
    where user_id = v_uid
@@ -315,6 +325,22 @@ select pg_notify('pgrst','reload schema');
 commit;
 
 -- CONTRÔLE FINAL : chaque ligne doit afficher active_links <= 1.
+select
+  column_name,
+  data_type,
+  is_nullable
+from information_schema.columns
+where table_schema='public'
+  and table_name='happyad_push_subscriptions'
+  and column_name in ('installation_id','device_id')
+order by column_name;
+
+select
+  count(*) filter (where installation_id is null or btrim(installation_id)='') as invalid_installation_ids,
+  count(*) filter (where device_id is null or btrim(device_id)='') as invalid_device_ids,
+  count(*) as stored_links
+from public.happyad_push_subscriptions;
+
 select
   user_id,
   count(*) filter (where enabled is true) as active_links,

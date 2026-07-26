@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_PROFILE_SETTINGS_MASTER_V722__)return;
   window.__HAPPYAD_PROFILE_SETTINGS_MASTER_V722__=true;
 
-  var VERSION='HAPPYAD_PROFILE_SETTINGS_V776_PUSH_SYSTEME_REEL';
+  var VERSION='HAPPYAD_PROFILE_SETTINGS_V781_PUSH_CONTROLE_VOLONTAIRE';
   var panel=null,view='main',mainScroll=0,mainAnchor=null,mainRestoreToken=0,profileScroll=0,opening=false,remoteReady=false;
   var prefs={
     account_type:'personal',language:'fr',account_public:true,allow_comments:true,allow_messages:true,
@@ -148,7 +148,7 @@
       row('devices','devices','Appareils connectés','Gérer les sessions actives','')
     );
     var notifications=section('Notifications',
-      row('notifications','bell','Notifications','Messages, commentaires et abonnements','')
+      row('notifications','bell','Notifications du téléphone','Activer, tester ou désactiver les popups','À vérifier')
     );
     var content=section('Contenu',
       switchRow('allow_download','download','Téléchargements','Autoriser le téléchargement des contenus')+
@@ -176,6 +176,7 @@
     );
     shell('Paramètres','',account+privacy+security+notifications+content+language+verification+data+help+danger,'main');
     restoreMainPosition(fluidReturn);
+    setTimeout(refreshMainPushStatusV781,40);
   }
   function labelType(v){return v==='business'?'Entreprise':v==='creator'?'Créateur':'Personnel'}
   function labelLanguage(v){return v==='en'?'English':v==='sw'?'Kiswahili':v==='ln'?'Lingala':'Français'}
@@ -191,21 +192,68 @@
     if(info.permission==='granted')return 'Autorisation accordée, mais le lien doit encore être enregistré.';
     return 'Notifications système non activées.';
   }
+  function setMainPushEndV781(value){
+    if(view!=='main')return;
+    var sc=$('haSettingsScrollV722');
+    var rowNode=sc&&sc.querySelector('[data-settings-action="notifications"]');
+    var end=rowNode&&rowNode.querySelector('.haSettingsRowEndV722');
+    if(end)end.innerHTML=esc(value||'À activer')+icon('chev');
+  }
+  async function refreshMainPushStatusV781(){
+    if(view!=='main')return;
+    var master=pushMaster();
+    if(!master||typeof master.status!=='function'){setMainPushEndV781('À activer');return;}
+    try{
+      var info=await master.status();
+      if(view!=='main')return;
+      if(!info||info.supported===false)setMainPushEndV781('Indisponible');
+      else if(info.permission==='denied')setMainPushEndV781('Bloquées');
+      else if(info.permission==='granted'&&info.subscribed)setMainPushEndV781('Actives');
+      else setMainPushEndV781('À activer');
+    }catch(_e){setMainPushEndV781('À vérifier');}
+  }
   async function refreshPushSystemStatusV776(){
-    var text=$('haPushSystemStatusV776'),btn=$('haPushSystemActionV776'),master=pushMaster();
+    var text=$('haPushSystemStatusV776'),btn=$('haPushSystemActionV776'),testBtn=$('haPushSystemTestV781'),offBtn=$('haPushSystemDisableV781'),master=pushMaster();
     if(!text||!btn)return;
-    if(!master||typeof master.status!=='function'){text.textContent='Le moteur Push sera disponible après la mise à jour complète de HAPPYAD.';btn.disabled=true;return}
-    try{var info=await master.status();text.textContent=pushStatusLabelV776(info);btn.disabled=false;btn.textContent=info&&info.permission==='granted'&&info.subscribed?'Réenregistrer ce lien':(info&&info.permission==='denied'?'Voir les instructions':'Activer les notifications')}catch(_e){text.textContent='État des notifications indisponible.';btn.disabled=false}
+    if(!master||typeof master.status!=='function'){
+      text.textContent='Le moteur Push sera disponible après la mise à jour complète de HAPPYAD.';
+      btn.disabled=true;if(testBtn)testBtn.disabled=true;if(offBtn)offBtn.disabled=true;return;
+    }
+    try{
+      var info=await master.status();
+      text.textContent=pushStatusLabelV776(info);
+      btn.disabled=false;
+      btn.textContent=info&&info.permission==='granted'&&info.subscribed?'Réenregistrer ce lien':(info&&info.permission==='denied'?'Voir les instructions':'Activer les notifications');
+      if(testBtn)testBtn.disabled=!(info&&info.permission==='granted'&&info.subscribed);
+      if(offBtn)offBtn.disabled=!(info&&info.subscribed);
+    }catch(_e){
+      text.textContent='État des notifications indisponible.';btn.disabled=false;
+      if(testBtn)testBtn.disabled=true;if(offBtn)offBtn.disabled=true;
+    }
   }
   async function activatePushSystemV776(e){
     stop(e);var btn=e.currentTarget,master=pushMaster();if(!master){status('Moteur Push indisponible.','bad');return}
     disable(btn,true,'Activation...');
     try{
       var result=await (typeof master.activate==='function'?master.activate():null);
-      if(result)status('Notifications activées sur ce lien uniquement.','ok');
+      if(result)status('Notifications activées volontairement sur cet appareil. Les anciens liens du compte restent désactivés.','ok');
       else status('L’activation n’a pas été terminée. Vérifiez le message affiché puis réessayez.','bad');
       await refreshPushSystemStatusV776();
     }catch(err){status('Activation impossible : '+clean(err&&err.message||err),'bad')}finally{disable(btn,false);setTimeout(refreshPushSystemStatusV776,80)}
+  }
+  async function testPushSystemV781(e){
+    stop(e);var btn=e.currentTarget,master=pushMaster();if(!master||typeof master.test!=='function'){status('Test Push indisponible.','bad');return;}
+    disable(btn,true,'Préparation du test...');
+    try{await master.test();status('Test programmé. Fermez HAPPYAD et Chrome, puis attendez environ 12 secondes.','ok')}
+    catch(err){status('Test impossible : '+clean(err&&err.message||err),'bad')}
+    finally{disable(btn,false);setTimeout(refreshPushSystemStatusV776,80)}
+  }
+  async function disablePushSystemV781(e){
+    stop(e);var btn=e.currentTarget,master=pushMaster();if(!master||typeof master.deactivateCurrent!=='function'){status('Désactivation indisponible.','bad');return;}
+    disable(btn,true,'Désactivation...');
+    try{await master.deactivateCurrent();status('Notifications désactivées sur cet appareil. Vous pourrez les réactiver ici quand vous le souhaitez.','ok')}
+    catch(err){status('Désactivation impossible : '+clean(err&&err.message||err),'bad')}
+    finally{disable(btn,false);setTimeout(refreshPushSystemStatusV776,120)}
   }
   function disable(btn,on,label){if(!btn)return;btn.disabled=!!on;if(on){btn.dataset.oldText=btn.textContent;btn.textContent=label||'Traitement...'}else if(btn.dataset.oldText){btn.textContent=btn.dataset.oldText;delete btn.dataset.oldText}}
   async function authUser(){var c=client();if(c&&c.auth&&c.auth.getUser){try{var r=await c.auth.getUser();if(r&&r.data&&r.data.user)return r.data.user}catch(_e){}}var id=uid();return id?{id:id,email:userInfo().email}:null}
@@ -230,7 +278,7 @@
   async function signoutOthers(e){stop(e);var b=e.currentTarget,c=client();if(!c||!c.auth){status('Service de connexion indisponible.','bad');return}disable(b,true,'Déconnexion...');try{var r=await c.auth.signOut({scope:'others'});if(r&&r.error)throw r.error;status('Les autres sessions ont été fermées.','ok')}catch(err){status('Impossible de fermer les autres sessions : '+clean(err&&err.message||err),'bad')}finally{disable(b,false)}}
 
   function openMessagePreference(){var items=[['everyone','Tout le monde','Les messages arrivent directement.'],['followers','Abonnés uniquement','Seuls les abonnés peuvent écrire directement.'],['requests','Demandes uniquement','Les nouveaux messages restent dans les demandes.'],['nobody','Personne','Aucun nouveau contact autorisé.']],html='';items.forEach(function(x){html+='<button type="button" class="haSettingsChoiceV722 '+(prefs.message_preference===x[0]?'active':'')+'" data-choice-key="message_preference" data-choice-value="'+x[0]+'"><span><b>'+esc(x[1])+'</b><span>'+esc(x[2])+'</span></span><i></i></button>'});html+='<div id="haSettingsStatusV722" class="haSettingsStatusV722"></div>';shell('Préférence des messages','Qui peut contacter ce compte',html,'message-preference')}
-  function openNotifications(){var body='<div class="haSettingsCardV722"><h2>Notifications du téléphone</h2><p id="haPushSystemStatusV776">Vérification de l’autorisation...</p><div class="haSettingsActionsV722"><button type="button" class="haSettingsPrimaryV722" id="haPushSystemActionV776">Activer les notifications</button></div></div><div class="haSettingsNoteV722">Les réglages ci-dessous contrôlent les catégories reçues par le compte.</div>'+section('Catégories',switchRow('notify_messages','message','Nouveaux messages','Prévenir lors de la réception d’un message')+switchRow('notify_comments','comment','Commentaires et réponses','Prévenir pour les interactions sur les publications')+switchRow('notify_follows','user-plus','Nouveaux abonnés','Prévenir lors d’un nouvel abonnement')+switchRow('notify_marketing','megaphone','Actualités HAPPYAD','Recevoir les annonces importantes de la plateforme'))+'<div id="haSettingsStatusV722" class="haSettingsStatusV722"></div>';shell('Notifications','Choisir les alertes importantes',body,'notifications');setTimeout(refreshPushSystemStatusV776,30)}
+  function openNotifications(){var body='<div class="haSettingsCardV722"><h2>Notifications du téléphone</h2><p>Cette activation est volontaire. HAPPYAD enregistre uniquement cet appareil comme lien actif du compte.</p><p id="haPushSystemStatusV776">Vérification de l’autorisation...</p><div class="haSettingsActionsV722"><button type="button" class="haSettingsPrimaryV722" id="haPushSystemActionV776">Activer les notifications</button><button type="button" class="haSettingsSecondaryV722" id="haPushSystemTestV781">Tester hors application</button><button type="button" class="haSettingsDangerV722" id="haPushSystemDisableV781">Désactiver sur cet appareil</button></div></div><div class="haSettingsNoteV722">Chemin permanent : Profil → Paramètres → Notifications du téléphone. Les réglages ci-dessous contrôlent les catégories reçues par le compte.</div>'+section('Catégories',switchRow('notify_messages','message','Nouveaux messages','Prévenir lors de la réception d’un message')+switchRow('notify_comments','comment','Commentaires et réponses','Prévenir pour les interactions sur les publications')+switchRow('notify_follows','user-plus','Nouveaux abonnés','Prévenir lors d’un nouvel abonnement')+switchRow('notify_marketing','megaphone','Actualités HAPPYAD','Recevoir les annonces importantes de la plateforme'))+'<div id="haSettingsStatusV722" class="haSettingsStatusV722"></div>';shell('Notifications du téléphone','Activation volontaire et catégories',body,'notifications');setTimeout(refreshPushSystemStatusV776,30)}
 
   function openVerification(kind){var business=kind==='business',title=business?'Entreprise ou personnalité':'Vérification personnelle';shell(title,'Envoyer une demande de vérification','<div class="haSettingsCardV722"><h2>'+esc(title)+'</h2><p>'+(business?'Cette demande concerne une entreprise, une organisation, une marque ou une personnalité publique.':'Cette demande confirme que le profil appartient à une personne réelle.')+'</p></div><form id="haSettingsVerifyFormV722" data-verify-kind="'+(business?'business':'personal')+'" class="haSettingsFormV722"><div class="haSettingsFieldV722"><label>Motif de la demande</label><textarea class="haSettingsTextareaV722" id="haVerifyNoteV722" maxlength="800" placeholder="Explique brièvement pourquoi ce compte doit être vérifié" required></textarea></div><div class="haSettingsNoteV722">Les documents sensibles seront demandés uniquement dans l’étape sécurisée de vérification.</div><div class="haSettingsActionsV722"><button type="submit" class="haSettingsPrimaryV722">Envoyer la demande</button></div><div id="haSettingsStatusV722" class="haSettingsStatusV722"></div></form>','verify-'+kind)}
   async function submitVerification(e){stop(e);var f=e.currentTarget,b=f.querySelector('button[type=submit]'),kind=f.dataset.verifyKind,note=clean($('haVerifyNoteV722').value);if(note.length<10){status('Ajoute une explication plus précise.','bad');return}disable(b,true,'Envoi...');try{await insertRequest(kind==='business'?'verification_business':'verification_personal',{note:note,account_type:prefs.account_type});saveLocalUser({verificationPending:true});status('Demande envoyée. Son état sera visible dans le compte.','ok');f.reset()}catch(err){status('Envoi impossible : '+clean(err&&err.message||err)+'. Réessaie dans un instant.','bad')}finally{disable(b,false)}}
@@ -289,7 +337,7 @@
   async function logout(e){stop(e);var b=e.currentTarget;disable(b,true,'Déconnexion...');try{var master=pushMaster();if(master&&typeof master.deactivateCurrent==='function'){try{await master.deactivateCurrent()}catch(_push){}}var c=client();if(c&&c.auth)await c.auth.signOut({scope:'local'});try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_AUTH_LOGOUT_REQUEST_V595',detail:{source:'profile-settings-v722'}},'*')}catch(_e){}['HAPPYAD_AUTH_UID','HAPPYAD_ADMIN_GRANTED','HAPPYAD_ADMIN_ROLE','HAPPYAD_OPEN_ADMIN_FROM_SETTINGS','HAPPYAD_ACTIVE_PROFILE'].forEach(function(k){try{localStorage.removeItem(k)}catch(_e){}});try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0')}catch(_e){}status('Session fermée.','ok');setTimeout(function(){closeSettings();try{window.parent&&window.parent!==window?window.parent.location.reload():location.reload()}catch(_e){location.href='../index.html'}},350)}catch(err){status('Déconnexion impossible : '+clean(err&&err.message||err),'bad');disable(b,false)}}
 
   function openAction(action,actionNode){captureMainPosition(actionNode);switch(action){case'profile-info':openProfileInfo();break;case'account-type':openChoicePage('account-type');break;case'language':openChoicePage('language');break;case'password':openPassword();break;case'devices':openDevices();break;case'message-preference':openMessagePreference();break;case'notifications':openNotifications();break;case'verify-personal':openVerification('personal');break;case'verify-business':openVerification('business');break;case'free-space':openFreeSpace();break;case'support':openSupport();break;case'terms':openTerms();break;case'deactivate':openDanger('deactivate');break;case'delete':openDanger('delete');break;case'logout':openLogout();break}}
-  function bindPanel(){if(!panel)return;panel.onclick=function(e){var close=e.target.closest('[data-settings-close]');if(close){stop(e);if(view==='main')closeSettings();else renderMain();return}var back=e.target.closest('[data-settings-back],[data-settings-main]');if(back){stop(e);if(view==='main')closeSettings();else renderMain();return}var sw=e.target.closest('[data-setting-switch]');if(sw){stop(e);var key=sw.dataset.settingSwitch,patch={},next=!prefs[key];patch[key]=next;prefs[key]=next;sw.classList.toggle('on',next);sw.setAttribute('aria-pressed',next?'true':'false');captureMainPosition(sw.closest('[data-setting-row]'));savePrefs(patch);return}var action=e.target.closest('[data-settings-action]');if(action){stop(e);openAction(action.dataset.settingsAction,action);return}var choice=e.target.closest('[data-choice-key]');if(choice){choose(e);return}};var f=$('haSettingsProfileFormV722');if(f)f.onsubmit=submitProfile;f=$('haSettingsPasswordFormV722');if(f)f.onsubmit=submitPassword;f=$('haSettingsVerifyFormV722');if(f)f.onsubmit=submitVerification;f=$('haSettingsDangerFormV722');if(f)f.onsubmit=submitDanger;var b=$('haSignoutOthersV722');if(b)b.onclick=signoutOthers;b=$('haLogoutConfirmV722');if(b)b.onclick=logout;b=$('haClearStorageV734B');if(b)b.onclick=clearTemporaryStorageV734B;b=$('haPushSystemActionV776');if(b)b.onclick=activatePushSystemV776}
+  function bindPanel(){if(!panel)return;panel.onclick=function(e){var close=e.target.closest('[data-settings-close]');if(close){stop(e);if(view==='main')closeSettings();else renderMain();return}var back=e.target.closest('[data-settings-back],[data-settings-main]');if(back){stop(e);if(view==='main')closeSettings();else renderMain();return}var sw=e.target.closest('[data-setting-switch]');if(sw){stop(e);var key=sw.dataset.settingSwitch,patch={},next=!prefs[key];patch[key]=next;prefs[key]=next;sw.classList.toggle('on',next);sw.setAttribute('aria-pressed',next?'true':'false');captureMainPosition(sw.closest('[data-setting-row]'));savePrefs(patch);return}var action=e.target.closest('[data-settings-action]');if(action){stop(e);openAction(action.dataset.settingsAction,action);return}var choice=e.target.closest('[data-choice-key]');if(choice){choose(e);return}};var f=$('haSettingsProfileFormV722');if(f)f.onsubmit=submitProfile;f=$('haSettingsPasswordFormV722');if(f)f.onsubmit=submitPassword;f=$('haSettingsVerifyFormV722');if(f)f.onsubmit=submitVerification;f=$('haSettingsDangerFormV722');if(f)f.onsubmit=submitDanger;var b=$('haSignoutOthersV722');if(b)b.onclick=signoutOthers;b=$('haLogoutConfirmV722');if(b)b.onclick=logout;b=$('haClearStorageV734B');if(b)b.onclick=clearTemporaryStorageV734B;b=$('haPushSystemActionV776');if(b)b.onclick=activatePushSystemV776;b=$('haPushSystemTestV781');if(b)b.onclick=testPushSystemV781;b=$('haPushSystemDisableV781');if(b)b.onclick=disablePushSystemV781}
 
   function notifyParent(type){try{window.parent&&window.parent!==window&&window.parent.postMessage({type:type,detail:{id:'profile-settings',source:'HAPPYAD'}},'*')}catch(_e){}}
   function openSettings(){if(opening||!panel)return false;opening=true;profileScroll=Math.max(0,window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0);mainScroll=0;mainAnchor=null;mainRestoreToken++;readLocal();renderMain();var s=$('haSettingsScrollV722');if(s){s.style.scrollBehavior='auto';s.scrollTop=0;s.style.scrollBehavior=''}document.body.classList.add('haSettingsOpenV722');panel.classList.add('show');panel.setAttribute('aria-hidden','false');notifyParent('HAPPYAD_INTERNAL_SCREEN_OPEN_V591');requestAnimationFrame(function(){opening=false});loadRemote();return false}

@@ -1,4 +1,4 @@
-// HAPPYAD V779 — Push production : livraison fiable prioritaire, endpoint actif unique, avatar optionnel
+// HAPPYAD V781 — Push production : livraison fiable, avatar réel multi-chemin et endpoint actif unique
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
@@ -37,27 +37,122 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function profileName(profile: Record<string, unknown>): string {
-  return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle) || 'Utilisateur HAPPYAD'
+function profileNameCandidate(profile: Record<string, unknown>): string {
+  return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle)
 }
 
-function profileAvatar(profile: Record<string, unknown>): string {
-  const raw = clean(
-    profile.avatar_url || profile.avatar || profile.photo_url || profile.photo ||
-    profile.profile_photo || profile.profile_image_url || profile.picture || profile.image_url,
-  )
-  if (!raw || raw.length > 2048) return ''
-  try {
-    const url = new URL(raw)
-    if (url.protocol !== 'https:') return ''
-    const version = clean(profile.updated_at || profile.modified_at || profile.avatar_updated_at)
-    if (version && !url.searchParams.has('happyad_avatar_v')) {
-      const stamp = Date.parse(version)
-      url.searchParams.set('happyad_avatar_v', String(Number.isFinite(stamp) ? stamp : version).slice(0, 32))
+function profileName(profile: Record<string, unknown>): string {
+  return profileNameCandidate(profile) || 'Utilisateur HAPPYAD'
+}
+
+function unwrapAvatarValue(value: unknown): string {
+  const raw = clean(value)
+  const match = raw.match(/^url\(["']?(.*?)["']?\)$/i)
+  return match ? clean(match[1]) : raw
+}
+
+function normalizeAvatarUrl(value: unknown, supabaseUrl: string): string {
+  let raw = unwrapAvatarValue(value)
+  const lower = raw.toLowerCase()
+  if (!raw || raw.length > 4096 || /^data:|^blob:/i.test(raw)) return ''
+  if (['none', 'null', 'undefined', 'default', 'avatar', 'user'].includes(lower)) return ''
+  if (lower.includes('placeholder') || lower.includes('default-avatar')) return ''
+  if (/^https:\/\//i.test(raw)) return raw
+  if (/^http:\/\//i.test(raw)) return ''
+
+  const base = clean(supabaseUrl).replace(/\/+$/, '')
+  if (!base) return ''
+  if (/^\/storage\/v1\/object\//i.test(raw)) return base + raw
+
+  let path = raw.replace(/^\/+/, '')
+  let bucket = 'happyad-media'
+  const bucketMatch = path.match(/^(happyad-media|avatars|profile-photos|profile-images)\/(.+)$/i)
+  if (bucketMatch) {
+    bucket = bucketMatch[1]
+    path = bucketMatch[2]
+  }
+  if (path.indexOf('/') < 0 && !/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(path)) return ''
+  const encodedPath = path.split('/').map((part) => encodeURIComponent(part)).join('/')
+  return base + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + encodedPath
+}
+
+function profileAvatar(profile: Record<string, unknown>, supabaseUrl: string): string {
+  const metadata = profile.user_metadata && typeof profile.user_metadata === 'object'
+    ? profile.user_metadata as Record<string, unknown>
+    : {}
+  const candidates = [
+    profile.avatar_url, profile.avatar, profile.photo_url, profile.photo,
+    profile.profile_photo_url, profile.profile_photo, profile.profile_image_url,
+    profile.profile_picture_url, profile.picture, profile.image_url,
+    profile.user_avatar, profile.creator_avatar, profile.author_avatar,
+    profile.avatar_path, profile.photo_path, profile.profile_photo_path,
+    metadata.avatar_url, metadata.avatar, metadata.picture,
+  ]
+  for (const candidate of candidates) {
+    const resolved = normalizeAvatarUrl(candidate, supabaseUrl)
+    if (!resolved) continue
+    try {
+      const url = new URL(resolved)
+      const version = clean(profile.updated_at || profile.modified_at || profile.avatar_updated_at)
+      if (version && !url.searchParams.has('happyad_avatar_v')) {
+        const stamp = Date.parse(version)
+        url.searchParams.set('happyad_avatar_v', String(Number.isFinite(stamp) ? stamp : version).slice(0, 32))
+      }
+      return url.toString()
+    } catch (_) {
+      return resolved
     }
-    return url.toString()
-  } catch (_) {
-    return ''
+  }
+  return ''
+}
+
+async function resolveSenderIdentity(
+  admin: ReturnType<typeof createClient>,
+  supabaseUrl: string,
+  userId: string,
+  message: Record<string, unknown>,
+) {
+  const rows: Array<Record<string, unknown>> = []
+
+  try {
+    const result = await admin.from('profiles').select('*').eq('id', userId).maybeSingle()
+    if (!result.error && result.data) rows.push(result.data as Record<string, unknown>)
+  } catch (_) {}
+
+  let hasAvatar = rows.some((row) => !!profileAvatar(row, supabaseUrl))
+  if (!hasAvatar) {
+    try {
+      const result = await admin.from('profiles').select('*').eq('user_id', userId).maybeSingle()
+      if (!result.error && result.data) rows.push(result.data as Record<string, unknown>)
+    } catch (_) {}
+  }
+
+  try {
+    const authResult = await admin.auth.admin.getUserById(userId)
+    const authUser = authResult.data?.user
+    if (authUser?.user_metadata) rows.push({
+      ...authUser.user_metadata,
+      user_metadata: authUser.user_metadata,
+    } as Record<string, unknown>)
+  } catch (_) {}
+
+  if (message && typeof message === 'object') rows.push(message)
+
+  let name = ''
+  let avatar = ''
+  let badge = ''
+  let handle = ''
+  for (const row of rows) {
+    if (!name) name = profileNameCandidate(row)
+    if (!avatar) avatar = profileAvatar(row, supabaseUrl)
+    if (!badge) badge = profileBadge(row)
+    if (!handle) handle = profileHandle(row)
+  }
+  return {
+    name: name || 'Utilisateur HAPPYAD',
+    avatar,
+    badge,
+    handle,
   }
 }
 
@@ -272,14 +367,14 @@ Deno.serve(async (req) => {
     .filter((id: string, index: number, all: string[]) => isUuid(id) && id !== user.id && all.indexOf(id) === index)
   if (!recipients.length) return json({ ok: true, sent: 0, failed: 0, recipients: 0 })
 
-  const { data: senderProfile } = await admin.from('profiles').select('*').eq('id', user.id).maybeSingle()
-  const profile = (senderProfile && typeof senderProfile === 'object')
-    ? senderProfile as Record<string, unknown>
-    : {}
-  const senderName = profileName(profile)
-  const senderAvatar = profileAvatar(profile)
-  const senderBadge = profileBadge(profile)
-  const senderHandle = profileHandle(profile)
+  /* V781 : l'identité ne doit jamais bloquer la livraison. La recherche
+     complète les anciens comptes `user_id` et les métadonnées Auth, mais
+     toutes les erreurs restent silencieuses et le Push continue. */
+  const senderIdentity = await resolveSenderIdentity(admin, supabaseUrl, user.id, message as Record<string, unknown>)
+  const senderName = senderIdentity.name
+  const senderAvatar = senderIdentity.avatar
+  const senderBadge = senderIdentity.badge
+  const senderHandle = senderIdentity.handle
   const messageId = clean(message.id)
   const serverSeq = Math.max(0, finite(message.server_seq, 0))
   const preview = notificationPreview(message)
