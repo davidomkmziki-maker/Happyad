@@ -1,18 +1,19 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_PUSH_MASTER_V42__)return;
-  window.__HAPPYAD_PUSH_MASTER_V42__=true;
+  if(window.__HAPPYAD_PUSH_MASTER_V43__)return;
+  window.__HAPPYAD_PUSH_MASTER_V43__=true;
 
-  var VERSION='HAPPYAD_PUSH_MASTER_V42_AVATAR_RESOLU_BACKGROUND_FOCUS';
+  var VERSION='HAPPYAD_PUSH_MASTER_V43_POPUP_DELIVERY_PRIORITY';
   var VAPID_PUBLIC_KEY='BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
   var INSTALL_KEY='HAPPYAD_PUSH_INSTALLATION_ID_V1';
   var DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V2';
   var LEGACY_DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V1';
   var LAST_UID_KEY='HAPPYAD_PUSH_LAST_UID_V1';
-  var TEST_DONE_KEY='HAPPYAD_PUSH_TEST_DONE_V1';
+  var TEST_DONE_KEY='HAPPYAD_PUSH_TEST_DONE_V2';
   var VAPID_BINDING_KEY='HAPPYAD_PUSH_VAPID_PUBLIC_KEY_V1';
   var LAST_ENSURE_KEY='HAPPYAD_PUSH_LAST_ENSURE_AT_V1';
   var LAST_DELAY_NOTICE_KEY='HAPPYAD_PUSH_LAST_DELAY_NOTICE_AT_V1';
+  var REPAIR_KEY='HAPPYAD_PUSH_REPAIR_V779';
   var ENSURE_INTERVAL_MS=4*60*60*1000;
   var PROMPT_INTERVAL_MS=24*60*60*1000;
   var ui=null;
@@ -311,7 +312,10 @@
     currentSession().then(function(session){
       var uid=clean(session&&session.user&&session.user.id);if(!uid)return;
       lastSessionUid=uid;
-      if(Notification.permission==='granted')ensureSubscription(false);else schedulePromptReminder(uid,1800);
+      if(Notification.permission==='granted'){
+        var forceRepair=safeGet(REPAIR_KEY)!=='1';
+        ensureSubscription(forceRepair).then(function(sub){if(sub)safeSet(REPAIR_KEY,'1');});
+      }else schedulePromptReminder(uid,1800);
     });
   }
 

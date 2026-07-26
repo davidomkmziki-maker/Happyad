@@ -1,4 +1,4 @@
-// HAPPYAD V778 — Push production : avatar multi-source, endpoint unique et réveil hors application
+// HAPPYAD V779 — Push production : livraison fiable prioritaire, endpoint actif unique, avatar optionnel
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
@@ -38,132 +38,26 @@ function sleep(ms: number) {
 }
 
 function profileName(profile: Record<string, unknown>): string {
-  return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle)
+  return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle) || 'Utilisateur HAPPYAD'
 }
 
-function unwrapAvatarValue(value: unknown): string {
-  const raw = clean(value)
-  const match = raw.match(/^url\(["']?(.*?)["']?\)$/i)
-  return match ? clean(match[1]) : raw
-}
-
-function invalidAvatarValue(value: unknown): boolean {
-  const raw = unwrapAvatarValue(value)
-  const lower = raw.toLowerCase()
-  return !raw || raw.length > 120000 || raw === '👤' || raw === '🧑' ||
-    ['avatar', 'user', 'none', 'null', 'undefined', 'aucun', 'default'].includes(lower) ||
-    lower.includes('placeholder') || lower.includes('default-avatar') || lower.includes('profile-placeholder')
-}
-
-function normalizeAvatarUrl(value: unknown, supabaseUrl: string): string {
-  let raw = unwrapAvatarValue(value)
-  if (invalidAvatarValue(raw) || /^data:|^blob:/i.test(raw)) return ''
-  if (/^https:\/\//i.test(raw)) return raw
-  if (/^http:\/\//i.test(raw)) return ''
-  const base = clean(supabaseUrl).replace(/\/+$/, '')
-  if (!base) return ''
-  if (/^\/storage\/v1\/object\//i.test(raw)) return base + raw
-  let path = raw.replace(/^\/+/, '')
-  let bucket = 'happyad-media'
-  const match = path.match(/^(happyad-media|avatars|profile-photos|profile-images)\/(.+)$/i)
-  if (match) {
-    bucket = match[1]
-    path = match[2]
-  }
-  if (path.indexOf('/') < 0 && !/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(path)) return ''
-  return base + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + encodeURI(path)
-}
-
-function avatarFromRecord(profile: Record<string, unknown>, supabaseUrl: string): string {
-  const nested = ((profile.profile || profile.user || profile.author || profile.creator || profile.owner) &&
-    typeof (profile.profile || profile.user || profile.author || profile.creator || profile.owner) === 'object')
-    ? (profile.profile || profile.user || profile.author || profile.creator || profile.owner) as Record<string, unknown>
-    : {}
-  const metadata = profile.metadata && typeof profile.metadata === 'object'
-    ? profile.metadata as Record<string, unknown>
-    : {}
-  const userMetadata = profile.user_metadata && typeof profile.user_metadata === 'object'
-    ? profile.user_metadata as Record<string, unknown>
-    : {}
-  const candidates = [
-    profile.avatar_url, profile.avatarUrl, profile.avatar, profile.user_avatar, profile.userAvatar,
-    profile.creator_avatar, profile.creatorAvatar, profile.author_avatar, profile.authorAvatar,
-    profile.profile_photo_url, profile.profilePhotoUrl, profile.profile_photo, profile.profilePhoto,
-    profile.profile_picture_url, profile.profilePictureUrl, profile.profile_picture, profile.profilePicture,
-    profile.profile_image_url, profile.profileImageUrl, profile.profile_image, profile.profileImage,
-    profile.photo_url, profile.photoUrl, profile.photo, profile.picture, profile.picture_url,
-    profile.image_url, profile.imageUrl, profile.profile_avatar_url, profile.profileAvatarUrl,
-    profile.profile_pic_url, profile.profilePicUrl, profile.profile_pic, profile.profilePic,
-    profile.user_photo_url, profile.userPhotoUrl, profile.user_photo, profile.userPhoto,
-    profile.photo_profil_url, profile.photoProfilUrl, profile.photo_profil, profile.photoProfil,
-    profile.profil_photo_url, profile.profilPhotoUrl, profile.profil_photo, profile.profilPhoto,
-    profile.photo_de_profil_url, profile.photoDeProfilUrl, profile.photo_de_profil, profile.photoDeProfil,
-    profile.avatar_path, profile.avatarPath, profile.photo_path, profile.photoPath,
-    profile.profile_photo_path, profile.profilePhotoPath, profile.profile_picture_path, profile.profilePicturePath,
-    profile.profile_image_path, profile.profileImagePath,
-    nested.avatar_url, nested.avatar, nested.photo_url, nested.profile_photo_url, nested.picture,
-    userMetadata.avatar_url, userMetadata.avatar, userMetadata.picture,
-    metadata.avatar_url, metadata.avatar, metadata.picture,
-  ]
-  for (const candidate of candidates) {
-    const resolved = normalizeAvatarUrl(candidate, supabaseUrl)
-    if (resolved) return resolved
-  }
-  return ''
-}
-
-async function resolveSenderIdentity(
-  admin: ReturnType<typeof createClient>,
-  supabaseUrl: string,
-  userId: string,
-  message: Record<string, unknown>,
-) {
-  const candidates: Array<{ source: string, row: Record<string, unknown> }> = []
-  const add = (source: string, row: unknown) => {
-    if (row && typeof row === 'object') candidates.push({ source, row: row as Record<string, unknown> })
-  }
-
-  add('message', message)
+function profileAvatar(profile: Record<string, unknown>): string {
+  const raw = clean(
+    profile.avatar_url || profile.avatar || profile.photo_url || profile.photo ||
+    profile.profile_photo || profile.profile_image_url || profile.picture || profile.image_url,
+  )
+  if (!raw || raw.length > 2048) return ''
   try {
-    const result = await admin.from('profiles').select('*').eq('id', userId).maybeSingle()
-    if (!result.error) add('profiles.id', result.data)
-  } catch (_) {}
-  try {
-    const result = await admin.from('profiles').select('*').eq('user_id', userId).maybeSingle()
-    if (!result.error) add('profiles.user_id', result.data)
-  } catch (_) {}
-  try {
-    const result = await admin.from('happyad_presence').select('*').eq('user_id', userId).maybeSingle()
-    if (!result.error) add('happyad_presence', result.data)
-  } catch (_) {}
-  try {
-    const result = await admin.auth.admin.getUserById(userId)
-    add('auth.user_metadata', result.data?.user?.user_metadata)
-  } catch (_) {}
-
-  let name = ''
-  let badge = ''
-  let handle = ''
-  let avatar = ''
-  let avatarSource = ''
-  for (const candidate of candidates) {
-    if (!name) name = profileName(candidate.row)
-    if (!badge) badge = profileBadge(candidate.row)
-    if (!handle) handle = profileHandle(candidate.row)
-    if (!avatar) {
-      const resolved = avatarFromRecord(candidate.row, supabaseUrl)
-      if (resolved) {
-        avatar = resolved
-        avatarSource = candidate.source
-      }
+    const url = new URL(raw)
+    if (url.protocol !== 'https:') return ''
+    const version = clean(profile.updated_at || profile.modified_at || profile.avatar_updated_at)
+    if (version && !url.searchParams.has('happyad_avatar_v')) {
+      const stamp = Date.parse(version)
+      url.searchParams.set('happyad_avatar_v', String(Number.isFinite(stamp) ? stamp : version).slice(0, 32))
     }
-  }
-  return {
-    name: name || 'Utilisateur HAPPYAD',
-    avatar,
-    badge,
-    handle,
-    avatarSource: avatarSource || 'fallback-logo',
+    return url.toString()
+  } catch (_) {
+    return ''
   }
 }
 
@@ -378,16 +272,14 @@ Deno.serve(async (req) => {
     .filter((id: string, index: number, all: string[]) => isUuid(id) && id !== user.id && all.indexOf(id) === index)
   if (!recipients.length) return json({ ok: true, sent: 0, failed: 0, recipients: 0 })
 
-  const senderIdentity = await resolveSenderIdentity(
-    admin,
-    supabaseUrl,
-    user.id,
-    message as Record<string, unknown>,
-  )
-  const senderName = senderIdentity.name
-  const senderAvatar = senderIdentity.avatar
-  const senderBadge = senderIdentity.badge
-  const senderHandle = senderIdentity.handle
+  const { data: senderProfile } = await admin.from('profiles').select('*').eq('id', user.id).maybeSingle()
+  const profile = (senderProfile && typeof senderProfile === 'object')
+    ? senderProfile as Record<string, unknown>
+    : {}
+  const senderName = profileName(profile)
+  const senderAvatar = profileAvatar(profile)
+  const senderBadge = profileBadge(profile)
+  const senderHandle = profileHandle(profile)
   const messageId = clean(message.id)
   const serverSeq = Math.max(0, finite(message.server_seq, 0))
   const preview = notificationPreview(message)
@@ -460,7 +352,6 @@ Deno.serve(async (req) => {
       title: senderName,
       body: preview,
       icon: senderAvatar || './icons/happyad-icon-v535center1-192.png',
-      image: senderAvatar || undefined,
       badge: './icons/happyad-notification-badge-96.png',
       tag: 'happyad-message-' + conversationId,
       renotify: true,
@@ -472,7 +363,6 @@ Deno.serve(async (req) => {
       sender_id: user.id,
       sender_name: senderName,
       sender_avatar: senderAvatar,
-      sender_avatar_source: senderIdentity.avatarSource,
       sender_badge: senderBadge,
       sender_handle: senderHandle,
       message_kind: kind,
