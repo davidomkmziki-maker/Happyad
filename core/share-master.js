@@ -415,7 +415,7 @@
     try{if(!fr&&window.HappyNavigation&&typeof window.HappyNavigation.activeFrame==='function')fr=window.HappyNavigation.activeFrame();}catch(_e){}
     try{if(!fr)fr=document.querySelector('#happyadAppFrame_message.on[data-happyad-page="message"]');}catch(_e){}
     if(!fr||clean(fr.getAttribute&&fr.getAttribute('data-happyad-page')).toLowerCase()!=='message')return null;
-    var ctx={frame:fr,url:clean(fr.getAttribute('data-happyad-src')||fr.getAttribute('src'))||'modules/message-center.html?mode=inbox',scrollX:0,scrollY:0,at:Date.now()};
+    var ctx={frame:fr,url:clean(fr.getAttribute('data-happyad-src')||fr.getAttribute('src'))||'modules/message-center.html?mode=inbox&v=759-message-avatar-isolation',scrollX:0,scrollY:0,at:Date.now()};
     try{ctx.scrollX=Number(fr.contentWindow&&fr.contentWindow.scrollX)||0;ctx.scrollY=Number(fr.contentWindow&&fr.contentWindow.scrollY)||0;}catch(_e){}
     try{if(fr.contentWindow)fr.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_CONTEXT_HOLD_V708',detail:{source:'shared-photo',at:ctx.at}},'*');}catch(_e){}
     return ctx;

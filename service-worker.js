@@ -1,7 +1,7 @@
-/* HAPPYAD V758 — Profil visiteur isolé de l’identité du compte connecté */
+/* HAPPYAD V759 — Avatars Messages isolés par UID réel */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V758-visitor-profile-isolation-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V759-message-avatar-isolation-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=758-visitor-profile-isolation',
+  './index.html?v=759-message-avatar-isolation',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -17,7 +17,7 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=757-profile-audit-stable',
+  './core/navigation-master-v668.js?v=759-message-avatar-isolation',
   './core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable',
   './core/auth-session-master-v598.js?v=752-auth-storage-quota-retry',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -25,7 +25,7 @@ var HAPPYAD_APP_SHELL = [
   './core/card-author-avatar-master-v742.js?v=743-card-avatar-safe',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=746-message-profile-avatar',
+  './core/main-tabs-master-v615.js?v=759-message-avatar-isolation',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',

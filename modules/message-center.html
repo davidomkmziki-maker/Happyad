@@ -3569,6 +3569,10 @@
       const readSync = new Map();
       const signatureIndex = Object.create(null);
       const profileMap = new Map();
+      /* V759 : la valeur distante de profiles est la seule autorité pour la photo
+         d’un correspondant. Une valeur vide est volontairement mémorisée afin
+         qu’un ancien cache ne puisse pas remettre la photo du compte connecté. */
+      const authoritativeProfileAvatarMapV759 = new Map();
 
       /* ======================================================================
          HAPPYAD V38C5 — MÉDIA TÉLÉCHARGÉ DURABLE APRÈS FERMETURE
@@ -4738,8 +4742,10 @@
 
       function localConversationRecord(item){
         if(!item || !isUuid(item.id) || !isUuid(item.targetId)) return null;
-        const target = item.target && typeof item.target === 'object' ? item.target : null;
-        const fallback = item.fallbackTarget && typeof item.fallbackTarget === 'object' ? item.fallbackTarget : {};
+        const rawTarget = item.target && typeof item.target === 'object' ? item.target : null;
+        const rawFallback = item.fallbackTarget && typeof item.fallbackTarget === 'object' ? item.fallbackTarget : {};
+        const fallback = sanitizeCachedProfileForTargetV759(rawFallback,item.targetId);
+        const target = rawTarget ? sanitizeCachedProfileForTargetV759(rawTarget,item.targetId) : null;
         return {
           ownerUserId:clean(authUser && authUser.id),
           conversationKey:fixedConversationKey(item.id),
@@ -4760,7 +4766,7 @@
           fallbackTarget:{
             id:item.targetId,
             name:clean(fallback.name),
-            avatar:safeAvatar(fallback.avatar),
+            avatar:avatarForTargetV759(fallback,item.targetId),
             badge:normalizeBadgeValue(fallback.badge),
             status:clean(fallback.status)
           },
@@ -4768,7 +4774,7 @@
             id:item.targetId,
             user_id:item.targetId,
             name:clean(target.name) || clean(fallback.name) || 'Utilisateur HAPPYAD',
-            avatar:safeAvatar(target.avatar || fallback.avatar),
+            avatar:avatarForTargetV759(mergeProfileIdentity(target,fallback),item.targetId),
             badge:normalizeBadgeValue(target.badge || fallback.badge),
             status:clean(target.status || fallback.status)
           } : null,
@@ -4795,12 +4801,14 @@
         if(ownerId && (!authUser || ownerId !== clean(authUser.id))) return null;
         const expectedConversationKey = fixedConversationKey(row.id,ownerId || authUser && authUser.id);
         if(clean(row.conversationKey) && clean(row.conversationKey) !== expectedConversationKey) return null;
+        const fallbackTarget = sanitizeCachedProfileForTargetV759(row.fallbackTarget || {id:row.targetId,name:'Utilisateur HAPPYAD',avatar:'',badge:''},row.targetId);
+        const target = row.target ? sanitizeCachedProfileForTargetV759(row.target,row.targetId) : null;
         return Object.assign({},row,{
           conversationKey:expectedConversationKey,
           conversation_id:row.id,
           raw:{local_cache:true},
-          fallbackTarget:row.fallbackTarget || {id:row.targetId,name:'Utilisateur HAPPYAD',avatar:'',badge:''},
-          target:row.target || null
+          fallbackTarget,
+          target
         });
       }
 
@@ -4972,9 +4980,12 @@
         (incoming || []).forEach(item => {
           if(!item || !isUuid(item.id)) return;
           const previous = map.get(item.id) || {};
+          const targetId = clean(item.targetId || previous.targetId);
+          const mergedFallback = sanitizeCachedProfileForTargetV759(Object.assign({},previous.fallbackTarget || {},item.fallbackTarget || {}),targetId);
+          const mergedTarget = sanitizeCachedProfileForTargetV759(item.target || previous.target || {},targetId);
           map.set(item.id,Object.assign({},previous,item,{
-            fallbackTarget:Object.assign({},previous.fallbackTarget || {},item.fallbackTarget || {}),
-            target:item.target || previous.target || null
+            fallbackTarget:mergedFallback,
+            target:Object.keys(mergedTarget).length ? mergedTarget : null
           }));
         });
         return Array.from(map.values()).filter(item => !isConversationDeletedForMe(item)).sort((a,b) => {
@@ -8658,9 +8669,145 @@
         try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch(_e){ return null; }
       }
 
+      /* HAPPYAD V759 — isolation stricte des avatars Messages.
+         Les sources visuelles du parent appartiennent exclusivement au compte
+         connecté. Elles ne peuvent jamais servir de secours pour un autre UID. */
+      const PROFILE_AVATAR_KEYS_V759 = [
+        'avatar_url','avatarUrl','avatar','user_avatar','userAvatar',
+        'creator_avatar','creatorAvatar','author_avatar','authorAvatar',
+        'profile_photo_url','profilePhotoUrl','profile_photo','profilePhoto',
+        'profile_picture_url','profilePictureUrl','profile_picture','profilePicture',
+        'profile_image_url','profileImageUrl','profile_image','profileImage',
+        'photo_url','photoUrl','photo','picture','picture_url','image_url','imageUrl',
+        'profile_avatar_url','profileAvatarUrl','profile_pic_url','profilePicUrl',
+        'profile_pic','profilePic','user_photo_url','userPhotoUrl','user_photo','userPhoto',
+        'photo_profil_url','photoProfilUrl','photo_profil','photoProfil',
+        'profil_photo_url','profilPhotoUrl','profil_photo','profilPhoto',
+        'photo_de_profil_url','photoDeProfilUrl','photo_de_profil','photoDeProfil',
+        'avatar_path','avatarPath','photo_path','photoPath','profile_photo_path','profilePhotoPath',
+        'profile_picture_path','profilePicturePath','profile_image_path','profileImagePath'
+      ];
+
       function connectedProfileId(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
         return clean(profile.id || profile.user_id || profile.uid || profile.uuid || profile.auth_user_id || profile.account_uid);
+      }
+
+      function connectedAccountIdV759(){
+        const direct = clean(authUser && authUser.id);
+        if(isUuid(direct)) return direct;
+        const cached = cachedSessionUserId();
+        if(isUuid(cached)) return cached;
+        try{
+          const stored = clean(localStorage.getItem('HAPPYAD_AUTH_UID'));
+          if(isUuid(stored)) return stored;
+        }catch(_e){}
+        try{
+          if(window.parent && window.parent !== window && typeof window.parent.happyadCurrentUser === 'function'){
+            const parentUser = window.parent.happyadCurrentUser();
+            const parentId = connectedProfileId(parentUser);
+            if(isUuid(parentId)) return parentId;
+          }
+        }catch(_e){}
+        return '';
+      }
+
+      function avatarFingerprintV759(value){
+        const avatar = safeAvatar(value);
+        if(!avatar) return '';
+        if(/^data:|^blob:/i.test(avatar)) return avatar;
+        try{
+          const url = new URL(avatar,location.href);
+          let path = decodeURIComponent(url.pathname || '').replace(/\/+$/,'');
+          path = path.replace(/\/storage\/v1\/object\/(?:public|sign)\//i,'/storage/');
+          return (url.origin + path).toLowerCase();
+        }catch(_e){
+          return avatar.split(/[?#]/)[0].toLowerCase();
+        }
+      }
+
+      function connectedAvatarFingerprintsV759(){
+        const ownId = connectedAccountIdV759();
+        const set = new Set();
+        const add = value => { const fp = avatarFingerprintV759(value); if(fp) set.add(fp); };
+        if(!isUuid(ownId)) return set;
+        try{ add(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + ownId)); }catch(_e){}
+        try{
+          const legacy = localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V1');
+          if(clean(localStorage.getItem('HAPPYAD_AUTH_UID')) === ownId) add(legacy);
+        }catch(_e){}
+        const ownCandidates = [
+          profileMap.get(ownId),
+          readLocalJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + ownId),
+          readLocalJson('HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:' + ownId),
+          readLocalJson('HAPPYAD_MSG_CONNECTED_PROFILE_V1:' + ownId)
+        ];
+        const authors = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
+        if(authors && authors[ownId]) ownCandidates.push(authors[ownId]);
+        ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(key => {
+          const value = readLocalJson(key);
+          if(value && connectedProfileId(value) === ownId) ownCandidates.push(value);
+        });
+        if(authUser && clean(authUser.id) === ownId && authUser.user_metadata) ownCandidates.push(authUser.user_metadata);
+        ownCandidates.forEach(item => add(profileAvatar(item)));
+        try{
+          if(window.parent && window.parent !== window){
+            if(typeof window.parent.happyadCurrentUser === 'function'){
+              const parentUser = window.parent.happyadCurrentUser();
+              if(connectedProfileId(parentUser) === ownId) add(profileAvatar(parentUser));
+            }
+            if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function') add(window.parent.HappyadProfileAvatarRecoveryV743.current());
+            const parentAvatar = window.parent.document && window.parent.document.getElementById('avatarPreview');
+            if(parentAvatar){
+              add(parentAvatar.dataset && (parentAvatar.dataset.stableAvatar || parentAvatar.dataset.publicAvatarStable));
+              add(parentAvatar.style && parentAvatar.style.backgroundImage);
+            }
+          }
+        }catch(_e){}
+        return set;
+      }
+
+      function avatarIsConnectedFallbackV759(value,targetId){
+        const id = clean(targetId);
+        const ownId = connectedAccountIdV759();
+        if(!isUuid(id) || !isUuid(ownId) || id === ownId) return false;
+        const fp = avatarFingerprintV759(value);
+        return !!fp && connectedAvatarFingerprintsV759().has(fp);
+      }
+
+      function clearProfileAvatarFieldsV759(source){
+        source = source && typeof source === 'object' ? source : {};
+        const clone = Object.assign({},source);
+        PROFILE_AVATAR_KEYS_V759.forEach(key => { if(Object.prototype.hasOwnProperty.call(clone,key)) clone[key] = ''; });
+        ['profile','user','author','creator','owner','metadata','user_metadata'].forEach(key => {
+          const nested = clone[key];
+          if(!nested || typeof nested !== 'object') return;
+          const nestedClone = Object.assign({},nested);
+          PROFILE_AVATAR_KEYS_V759.forEach(avatarKey => { if(Object.prototype.hasOwnProperty.call(nestedClone,avatarKey)) nestedClone[avatarKey] = ''; });
+          clone[key] = nestedClone;
+        });
+        return clone;
+      }
+
+      function sanitizeCachedProfileForTargetV759(source,targetId){
+        source = source && typeof source === 'object' ? source : {};
+        const avatar = profileAvatar(source);
+        return avatarIsConnectedFallbackV759(avatar,targetId) ? clearProfileAvatarFieldsV759(source) : source;
+      }
+
+      function applyAuthoritativeProfileAvatarV759(source,targetId,avatar){
+        const clone = clearProfileAvatarFieldsV759(source);
+        const safe = safeAvatar(avatar);
+        if(safe){ clone.avatar = safe; clone.avatar_url = safe; }
+        authoritativeProfileAvatarMapV759.set(clean(targetId),safe);
+        return clone;
+      }
+
+      function avatarForTargetV759(source,targetId){
+        const id = clean(targetId);
+        if(authoritativeProfileAvatarMapV759.has(id)) return safeAvatar(authoritativeProfileAvatarMapV759.get(id));
+        const avatar = profileAvatar(source);
+        return avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar;
       }
 
       function mergeProfileIdentity(){
@@ -8691,47 +8838,61 @@
         const id = clean(userId);
         if(!isUuid(id)) return null;
         const candidates = [];
-        const stable = readLocalJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + id);
-        if(stable) candidates.push(stable);
+        const pushCandidate = value => {
+          if(!value || typeof value !== 'object') return;
+          const candidateId = connectedProfileId(value);
+          /* Une source portant explicitement un autre UID est rejetée. */
+          if(isUuid(candidateId) && candidateId !== id) return;
+          candidates.push(sanitizeCachedProfileForTargetV759(value,id));
+        };
+        pushCandidate(readLocalJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + id));
         const authorMap = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
-        if(authorMap && authorMap[id]) candidates.push(authorMap[id]);
-        const dedicated = readLocalJson('HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:' + id);
-        if(dedicated) candidates.push(dedicated);
+        if(authorMap && authorMap[id]) pushCandidate(authorMap[id]);
+        pushCandidate(readLocalJson('HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:' + id));
         ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(key => {
           const value = readLocalJson(key);
-          if(value && connectedProfileId(value) === id) candidates.push(value);
+          if(value && connectedProfileId(value) === id) pushCandidate(value);
         });
         const stableAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + id));
-        if(stableAvatar) candidates.unshift({id:id,user_id:id,avatar:stableAvatar,avatar_url:stableAvatar});
+        if(stableAvatar) pushCandidate({id:id,user_id:id,avatar:stableAvatar,avatar_url:stableAvatar});
         const legacyAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V1'));
         if(legacyAvatar && id === clean(localStorage.getItem('HAPPYAD_AUTH_UID'))){
-          candidates.push({id:id,user_id:id,avatar:legacyAvatar,avatar_url:legacyAvatar});
+          pushCandidate({id:id,user_id:id,avatar:legacyAvatar,avatar_url:legacyAvatar});
         }
         const cachedConversation = conversations.find(item => item && clean(item.targetId) === id);
-        if(cachedConversation) candidates.push(cachedConversation.target || cachedConversation.fallbackTarget || {});
-        try{
-          if(window.parent && window.parent !== window){
-            if(typeof window.parent.happyadCurrentUser === 'function') candidates.push(window.parent.happyadCurrentUser());
-            if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function'){
-              const avatar = window.parent.HappyadProfileAvatarRecoveryV743.current();
-              if(avatar) candidates.unshift({id:id,user_id:id,avatar:avatar,avatar_url:avatar});
+        if(cachedConversation) pushCandidate(cachedConversation.target || cachedConversation.fallbackTarget || {});
+
+        /* Les trois secours ci-dessous décrivent le compte connecté. Ils sont
+           autorisés seulement lorsque l’UID demandé est précisément ce compte. */
+        const ownId = connectedAccountIdV759();
+        if(id === ownId){
+          try{
+            if(window.parent && window.parent !== window){
+              if(typeof window.parent.happyadCurrentUser === 'function') pushCandidate(window.parent.happyadCurrentUser());
+              if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function'){
+                const avatar = window.parent.HappyadProfileAvatarRecoveryV743.current();
+                if(avatar) pushCandidate({id:id,user_id:id,avatar:avatar,avatar_url:avatar});
+              }
+              const parentAvatar = window.parent.document && window.parent.document.getElementById('avatarPreview');
+              if(parentAvatar){
+                const background = parentAvatar.dataset && (parentAvatar.dataset.stableAvatar || parentAvatar.dataset.publicAvatarStable) || parentAvatar.style && parentAvatar.style.backgroundImage;
+                if(background) pushCandidate({id:id,user_id:id,avatar:background,avatar_url:background});
+              }
             }
-            const parentAvatar = window.parent.document && window.parent.document.getElementById('avatarPreview');
-            if(parentAvatar){
-              const background = parentAvatar.dataset && (parentAvatar.dataset.stableAvatar || parentAvatar.dataset.publicAvatarStable) || parentAvatar.style && parentAvatar.style.backgroundImage;
-              if(background) candidates.unshift({id:id,user_id:id,avatar:background,avatar_url:background});
-            }
-          }
-        }catch(_e){}
-        const merged = mergeProfileIdentity.apply(null,candidates);
-        return isUuid(connectedProfileId(merged)) ? merged : null;
+          }catch(_e){}
+        }
+        const merged = sanitizeCachedProfileForTargetV759(mergeProfileIdentity.apply(null,candidates),id);
+        if(!isUuid(connectedProfileId(merged))) return null;
+        merged.id = id;
+        merged.user_id = id;
+        return merged;
       }
 
       async function fetchProfile(userId,options){
         const id = clean(userId);
         options = options && typeof options === 'object' ? options : {};
         if(!isUuid(id)) return null;
-        const local = mergeProfileIdentity(profileMap.get(id),cachedProfileIdentity(id));
+        const local = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
         if(profileMap.has(id) && !options.force) return local;
         const sb = getClient();
         if(!sb || !sb.from){
@@ -8743,7 +8904,12 @@
           if(Object.keys(local).length){ profileMap.set(id,local); return local; }
           throw new Error(clean(result.error.message) || 'Profil introuvable.');
         }
-        const merged = mergeProfileIdentity(result.data || {},local);
+        const remote = result.data && typeof result.data === 'object' ? result.data : {};
+        const remoteAvatar = profileAvatar(remote);
+        let merged = mergeProfileIdentity(remote,local);
+        merged = applyAuthoritativeProfileAvatarV759(merged,id,remoteAvatar);
+        merged.id = id;
+        merged.user_id = id;
         if(!isUuid(connectedProfileId(merged))) return null;
         profileMap.set(id, merged);
         return merged;
@@ -8763,11 +8929,16 @@
                 const id = clean(profile && profile.id);
                 if(!isUuid(id)) return;
                 returned.add(id);
-                profileMap.set(id,mergeProfileIdentity(profile,profileMap.get(id),cachedProfileIdentity(id)));
+                const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+                let merged = mergeProfileIdentity(profile,cached);
+                merged = applyAuthoritativeProfileAvatarV759(merged,id,profileAvatar(profile));
+                merged.id = id;
+                merged.user_id = id;
+                profileMap.set(id,merged);
               });
               requested.forEach(id => {
                 if(returned.has(id)) return;
-                const cached = mergeProfileIdentity(profileMap.get(id),cachedProfileIdentity(id));
+                const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
                 if(Object.keys(cached).length) profileMap.set(id,cached);
               });
             }
@@ -8775,8 +8946,9 @@
         }
         const map = Object.create(null);
         ids.forEach(id => {
-          const merged = mergeProfileIdentity(profileMap.get(id),cachedProfileIdentity(id));
-          if(isUuid(connectedProfileId(merged))){ profileMap.set(id,merged); map[id] = merged; }
+          let merged = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+          if(authoritativeProfileAvatarMapV759.has(id)) merged = applyAuthoritativeProfileAvatarV759(merged,id,authoritativeProfileAvatarMapV759.get(id));
+          if(isUuid(connectedProfileId(merged))){ merged.id = id; merged.user_id = id; profileMap.set(id,merged); map[id] = merged; }
         });
         return map;
       }
@@ -8784,15 +8956,17 @@
       function targetFromProfile(profile, fallback){
         profile = profile && typeof profile === 'object' ? profile : {};
         fallback = fallback && typeof fallback === 'object' ? fallback : {};
-        const merged = mergeProfileIdentity(profile,fallback);
-        const id = clean(connectedProfileId(merged) || fallback.id || fallback.user_id || fallback.target_id);
+        const hintedId = clean(connectedProfileId(profile) || connectedProfileId(fallback) || fallback.id || fallback.user_id || fallback.target_id);
+        const safeFallback = sanitizeCachedProfileForTargetV759(fallback,hintedId);
+        const merged = mergeProfileIdentity(profile,safeFallback);
+        const id = clean(connectedProfileId(merged) || hintedId);
         if(!isUuid(id)) return null;
         const name = profileName(merged);
         return {
           id,
           user_id:id,
           name,
-          avatar:profileAvatar(merged),
+          avatar:avatarForTargetV759(merged,id),
           badge:profileBadge(merged),
           status:profileHandle(merged)
         };
@@ -8802,11 +8976,12 @@
         raw = raw && typeof raw === 'object' ? raw : {};
         const id = clean(raw.id || raw.user_id || raw.target_id);
         if(!isUuid(id)) return null;
+        const avatar = safeAvatar(raw.avatar || raw.avatar_url || raw.photo || raw.photo_url);
         return {
           id,
           user_id:id,
           name:clean(raw.name || raw.full_name || raw.display_name || raw.username || raw.handle) || 'Utilisateur HAPPYAD',
-          avatar:safeAvatar(raw.avatar || raw.avatar_url || raw.photo || raw.photo_url),
+          avatar:avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar,
           badge:profileBadge(raw),
           status:clean(raw.status || raw.presence) || 'Conversation HAPPYAD'
         };
@@ -9562,10 +9737,11 @@
         const kind = clean(row.last_message_kind || row.kind || row.message_type || 'text');
         const specialPreview = decodeSpecialMessageBody(row.last_message_body || row.last_message_text || row.preview || row.body);
         const body = clean(specialPreview.body);
+        const fallbackAvatar = safeAvatar(row.target_avatar || row.other_avatar || row.avatar_url);
         const fallbackTarget = {
           id:targetId,
           name:clean(row.target_name || row.other_name || row.display_name || row.username),
-          avatar:safeAvatar(row.target_avatar || row.other_avatar || row.avatar_url),
+          avatar:avatarIsConnectedFallbackV759(fallbackAvatar,targetId) ? '' : fallbackAvatar,
           badge:profileBadge({badge:row.target_badge,user_badge:row.other_badge,profile_badge:row.badge})
         };
         return {
@@ -9805,7 +9981,8 @@
 
       function conversationContentSignature(items,needle){
         return JSON.stringify([clean(needle),...(items || []).map(item => {
-          const target = item.target || item.fallbackTarget || {};
+          const rawTarget = item.target || item.fallbackTarget || {};
+          const target = targetFromProfile({},rawTarget) || rawTarget;
           return [item.id,item.targetId,clean(target.name),safeAvatar(target.avatar),clean(target.badge),clean(target.status),
             finiteNumber(item.previewResolved ? item.previewSeq : item.lastSeq,0),item.previewResolved ? item.previewAt : item.lastAt,
             item.previewResolved ? item.previewSenderId : item.senderId,messagePreview(item),!!item.previewDeletedForAll,!!item.previewViewOnce];
@@ -9854,7 +10031,8 @@
         if(!conversationPanel) return;
         const needle = clean(filterText).toLowerCase();
         const filtered = conversations.filter(item => !isConversationDeletedForMe(item)).filter(item => {
-          const target = item.target || item.fallbackTarget || {};
+          const rawTarget = item.target || item.fallbackTarget || {};
+          const target = targetFromProfile({},rawTarget) || rawTarget;
           return !needle || [target.name, target.status, messagePreview(item)].some(value => clean(value).toLowerCase().includes(needle));
         });
         const contentSignature = conversationContentSignature(filtered,needle);
@@ -9871,7 +10049,8 @@
         }
         const fragment = document.createDocumentFragment();
         filtered.forEach((item, index) => {
-          const target = item.target || item.fallbackTarget || {id:item.targetId,name:'Utilisateur HAPPYAD'};
+          const rawTarget = item.target || item.fallbackTarget || {id:item.targetId,name:'Utilisateur HAPPYAD'};
+          const target = targetFromProfile({},rawTarget) || rawTarget;
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'row' + (item.unread > 0 ? ' unread' : '');
@@ -11448,6 +11627,7 @@
       }
 
       function displayDirect(target){
+        target = targetFromProfile({},target || {}) || target || {};
         if(personSelectorOpen) closePersonSelector(false);
         activeMessageView = 'chat';
         updateNewConversationFabVisibility();
@@ -11552,7 +11732,7 @@
         readEligibleConversationId = currentConversationId;
         chatOpenedAt = Date.now();
         currentReceipt = {myDelivered:item.myDelivered || 0,myRead:item.myRead || 0,targetDelivered:item.targetDelivered || 0,targetRead:item.targetRead || 0};
-        currentTarget = item.target || item.fallbackTarget;
+        currentTarget = targetFromProfile({},item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
         context = {
           context_id:'conversation:' + item.id,
           source:'conversation-list',
