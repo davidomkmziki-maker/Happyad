@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__)return;
   window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__=true;
 
-  var VERSION='V696_HOME_SCROLL_PREPAINT';
+  var VERSION='V767_HOME_SINGLE_MEDIA_HYDRATOR';
   var list=null,io=null,raf=0,fastTimer=0,lastY=window.scrollY||0,lastAt=performance.now?performance.now():Date.now();
   function cssUrl(value){return 'url("'+String(value||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")'}
   function installCss(){
@@ -36,9 +36,9 @@ body.haHomeFastScrollV696 #list.homeTimeline *{scroll-behavior:auto!important;}
   }
   function prime(card,priority){
     if(!card)return;
-    try{
-      if(card.dataset.mediaReady!=='1'&&typeof window.hydrateMedia==='function'&&card.__happyadPost){window.hydrateMedia(card,card.__happyadPost,!!card.__happyadVideo)}
-    }catch(_e){}
+    /* V767 : ce module ne lance plus jamais hydrateMedia().
+       L'unique propriétaire du chargement média reste observeHomeCard() dans
+       index.html. Le prépeint se limite aux images déjà créées par ce maître. */
     [].slice.call(card.querySelectorAll('img')).forEach(function(img){rememberImage(img,priority)});
     mediaBoxes(card).forEach(function(box){
       var img=box.querySelector('img');if(img)rememberImage(img,priority);
@@ -73,5 +73,5 @@ body.haHomeFastScrollV696 #list.homeTimeline *{scroll-behavior:auto!important;}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
   window.addEventListener('scroll',markFast,{passive:true,capture:true});
   window.addEventListener('pageshow',queueScan,true);window.addEventListener('focus',queueScan,true);window.addEventListener('resize',queueScan,{passive:true});
-  try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('home-scroll-prepaint',{file:'core/home-scroll-prepaint-master-v696.js',responsibility:'prépeinture Accueil et scroll rapide sans vide noir',active:true,version:VERSION})}catch(_e){}
+  try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('home-scroll-prepaint',{file:'core/home-scroll-prepaint-master-v696.js',responsibility:'prépeinture visuelle Accueil uniquement; aucune hydratation ni requête média',active:true,version:VERSION})}catch(_e){}
 })();

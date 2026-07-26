@@ -740,8 +740,7 @@ body.haProfileVisitor.haProfilePublicationsMasterV570 #publicationsBox .haProfil
 #openEditMasterV572 svg{width:19px!important;height:19px!important;flex:0 0 19px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round!important;stroke-linejoin:round!important;}
 #openEditMasterV572:active{filter:brightness(.92)!important;transform:none!important;}
 
-/* Sticky profile UI must never cover settings/stats/edit overlays. */
-#settingsPanel.show,#statsPanel.show{z-index:100050!important;}
+/* Sticky profile UI must never cover Stats/Edit overlays. Paramètres V722 est autonome. */
 #profileEditBackdrop.show{z-index:100060!important;}
 #editPanel.show,#editPanel.happyadCleanPanel.show{z-index:100070!important;}
 
@@ -799,7 +798,7 @@ body.haProfileFastBootV573 #profileName{min-height:1em!important;}
 body.haProfileFastBootV573 #profilePostsList .haProfileFastTileV573{contain:layout paint!important;}
 body.haProfileFastBootV573 #profilePostsList .haProfileFastTileV573 img{opacity:1!important;filter:none!important;}
 
-/* One real backdrop for Settings / Stats / Edit. */
+/* One real backdrop for Stats / Edit. Paramètres V722 gère son propre plein écran. */
 #happyadProfilePanelBackdropV573{
   position:fixed!important;
   inset:0!important;
@@ -825,8 +824,6 @@ body.haProfilePanelLockedV573{
 }
 
 /* Isolated GPU layer, one scroll owner, no nested page scroll. */
-#settingsPanel.show,
-#statsPanel.show,
 #editPanel.show,
 #editPanel.happyadCleanPanel.show{
   position:fixed!important;
@@ -853,14 +850,8 @@ body.haProfilePanelLockedV573{
   box-shadow:0 18px 70px rgba(0,0,0,.72)!important;
   z-index:100070!important;
 }
-#settingsPanel.show::-webkit-scrollbar,
-#statsPanel.show::-webkit-scrollbar,
 #editPanel.show::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
 
-#settingsPanel.show::before,
-#statsPanel.show::before,
-#settingsPanel.show::after,
-#statsPanel.show::after{display:none!important;content:none!important;}
 
 .haProfilePanelHeaderV573{
   position:sticky!important;
@@ -908,25 +899,14 @@ body.haProfilePanelLockedV573{
 }
 .haProfilePanelCloseV573:active{background:rgba(255,122,0,.22)!important;}
 
-/* Hide duplicate legacy close controls only in Settings and Stats. */
-#settingsPanel.show > .hadPopupClose,
-#statsPanel.show > .hadPopupClose{display:none!important;}
 
-/* Skip painting offscreen rows until they approach the panel viewport. */
-#settingsPanel.show .settingsGroup,
-#statsPanel.show .fullStat{
-  content-visibility:auto!important;
-  contain-intrinsic-size:auto 150px!important;
-}
-#settingsPanel.show .settingsGroup{margin-bottom:12px!important;}
-#statsPanel.show .fullStatsGrid{padding-bottom:18px!important;}
 
 /* Edit keeps its established content but uses the same smooth scrolling layer. */
 #editPanel.show::before,
 #editPanel.happyadCleanPanel.show::before{position:sticky!important;top:0!important;z-index:8!important;background:#171c25!important;margin:0 -14px 12px!important;padding:18px 72px 14px 14px!important;border-bottom:1px solid rgba(255,255,255,.08)!important;}
 #editPanel.show #closeEditProfile,
 #editPanel.happyadCleanPanel.show #closeEditProfile{position:sticky!important;float:right!important;top:10px!important;margin:10px 0 -56px auto!important;z-index:15!important;}@media(max-width:420px){
-  #settingsPanel.show,#statsPanel.show,#editPanel.show,#editPanel.happyadCleanPanel.show{
+  #editPanel.show,#editPanel.happyadCleanPanel.show{
     width:calc(100% - 12px)!important;
     top:max(6px,env(safe-area-inset-top))!important;
     bottom:max(6px,env(safe-area-inset-bottom))!important;

@@ -1,7 +1,0 @@
-HAPPYAD V38C4 — MEDIA CACHE STABLE RESTORE
-
-Base : V38C3 validée.
-
-Correction : chez le destinataire, une photo, vidéo, audio ou fichier déjà téléchargé est relu depuis IndexedDB avant le rendu de la conversation. Le bouton Télécharger ne revient plus après une fermeture/réouverture.
-
-Sécurité : les médias vue unique restent exclus de tout stockage permanent et disparaissent après consommation selon la règle validée.

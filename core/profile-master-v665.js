@@ -558,7 +558,7 @@
   }
 
   function prepareOwnerActions(){
-    var map=[['#openSettings','settings','Paramètres'],['#openStats','stats','Stats'],['#openEdit','edit','Modifier']];
+    var map=[['#openSettings','settings','Paramètres'],['#openStats','stats','Statistiques'],['#openEdit','edit','Modifier']];
     map.forEach(function(row){var b=qs(row[0]);if(!b)return;b.innerHTML=svg(row[1])+'<span>'+row[2]+'</span>';b.setAttribute('data-ha-profile-master-action',row[1]);});
   }
 
@@ -1238,9 +1238,8 @@
   function openCleanEdit(e){
     try{if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}}catch(_e){}
     try{
-      var settings=qs('#settingsPanel'),stats=qs('#statsPanel');
-      if(settings)settings.classList.remove('show');
-      if(stats)stats.classList.remove('show');
+      try{if(window.HappyProfileSettingsV722)window.HappyProfileSettingsV722.close(true);}catch(_settingsClose){}
+      try{if(window.HappyProfileStatsV724)window.HappyProfileStatsV724.close(true);}catch(_statsClose){}
       if(hasAccount()&&typeof window.cleanEdit==='function'){window.cleanEdit();syncOverlay();return false;}
       if(typeof window.happyadOpenAuthChoice==='function'){window.happyadOpenAuthChoice();syncOverlay();return false;}
     }catch(err){console.warn('HAPPYAD V572 edit open',err);}
@@ -1273,10 +1272,10 @@
   function visiblePanel(el){
     if(!el)return false;
     if(el.classList.contains('show')||el.classList.contains('on'))return true;
-    try{var st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&Number(st.opacity||1)>0&&(el.id==='editPanel'||el.id==='settingsPanel'||el.id==='statsPanel');}catch(_e){return false;}
+    try{var st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&Number(st.opacity||1)>0&&el.id==='editPanel';}catch(_e){return false;}
   }
   function syncOverlay(){
-    var open=visiblePanel(qs('#settingsPanel'))||visiblePanel(qs('#statsPanel'))||visiblePanel(qs('#editPanel'))||visiblePanel(qs('#profileEditBackdrop'));
+    var open=visiblePanel(qs('#editPanel'))||visiblePanel(qs('#profileEditBackdrop'));
     if(doc.body)doc.body.classList.toggle('haProfileOverlayOpenV572',!!open);
   }
   function installOverlayWatch(){
@@ -1451,10 +1450,10 @@
   var doc=document,body=doc.body,root=doc.documentElement;
   var current=null,lockY=0,observer=null,backdrop=null,raf=0;
   function qs(s,r){try{return (r||doc).querySelector(s);}catch(_e){return null;}}
-  function panels(){return [qs('#settingsPanel'),qs('#statsPanel'),qs('#editPanel')].filter(Boolean);}
+  function panels(){return [qs('#editPanel')].filter(Boolean);}
   function open(el){if(!el)return false;if(el.id==='editPanel'){try{var st=getComputedStyle(el);return el.classList.contains('show')&&st.display!=='none';}catch(_e){return el.classList.contains('show');}}return el.classList.contains('show');}
   function svgClose(){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';}
-  function titleOf(el){return el&&el.id==='settingsPanel'?'Paramètres':el&&el.id==='statsPanel'?'Statistiques':'Modifier';}
+  function titleOf(){return 'Modifier';}
   function closePanel(el){
     if(!el)return;
     if(el.id==='editPanel'){

@@ -1,8 +1,0 @@
-HAPPYAD V599 — RADAR INVITÉ SANS CLIGNOTEMENT
-
-- La session locale est évaluée dans le HEAD avant le premier rendu.
-- Hors connexion, l’ancien Radar et les stories sont masqués avant leur création visuelle.
-- Les boutons Connexion et Inscription sont présents dans un bloc statique stable.
-- Le rendu dynamique des stories ne recrée plus ces boutons.
-- Suppression du MutationObserver et du setInterval de V598 qui provoquaient des réapplications visibles.
-- Après connexion, le Radar normal est restauré par l’événement central d’authentification.

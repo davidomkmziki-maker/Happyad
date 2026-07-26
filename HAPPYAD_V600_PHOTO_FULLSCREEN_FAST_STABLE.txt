@@ -1,9 +1,0 @@
-HAPPYAD V600 — PHOTO FULLSCREEN FAST STABLE
-
-- Le texte Chargement reste un calque absolu et ne déplace plus la photo.
-- L'image courante est chargée en priorité avec le média déjà visible dans la carte quand disponible.
-- Seules la photo courante et les photos voisines sont préchargées.
-- Les albums n'envoient plus toutes les images en même temps.
-- Le viewer Profil/Visiteur V581 hydrate seulement la publication visible et ses voisines.
-- La position et le ratio original sont conservés avec object-fit: contain.
-- Les retours internes et les actions existantes sont conservés.

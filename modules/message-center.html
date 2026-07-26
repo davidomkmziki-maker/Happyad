@@ -30,8 +30,9 @@
 <script src="../core/return-reset-master-v584.js?v=584"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>HappyAD - Messages</title>
+  <title>HappyAD - Messages V746</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
   <script>
     (function(){
       try{
@@ -3098,9 +3099,25 @@
       background:rgba(255,255,255,.09);color:#9fdcff;
     }
     .story-reply-open svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .story-reply-status{display:none;margin-top:3px;color:#9fb0c3;font-size:11px;font-weight:850;line-height:1.15}
+    .story-reply-card.is-resolving{cursor:progress}
+    .story-reply-card.is-resolving .story-reply-status{display:block}
+    .story-reply-card.is-resolving .story-reply-open{box-sizing:border-box;background:transparent;border:2px solid rgba(159,220,255,.28);border-top-color:#9fdcff;animation:happyadStoryReplySpin .8s linear infinite}
+    .story-reply-card.is-resolving .story-reply-open svg{display:none}
+    .story-reply-card.is-expired,.story-reply-card.is-unavailable{cursor:default;transform:none!important}
+    .story-reply-card.is-expired .shared-post-media,.story-reply-card.is-unavailable .shared-post-media{background:linear-gradient(145deg,#182334,#0b1421);color:#8192a8}
+    .story-reply-card.is-expired .shared-post-media img,.story-reply-card.is-unavailable .shared-post-media img{display:none}
+    .story-reply-card.is-expired .shared-post-media::before,.story-reply-card.is-expired .shared-post-media::after,
+    .story-reply-card.is-unavailable .shared-post-media::before,.story-reply-card.is-unavailable .shared-post-media::after{display:none!important}
+    .story-reply-card.is-expired .story-reply-status,.story-reply-card.is-unavailable .story-reply-status{display:block}
+    .story-reply-card.is-expired .story-reply-status{color:#c0cad6}
+    .story-reply-card.is-unavailable .story-reply-status{color:#a9b8c9}
+    .story-reply-card.is-expired .story-reply-open,.story-reply-card.is-unavailable .story-reply-open{background:rgba(255,255,255,.055);color:#77879a}
+    @keyframes happyadStoryReplySpin{to{transform:rotate(360deg)}}
     .story-reply-text{display:block!important;margin:7px 8px 1px!important;color:#fff!important;font-size:14px!important;line-height:1.3!important}
 
 </style>
+<link id="happyad-message-assistance-shortcut-v738-css" rel="stylesheet" href="../core/message-assistance-shortcut-v738.css?v=738-visible">
 </head>
 <body>
   <main class="app">
@@ -3120,6 +3137,14 @@
           </div>
           <div class="subtitle">Conversations HappyAD</div>
         </div>
+        <button class="message-assistance-shortcut-v738" id="messageAssistanceShortcutListV738" data-happyad-assistance-shortcut-v738="1" type="button" aria-label="Ouvrir l’assistance HAPPYAD" title="Assistance">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12a7 7 0 0 1 14 0v4.5a2.5 2.5 0 0 1-2.5 2.5H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 12v4M19 12v4M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="3.5" y="12" width="3" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+            <rect x="17.5" y="12" width="3" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </button>
         <button class="icon-btn" id="searchToggle" type="button" aria-label="Rechercher">
           <svg class="icon" viewBox="0 0 24 24" fill="none">
             <path d="M10.8 18.1a7.3 7.3 0 1 1 0-14.6 7.3 7.3 0 0 1 0 14.6Z" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
@@ -3166,6 +3191,14 @@
           </div>
           <div id="chatStatus" class="chat-status">Conversation HAPPYAD</div>
         </div>
+        <button class="message-assistance-shortcut-v738" id="messageAssistanceShortcutChatV738" data-happyad-assistance-shortcut-v738="1" type="button" aria-label="Ouvrir l’assistance HAPPYAD" title="Assistance">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12a7 7 0 0 1 14 0v4.5a2.5 2.5 0 0 1-2.5 2.5H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 12v4M19 12v4M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="3.5" y="12" width="3" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+            <rect x="17.5" y="12" width="3" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </button>
         <button class="icon-btn" id="chatMenuBtn" type="button" aria-label="Options conversation">
           <svg class="icon" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="5" r="1.8" fill="currentColor"/>
@@ -3354,7 +3387,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V39C_MESSAGES_OPEN_LAYOUT_RECOVERY';
+      const MASTER_VERSION = 'V746_MESSAGES_PROFILE_AVATAR_UID_REAL';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -3536,6 +3569,13 @@
       const readSync = new Map();
       const signatureIndex = Object.create(null);
       const profileMap = new Map();
+      /* V759 : la valeur distante de profiles est la seule autorité pour la photo
+         d’un correspondant. Une valeur vide est volontairement mémorisée afin
+         qu’un ancien cache ne puisse pas remettre la photo du compte connecté. */
+      const authoritativeProfileAvatarMapV759 = new Map();
+      /* V761 : badge officiel strict récupéré par UID. La photo reste
+         entièrement gérée par V759 ; cette carte ne modifie que le badge. */
+      const authoritativeProfileBadgeMapV761 = new Map();
 
       /* ======================================================================
          HAPPYAD V38C5 — MÉDIA TÉLÉCHARGÉ DURABLE APRÈS FERMETURE
@@ -4705,8 +4745,10 @@
 
       function localConversationRecord(item){
         if(!item || !isUuid(item.id) || !isUuid(item.targetId)) return null;
-        const target = item.target && typeof item.target === 'object' ? item.target : null;
-        const fallback = item.fallbackTarget && typeof item.fallbackTarget === 'object' ? item.fallbackTarget : {};
+        const rawTarget = item.target && typeof item.target === 'object' ? item.target : null;
+        const rawFallback = item.fallbackTarget && typeof item.fallbackTarget === 'object' ? item.fallbackTarget : {};
+        const fallback = sanitizeCachedProfileForTargetV759(rawFallback,item.targetId);
+        const target = rawTarget ? sanitizeCachedProfileForTargetV759(rawTarget,item.targetId) : null;
         return {
           ownerUserId:clean(authUser && authUser.id),
           conversationKey:fixedConversationKey(item.id),
@@ -4727,7 +4769,7 @@
           fallbackTarget:{
             id:item.targetId,
             name:clean(fallback.name),
-            avatar:safeAvatar(fallback.avatar),
+            avatar:avatarForTargetV759(fallback,item.targetId),
             badge:normalizeBadgeValue(fallback.badge),
             status:clean(fallback.status)
           },
@@ -4735,7 +4777,7 @@
             id:item.targetId,
             user_id:item.targetId,
             name:clean(target.name) || clean(fallback.name) || 'Utilisateur HAPPYAD',
-            avatar:safeAvatar(target.avatar || fallback.avatar),
+            avatar:avatarForTargetV759(mergeProfileIdentity(target,fallback),item.targetId),
             badge:normalizeBadgeValue(target.badge || fallback.badge),
             status:clean(target.status || fallback.status)
           } : null,
@@ -4762,12 +4804,14 @@
         if(ownerId && (!authUser || ownerId !== clean(authUser.id))) return null;
         const expectedConversationKey = fixedConversationKey(row.id,ownerId || authUser && authUser.id);
         if(clean(row.conversationKey) && clean(row.conversationKey) !== expectedConversationKey) return null;
+        const fallbackTarget = sanitizeCachedProfileForTargetV759(row.fallbackTarget || {id:row.targetId,name:'Utilisateur HAPPYAD',avatar:'',badge:''},row.targetId);
+        const target = row.target ? sanitizeCachedProfileForTargetV759(row.target,row.targetId) : null;
         return Object.assign({},row,{
           conversationKey:expectedConversationKey,
           conversation_id:row.id,
           raw:{local_cache:true},
-          fallbackTarget:row.fallbackTarget || {id:row.targetId,name:'Utilisateur HAPPYAD',avatar:'',badge:''},
-          target:row.target || null
+          fallbackTarget,
+          target
         });
       }
 
@@ -4939,9 +4983,12 @@
         (incoming || []).forEach(item => {
           if(!item || !isUuid(item.id)) return;
           const previous = map.get(item.id) || {};
+          const targetId = clean(item.targetId || previous.targetId);
+          const mergedFallback = sanitizeCachedProfileForTargetV759(Object.assign({},previous.fallbackTarget || {},item.fallbackTarget || {}),targetId);
+          const mergedTarget = sanitizeCachedProfileForTargetV759(item.target || previous.target || {},targetId);
           map.set(item.id,Object.assign({},previous,item,{
-            fallbackTarget:Object.assign({},previous.fallbackTarget || {},item.fallbackTarget || {}),
-            target:item.target || previous.target || null
+            fallbackTarget:mergedFallback,
+            target:Object.keys(mergedTarget).length ? mergedTarget : null
           }));
         });
         return Array.from(map.values()).filter(item => !isConversationDeletedForMe(item)).sort((a,b) => {
@@ -5612,6 +5659,7 @@
               });
               updateNewConversationFabVisibility();
               restoreNewConversationFabPosition();
+              if(sharedReturnScrollLockedV711()) applySharedReturnScrollV711();
             });
           }catch(_e){}
         });
@@ -5624,7 +5672,20 @@
         if(composerViewportFrame) cancelAnimationFrame(composerViewportFrame);
         composerViewportFrame = requestAnimationFrame(() => {
           composerViewportFrame = 0;
-          syncMessageVisualViewport();
+          window.addEventListener('storage',event => {
+        const key = clean(event && event.key);
+        if(!key || /HAPPYAD_(PROFILE|USER|CURRENT|LOGGED|CENTRAL|AUTHOR).*?(AVATAR|IDENTITY|USER)?/i.test(key)) refreshConnectedIdentitySoon(30);
+      });
+      try{
+        const identityBroadcastV746 = new BroadcastChannel('happyad-profile-identity-v746');
+        identityBroadcastV746.onmessage = event => {
+          const detail = event && event.data || {};
+          const id = clean(detail.user_id || detail.id);
+          if(isUuid(id)) refreshConversationProfile(id).catch(() => false);
+        };
+      }catch(_e){}
+
+      syncMessageVisualViewport();
           if(!composerShell || !chatView || chatView.classList.contains('hidden')) return;
           const composerIsActive = document.activeElement === messageInput || !!editingMessage || !!replyingTo;
           if(!composerIsActive) return;
@@ -8323,42 +8384,210 @@
         }
       }
 
+      /* HAPPYAD V746 — identité Messages par UID réel.
+         Les anciens maîtres n'acceptaient que quelques colonnes photo et
+         s'arrêtaient parfois sur un cache contenant le nom mais pas l'avatar. */
+      function unwrapAvatarValue(value){
+        const raw = clean(value);
+        const match = raw.match(/^url\(["']?(.*?)["']?\)$/i);
+        return match ? clean(match[1]) : raw;
+      }
+
+      function invalidAvatarValue(value){
+        const url = unwrapAvatarValue(value);
+        const lower = url.toLowerCase();
+        return !url || url === '👤' || url === '🧑' || url === 'avatar' || url === 'user' ||
+          ['none','null','undefined','aucun','default'].includes(lower) ||
+          lower.includes('placeholder') || lower.includes('default-avatar') ||
+          lower.includes('profile-placeholder');
+      }
+
+      function normalizeAvatarUrl(value){
+        let url = unwrapAvatarValue(value);
+        if(invalidAvatarValue(url) || url.length > 120000) return '';
+        if(/^data:image\/(?:png|jpe?g|webp|gif|avif);/i.test(url)) return url.length > 160 ? url : '';
+        if(/^blob:/i.test(url)) return url;
+        if(/^https?:\/\//i.test(url)) return url;
+        if(/^\/storage\/v1\/object\//i.test(url)) return SUPABASE_URL.replace(/\/+$/,'') + url;
+        let path = url.replace(/^\/+/, '');
+        let bucket = 'happyad-media';
+        const bucketMatch = path.match(/^(happyad-media|avatars|profile-photos|profile-images)\/(.+)$/i);
+        if(bucketMatch){ bucket = bucketMatch[1]; path = bucketMatch[2]; }
+        if(path.indexOf('/') < 0 && !/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(path)) return '';
+        return SUPABASE_URL.replace(/\/+$/,'') + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + encodeURI(path);
+      }
+
       function safeAvatar(value){
-        const url = clean(value);
-        if(!url || url.length > 2048 || /^data:image\//i.test(url)) return '';
-        return url;
+        return normalizeAvatarUrl(value);
       }
 
       function profileName(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
-        return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle) || 'Utilisateur HAPPYAD';
+        const nested = profile.profile || profile.user || profile.author || profile.creator || profile.owner || {};
+        return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle ||
+          nested.full_name || nested.display_name || nested.name || nested.username || nested.handle) || 'Utilisateur HAPPYAD';
       }
 
       function profileAvatar(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
-        return safeAvatar(profile.avatar_url || profile.avatar || profile.photo_url || profile.photo || profile.profile_photo || profile.profile_image_url || profile.profile_picture);
+        const nested = profile.profile || profile.user || profile.author || profile.creator || profile.owner || {};
+        const metadata = profile.metadata && typeof profile.metadata === 'object' ? profile.metadata : {};
+        const userMetadata = profile.user_metadata && typeof profile.user_metadata === 'object' ? profile.user_metadata : {};
+        return safeAvatar(
+          profile.avatar_url || profile.avatarUrl || profile.avatar || profile.user_avatar || profile.userAvatar ||
+          profile.creator_avatar || profile.creatorAvatar || profile.author_avatar || profile.authorAvatar ||
+          profile.profile_photo_url || profile.profilePhotoUrl || profile.profile_photo || profile.profilePhoto ||
+          profile.profile_picture_url || profile.profilePictureUrl || profile.profile_picture || profile.profilePicture ||
+          profile.profile_image_url || profile.profileImageUrl || profile.profile_image || profile.profileImage ||
+          profile.photo_url || profile.photoUrl || profile.photo || profile.picture || profile.picture_url ||
+          profile.image_url || profile.imageUrl || profile.profile_avatar_url || profile.profileAvatarUrl ||
+          profile.profile_pic_url || profile.profilePicUrl || profile.profile_pic || profile.profilePic ||
+          profile.user_photo_url || profile.userPhotoUrl || profile.user_photo || profile.userPhoto ||
+          profile.photo_profil_url || profile.photoProfilUrl || profile.photo_profil || profile.photoProfil ||
+          profile.profil_photo_url || profile.profilPhotoUrl || profile.profil_photo || profile.profilPhoto ||
+          profile.photo_de_profil_url || profile.photoDeProfilUrl || profile.photo_de_profil || profile.photoDeProfil ||
+          profile.avatar_path || profile.avatarPath || profile.photo_path || profile.photoPath ||
+          profile.profile_photo_path || profile.profilePhotoPath || profile.profile_picture_path || profile.profilePicturePath ||
+          profile.profile_image_path || profile.profileImagePath ||
+          nested.avatar_url || nested.avatar || nested.photo_url || nested.profile_photo_url || nested.picture ||
+          userMetadata.avatar_url || userMetadata.avatar || userMetadata.picture ||
+          metadata.avatar_url || metadata.avatar || metadata.picture
+        );
       }
 
       function normalizeBadgeValue(value){
+        if(value === true || value === 1) return 'bleu';
+        if(value === false || value === 0 || value == null) return '';
+        if(value && typeof value === 'object'){
+          return normalizeBadgeValue(
+            value.value || value.type || value.color || value.name || value.badge ||
+            value.user_badge || value.badge_type || value.status || value.level
+          );
+        }
         const badge = clean(value).toLowerCase();
-        if(!badge || ['aucun','none','false','0','1','true','null','undefined','no','non'].includes(badge)) return '';
-        return badge;
+        if(!badge) return '';
+        const compact = badge.replace(/[\s_-]+/g,'');
+        const negatives = [
+          'aucun','none','false','0','null','undefined','no','non','inactive','disabled',
+          'unverified','notverified','nonverified','nonverifie','nonvérifié','pending',
+          'enattente','rejected','rejete','rejeté','expired','expire','expiré'
+        ];
+        if(negatives.includes(badge) || negatives.includes(compact)) return '';
+        if(['1','true','yes','oui','verified','verify','certified','certifie','certifié','approved','approuve','approuvé'].includes(badge)) return 'bleu';
+        const known = [
+          'bleu','blue','violet','purple','jaune','yellow','business','entreprise',
+          'premium','creator','créateur','createur','personnalite','personnalité',
+          'personality','seller','vendeur','music','musique','admin','official','officiel'
+        ];
+        return known.includes(badge) ? badge : '';
       }
+
+      const BADGE_FIELDS_V761 = [
+        'badge','user_badge','userBadge','badge_type','badgeType',
+        'certification','verification_badge','verified_badge','verifiedBadge',
+        'blue_badge','verifyBadge','verify_badge','role_badge','profile_badge',
+        'account_badge','admin_badge','badge_color','badgeColor','badge_value',
+        'badgeValue','badge_name','badgeName','badge_status','badgeStatus',
+        'badge_url','badgeUrl','verified_badge_url','verification_badge_url',
+        'badge_enabled','badgeEnabled','has_badge','hasBadge'
+      ];
 
       function profileBadge(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
-        const values = [
-          profile.badge, profile.user_badge, profile.userBadge, profile.badge_type,
-          profile.certification, profile.verification_badge, profile.verified_badge,
-          profile.verifiedBadge, profile.blue_badge, profile.verifyBadge,
-          profile.verify_badge, profile.role_badge, profile.profile_badge,
-          profile.account_badge, profile.admin_badge, profile.badge_color
-        ];
-        for(const value of values){
-          const badge = normalizeBadgeValue(value);
-          if(badge) return badge;
+        const sources = [
+          profile,
+          profile.profile,
+          profile.user,
+          profile.author,
+          profile.creator,
+          profile.owner,
+          profile.metadata,
+          profile.user_metadata,
+          profile.app_metadata,
+          profile.raw_user_meta_data
+        ].filter(value => value && typeof value === 'object');
+        for(const source of sources){
+          for(const field of BADGE_FIELDS_V761){
+            const badge = normalizeBadgeValue(source[field]);
+            if(badge) return badge;
+          }
+          /* V761 : ne jamais convertir is_verified/verified en badge. Ces champs
+             peuvent simplement confirmer l'adresse ou le compte et étaient la
+             cause du badge bleu attribué à tous les correspondants. */
+          const explicitBadgeFlags = [source.badge_enabled,source.badgeEnabled,source.has_badge,source.hasBadge];
+          if(explicitBadgeFlags.some(value => value === true || value === 1 || clean(value).toLowerCase() === 'true')) return 'bleu';
         }
         return '';
+      }
+
+      function clearBadgeFieldsV761(source){
+        const clone = source && typeof source === 'object' ? Object.assign({},source) : {};
+        BADGE_FIELDS_V761.forEach(field => { delete clone[field]; });
+        ['profile','user','author','creator','owner','metadata','user_metadata','app_metadata','raw_user_meta_data'].forEach(key => {
+          const nested = clone[key];
+          if(!nested || typeof nested !== 'object' || Array.isArray(nested)) return;
+          const cleanNested = Object.assign({},nested);
+          BADGE_FIELDS_V761.forEach(field => { delete cleanNested[field]; });
+          clone[key] = cleanNested;
+        });
+        return clone;
+      }
+
+      function badgeForTargetV761(source,targetId){
+        const id = clean(targetId);
+        if(isUuid(id) && authoritativeProfileBadgeMapV761.has(id)){
+          return normalizeBadgeValue(authoritativeProfileBadgeMapV761.get(id));
+        }
+        return profileBadge(source);
+      }
+
+      function applyAuthoritativeProfileBadgeV761(source,targetId,badge,confirmed){
+        const id = clean(targetId);
+        if(!confirmed) return source && typeof source === 'object' ? Object.assign({},source) : {};
+        const normalized = normalizeBadgeValue(badge);
+        /* Une ligne profiles confirmée est la seule autorité : elle remplace aussi
+           un ancien badge erroné mémorisé dans la conversation ou le cache. */
+        const clone = clearBadgeFieldsV761(source);
+        if(isUuid(id)) authoritativeProfileBadgeMapV761.set(id,normalized);
+        if(normalized){
+          clone.badge = normalized;
+          clone.user_badge = normalized;
+          clone.userBadge = normalized;
+        }
+        return clone;
+      }
+
+      /* V761 récupère uniquement un badge officiel explicite. Les anciens comptes peuvent être
+         rattachés à profiles par user_id alors que les comptes récents utilisent
+         id. La correction ne remplace ni le nom ni la photo du profil. */
+      async function fetchProfileBadgesV761(userIds,seedRows){
+        const ids = Array.from(new Set((userIds || []).map(clean).filter(isUuid)));
+        const wanted = new Set(ids);
+        const badges = Object.create(null);
+        const confirmed = new Set();
+        const absorb = (row,hintedId) => {
+          if(!row || typeof row !== 'object') return;
+          const candidates = [hintedId,row.user_id,row.uid,row.auth_user_id,row.account_uid,row.id].map(clean);
+          const id = candidates.find(value => wanted.has(value));
+          if(!id) return;
+          confirmed.add(id);
+          const badge = profileBadge(row);
+          if(badge && !badges[id]) badges[id] = badge;
+        };
+        (Array.isArray(seedRows) ? seedRows : []).forEach(row => absorb(row,row && row.id));
+        const missing = ids.filter(id => !badges[id]);
+        const sb = getClient();
+        if(missing.length && sb && sb.from){
+          try{
+            const result = await sb.from('profiles').select('*').in('user_id',missing);
+            if(!result.error) (result.data || []).forEach(row => absorb(row,row && row.user_id));
+          }catch(_e){}
+        }
+        ids.forEach(id => {
+          const badge = normalizeBadgeValue(badges[id] || '');
+          if(confirmed.has(id)) authoritativeProfileBadgeMapV761.set(id,badge);
+        });
+        return {badges,confirmed};
       }
 
       function profileHandle(profile){
@@ -8552,52 +8781,317 @@
         return user;
       }
 
-      async function fetchProfile(userId){
-        const id = clean(userId);
-        if(!isUuid(id)) return null;
-        if(profileMap.has(id)) return profileMap.get(id);
-        const sb = getClient();
-        if(!sb || !sb.from) return null;
-        const result = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
-        if(result.error) throw new Error(clean(result.error.message) || 'Profil introuvable.');
-        if(!result.data) return null;
-        profileMap.set(id, result.data);
-        return result.data;
+      function readLocalJson(key){
+        try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch(_e){ return null; }
       }
 
-      async function fetchProfiles(userIds){
+      /* HAPPYAD V759 — isolation stricte des avatars Messages.
+         Les sources visuelles du parent appartiennent exclusivement au compte
+         connecté. Elles ne peuvent jamais servir de secours pour un autre UID. */
+      const PROFILE_AVATAR_KEYS_V759 = [
+        'avatar_url','avatarUrl','avatar','user_avatar','userAvatar',
+        'creator_avatar','creatorAvatar','author_avatar','authorAvatar',
+        'profile_photo_url','profilePhotoUrl','profile_photo','profilePhoto',
+        'profile_picture_url','profilePictureUrl','profile_picture','profilePicture',
+        'profile_image_url','profileImageUrl','profile_image','profileImage',
+        'photo_url','photoUrl','photo','picture','picture_url','image_url','imageUrl',
+        'profile_avatar_url','profileAvatarUrl','profile_pic_url','profilePicUrl',
+        'profile_pic','profilePic','user_photo_url','userPhotoUrl','user_photo','userPhoto',
+        'photo_profil_url','photoProfilUrl','photo_profil','photoProfil',
+        'profil_photo_url','profilPhotoUrl','profil_photo','profilPhoto',
+        'photo_de_profil_url','photoDeProfilUrl','photo_de_profil','photoDeProfil',
+        'avatar_path','avatarPath','photo_path','photoPath','profile_photo_path','profilePhotoPath',
+        'profile_picture_path','profilePicturePath','profile_image_path','profileImagePath'
+      ];
+
+      function connectedProfileId(profile){
+        profile = profile && typeof profile === 'object' ? profile : {};
+        return clean(profile.id || profile.user_id || profile.uid || profile.uuid || profile.auth_user_id || profile.account_uid);
+      }
+
+      function connectedAccountIdV759(){
+        const direct = clean(authUser && authUser.id);
+        if(isUuid(direct)) return direct;
+        const cached = cachedSessionUserId();
+        if(isUuid(cached)) return cached;
+        try{
+          const stored = clean(localStorage.getItem('HAPPYAD_AUTH_UID'));
+          if(isUuid(stored)) return stored;
+        }catch(_e){}
+        try{
+          if(window.parent && window.parent !== window && typeof window.parent.happyadCurrentUser === 'function'){
+            const parentUser = window.parent.happyadCurrentUser();
+            const parentId = connectedProfileId(parentUser);
+            if(isUuid(parentId)) return parentId;
+          }
+        }catch(_e){}
+        return '';
+      }
+
+      function avatarFingerprintV759(value){
+        const avatar = safeAvatar(value);
+        if(!avatar) return '';
+        if(/^data:|^blob:/i.test(avatar)) return avatar;
+        try{
+          const url = new URL(avatar,location.href);
+          let path = decodeURIComponent(url.pathname || '').replace(/\/+$/,'');
+          path = path.replace(/\/storage\/v1\/object\/(?:public|sign)\//i,'/storage/');
+          return (url.origin + path).toLowerCase();
+        }catch(_e){
+          return avatar.split(/[?#]/)[0].toLowerCase();
+        }
+      }
+
+      function connectedAvatarFingerprintsV759(){
+        const ownId = connectedAccountIdV759();
+        const set = new Set();
+        const add = value => { const fp = avatarFingerprintV759(value); if(fp) set.add(fp); };
+        if(!isUuid(ownId)) return set;
+        try{ add(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + ownId)); }catch(_e){}
+        try{
+          const legacy = localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V1');
+          if(clean(localStorage.getItem('HAPPYAD_AUTH_UID')) === ownId) add(legacy);
+        }catch(_e){}
+        const ownCandidates = [
+          profileMap.get(ownId),
+          readLocalJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + ownId),
+          readLocalJson('HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:' + ownId),
+          readLocalJson('HAPPYAD_MSG_CONNECTED_PROFILE_V1:' + ownId)
+        ];
+        const authors = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
+        if(authors && authors[ownId]) ownCandidates.push(authors[ownId]);
+        ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(key => {
+          const value = readLocalJson(key);
+          if(value && connectedProfileId(value) === ownId) ownCandidates.push(value);
+        });
+        if(authUser && clean(authUser.id) === ownId && authUser.user_metadata) ownCandidates.push(authUser.user_metadata);
+        ownCandidates.forEach(item => add(profileAvatar(item)));
+        try{
+          if(window.parent && window.parent !== window){
+            if(typeof window.parent.happyadCurrentUser === 'function'){
+              const parentUser = window.parent.happyadCurrentUser();
+              if(connectedProfileId(parentUser) === ownId) add(profileAvatar(parentUser));
+            }
+            if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function') add(window.parent.HappyadProfileAvatarRecoveryV743.current());
+            const parentAvatar = window.parent.document && window.parent.document.getElementById('avatarPreview');
+            if(parentAvatar){
+              add(parentAvatar.dataset && (parentAvatar.dataset.stableAvatar || parentAvatar.dataset.publicAvatarStable));
+              add(parentAvatar.style && parentAvatar.style.backgroundImage);
+            }
+          }
+        }catch(_e){}
+        return set;
+      }
+
+      function avatarIsConnectedFallbackV759(value,targetId){
+        const id = clean(targetId);
+        const ownId = connectedAccountIdV759();
+        if(!isUuid(id) || !isUuid(ownId) || id === ownId) return false;
+        const fp = avatarFingerprintV759(value);
+        return !!fp && connectedAvatarFingerprintsV759().has(fp);
+      }
+
+      function clearProfileAvatarFieldsV759(source){
+        source = source && typeof source === 'object' ? source : {};
+        const clone = Object.assign({},source);
+        PROFILE_AVATAR_KEYS_V759.forEach(key => { if(Object.prototype.hasOwnProperty.call(clone,key)) clone[key] = ''; });
+        ['profile','user','author','creator','owner','metadata','user_metadata'].forEach(key => {
+          const nested = clone[key];
+          if(!nested || typeof nested !== 'object') return;
+          const nestedClone = Object.assign({},nested);
+          PROFILE_AVATAR_KEYS_V759.forEach(avatarKey => { if(Object.prototype.hasOwnProperty.call(nestedClone,avatarKey)) nestedClone[avatarKey] = ''; });
+          clone[key] = nestedClone;
+        });
+        return clone;
+      }
+
+      function sanitizeCachedProfileForTargetV759(source,targetId){
+        source = source && typeof source === 'object' ? source : {};
+        const avatar = profileAvatar(source);
+        return avatarIsConnectedFallbackV759(avatar,targetId) ? clearProfileAvatarFieldsV759(source) : source;
+      }
+
+      function applyAuthoritativeProfileAvatarV759(source,targetId,avatar){
+        const clone = clearProfileAvatarFieldsV759(source);
+        const safe = safeAvatar(avatar);
+        if(safe){ clone.avatar = safe; clone.avatar_url = safe; }
+        authoritativeProfileAvatarMapV759.set(clean(targetId),safe);
+        return clone;
+      }
+
+      function avatarForTargetV759(source,targetId){
+        const id = clean(targetId);
+        if(authoritativeProfileAvatarMapV759.has(id)) return safeAvatar(authoritativeProfileAvatarMapV759.get(id));
+        const avatar = profileAvatar(source);
+        return avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar;
+      }
+
+      function mergeProfileIdentity(){
+        const sources = Array.from(arguments).filter(value => value && typeof value === 'object');
+        const merged = {};
+        let id = '';
+        let name = '';
+        let avatar = '';
+        let badge = '';
+        let username = '';
+        sources.forEach(source => {
+          if(!id){ const candidateId = connectedProfileId(source); if(isUuid(candidateId)) id = candidateId; }
+          if(!name){ const candidateName = profileName(source); if(candidateName && candidateName !== 'Utilisateur HAPPYAD') name = candidateName; }
+          if(!avatar) avatar = profileAvatar(source);
+          if(!badge) badge = profileBadge(source);
+          if(!username) username = clean(source.username || source.handle);
+          Object.assign(merged,source);
+        });
+        if(id){ merged.id = id; merged.user_id = id; }
+        if(name){ merged.name = name; merged.full_name = name; merged.display_name = name; }
+        if(avatar){ merged.avatar = avatar; merged.avatar_url = avatar; }
+        if(badge){ merged.badge = badge; merged.user_badge = badge; }
+        if(username){ merged.username = username.replace(/^@+/, ''); merged.handle = username; }
+        return merged;
+      }
+
+      function cachedProfileIdentity(userId){
+        const id = clean(userId);
+        if(!isUuid(id)) return null;
+        const candidates = [];
+        const pushCandidate = value => {
+          if(!value || typeof value !== 'object') return;
+          const candidateId = connectedProfileId(value);
+          /* Une source portant explicitement un autre UID est rejetée. */
+          if(isUuid(candidateId) && candidateId !== id) return;
+          candidates.push(sanitizeCachedProfileForTargetV759(value,id));
+        };
+        pushCandidate(readLocalJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + id));
+        const authorMap = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
+        if(authorMap && authorMap[id]) pushCandidate(authorMap[id]);
+        pushCandidate(readLocalJson('HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:' + id));
+        ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(key => {
+          const value = readLocalJson(key);
+          if(value && connectedProfileId(value) === id) pushCandidate(value);
+        });
+        const stableAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + id));
+        if(stableAvatar) pushCandidate({id:id,user_id:id,avatar:stableAvatar,avatar_url:stableAvatar});
+        const legacyAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V1'));
+        if(legacyAvatar && id === clean(localStorage.getItem('HAPPYAD_AUTH_UID'))){
+          pushCandidate({id:id,user_id:id,avatar:legacyAvatar,avatar_url:legacyAvatar});
+        }
+        const cachedConversation = conversations.find(item => item && clean(item.targetId) === id);
+        if(cachedConversation) pushCandidate(cachedConversation.target || cachedConversation.fallbackTarget || {});
+
+        /* Les trois secours ci-dessous décrivent le compte connecté. Ils sont
+           autorisés seulement lorsque l’UID demandé est précisément ce compte. */
+        const ownId = connectedAccountIdV759();
+        if(id === ownId){
+          try{
+            if(window.parent && window.parent !== window){
+              if(typeof window.parent.happyadCurrentUser === 'function') pushCandidate(window.parent.happyadCurrentUser());
+              if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function'){
+                const avatar = window.parent.HappyadProfileAvatarRecoveryV743.current();
+                if(avatar) pushCandidate({id:id,user_id:id,avatar:avatar,avatar_url:avatar});
+              }
+              const parentAvatar = window.parent.document && window.parent.document.getElementById('avatarPreview');
+              if(parentAvatar){
+                const background = parentAvatar.dataset && (parentAvatar.dataset.stableAvatar || parentAvatar.dataset.publicAvatarStable) || parentAvatar.style && parentAvatar.style.backgroundImage;
+                if(background) pushCandidate({id:id,user_id:id,avatar:background,avatar_url:background});
+              }
+            }
+          }catch(_e){}
+        }
+        const merged = sanitizeCachedProfileForTargetV759(mergeProfileIdentity.apply(null,candidates),id);
+        if(!isUuid(connectedProfileId(merged))) return null;
+        merged.id = id;
+        merged.user_id = id;
+        return merged;
+      }
+
+      async function fetchProfile(userId,options){
+        const id = clean(userId);
+        options = options && typeof options === 'object' ? options : {};
+        if(!isUuid(id)) return null;
+        const local = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+        if(profileMap.has(id) && !options.force) return local;
+        const sb = getClient();
+        if(!sb || !sb.from){
+          if(Object.keys(local).length){ profileMap.set(id,local); return local; }
+          return null;
+        }
+        const result = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
+        if(result.error){
+          if(Object.keys(local).length){ profileMap.set(id,local); return local; }
+          throw new Error(clean(result.error.message) || 'Profil introuvable.');
+        }
+        const remote = result.data && typeof result.data === 'object' ? result.data : {};
+        const remoteAvatar = profileAvatar(remote);
+        const badgeState = await fetchProfileBadgesV761([id],remote && Object.keys(remote).length ? [remote] : []);
+        let merged = mergeProfileIdentity(remote,local);
+        merged = applyAuthoritativeProfileAvatarV759(merged,id,remoteAvatar);
+        merged = applyAuthoritativeProfileBadgeV761(merged,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+        merged.id = id;
+        merged.user_id = id;
+        if(!isUuid(connectedProfileId(merged))) return null;
+        profileMap.set(id, merged);
+        return merged;
+      }
+
+      async function fetchProfiles(userIds,options){
+        options = options && typeof options === 'object' ? options : {};
         const ids = Array.from(new Set((userIds || []).map(clean).filter(isUuid)));
-        const missing = ids.filter(id => !profileMap.has(id));
-        if(missing.length){
+        const requested = options.force ? ids : ids.filter(id => !profileMap.has(id));
+        if(requested.length){
           const sb = getClient();
-          const result = await sb.from('profiles').select('*').in('id', missing);
-          if(!result.error){
-            (result.data || []).forEach(profile => {
-              if(profile && isUuid(profile.id)) profileMap.set(profile.id, profile);
-            });
+          if(sb && sb.from){
+            const result = await sb.from('profiles').select('*').in('id', requested);
+            if(!result.error){
+              const rows = result.data || [];
+              const badgeState = await fetchProfileBadgesV761(requested,rows);
+              const returned = new Set();
+              rows.forEach(profile => {
+                const id = clean(profile && profile.id);
+                if(!isUuid(id)) return;
+                returned.add(id);
+                const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+                let merged = mergeProfileIdentity(profile,cached);
+                merged = applyAuthoritativeProfileAvatarV759(merged,id,profileAvatar(profile));
+                merged = applyAuthoritativeProfileBadgeV761(merged,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+                merged.id = id;
+                merged.user_id = id;
+                profileMap.set(id,merged);
+              });
+              requested.forEach(id => {
+                if(returned.has(id)) return;
+                let cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+                cached = applyAuthoritativeProfileBadgeV761(cached,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+                if(Object.keys(cached).length) profileMap.set(id,cached);
+              });
+            }
           }
         }
         const map = Object.create(null);
-        ids.forEach(id => { if(profileMap.has(id)) map[id] = profileMap.get(id); });
+        ids.forEach(id => {
+          let merged = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+          if(authoritativeProfileAvatarMapV759.has(id)) merged = applyAuthoritativeProfileAvatarV759(merged,id,authoritativeProfileAvatarMapV759.get(id));
+          if(authoritativeProfileBadgeMapV761.has(id)) merged = applyAuthoritativeProfileBadgeV761(merged,id,authoritativeProfileBadgeMapV761.get(id),true);
+          if(isUuid(connectedProfileId(merged))){ merged.id = id; merged.user_id = id; profileMap.set(id,merged); map[id] = merged; }
+        });
         return map;
       }
 
       function targetFromProfile(profile, fallback){
         profile = profile && typeof profile === 'object' ? profile : {};
         fallback = fallback && typeof fallback === 'object' ? fallback : {};
-        const hasProfile = Object.keys(profile).length > 0;
-        const source = hasProfile ? profile : fallback;
-        const id = clean(profile.id || fallback.id || fallback.user_id || fallback.target_id);
+        const hintedId = clean(connectedProfileId(profile) || connectedProfileId(fallback) || fallback.id || fallback.user_id || fallback.target_id);
+        const safeFallback = sanitizeCachedProfileForTargetV759(fallback,hintedId);
+        const merged = mergeProfileIdentity(profile,safeFallback);
+        const id = clean(connectedProfileId(merged) || hintedId);
         if(!isUuid(id)) return null;
+        const name = profileName(merged);
         return {
           id,
           user_id:id,
-          name:profileName(source),
-          avatar:profileAvatar(source) || safeAvatar(fallback.avatar || fallback.avatar_url),
-          /* Une ligne profiles chargée est l'autorité. Si elle n'a aucun badge,
-             on efface tout ancien badge conservé dans le cache conversation. */
-          badge:hasProfile ? profileBadge(profile) : profileBadge(fallback),
-          status:profileHandle(source)
+          name,
+          avatar:avatarForTargetV759(merged,id),
+          badge:badgeForTargetV761(merged,id),
+          status:profileHandle(merged)
         };
       }
 
@@ -8605,12 +9099,13 @@
         raw = raw && typeof raw === 'object' ? raw : {};
         const id = clean(raw.id || raw.user_id || raw.target_id);
         if(!isUuid(id)) return null;
+        const avatar = safeAvatar(raw.avatar || raw.avatar_url || raw.photo || raw.photo_url);
         return {
           id,
           user_id:id,
           name:clean(raw.name || raw.full_name || raw.display_name || raw.username || raw.handle) || 'Utilisateur HAPPYAD',
-          avatar:safeAvatar(raw.avatar || raw.avatar_url || raw.photo || raw.photo_url),
-          badge:profileBadge(raw),
+          avatar:avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar,
+          badge:badgeForTargetV761(raw,id),
           status:clean(raw.status || raw.presence) || 'Conversation HAPPYAD'
         };
       }
@@ -8759,8 +9254,26 @@
           const chunk = ids.slice(offset,offset + 80);
           const result = await sb.from('profiles').select('*').in('id',chunk);
           if(result.error) throw new Error(clean(result.error.message) || 'Profils indisponibles.');
-          (result.data || []).forEach(profile => {
-            if(profile && isUuid(profile.id)) profileMap.set(clean(profile.id),profile);
+          const rows = result.data || [];
+          const badgeState = await fetchProfileBadgesV761(chunk,rows);
+          const returned = new Set();
+          rows.forEach(profile => {
+            const id = clean(profile && profile.id);
+            if(!isUuid(id)) return;
+            returned.add(id);
+            const cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+            let merged = mergeProfileIdentity(profile,cached);
+            merged = applyAuthoritativeProfileAvatarV759(merged,id,profileAvatar(profile));
+            merged = applyAuthoritativeProfileBadgeV761(merged,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+            merged.id = id;
+            merged.user_id = id;
+            profileMap.set(id,merged);
+          });
+          chunk.forEach(id => {
+            if(returned.has(id)) return;
+            let cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+            cached = applyAuthoritativeProfileBadgeV761(cached,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+            if(Object.keys(cached).length){ cached.id = id; cached.user_id = id; profileMap.set(id,cached); }
           });
         }
         const map = Object.create(null);
@@ -9109,6 +9622,16 @@
             profileMap.set(id,profile);
             profiles.push(profile);
           });
+          const searchIds = profiles.map(profile => clean(profile && profile.id)).filter(isUuid);
+          if(searchIds.length){
+            const badgeState = await fetchProfileBadgesV761(searchIds,profiles);
+            profiles.forEach((profile,index) => {
+              const id = clean(profile && profile.id);
+              const merged = applyAuthoritativeProfileBadgeV761(profile,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
+              profiles[index] = merged;
+              profileMap.set(id,merged);
+            });
+          }
           profiles.sort((a,b) => {
             const rank = personSelectorProfileRank(a,term) - personSelectorProfileRank(b,term);
             if(rank) return rank;
@@ -9365,10 +9888,11 @@
         const kind = clean(row.last_message_kind || row.kind || row.message_type || 'text');
         const specialPreview = decodeSpecialMessageBody(row.last_message_body || row.last_message_text || row.preview || row.body);
         const body = clean(specialPreview.body);
+        const fallbackAvatar = safeAvatar(row.target_avatar || row.other_avatar || row.avatar_url);
         const fallbackTarget = {
           id:targetId,
           name:clean(row.target_name || row.other_name || row.display_name || row.username),
-          avatar:safeAvatar(row.target_avatar || row.other_avatar || row.avatar_url),
+          avatar:avatarIsConnectedFallbackV759(fallbackAvatar,targetId) ? '' : fallbackAvatar,
           badge:profileBadge({badge:row.target_badge,user_badge:row.other_badge,profile_badge:row.badge})
         };
         return {
@@ -9608,7 +10132,8 @@
 
       function conversationContentSignature(items,needle){
         return JSON.stringify([clean(needle),...(items || []).map(item => {
-          const target = item.target || item.fallbackTarget || {};
+          const rawTarget = item.target || item.fallbackTarget || {};
+          const target = targetFromProfile({},rawTarget) || rawTarget;
           return [item.id,item.targetId,clean(target.name),safeAvatar(target.avatar),clean(target.badge),clean(target.status),
             finiteNumber(item.previewResolved ? item.previewSeq : item.lastSeq,0),item.previewResolved ? item.previewAt : item.lastAt,
             item.previewResolved ? item.previewSenderId : item.senderId,messagePreview(item),!!item.previewDeletedForAll,!!item.previewViewOnce];
@@ -9657,7 +10182,8 @@
         if(!conversationPanel) return;
         const needle = clean(filterText).toLowerCase();
         const filtered = conversations.filter(item => !isConversationDeletedForMe(item)).filter(item => {
-          const target = item.target || item.fallbackTarget || {};
+          const rawTarget = item.target || item.fallbackTarget || {};
+          const target = targetFromProfile({},rawTarget) || rawTarget;
           return !needle || [target.name, target.status, messagePreview(item)].some(value => clean(value).toLowerCase().includes(needle));
         });
         const contentSignature = conversationContentSignature(filtered,needle);
@@ -9674,7 +10200,8 @@
         }
         const fragment = document.createDocumentFragment();
         filtered.forEach((item, index) => {
-          const target = item.target || item.fallbackTarget || {id:item.targetId,name:'Utilisateur HAPPYAD'};
+          const rawTarget = item.target || item.fallbackTarget || {id:item.targetId,name:'Utilisateur HAPPYAD'};
+          const target = targetFromProfile({},rawTarget) || rawTarget;
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'row' + (item.unread > 0 ? ' unread' : '');
@@ -9719,6 +10246,7 @@
       const STORY_REPLY_MARKER = '\u2063HAPPYAD_STORY_REPLY_V1\u2063';
 
       const sharedPostPreviewCache = new Map();
+      const storyReplyPreviewCache = new Map();
       function publicSharedPostMediaUrl(value){
         let src=clean(value);if(!src)return '';
         if(/^https?:\/\//i.test(src)||/^data:/i.test(src)||/^blob:/i.test(src))return src;
@@ -9757,6 +10285,79 @@
           return Object.assign({},fallback||{},{post_id:id,id:id,preview_url:sharedPostMediaCandidate(fallback)});
         })();
         sharedPostPreviewCache.set(id,promise);
+        return promise;
+      }
+
+      function storyReplyExpiryTime(data){
+        data=data&&typeof data==='object'?data:{};
+        const value=clean(data.expires_at||data.expiresAt||data.expire_at||data.expireAt||data.expired_at);
+        if(!value)return 0;
+        const parsed=Date.parse(value);
+        return Number.isFinite(parsed)?parsed:0;
+      }
+      function storyReplyIsExpired(data){
+        data=data&&typeof data==='object'?data:{};
+        if(data.is_active===false||data.active===false||data.deleted===true||data.deleted_at)return true;
+        const expiry=storyReplyExpiryTime(data);
+        return !!(expiry&&expiry<=Date.now());
+      }
+      function normalizeResolvedStoryReply(row,fallback,id){
+        row=row&&typeof row==='object'?row:{};
+        fallback=fallback&&typeof fallback==='object'?fallback:{};
+        const media=publicSharedPostMediaUrl(row.media_url||row.mediaUrl||row.story||row.url||row.media);
+        const preview=sharedPostMediaCandidate(row)||publicSharedPostMediaUrl(row.thumbnail_url||row.thumbnailUrl||row.poster_url||row.posterUrl||row.cover_url||row.coverUrl)||(!/video|reel|clip/i.test(clean(row.media_type||row.type||row.kind))?media:'');
+        const expired=storyReplyIsExpired(row)||!media;
+        if(expired){
+          return Object.assign({},fallback,{
+            id:id,story_id:id,__story_state:'expired',expired:true,
+            media_url:'',mediaUrl:'',preview_url:'',thumbnail_url:'',poster_url:'',
+            expires_at:clean(row.expires_at||row.expiresAt||fallback.expires_at||fallback.expiresAt),
+            is_active:false
+          });
+        }
+        const type=/video|reel|clip/i.test(clean(row.media_type||row.type||row.kind))?'video':'photo';
+        return Object.assign({},fallback,row,{
+          id:id,story_id:id,__story_state:'active',expired:false,
+          owner_id:clean(row.user_id||row.owner_id||row.creator_id||fallback.owner_id||fallback.user_id),
+          user_id:clean(row.user_id||row.owner_id||row.creator_id||fallback.user_id||fallback.owner_id),
+          media_type:type,kind:type,
+          media_url:media,mediaUrl:media,
+          preview_url:preview,thumbnail_url:publicSharedPostMediaUrl(row.thumbnail_url||row.thumbnailUrl||row.poster_url||row.posterUrl||preview),
+          description:clean(row.description||row.caption||row.story_description||row.story_caption||fallback.description),
+          created_at:clean(row.created_at||fallback.created_at),
+          expires_at:clean(row.expires_at||row.expiresAt||fallback.expires_at||fallback.expiresAt),
+          is_active:true
+        });
+      }
+      async function resolveRealStoryReply(storyId,fallback){
+        const id=clean(storyId);if(!id)return Object.assign({},fallback||{},{__story_state:'expired',expired:true});
+        if(storyReplyPreviewCache.has(id))return storyReplyPreviewCache.get(id);
+        const promise=(async()=>{
+          try{
+            const sb=getClient();
+            if(sb&&sb.from){
+              const result=await sb.from('happyad_stories').select('*').eq('id',id).maybeSingle();
+              if(result&&!result.error&&result.data)return normalizeResolvedStoryReply(result.data,fallback,id);
+              if(result&&!result.error&&!result.data){
+                return Object.assign({},fallback||{},{id:id,story_id:id,__story_state:'expired',expired:true,media_url:'',mediaUrl:'',preview_url:'',is_active:false});
+              }
+              if(result&&result.error){
+                const code=clean(result.error.code).toUpperCase();
+                if(code==='PGRST116'||code==='PGRST123')return Object.assign({},fallback||{},{id:id,story_id:id,__story_state:'expired',expired:true,media_url:'',mediaUrl:'',preview_url:'',is_active:false});
+              }
+            }
+          }catch(_error){}
+          const fallbackExpired=storyReplyIsExpired(fallback);
+          return Object.assign({},fallback||{},{
+            id:id,story_id:id,
+            __story_state:fallbackExpired?'expired':'unavailable',
+            expired:fallbackExpired,
+            media_url:fallbackExpired?'':publicSharedPostMediaUrl(fallback&&(fallback.media_url||fallback.mediaUrl)),
+            preview_url:fallbackExpired?'':sharedPostMediaCandidate(fallback),
+            is_active:fallbackExpired?false:fallback&&fallback.is_active
+          });
+        })();
+        storyReplyPreviewCache.set(id,promise);
         return promise;
       }
 
@@ -10122,6 +10723,40 @@
       }
 
       let chatBottomScrollGeneration = 0;
+      let sharedReturnScrollLockV711 = null;
+
+      function sharedReturnScrollLockedV711(){
+        return !!(sharedReturnScrollLockV711 && Date.now() < sharedReturnScrollLockV711.until);
+      }
+
+      function applySharedReturnScrollV711(){
+        if(!sharedReturnScrollLockedV711() || !chatBody) return false;
+        chatBottomScrollGeneration++;
+        chatBody.scrollTop = Math.max(0,finiteNumber(sharedReturnScrollLockV711.top,0));
+        return true;
+      }
+
+      function holdSharedReturnScrollV711(top,duration){
+        const target = Math.max(0,finiteNumber(top,0));
+        const hold = Math.max(420,finiteNumber(duration,900));
+        const token = Date.now() + '-' + Math.random().toString(36).slice(2,7);
+        sharedReturnScrollLockV711 = {top:target,until:Date.now()+hold,token};
+        chatBottomScrollGeneration++;
+        const apply = () => {
+          if(!sharedReturnScrollLockV711 || sharedReturnScrollLockV711.token !== token || !chatBody) return;
+          chatBody.scrollTop = target;
+        };
+        apply();
+        requestAnimationFrame(() => { apply(); requestAnimationFrame(apply); });
+        [35,80,150,260,420,650].forEach(delay => setTimeout(apply,delay));
+        setTimeout(() => {
+          if(sharedReturnScrollLockV711 && sharedReturnScrollLockV711.token === token){
+            apply();
+            sharedReturnScrollLockV711 = null;
+          }
+        },hold);
+        return true;
+      }
 
       function chatNearBottom(threshold){
         if(!chatBody) return true;
@@ -10131,6 +10766,7 @@
 
       function scrollChatToLatest(){
         if(!chatBody) return;
+        if(sharedReturnScrollLockedV711()){ applySharedReturnScrollV711(); return; }
         const generation = ++chatBottomScrollGeneration;
         const apply = () => {
           if(generation !== chatBottomScrollGeneration || !chatBody) return;
@@ -10500,21 +11136,65 @@
             const storyReply = message.storyReply || objectValue(message.metadata && message.metadata.story_reply);
             if(storyReply && clean(storyReply.story_id || storyReply.id)){
               const storyId=clean(storyReply.story_id||storyReply.id);
-              const storyType=/video|reel|clip/i.test(clean(storyReply.media_type||storyReply.type))?'video':'photo';
+              let resolvedStory=null;let storyState='loading';
               wrap.classList.add('shared-post-message');bubble.classList.add('shared-post-bubble','story-reply-bubble');
-              const card=document.createElement('button');card.type='button';card.className='shared-post-card story-reply-card';
+              const card=document.createElement('button');card.type='button';card.className='shared-post-card story-reply-card is-resolving';card.setAttribute('aria-busy','true');
               const actorName=clean(storyReply.reply_actor_name||storyReply.replier_name||storyReply.actor_name)||(!mine&&clean(currentTarget&&currentTarget.name))||'Cette personne';
               const sentence=mine?'Vous avez répondu à sa story':actorName+' a répondu à ta story';
-              card.setAttribute('aria-label',sentence+'. Ouvrir la story');
-              const media=document.createElement('span');media.className='shared-post-media'+(storyType==='video'?' is-video':'');
-              const preview=sharedPostMediaCandidate(storyReply);let image=null;
-              function setStoryReplyImage(url){const src=publicSharedPostMediaUrl(url);if(!src)return;if(!image){image=document.createElement('img');image.alt='';image.loading='eager';image.decoding='async';media.innerHTML='';media.appendChild(image);}if(image.src!==src)image.src=src;}
-              if(preview)setStoryReplyImage(preview);else media.innerHTML=storyType==='video'?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM10 9l6 3-6 3z"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 15l3-3 2 2 2-2 3 3"/></svg>';
+              card.setAttribute('aria-label',sentence+'. Vérification de la story');
+              const media=document.createElement('span');media.className='shared-post-media';
+              media.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 15l3-3 2 2 2-2 3 3"/></svg>';
+              let image=null;
+              function setStoryReplyImage(url){
+                const src=publicSharedPostMediaUrl(url);if(!src)return false;
+                if(!image){image=document.createElement('img');image.alt='';image.loading='eager';image.decoding='async';image.referrerPolicy='no-referrer';media.innerHTML='';media.appendChild(image);}
+                image.onerror=function(){try{image.remove();}catch(_error){}image=null;media.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 15l3-3 2 2 2-2 3 3"/></svg>';};
+                if(image.src!==src)image.src=src;
+                return true;
+              }
               const copy=document.createElement('span');copy.className='shared-post-copy';
+              const textBox=document.createElement('span');textBox.style.cssText='display:block;min-width:0;flex:1 1 auto';
               const single=document.createElement('span');single.className='story-reply-single';single.textContent=sentence;
+              const status=document.createElement('span');status.className='story-reply-status';status.textContent='Vérification de la story…';
+              textBox.appendChild(single);textBox.appendChild(status);
               const openIcon=document.createElement('span');openIcon.className='story-reply-open';openIcon.setAttribute('aria-hidden','true');openIcon.innerHTML='<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>';
-              copy.appendChild(single);copy.appendChild(openIcon);card.appendChild(media);card.appendChild(copy);
-              card.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();try{window.parent.postMessage({type:'HAPPYAD_OPEN_SHARED_STORY',detail:Object.assign({},storyReply,{story_id:storyId,media_type:storyType})},'*');}catch(_error){}});
+              copy.appendChild(textBox);copy.appendChild(openIcon);card.appendChild(media);card.appendChild(copy);
+              function setResolvedStoryReplyState(real){
+                resolvedStory=real&&typeof real==='object'?real:{};
+                const expires=storyReplyIsExpired(resolvedStory);
+                storyState=expires?'expired':clean(resolvedStory.__story_state||'unavailable');
+                card.classList.remove('is-resolving','is-expired','is-unavailable');card.removeAttribute('aria-busy');
+                if(storyState==='active'){
+                  const actualVideo=/video|reel|clip/i.test(clean(resolvedStory.media_type||resolvedStory.type));
+                  media.classList.toggle('is-video',actualVideo);
+                  setStoryReplyImage(resolvedStory.preview_url||resolvedStory.thumbnail_url||(!actualVideo&&resolvedStory.media_url));
+                  status.textContent='';
+                  card.setAttribute('aria-label',sentence+'. Ouvrir la story');
+                  Object.assign(storyReply,resolvedStory);
+                  return;
+                }
+                media.classList.remove('is-video');
+                if(image){try{image.remove();}catch(_error){}image=null;}
+                media.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM7 7l10 10M17 7 7 17"/></svg>';
+                if(storyState==='expired'){
+                  card.classList.add('is-expired');status.textContent='Story expirée';card.setAttribute('aria-label',sentence+'. Story expirée');
+                }else{
+                  card.classList.add('is-unavailable');status.textContent='Story indisponible';card.setAttribute('aria-label',sentence+'. Story indisponible');
+                }
+              }
+              const storyResolution=resolveRealStoryReply(storyId,storyReply).then(real=>{setResolvedStoryReplyState(real);return real;}).catch(()=>{const real=Object.assign({},storyReply,{story_id:storyId,__story_state:'unavailable'});setResolvedStoryReplyState(real);return real;});
+              card.addEventListener('click',async event=>{
+                event.preventDefault();event.stopPropagation();
+                const real=resolvedStory||await storyResolution;
+                if(!real||storyReplyIsExpired(real)||clean(real.__story_state)==='expired'){
+                  if(storyState!=='expired')setResolvedStoryReplyState(Object.assign({},real||storyReply,{__story_state:'expired',expired:true}));
+                  showToast('Cette story a expiré.');return;
+                }
+                if(clean(real.__story_state)!=='active'){
+                  showToast('Story momentanément indisponible.');return;
+                }
+                try{window.parent.postMessage({type:'HAPPYAD_OPEN_SHARED_STORY',detail:Object.assign({},real,{story_id:storyId,media_type:/video|reel|clip/i.test(clean(real.media_type||real.type))?'video':'photo'})},'*');}catch(_error){}
+              });
               bubble.appendChild(card);
               const replyText=clean(message.body).replace(/^↩\s*A répondu à ta story\s*/i,'').trim();
               if(replyText){const text=document.createElement('span');text.className='message-text story-reply-text';text.textContent=replyText;bubble.appendChild(text);}
@@ -10930,7 +11610,7 @@
           const remote = asArray(results[0]).map(normalizeConversation).filter(Boolean);
           conversations = mergeConversationCollections(conversations,remote);
           if(Array.isArray(results[2])) applyVisibleConversationPreviews(conversations,results[2],{preserveMissing:!!options.silent});
-          const profiles = await fetchProfiles(conversations.map(item => item.targetId));
+          const profiles = await fetchProfiles(conversations.map(item => item.targetId),{force:true});
           conversations.forEach(item => {
             item.target = targetFromProfile(profiles[item.targetId], item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
           });
@@ -11098,6 +11778,7 @@
       }
 
       function displayDirect(target){
+        target = targetFromProfile({},target || {}) || target || {};
         if(personSelectorOpen) closePersonSelector(false);
         activeMessageView = 'chat';
         updateNewConversationFabVisibility();
@@ -11128,7 +11809,7 @@
         messagesConversationId = '';
         if(chatBody){ delete chatBody.dataset.conversationKey; }
         setChatState('Ouverture de la conversation…');
-        const verifiedProfile = await fetchProfile(target.id);
+        const verifiedProfile = await fetchProfile(target.id,{force:true});
         if(token !== openToken) return;
         if(!verifiedProfile || !isUuid(verifiedProfile.id)) throw new Error('Ce profil n’existe pas dans Supabase.');
         const verifiedTarget = targetFromProfile(verifiedProfile, target);
@@ -11180,7 +11861,7 @@
         /* Le Push fournit déjà l'UUID canonique de la conversation.
            On lit donc IndexedDB immédiatement, sans attendre fetchProfile
            ni happyad_msg_open_direct. Le profil se rafraîchit ensuite en silence. */
-        fetchProfile(target.id).then(profile => {
+        fetchProfile(target.id,{force:true}).then(profile => {
           if(token !== openToken || clean(currentConversationId) !== id || !profile) return;
           const verifiedTarget = targetFromProfile(profile,target);
           if(!verifiedTarget) return;
@@ -11202,7 +11883,7 @@
         readEligibleConversationId = currentConversationId;
         chatOpenedAt = Date.now();
         currentReceipt = {myDelivered:item.myDelivered || 0,myRead:item.myRead || 0,targetDelivered:item.targetDelivered || 0,targetRead:item.targetRead || 0};
-        currentTarget = item.target || item.fallbackTarget;
+        currentTarget = targetFromProfile({},item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
         context = {
           context_id:'conversation:' + item.id,
           source:'conversation-list',
@@ -11212,6 +11893,20 @@
         displayDirect(currentTarget);
         activateConversationView(currentConversationId,token);
         refreshBlockState(currentTarget && currentTarget.id).catch(() => {});
+        /* L'en-tête de la conversation vérifie toujours la photo réelle par UID,
+           même lorsque la liste a été peinte depuis IndexedDB hors connexion. */
+        if(currentTarget && isUuid(currentTarget.id)){
+          fetchProfile(currentTarget.id,{force:true}).then(profile => {
+            if(token !== openToken || clean(currentConversationId) !== clean(item.id) || !profile) return;
+            const verifiedTarget = targetFromProfile(profile,currentTarget);
+            if(!verifiedTarget) return;
+            currentTarget = verifiedTarget;
+            item.target = verifiedTarget;
+            displayDirect(verifiedTarget);
+            renderConversations(searchInput && searchInput.value);
+            queuePersistConversations();
+          }).catch(() => {});
+        }
         if(token !== openToken) return;
         await loadMessages(currentConversationId, token).catch(error => {
           if(token === openToken){
@@ -13188,11 +13883,9 @@
 
       const CONNECTED_IDENTITY_CACHE_PREFIX = 'HAPPYAD_MSG_CONNECTED_PROFILE_V1:';
       let connectedIdentitySignature = '';
-
-      function connectedProfileId(profile){
-        profile = profile && typeof profile === 'object' ? profile : {};
-        return clean(profile.id || profile.user_id || profile.uid || profile.auth_id || profile.auth_user_id || profile.authUserId || profile.account_uid || profile.accountUid);
-      }
+      let profileRealtimeChannel = null;
+      let lastProfileAvatarSynced = '';
+      let profileRefreshTimer = 0;
 
       function connectedIdentityCacheKey(userId){
         const id = clean(userId);
@@ -13212,39 +13905,50 @@
         const candidates = [];
         const dedicatedKey = connectedIdentityCacheKey(id);
         if(dedicatedKey) candidates.push(readConnectedIdentityCandidate(dedicatedKey));
+        const stable = readConnectedIdentityCandidate('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:' + id);
+        if(stable) candidates.unshift(stable);
+        const authors = readConnectedIdentityCandidate('HAPPYAD_AUTHOR_PROFILE_CACHE_V1');
+        if(authors && authors[id]) candidates.unshift(authors[id]);
+        const stableAvatar = clean(localStorage.getItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + id));
+        if(stableAvatar) candidates.unshift({id:id,user_id:id,avatar:stableAvatar,avatar_url:stableAvatar});
         [
           'HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL',
           'HAPPYAD_USER',
           'HAPPYAD_CURRENT_USER',
           'HAPPYAD_LOGGED_USER',
           'HAPPYAD_USER_V1'
-        ].forEach(key => candidates.push(readConnectedIdentityCandidate(key)));
+        ].forEach(key => {
+          const value = readConnectedIdentityCandidate(key);
+          if(value && connectedProfileId(value) === id) candidates.push(value);
+        });
         try{
-          if(window.parent && window.parent !== window && typeof window.parent.happyadCurrentUser === 'function'){
-            candidates.push(window.parent.happyadCurrentUser());
+          if(window.parent && window.parent !== window){
+            if(typeof window.parent.happyadCurrentUser === 'function') candidates.push(window.parent.happyadCurrentUser());
+            if(window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.current === 'function'){
+              const recovered = window.parent.HappyadProfileAvatarRecoveryV743.current();
+              if(recovered) candidates.unshift({id:id,user_id:id,avatar:recovered,avatar_url:recovered});
+            }
+            const avatarElement = window.parent.document && window.parent.document.getElementById('avatarPreview');
+            if(avatarElement){
+              const avatarValue = avatarElement.dataset && (avatarElement.dataset.stableAvatar || avatarElement.dataset.publicAvatarStable) || avatarElement.style && avatarElement.style.backgroundImage;
+              if(avatarValue) candidates.unshift({id:id,user_id:id,avatar:avatarValue,avatar_url:avatarValue});
+            }
           }
         }catch(_e){}
-        for(const candidate of candidates){
-          if(!candidate || typeof candidate !== 'object') continue;
-          const candidateId = connectedProfileId(candidate);
-          if(candidateId !== id) continue;
-          const name = profileName(candidate);
-          const avatar = profileAvatar(candidate);
-          const badge = profileBadge(candidate);
-          if(name !== 'Utilisateur HAPPYAD' || avatar || badge) return candidate;
-        }
-        return null;
+        if(authUser && clean(authUser.id) === id && authUser.user_metadata) candidates.push(Object.assign({id:id,user_id:id},authUser.user_metadata));
+        const merged = mergeProfileIdentity.apply(null,candidates);
+        return isUuid(connectedProfileId(merged)) ? merged : null;
       }
 
       function normalizedConnectedIdentity(profile,user){
-        const source = profile && typeof profile === 'object' ? profile : (user && user.user_metadata || {});
         const id = clean(connectedProfileId(profile) || user && user.id || authUser && authUser.id);
+        const merged = mergeProfileIdentity(profile,cachedConnectedIdentity(id),user && user.user_metadata || {});
         return {
           id:isUuid(id) ? id : '',
-          name:profileName(source) || 'Messages',
-          avatar:profileAvatar(source),
-          badge:profileBadge(source),
-          handle:clean(source && (source.username || source.handle))
+          name:profileName(merged) || 'Messages',
+          avatar:profileAvatar(merged),
+          badge:profileBadge(merged),
+          handle:clean(merged && (merged.username || merged.handle))
         };
       }
 
@@ -13264,18 +13968,53 @@
             username:identity.handle,
             cached_at:new Date().toISOString()
           }));
+          const authorMap = readLocalJson('HAPPYAD_AUTHOR_PROFILE_CACHE_V1') || {};
+          authorMap[identity.id] = Object.assign({},authorMap[identity.id] || {},{
+            id:identity.id,user_id:identity.id,name:identity.name,full_name:identity.name,
+            avatar:identity.avatar,avatar_url:identity.avatar,badge:identity.badge,user_badge:identity.badge
+          });
+          localStorage.setItem('HAPPYAD_AUTHOR_PROFILE_CACHE_V1',JSON.stringify(authorMap));
+          ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','HAPPYAD_CURRENT_USER','HAPPYAD_LOGGED_USER','HAPPYAD_USER_V1'].forEach(storageKey => {
+            const current = readLocalJson(storageKey);
+            if(!current || connectedProfileId(current) !== identity.id) return;
+            localStorage.setItem(storageKey,JSON.stringify(Object.assign({},current,{
+              id:identity.id,user_id:identity.id,name:identity.name,full_name:identity.name,
+              avatar:identity.avatar || profileAvatar(current),avatar_url:identity.avatar || profileAvatar(current),
+              badge:identity.badge || profileBadge(current),user_badge:identity.badge || profileBadge(current)
+            })));
+          });
           return true;
         }catch(_e){ return false; }
+      }
+
+      async function syncCurrentAvatarToProfiles(identity){
+        if(!identity || !isUuid(identity.id)) return false;
+        const avatar = safeAvatar(identity.avatar);
+        if(!/^https?:\/\//i.test(avatar) || avatar === lastProfileAvatarSynced) return false;
+        const sb = getClient();
+        if(!sb || !sb.from) return false;
+        lastProfileAvatarSynced = avatar;
+        try{
+          const current = await sb.from('profiles').select('id,avatar_url').eq('id',identity.id).maybeSingle();
+          if(current && !current.error && safeAvatar(current.data && current.data.avatar_url) === avatar) return true;
+          const updated = await sb.from('profiles').update({avatar_url:avatar}).eq('id',identity.id);
+          if(updated && updated.error){ lastProfileAvatarSynced = ''; return false; }
+          profileMap.set(identity.id,mergeProfileIdentity({id:identity.id,avatar_url:avatar},profileMap.get(identity.id),cachedConnectedIdentity(identity.id)));
+          try{ localStorage.setItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + identity.id,avatar); }catch(_e){}
+          try{
+            const channel = new BroadcastChannel('happyad-profile-identity-v746');
+            channel.postMessage({type:'avatar',user_id:identity.id,avatar_url:avatar});
+            channel.close();
+          }catch(_e){}
+          return true;
+        }catch(_e){ lastProfileAvatarSynced = ''; return false; }
       }
 
       function applyConnectedIdentity(profile,user,options){
         options = options && typeof options === 'object' ? options : {};
         const identity = normalizedConnectedIdentity(profile,user);
         const signature = JSON.stringify([identity.id,identity.name,identity.avatar,identity.badge,identity.handle]);
-        if(signature === connectedIdentitySignature){
-          if(options.persist === true) persistConnectedIdentity(identity);
-          return false;
-        }
+        const changed = signature !== connectedIdentitySignature;
         if(connectedUserName && connectedUserName.textContent !== identity.name) connectedUserName.textContent = identity.name;
         if(currentUserInitials){
           const value = initials(identity.name);
@@ -13283,12 +14022,15 @@
         }
         if(currentUserPhoto){
           const previousAvatar = clean(currentUserPhoto.dataset.happyadAvatar);
-          if(previousAvatar !== identity.avatar){
+          if(previousAvatar !== identity.avatar || !currentUserAvatar.classList.contains('has-photo')){
             currentUserPhoto.dataset.happyadAvatar = identity.avatar;
-            if(identity.avatar){
-              currentUserPhoto.src = identity.avatar;
-              if(currentUserAvatar) currentUserAvatar.classList.add('has-photo');
-            }else{
+            currentUserPhoto.onload = function(){ if(currentUserAvatar) currentUserAvatar.classList.add('has-photo'); };
+            currentUserPhoto.onerror = function(){
+              if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
+              currentUserPhoto.removeAttribute('src');
+            };
+            if(identity.avatar) currentUserPhoto.src = identity.avatar;
+            else{
               currentUserPhoto.removeAttribute('src');
               if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
             }
@@ -13297,7 +14039,70 @@
         setBadge(currentUserBadge,identity.badge);
         connectedIdentitySignature = signature;
         if(options.persist === true) persistConnectedIdentity(identity);
-        return true;
+        if(options.sync !== false && identity.avatar) syncCurrentAvatarToProfiles(identity).catch(() => false);
+        return changed;
+      }
+
+      function refreshConnectedIdentitySoon(delay){
+        clearTimeout(profileRefreshTimer);
+        profileRefreshTimer = setTimeout(() => {
+          if(!authUser || !isUuid(authUser.id)) return;
+          try{
+            if(window.parent && window.parent !== window && window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.repair === 'function'){
+              window.parent.HappyadProfileAvatarRecoveryV743.repair(true);
+            }
+          }catch(_e){}
+          const cached = cachedConnectedIdentity(authUser.id);
+          if(cached) applyConnectedIdentity(cached,authUser,{persist:true,sync:true});
+          fetchProfile(authUser.id,{force:true}).then(profile => {
+            if(profile){ authProfile = profile; applyConnectedIdentity(profile,authUser,{persist:true,sync:true}); }
+          }).catch(() => {});
+        },Math.max(0,finiteNumber(delay,80)));
+      }
+
+      function knownProfileId(id){
+        if(!isUuid(id)) return false;
+        if(authUser && clean(authUser.id) === id) return true;
+        if(currentTarget && clean(currentTarget.id) === id) return true;
+        return conversations.some(item => item && clean(item.targetId) === id);
+      }
+
+      async function refreshConversationProfile(userId){
+        const id = clean(userId);
+        if(!knownProfileId(id)) return false;
+        profileMap.delete(id);
+        const profile = await fetchProfile(id,{force:true}).catch(() => null);
+        if(!profile) return false;
+        let changed = false;
+        conversations.forEach(item => {
+          if(!item || clean(item.targetId) !== id) return;
+          const next = targetFromProfile(profile,item.target || item.fallbackTarget);
+          if(!next) return;
+          const before = JSON.stringify(item.target || item.fallbackTarget || {});
+          item.target = next;
+          if(JSON.stringify(next) !== before) changed = true;
+        });
+        if(currentTarget && clean(currentTarget.id) === id){
+          const next = targetFromProfile(profile,currentTarget);
+          if(next){ currentTarget = next; if(activeMessageView === 'chat') displayDirect(next); changed = true; }
+        }
+        if(authUser && clean(authUser.id) === id) applyConnectedIdentity(profile,authUser,{persist:true,sync:false});
+        if(changed){ renderConversations(searchInput && searchInput.value); queuePersistConversations(); }
+        return changed;
+      }
+
+      function subscribeProfileIdentityRealtime(){
+        if(profileRealtimeChannel || !authUser || !isUuid(authUser.id)) return;
+        const sb = getClient();
+        if(!sb || !sb.channel) return;
+        try{
+          profileRealtimeChannel = sb.channel('happyad_message_profiles_v746_' + authUser.id)
+            .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},payload => {
+              const id = clean(payload && ((payload.new && payload.new.id) || (payload.old && payload.old.id)));
+              if(!knownProfileId(id)) return;
+              setTimeout(() => refreshConversationProfile(id).catch(() => false),40);
+            }).subscribe();
+        }catch(_e){ profileRealtimeChannel = null; }
       }
 
       async function boot(){
@@ -13334,14 +14139,17 @@
           }
           if(!localShown) localShown = await hydrateInboxFromLocalUser(user.id).catch(() => false);
           const cachedIdentity = cachedConnectedIdentity(user.id);
-          applyConnectedIdentity(cachedIdentity || null,user,{persist:false});
+          applyConnectedIdentity(cachedIdentity || null,user,{persist:false,sync:true});
 
-          /* Le profil réseau ne bloque jamais l'affichage local et ne remplace
-             l'identité affichée que si une donnée réelle a changé. */
-          fetchProfile(user.id).then(profile => {
+          /* Le titre Messages peint immédiatement le meilleur cache disponible,
+             puis vérifie le profil réel sans effacer une photo locale plus complète. */
+          fetchProfile(user.id,{force:true}).then(profile => {
             authProfile = profile || null;
-            if(authProfile) applyConnectedIdentity(authProfile,user,{persist:true});
+            if(authProfile) applyConnectedIdentity(authProfile,user,{persist:true,sync:true});
           }).catch(() => { authProfile = null; });
+          refreshConnectedIdentitySoon(180);
+          setTimeout(() => refreshConnectedIdentitySoon(0),1100);
+          subscribeProfileIdentityRealtime();
           refreshUnreadTotal().catch(() => {});
           return user;
         })().catch(error => {
@@ -13798,16 +14606,18 @@
       window.addEventListener('resize', ensureComposerAboveKeyboard);
       if(typeof ResizeObserver === 'function' && composerShell){
         const composerResizeObserver = new ResizeObserver(() => {
-          if(activeMessageView === 'chat' && chatNearBottom(240)) scrollChatToLatest();
+          if(sharedReturnScrollLockedV711()) applySharedReturnScrollV711();
+          else if(activeMessageView === 'chat' && chatNearBottom(240)) scrollChatToLatest();
         });
         composerResizeObserver.observe(composerShell);
       }
       window.addEventListener('resize',() => { restoreNewConversationFabPosition(); if(personSelectorOpen) setPersonSelectorHeight(personSelectorSheet && personSelectorSheet.getBoundingClientRect().height,false); scheduleMessageLayoutRepair('resize'); },{passive:true});
       window.addEventListener('orientationchange',() => scheduleMessageLayoutRepair('orientation'),{passive:true});
-      window.addEventListener('pageshow',() => scheduleMessageLayoutRepair('pageshow'),{passive:true});
+      window.addEventListener('pageshow',() => { scheduleMessageLayoutRepair('pageshow'); refreshConnectedIdentitySoon(40); },{passive:true});
       window.addEventListener('online',() => {
         scheduleTextOutboxFlush(40);
         scheduleSilentReconnectSync(160);
+        refreshConnectedIdentitySoon(80);
       });
       syncMessageVisualViewport();
       let authRecoveryPromiseV595 = null;
@@ -13857,6 +14667,7 @@
       function applySignedOutV595(){
         authUser = null;
         authProfile = null;
+        if(profileRealtimeChannel){ try{ getClient().removeChannel(profileRealtimeChannel); }catch(_e){} profileRealtimeChannel = null; }
         bootPromise = null;
         reconnectSyncPromise = null;
         conversations = [];
@@ -13878,6 +14689,10 @@
           scheduleMessageLayoutRepair('context');
           applyContext(data.detail || {}).finally(() => scheduleMessageLayoutRepair('context-applied'));
         }
+        else if(data.type === 'HAPPYAD_MESSAGE_SCROLL_HOLD_V711'){
+          const detail = data.detail || {};
+          holdSharedReturnScrollV711(detail.scrollTop,detail.duration);
+        }
         else if(data.type === 'HAPPYAD_MESSAGE_LAYOUT_REPAIR') scheduleMessageLayoutRepair(clean(data.detail && data.detail.reason) || 'parent');
         else if(data.type === 'HAPPYAD_MESSAGE_REALTIME_EVENT') handleRealtimeEvent(data.detail || {});
         else if(data.type === 'HAPPYAD_MESSAGE_REALTIME_STATUS'){
@@ -13889,6 +14704,7 @@
         }
         else if(data.type === 'HAPPYAD_AUTH_SIGNED_IN_V595') recoverAuthenticatedSessionV595(data.detail || {});
         else if(data.type === 'HAPPYAD_AUTH_SIGNED_OUT_V595') applySignedOutV595();
+        else if(data.type === 'HAPPYAD_PROFILE_AVATAR_RECOVERED_V743' || data.type === 'HAPPYAD_PROFILE_IDENTITY_V746') refreshConnectedIdentitySoon(20);
       }, true);
 
       try{ window.parent.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_START'}, '*'); }catch(_e){}
@@ -13906,6 +14722,7 @@
           if(activeViewOnceAudio) closeViewOnceAudio();
         }else{
           scheduleMessageLayoutRepair('visible');
+          refreshConnectedIdentitySoon(50);
         }
       });
       window.addEventListener('blur', () => {
@@ -13925,6 +14742,8 @@
         handleRealtimeEvent,
         getContext:() => context,
         getConversationId:() => currentConversationId,
+        holdReturnScroll:holdSharedReturnScrollV711,
+        isReturnScrollLocked:sharedReturnScrollLockedV711,
         getUser:() => authUser,
         getReply:() => replyingTo,
         getEditingMessage:() => editingMessage,
@@ -13937,9 +14756,77 @@
     })();
   </script>
 
+<!-- HAPPYAD V710 — popups Messages interactifs seulement après affichage complet -->
+<script id="happyad-message-popup-ready-gate-v710">
+(function(){
+  'use strict';
+  if(window.__HAPPYAD_MESSAGE_POPUP_READY_GATE_V710__)return;
+  window.__HAPPYAD_MESSAGE_POPUP_READY_GATE_V710__=true;
+  var VERSION='V710_MESSAGE_POPUP_READY_GATE';
+  var roots=[];
+  function active(root){
+    if(!root)return false;
+    if(root.id==='actionBackdrop'||root.id==='personSelectorBackdrop'||root.id==='mediaViewer'||root.id==='draftFullViewer'||root.id==='stickerPanel')return root.classList.contains('active');
+    return root.getAttribute('aria-hidden')==='false';
+  }
+  function delayFor(root){
+    if(!root)return 300;
+    if(root.id==='personSelectorBackdrop')return 340;
+    if(root.id==='actionBackdrop')return 300;
+    return 260;
+  }
+  function unlock(root){
+    if(!root)return;
+    clearTimeout(root.__happyadPopupReadyTimerV710);
+    root.__happyadPopupReadyTimerV710=0;
+    root.__happyadPopupUnlockAtV710=0;
+    root.classList.remove('happyadPopupOpeningV710');
+  }
+  function arm(root){
+    if(!root||!active(root))return;
+    var wait=delayFor(root);
+    clearTimeout(root.__happyadPopupReadyTimerV710);
+    root.__happyadPopupUnlockAtV710=Date.now()+wait;
+    root.classList.add('happyadPopupOpeningV710');
+    root.__happyadPopupReadyTimerV710=setTimeout(function(){unlock(root);},wait);
+  }
+  function blocked(root){return !!(root&&Number(root.__happyadPopupUnlockAtV710)>Date.now());}
+  function guard(root,event){
+    if(!blocked(root))return;
+    try{event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();}catch(_e){}
+    return false;
+  }
+  function bind(root){
+    if(!root||root.__happyadPopupReadyBoundV710)return;
+    root.__happyadPopupReadyBoundV710=true;roots.push(root);
+    ['pointerdown','pointerup','click','touchstart','touchend','contextmenu'].forEach(function(type){root.addEventListener(type,function(event){guard(root,event);},true);});
+    var was=active(root);
+    var observer=new MutationObserver(function(){
+      var now=active(root);
+      if(now&&!was)arm(root);
+      else if(!now&&was)unlock(root);
+      was=now;
+    });
+    observer.observe(root,{attributes:true,attributeFilter:['class','aria-hidden']});
+    if(was)arm(root);
+  }
+  function install(){
+    ['actionBackdrop','personSelectorBackdrop','mediaViewer','draftFullViewer','stickerPanel'].forEach(function(id){bind(document.getElementById(id));});
+    if(!document.getElementById('happyadMessagePopupReadyStyleV710')){
+      var style=document.createElement('style');style.id='happyadMessagePopupReadyStyleV710';
+      style.textContent='.happyadPopupOpeningV710 *{pointer-events:none!important}.happyadSharedMessageReturnInstantV710 .view{transition:none!important}';
+      (document.head||document.documentElement).appendChild(style);
+    }
+  }
+  window.HappyadMessagePopupGateV710={version:VERSION,arm:function(value){var root=typeof value==='string'?document.getElementById(value):value;arm(root);},isBlocked:function(value){var root=typeof value==='string'?document.getElementById(value):value;return blocked(root);}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+</script>
+
 <!-- HAPPYAD V603 — menu transparent et boutons internes fiables -->
 <link rel="stylesheet" href="../core/button-state-master-v604.css?v=604">
 <script src="../core/button-state-master-v604.js?v=604"></script>
 <script src="../core/internal-return-fast-v611.js?v=611"></script>
+<script id="happyad-message-assistance-shortcut-v738-js" src="../core/message-assistance-shortcut-v738.js?v=757-audit-stable"></script>
 </body>
 </html>

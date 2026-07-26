@@ -1,5 +1,0 @@
-JS externes vérifiés: 55; erreurs: 0
-Scripts intégrés vérifiés: 191; erreurs: 0
-Blocs/fichiers CSS vérifiés: 183; erreurs: 0
-Références HTML locales vérifiées: 186; manquantes: 0
-Assertions structurelles Profil V617: réussies

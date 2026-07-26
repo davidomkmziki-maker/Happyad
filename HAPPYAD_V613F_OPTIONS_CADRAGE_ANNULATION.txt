@@ -1,8 +1,0 @@
-HAPPYAD V613F LITE
-
-- Vidéo : bouton trois points placé dans la colonne verticale, directement sous Favoris.
-- Photo fullscreen : position conservée, bouton transparent sans cercle ni fond.
-- Publication : cadrage tactile allégé, rendu coalescé par requestAnimationFrame, glissement direct et pincement naturel.
-- Annulation : les deux boutons X remettent intégralement le compositeur à zéro avant de fermer.
-- Nouvelle ouverture du bouton + : nouvelle session vide garantie.
-- Service Worker versionné V613F.
