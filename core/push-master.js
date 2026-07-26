@@ -1,23 +1,26 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_PUSH_MASTER_V39A__)return;
-  window.__HAPPYAD_PUSH_MASTER_V39A__=true;
+  if(window.__HAPPYAD_PUSH_MASTER_V41__)return;
+  window.__HAPPYAD_PUSH_MASTER_V41__=true;
 
-  var VERSION='HAPPYAD_PUSH_MASTER_V39A_BACKGROUND_RELIABILITY';
+  var VERSION='HAPPYAD_PUSH_MASTER_V41_AVATAR_BADGE_BACKGROUND';
   var VAPID_PUBLIC_KEY='BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
   var INSTALL_KEY='HAPPYAD_PUSH_INSTALLATION_ID_V1';
-  var DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V1';
+  var DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V2';
+  var LEGACY_DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V1';
   var LAST_UID_KEY='HAPPYAD_PUSH_LAST_UID_V1';
   var TEST_DONE_KEY='HAPPYAD_PUSH_TEST_DONE_V1';
   var VAPID_BINDING_KEY='HAPPYAD_PUSH_VAPID_PUBLIC_KEY_V1';
   var LAST_ENSURE_KEY='HAPPYAD_PUSH_LAST_ENSURE_AT_V1';
   var LAST_DELAY_NOTICE_KEY='HAPPYAD_PUSH_LAST_DELAY_NOTICE_AT_V1';
   var ENSURE_INTERVAL_MS=4*60*60*1000;
+  var PROMPT_INTERVAL_MS=24*60*60*1000;
   var ui=null;
   var busy=false;
   var authBound=false;
   var lastSessionUid='';
   var ensurePromise=null;
+  var promptTimer=0;
 
   function clean(v){return String(v==null?'':v).trim();}
   function now(){return Date.now();}
@@ -94,7 +97,30 @@
     document.body.appendChild(t);setTimeout(function(){try{t.remove();}catch(e){}},2600);
   }
   function hidePrompt(){if(ui){try{ui.remove();}catch(e){}ui=null;}}
-  function promptDismissedRecently(){var t=Number(safeGet(DISMISS_KEY)||0);return t>0&&(now()-t)<86400000;}
+  function promptKey(uid){return DISMISS_KEY+':'+clean(uid)+':'+installationId();}
+  function promptDismissedAt(uid){
+    var key=promptKey(uid);var current=Number(safeGet(key)||0);
+    if(current>0)return current;
+    var legacy=Number(safeGet(LEGACY_DISMISS_KEY)||0);
+    if(legacy>0){safeSet(key,legacy);safeRemove(LEGACY_DISMISS_KEY);return legacy;}
+    return 0;
+  }
+  function promptDismissedRecently(uid){var t=promptDismissedAt(uid);return t>0&&(now()-t)<PROMPT_INTERVAL_MS;}
+  function clearPromptTimer(){if(promptTimer){clearTimeout(promptTimer);promptTimer=0;}}
+  function schedulePromptReminder(uid,firstDelay){
+    clearPromptTimer();uid=clean(uid||lastSessionUid);
+    if(!uid||!supports()||Notification.permission==='granted')return;
+    var dismissed=promptDismissedAt(uid);
+    var delay=Number(firstDelay);
+    if(!(delay>=0))delay=dismissed>0?Math.max(0,PROMPT_INTERVAL_MS-(now()-dismissed)):1800;
+    promptTimer=setTimeout(function(){promptTimer=0;maybeShowPromptDue(uid);},Math.min(delay,2147480000));
+  }
+  function maybeShowPromptDue(uid){
+    uid=clean(uid||lastSessionUid);if(!uid||!supports()||Notification.permission==='granted'){clearPromptTimer();hidePrompt();return;}
+    if(promptDismissedRecently(uid)){schedulePromptReminder(uid);return;}
+    if(document.visibilityState==='hidden'){schedulePromptReminder(uid,60*1000);return;}
+    showPrompt(uid);
+  }
   function ensureStyle(){
     if(document.getElementById('happyadPushStyleV38E1'))return;
     var s=document.createElement('style');s.id='happyadPushStyleV38E1';s.textContent='#happyadPushPromptV38E1{position:fixed;left:12px;right:12px;bottom:92px;z-index:2147483000;display:flex;align-items:center;gap:10px;background:linear-gradient(145deg,rgba(11,15,22,.98),rgba(1,4,8,.98));border:1px solid rgba(255,138,0,.42);border-radius:19px;padding:10px;box-shadow:0 20px 48px rgba(0,0,0,.72);font-family:system-ui;color:#fff}#happyadPushPromptV38E1 img{width:44px;height:44px;border-radius:13px;background:#000;object-fit:cover;flex:0 0 44px}#happyadPushPromptV38E1 .haPushText{min-width:0;flex:1}#happyadPushPromptV38E1 b{display:block;font-size:14px;line-height:1.15;font-weight:1000}#happyadPushPromptV38E1 span{display:block;margin-top:3px;color:#b9c0cc;font-size:11px;line-height:1.25;font-weight:750}#happyadPushPromptV38E1 .haPushActions{display:flex;align-items:center;gap:6px}#happyadPushPromptV38E1 button{border:0;font:1000 12px/1 system-ui;cursor:pointer}#happyadPushPromptV38E1 .haPushEnable{height:38px;padding:0 13px;border-radius:13px;background:linear-gradient(135deg,#ff9b16,#ff6500);color:#101114}#happyadPushPromptV38E1 .haPushClose{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);color:#fff;font-size:18px}@media(max-width:370px){#happyadPushPromptV38E1{left:8px;right:8px;gap:8px}#happyadPushPromptV38E1 img{width:40px;height:40px;flex-basis:40px}#happyadPushPromptV38E1 span{display:none}#happyadPushPromptV38E1 .haPushEnable{padding:0 10px}}';
@@ -104,7 +130,7 @@
     if(ui||!supports()||Notification.permission!=='granted'||safeGet(TEST_DONE_KEY)==='1')return;
     ensureStyle();
     var box=document.createElement('div');box.id='happyadPushPromptV38E1';
-    box.innerHTML='<img src="./icons/happyad-icon-v535center1-96.png" alt="HAPPYAD"><div class="haPushText"><b>Tester hors application</b><span>Touchez Tester puis fermez HAPPYAD. La notification arrive dans 12 secondes.</span></div><div class="haPushActions"><button class="haPushEnable" type="button">Tester</button><button class="haPushClose" type="button" aria-label="Fermer">×</button></div>';
+    box.innerHTML='<img src="./icons/happyad-icon-v535center1-96.png" alt="HAPPYAD"><div class="haPushText"><b>Tester hors application</b><span>Touchez Tester, puis fermez HAPPYAD et Chrome. La notification doit arriver dans 12 secondes.</span></div><div class="haPushActions"><button class="haPushEnable" type="button">Tester</button><button class="haPushClose" type="button" aria-label="Fermer">×</button></div>';
     box.querySelector('.haPushClose').addEventListener('click',function(){hidePrompt();});
     box.querySelector('.haPushEnable').addEventListener('click',function(){
       var btn=this;btn.disabled=true;btn.textContent='Préparation…';
@@ -112,13 +138,18 @@
     });
     document.body.appendChild(box);ui=box;
   }
-  function showPrompt(){
-    if(ui||!supports()||Notification.permission!=='default'||promptDismissedRecently())return;
+  function showPrompt(uid){
+    uid=clean(uid||lastSessionUid);
+    if(ui||!uid||!supports()||Notification.permission==='granted'||promptDismissedRecently(uid))return;
     ensureStyle();
+    var denied=Notification.permission==='denied';
     var box=document.createElement('div');box.id='happyadPushPromptV38E1';
-    box.innerHTML='<img src="./icons/happyad-icon-v535center1-96.png" alt="HAPPYAD"><div class="haPushText"><b>Activer les notifications</b><span>Recevez vos messages même lorsque HAPPYAD est fermé.</span></div><div class="haPushActions"><button class="haPushEnable" type="button">Activer</button><button class="haPushClose" type="button" aria-label="Plus tard">×</button></div>';
-    box.querySelector('.haPushClose').addEventListener('click',function(){safeSet(DISMISS_KEY,now());hidePrompt();});
-    box.querySelector('.haPushEnable').addEventListener('click',function(){activateFromGesture();});
+    box.innerHTML='<img src="./icons/happyad-icon-v535center1-96.png" alt="HAPPYAD"><div class="haPushText"><b>'+(denied?'Réactiver les notifications':'Activer les notifications')+'</b><span>'+(denied?'Autorisez HAPPYAD dans les paramètres du site ou du téléphone.':'Recevez vos messages même lorsque HAPPYAD est fermé.')+'</span></div><div class="haPushActions"><button class="haPushEnable" type="button">'+(denied?'Instructions':'Activer')+'</button><button class="haPushClose" type="button" aria-label="Plus tard">×</button></div>';
+    box.querySelector('.haPushClose').addEventListener('click',function(){safeSet(promptKey(uid),now());hidePrompt();schedulePromptReminder(uid);});
+    box.querySelector('.haPushEnable').addEventListener('click',function(){
+      if(denied){safeSet(promptKey(uid),now());hidePrompt();schedulePromptReminder(uid);toast('Dans les paramètres du navigateur, ouvrez Autorisations puis activez Notifications pour HAPPYAD.');return;}
+      activateFromGesture();
+    });
     document.body.appendChild(box);ui=box;
   }
   function notifyWorker(type,data){
@@ -127,6 +158,26 @@
         navigator.serviceWorker.controller.postMessage({type:type,data:data||{}});
       }
     }catch(_e){}
+  }
+  function cleanupOwnSubscriptions(session,current){
+    var c=client();var endpoint=clean(current&&current.endpoint);
+    if(!c||!session||!session.user||!endpoint)return Promise.reject(new Error('PUSH_CLEANUP_NOT_READY'));
+    var args={p_keep_endpoint:endpoint,p_keep_installation_id:installationId()};
+    return c.rpc('happyad_push_cleanup_own_subscriptions',args).then(function(r){
+      if(r&&r.error)throw r.error;return r&&r.data||r;
+    }).catch(function(first){
+      /* Compatibilité temporaire avec l'ancienne RPC sans paramètres. */
+      return c.rpc('happyad_push_cleanup_own_subscriptions',{}).then(function(r){if(r&&r.error)throw r.error;return r&&r.data||r;}).catch(function(){throw first;});
+    });
+  }
+  function verifySingleActiveSubscription(session,current){
+    var c=client();var endpoint=clean(current&&current.endpoint);
+    if(!c||!session||!session.user||!endpoint)return Promise.reject(new Error('PUSH_VERIFY_NOT_READY'));
+    return c.from('happyad_push_subscriptions').select('endpoint,enabled,updated_at').eq('user_id',session.user.id).eq('enabled',true).then(function(r){
+      if(r&&r.error)throw r.error;var rows=Array.isArray(r&&r.data)?r.data:[];
+      if(rows.length!==1||clean(rows[0]&&rows[0].endpoint)!==endpoint)throw new Error('PUSH_SINGLE_ACTIVE_LINK_NOT_CONFIRMED');
+      return true;
+    });
   }
   function saveSubscription(session,sub){
     var c=client();var s=subscriptionJson(sub);
@@ -142,13 +193,13 @@
       p_platform:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||''
     }).then(function(r){
       if(r&&r.error)throw r.error;
+      return cleanupOwnSubscriptions(session,s).then(function(){return verifySingleActiveSubscription(session,s);});
+    }).then(function(){
       safeSet(LAST_UID_KEY,session.user.id);
       safeSet(VAPID_BINDING_KEY,VAPID_PUBLIC_KEY);
       safeSet(LAST_ENSURE_KEY,now());
       lastSessionUid=session.user.id;
       notifyWorker('HAPPYAD_PUSH_SUBSCRIPTION_BOUND',{user_id:session.user.id,installation_id:installationId(),endpoint:s.endpoint});
-      /* Fonction optionnelle : les anciennes bases continuent de fonctionner si elle n'existe pas. */
-      try{c.rpc('happyad_push_cleanup_own_subscriptions',{}).catch(function(){});}catch(_cleanup){}
       return sub;
     });
   }
@@ -193,22 +244,27 @@
     });
   }
   function activateFromGesture(){
-    if(!supports()){toast('Notifications non prises en charge sur ce téléphone.');return;}
+    if(!supports()){toast('Notifications non prises en charge sur ce téléphone.');return Promise.resolve(null);}
+    var uid=clean(lastSessionUid);
+    if(Notification.permission==='denied'){
+      if(uid){safeSet(promptKey(uid),now());schedulePromptReminder(uid);}
+      hidePrompt();toast('Dans les paramètres du navigateur, autorisez les notifications pour HAPPYAD.');return Promise.resolve(null);
+    }
     var p=Notification.permission==='granted'?Promise.resolve('granted'):Notification.requestPermission();
-    p.then(function(permission){
-      if(permission!=='granted'){hidePrompt();toast('Autorisation de notification non accordée.');return null;}
-      safeRemove(DISMISS_KEY);
+    return p.then(function(permission){
+      if(permission!=='granted'){if(uid){safeSet(promptKey(uid),now());schedulePromptReminder(uid);}hidePrompt();toast('Autorisation de notification non accordée.');return null;}
+      if(uid)safeRemove(promptKey(uid));clearPromptTimer();
       return ensureSubscription(true).then(function(sub){
         if(!sub)return null;
-        hidePrompt();toast('Notifications HAPPYAD activées.');
+        hidePrompt();toast('Notifications HAPPYAD activées sur ce lien uniquement.');
         return sub;
       });
-    }).catch(function(){toast('Impossible d’activer les notifications.');});
+    }).catch(function(){toast('Impossible d’activer les notifications.');return null;});
   }
   function testAfterClose(){
     return ensureSubscription(true).then(function(sub){
       if(!sub)throw new Error('SUBSCRIPTION_REQUIRED');
-      return invokeTest(12).then(function(result){toast('Fermez HAPPYAD : test dans 12 secondes.');return result;});
+      return invokeTest(12).then(function(result){toast('Fermez HAPPYAD et Chrome : test dans 12 secondes.');return result;});
     });
   }
   function unsubscribeLocal(){
@@ -218,15 +274,35 @@
       return sub.unsubscribe().catch(function(){return false;});
     }).catch(function(){return false;});
   }
+  function deactivateCurrent(){
+    if(!supports())return Promise.resolve(false);
+    return Promise.all([navigator.serviceWorker.ready,currentSession()]).then(function(values){
+      var reg=values[0],session=values[1],c=client();
+      return reg.pushManager.getSubscription().then(function(sub){
+        var disableServer=Promise.resolve(false);
+        if(c&&session&&session.user){
+          disableServer=c.rpc('happyad_push_disable_all_own_subscriptions',{}).then(function(r){if(r&&r.error)throw r.error;return true;}).catch(function(){
+            return sub?disableSavedSubscription(session,sub):false;
+          });
+        }
+        return Promise.resolve(disableServer).then(function(){
+          return sub?sub.unsubscribe().catch(function(){return false;}):false;
+        }).then(function(result){
+          safeRemove(LAST_ENSURE_KEY);safeRemove(VAPID_BINDING_KEY);safeRemove(TEST_DONE_KEY);
+          return result;
+        });
+      });
+    }).catch(function(){return unsubscribeLocal();});
+  }
   function bindAuth(){
     if(authBound)return;var c=client();if(!c||!c.auth||!c.auth.onAuthStateChange)return;
     authBound=true;
     c.auth.onAuthStateChange(function(event,session){
       var uid=clean(session&&session.user&&session.user.id);
       if(event==='SIGNED_OUT'){
-        lastSessionUid='';hidePrompt();unsubscribeLocal();return;
+        lastSessionUid='';hidePrompt();clearPromptTimer();unsubscribeLocal();return;
       }
-      if(uid){lastSessionUid=uid;if(Notification.permission==='granted')setTimeout(function(){ensureSubscription(false);},250);else setTimeout(showPrompt,1500);}
+      if(uid){lastSessionUid=uid;if(Notification.permission==='granted')setTimeout(function(){ensureSubscription(false);},250);else schedulePromptReminder(uid,1500);}
     });
   }
   function boot(){
@@ -235,7 +311,7 @@
     currentSession().then(function(session){
       var uid=clean(session&&session.user&&session.user.id);if(!uid)return;
       lastSessionUid=uid;
-      if(Notification.permission==='granted')ensureSubscription(false);else if(Notification.permission==='default')setTimeout(showPrompt,1800);
+      if(Notification.permission==='granted')ensureSubscription(false);else schedulePromptReminder(uid,1800);
     });
   }
 
@@ -359,18 +435,26 @@
     ensure:ensureSubscription,
     test:testAfterClose,
     unsubscribeLocal:unsubscribeLocal,
+    deactivateCurrent:deactivateCurrent,
+    showActivationPrompt:function(){maybeShowPromptDue(lastSessionUid);},
     openMessage:openPushMessage,
     status:function(){
+      if(!supports())return Promise.resolve({supported:false,permission:'unsupported',subscribed:false});
       return navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.getSubscription();}).then(function(sub){
-        return {supported:supports(),permission:Notification.permission,subscribed:!!sub,installation_id:installationId(),last_ensure_at:Number(safeGet(LAST_ENSURE_KEY)||0)};
+        var uid=clean(lastSessionUid);var dismissed=uid?promptDismissedAt(uid):0;
+        return {supported:supports(),permission:Notification.permission,subscribed:!!sub,installation_id:installationId(),last_ensure_at:Number(safeGet(LAST_ENSURE_KEY)||0),prompt_due_at:dismissed?dismissed+PROMPT_INTERVAL_MS:0};
       }).catch(function(){return {supported:supports(),permission:Notification.permission,subscribed:false};});
     }
   };
-  window.addEventListener('online',function(){if(Notification.permission==='granted')ensureIfDue(true);});
-  window.addEventListener('pageshow',function(){if(Notification.permission==='granted')ensureIfDue(false);});
-  window.addEventListener('focus',function(){if(Notification.permission==='granted')ensureIfDue(false);});
-  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&Notification.permission==='granted')ensureIfDue(false);});
-  try{navigator.serviceWorker.addEventListener('controllerchange',function(){if(Notification.permission==='granted')setTimeout(function(){ensureIfDue(true);},250);});}catch(_controller){}
-  setInterval(function(){if(document.visibilityState==='visible'&&Notification.permission==='granted')ensureIfDue(false);},60*60*1000);
+  function refreshPushState(force){
+    if(Notification.permission==='granted'){clearPromptTimer();hidePrompt();return ensureIfDue(!!force);}
+    maybeShowPromptDue(lastSessionUid);return Promise.resolve(null);
+  }
+  window.addEventListener('online',function(){refreshPushState(true);});
+  window.addEventListener('pageshow',function(){refreshPushState(false);});
+  window.addEventListener('focus',function(){refreshPushState(false);});
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshPushState(false);});
+  try{navigator.serviceWorker.addEventListener('controllerchange',function(){setTimeout(function(){refreshPushState(true);},250);});}catch(_controller){}
+  setInterval(function(){if(document.visibilityState==='visible')refreshPushState(false);},15*60*1000);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

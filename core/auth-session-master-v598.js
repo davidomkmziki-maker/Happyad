@@ -474,6 +474,15 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   async function logout(options){
     options=options||{};if(busy)return false;busy=true;
     try{
+      var pushMaster=window.HappyPushMaster;
+      if(pushMaster&&typeof pushMaster.deactivateCurrent==='function'){
+        await Promise.race([
+          Promise.resolve(pushMaster.deactivateCurrent()),
+          new Promise(function(resolve){setTimeout(function(){resolve(false);},2500);})
+        ]);
+      }
+    }catch(_pushError){}
+    try{
       var c=client();if(c&&c.auth&&c.auth.signOut)await c.auth.signOut({scope:'local'});
     }catch(_e){}
     clearPrivateAuthStorage();session=null;ready=true;broadcast('SIGNED_OUT');

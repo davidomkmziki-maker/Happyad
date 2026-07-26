@@ -1,7 +1,7 @@
-/* HAPPYAD V775 — Messages : compositeur ancré et croissance stable vers le haut */
+/* HAPPYAD V777 — Push : avatar exact, badge HAPPYAD et réception hors application */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V775-message-composer-bottom-stable-20260726-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V777-push-avatar-badge-background-20260726-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -9,7 +9,7 @@ var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=775-message-composer-bottom-stable-shell',
+  './index.html?v=777-push-avatar-badge-background-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -19,7 +19,7 @@ var HAPPYAD_APP_SHELL = [
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
   './core/navigation-master-v668.js?v=775-message-composer-bottom-stable',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
-  './core/auth-session-master-v598.js?v=752-auth-storage-quota-retry',
+  './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
   './core/profile-avatar-recovery-master-v743.js?v=763-home-stable',
   './core/card-author-avatar-master-v742.js?v=763-home-stable',
@@ -27,6 +27,7 @@ var HAPPYAD_APP_SHELL = [
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=775-message-composer-bottom-stable',
+  './core/push-master.js?v=push-v41-avatar-badge-background',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',
@@ -238,11 +239,28 @@ function happyadStoreState(name,data){
   }catch(_e){return Promise.resolve();}
 }
 
+function happyadNotificationAsset(value,fallback){
+  var raw=String(value||'').trim();
+  if(!raw)return String(fallback||'');
+  try{
+    var url=new URL(raw,self.location.href);
+    if(url.protocol!=='https:' && url.origin!==self.location.origin)return String(fallback||'');
+    return url.href;
+  }catch(_e){return String(fallback||'');}
+}
+
 function happyadNotificationOptions(data,detail){
+  var logo=happyadNotificationAsset('./icons/happyad-icon-v535center1-192.png','./icons/happyad-icon-v535center1-192.png');
+  var badge=happyadNotificationAsset(data.badge||'./icons/happyad-notification-badge-96.png','./icons/happyad-notification-badge-96.png');
+  var exactAvatar='';
+  if(detail.type==='happyad_message'){
+    exactAvatar=happyadNotificationAsset(detail.sender_avatar||data.sender_avatar,'');
+  }
+  var icon=exactAvatar||happyadNotificationAsset(data.icon,logo)||logo;
   var options={
     body:String(data.body||'Vous avez une nouvelle notification.'),
-    icon:String(data.icon||detail.sender_avatar||'./icons/happyad-icon-v535center1-192.png'),
-    badge:String(data.badge||'./icons/happyad-notification-badge-96.png'),
+    icon:icon,
+    badge:badge,
     tag:String(data.tag||('happyad-'+String(data.type||'notification'))),
     renotify:data.renotify!==false,
     requireInteraction:!!data.requireInteraction,
@@ -251,6 +269,8 @@ function happyadNotificationOptions(data,detail){
     timestamp:happyadParseTime(data.sent_at)||Number(data.timestamp||Date.now()),
     data:detail
   };
+  /* L'avatar exact reste l'icône principale. Le badge monochrome HAPPYAD
+     identifie l'application dans la barre système Android. */
   if(detail.type==='happyad_message')options.actions=[{action:'reply',title:'Répondre'}];
   return options;
 }

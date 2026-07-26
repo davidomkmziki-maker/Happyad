@@ -12911,6 +12911,16 @@ setTimeout(function(){
       }
     }catch(e){}
 
+    try{
+      var pushMaster=(window.parent&&window.parent!==window&&window.parent.HappyPushMaster)||window.HappyPushMaster;
+      if(pushMaster&&typeof pushMaster.deactivateCurrent==='function'){
+        await Promise.race([
+          Promise.resolve(pushMaster.deactivateCurrent()),
+          new Promise(function(resolve){setTimeout(function(){resolve(false);},2500);})
+        ]);
+      }
+    }catch(_pushError){}
+
     happyadClearAllLogoutCachesV1();
     await supabaseLogout();
     happyadClearAllLogoutCachesV1();
@@ -14356,7 +14366,7 @@ body.haProfileHomeFullscreenActiveV668 .app{visibility:hidden!important;pointer-
 
 <!-- HAPPYAD : Paramètres compacts plein écran, maître unique -->
 <link id="happyad-profile-settings-master-v722-css" rel="stylesheet" href="../core/profile-settings-master-v722.css?v=736-settings-scroll-stable">
-<script id="happyad-profile-settings-master-v722-js" src="../core/profile-settings-master-v722.js?v=757-assistance-audit"></script>
+<script id="happyad-profile-settings-master-v722-js" src="../core/profile-settings-master-v722.js?v=776-push-system-real"></script>
 
 <script id="happyad-analytics-master-v731" src="../core/analytics-master-v731.js?v=731-local-time-watch-checkpoints"></script>
 
