@@ -3208,6 +3208,9 @@ function closeStoryViewer(){storyViewerShade.classList.remove("show");storyMedia
   var postsCache=null, loading=false, loadingUid='', applySeq=0, timer=null;
   var PUBLIC_INITIAL_V627=9, PUBLIC_PAGE_V627=9, PUBLIC_REMOTE_PAGE_V627=18, PUBLIC_CACHE_MAX_V627=60;
   var publicRenderLimitV627=PUBLIC_INITIAL_V627, publicCursorV627=null, publicRemoteDoneV627=false, publicMoreLoadingV627=false, publicStateUidV627='', publicTotalV627=null;
+  /* HAPPYAD V762 — le Profil visiteur retient la vraie colonne propriétaire
+     trouvée pour l'UID ouvert. Aucun autre module ne partage cet état. */
+  var publicOwnerColumnV762='user_id', publicFetchConfirmedV762=false, publicFetchHadErrorV762=false;
   function params(){try{return new URLSearchParams(location.search||'')}catch(e){return {get:function(){return ''}}}}
   function clean(v){return String(v==null?'':v).trim()}
   function isPublic(){try{return params().get('public')==='1' || String(location.search||'').indexOf('public=1')>-1}catch(e){return false}}
@@ -3368,8 +3371,32 @@ function closeStoryViewer(){storyViewerShade.classList.remove("show");storyMedia
   function visitorPublicPostsV612(list){return (Array.isArray(list)?list:[]).filter(visitorPostAllowedV612)}
   try{window.happyadVisitorPostAllowedV612=visitorPostAllowedV612;}catch(_v612){}
   function publicPostsCacheKey(uid){return 'HAPPYAD_PUBLIC_PROFILE_POSTS_'+clean(uid)}
-  function happyadRawPublicOwnerV658(p){p=p||{};return clean(p.__happyadRawOwnerId||ownerOfPost(p)||'')}
-  function happyadBelongsToPublicUidV658(p,uid){uid=clean(uid);var owner=happyadRawPublicOwnerV658(p);return !!uid&&!!owner&&String(owner)===String(uid)}
+  /* HAPPYAD V762 — certains anciens posts utilisent creator_id, owner_id,
+     author_id ou auth_user_id au lieu de user_id. On conserve tous les UID
+     réellement présents dans la ligne et on n'attribue jamais un post au
+     visiteur uniquement parce que ce profil est ouvert. */
+  function happyadPublicOwnerAliasesV762(p){
+    p=p||{};var out=[],seen={};
+    function add(v){v=clean(v);if(!v)return;var k=v.toLowerCase();if(!seen[k]){seen[k]=1;out.push(v)}}
+    try{if(Array.isArray(p.__happyadOwnerAliasesV762))p.__happyadOwnerAliasesV762.forEach(add)}catch(_e){}
+    [p.user_id,p.userId,p.creator_id,p.creatorId,p.owner_id,p.ownerId,p.author_id,p.authorId,
+     p.auth_user_id,p.authUserId,p.account_uid,p.accountUid,p.profile_id,p.profileId,
+     p.uid,p.uuid,p.created_by,p.createdBy].forEach(add);
+    return out;
+  }
+  function happyadPublicRowMatchesUidV762(p,uid){
+    uid=clean(uid);if(!uid)return false;
+    var target=uid.toLowerCase(),aliases=happyadPublicOwnerAliasesV762(p);
+    for(var i=0;i<aliases.length;i++)if(String(aliases[i]).toLowerCase()===target)return true;
+    return false;
+  }
+  function happyadRawPublicOwnerV658(p){
+    p=p||{};
+    var routeUid=clean(publicStateUidV627||urlUid()),aliases=happyadPublicOwnerAliasesV762(p);
+    if(routeUid&&happyadPublicRowMatchesUidV762(p,routeUid))return routeUid;
+    return clean(p.__happyadRawOwnerId||aliases[0]||ownerOfPost(p)||'');
+  }
+  function happyadBelongsToPublicUidV658(p,uid){return happyadPublicRowMatchesUidV762(p,uid)}
   function happyadCleanContaminatedPublicCachesV658(){
     try{
       var marker='HAPPYAD_PUBLIC_PROFILE_CACHE_OWNER_CLEAN_V658';
@@ -3398,6 +3425,20 @@ function closeStoryViewer(){storyViewerShade.classList.remove("show");storyMedia
     }catch(_e){}
   }
   happyadCleanStrictPublicCachesV668();
+  function happyadResetPublicLookupCachesV762(){
+    try{
+      var marker='HAPPYAD_PUBLIC_PROFILE_OWNER_ALIASES_READY_V762';
+      if(localStorage.getItem(marker)==='1')return;
+      var keys=[];
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i)||'';
+        if(k.indexOf('HAPPYAD_PUBLIC_PROFILE_EMPTY_')===0||k.indexOf('HAPPYAD_PUBLIC_PROFILE_TOTAL_V627_')===0)keys.push(k);
+      }
+      keys.forEach(function(k){try{localStorage.removeItem(k)}catch(_e){}});
+      localStorage.setItem(marker,'1');
+    }catch(_e){}
+  }
+  happyadResetPublicLookupCachesV762();
   function readPublicPostsCache(uid){try{uid=clean(uid);if(!uid)return [];return visitorPublicPostsV612(readArr(publicPostsCacheKey(uid))).filter(function(p){return happyadBelongsToPublicUidV658(p,uid)});}catch(e){return []}}
   function savePublicPostsCache(uid,posts){try{uid=clean(uid);if(!uid||!Array.isArray(posts))return;posts=visitorPublicPostsV612(posts).filter(function(p){return happyadBelongsToPublicUidV658(p,uid)});localStorage.setItem(publicPostsCacheKey(uid),JSON.stringify(posts.slice(0,PUBLIC_CACHE_MAX_V627))); if(posts.length)clearPublicEmptyCache(uid);}catch(e){}}
   function publicEmptyKey(uid){return 'HAPPYAD_PUBLIC_PROFILE_EMPTY_'+clean(uid)}
@@ -3406,7 +3447,39 @@ function closeStoryViewer(){storyViewerShade.classList.remove("show");storyMedia
   function clearPublicEmptyCache(uid){savePublicEmptyCache(uid,false)}
   function publicTotalKeyV627(uid){return 'HAPPYAD_PUBLIC_PROFILE_TOTAL_V627_'+clean(uid)}
   function readPublicTotalV627(uid){try{var v=JSON.parse(localStorage.getItem(publicTotalKeyV627(uid))||'null');return v&&Number.isFinite(Number(v.count))?Number(v.count):null}catch(e){return null}}
-  async function refreshPublicTotalV627(uid,ap){uid=clean(uid);var c=sb();if(!uid||!c)return null;try{var cached=JSON.parse(localStorage.getItem(publicTotalKeyV627(uid))||'null');if(cached&&Date.now()-Number(cached.at||0)<300000&&Number.isFinite(Number(cached.count))){publicTotalV627=Number(cached.count);if(window.sPosts)sPosts.textContent=compact(cached.count);return Number(cached.count);}}catch(_cache){}try{var r=await c.from('happyad_posts').select('id',{count:'exact',head:true}).eq('user_id',uid).is('deleted_at',null);if(r&&r.error)throw r.error;var n=Number(r&&r.count||0);publicTotalV627=n;localStorage.setItem(publicTotalKeyV627(uid),JSON.stringify({count:n,at:Date.now()}));if(ap){ap.posts=n;saveProfileCache(ap);}try{if(window.sPosts)sPosts.textContent=compact(n);}catch(_e){}return n;}catch(e){return null}}
+  async function refreshPublicTotalV627(uid,ap){
+    uid=clean(uid);var c=sb();if(!uid||!c)return null;
+    try{
+      var cached=JSON.parse(localStorage.getItem(publicTotalKeyV627(uid))||'null');
+      if(cached&&Date.now()-Number(cached.at||0)<300000&&Number.isFinite(Number(cached.count))){
+        publicTotalV627=Number(cached.count);if(window.sPosts)sPosts.textContent=compact(cached.count);return Number(cached.count);
+      }
+    }catch(_cache){}
+    async function countColumnV762(col){
+      try{
+        var r=await c.from('happyad_posts').select('id',{count:'exact',head:true}).eq(col,uid).is('deleted_at',null);
+        if(r&&r.error)throw r.error;
+        return {ok:true,count:Number(r&&r.count||0),column:col};
+      }catch(e){return {ok:false,count:0,column:col};}
+    }
+    try{
+      var primary=await countColumnV762('user_id'),best=primary;
+      if(primary.ok&&primary.count>0){publicOwnerColumnV762='user_id';}
+      else{
+        var cols=['creator_id','owner_id','author_id','auth_user_id','account_uid'];
+        var tries=await Promise.all(cols.map(countColumnV762));
+        for(var i=0;i<tries.length;i++){
+          var one=tries[i];
+          if(one.ok&&one.count>Number(best&&best.count||0))best=one;
+        }
+        if(best&&best.ok&&best.count>0)publicOwnerColumnV762=best.column;
+      }
+      if(!best||!best.ok)return null;
+      var n=Number(best.count||0);publicTotalV627=n;
+      localStorage.setItem(publicTotalKeyV627(uid),JSON.stringify({count:n,at:Date.now(),owner_column:publicOwnerColumnV762}));
+      if(ap){ap.posts=n;saveProfileCache(ap);}try{if(window.sPosts)sPosts.textContent=compact(n);}catch(_e){}return n;
+    }catch(e){return null}
+  }
   function profileReady(ap){try{return !!(ap&&(avatarOf(ap)||goodPublicName(ap)))}catch(e){return false}}
   function goodPublicName(ap){try{var n=clean((ap&&ap.name)||(ap&&ap.full_name)||(ap&&ap.display_name)||(ap&&ap.username)||'').toLowerCase();return !!n&&n!=='chargement profil...'&&n!=='utilisateur happyad'&&n.indexOf('aucun compte')<0}catch(e){return false}}
   function readAllPublicPostCaches(){var out=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i)||'';if(k.indexOf('HAPPYAD_PUBLIC_PROFILE_POSTS_')===0)out=out.concat(readArr(k));}}catch(e){}return out}
@@ -3528,8 +3601,13 @@ function mapPost(r,ap){
   r = r || {};
   ap = ap || {};
 
-  var rawOwner = ownerOfPost(r) || '';
-  /* V668: un post visiteur sans propriétaire réel n'est jamais rattaché au profil ouvert. */
+  var rawOwnerAliasesV762 = happyadPublicOwnerAliasesV762(r);
+  var expectedOwnerV762 = clean(uidOf(ap));
+  var rawOwner = (expectedOwnerV762&&happyadPublicRowMatchesUidV762(r,expectedOwnerV762))
+    ? expectedOwnerV762
+    : (rawOwnerAliasesV762[0]||ownerOfPost(r)||'');
+  /* V668 + V762: un post visiteur sans propriétaire réel n'est jamais rattaché
+     au profil ouvert; un alias réel correspondant à l'UID demandé reste accepté. */
   var owner = rawOwner;
   var av = avatarOf(r) || avatarOf(ap) || '';
   var creatorName = clean(
@@ -3626,6 +3704,7 @@ function mapPost(r,ap){
     owner_id: owner,
     creator_id: owner,
     __happyadRawOwnerId: rawOwner,
+    __happyadOwnerAliasesV762: rawOwnerAliasesV762.length?rawOwnerAliasesV762.slice():([rawOwner].filter(Boolean)),
 
     creatorName: creatorName,
     display_name: creatorName,
@@ -4776,36 +4855,51 @@ function mapPost(r,ap){
   }
 
   var c = sb();
+  var selectedRemoteCountV762=0;
+  publicFetchConfirmedV762=false;
+  publicFetchHadErrorV762=false;
 
   async function tryColumn(col){
-    if(!c || !col)return;
+    if(!c || !col)return {ok:false,count:0,column:col};
     try{
-      var fastCols = '*';
-
       var r = await c
         .from('happyad_posts')
-        .select(fastCols)
+        .select('*')
         .eq(col, uid)
         .order('created_at',{ascending:false})
         .order('id',{ascending:false})
         .limit(PUBLIC_REMOTE_PAGE_V627);
-
-      if(r && !r.error && r.data){
-        addRemoteRows(r.data);
-      }
-    }catch(e){}
+      if(r&&r.error)throw r.error;
+      var rows=(r&&r.data)||[];
+      addRemoteRows(rows);
+      return {ok:true,count:rows.length,column:col};
+    }catch(e){publicFetchHadErrorV762=true;return {ok:false,count:0,column:col};}
   }
 
   try{
     if(c){
-      /* HAPPYAD FAST PUBLIC PROFILE POSTS: la base a maintenant les alias,
-         mais user_id reste la colonne propriétaire principale. Une seule requête
-         évite 6 allers-retours Supabase et supprime le retard 1 post → 3 posts. */
-      await tryColumn('user_id');
+      /* V762 : user_id reste prioritaire. Les colonnes historiques ne sont
+         interrogées qu'en secours quand user_id ne renvoie aucune publication. */
+      var primaryV762=await tryColumn('user_id');
+      if(primaryV762.ok&&primaryV762.count>0){
+        publicOwnerColumnV762='user_id';
+        selectedRemoteCountV762=primaryV762.count;
+        publicFetchConfirmedV762=true;
+      }else{
+        var fallbackColsV762=['creator_id','owner_id','author_id','auth_user_id','account_uid'];
+        var fallbackV762=await Promise.all(fallbackColsV762.map(tryColumn));
+        var chosenV762=null;
+        for(var __fc=0;__fc<fallbackV762.length;__fc++){
+          var candidateV762=fallbackV762[__fc];
+          if(candidateV762.ok&&candidateV762.count>0&&(!chosenV762||candidateV762.count>chosenV762.count))chosenV762=candidateV762;
+        }
+        if(chosenV762){publicOwnerColumnV762=chosenV762.column;selectedRemoteCountV762=chosenV762.count;publicFetchConfirmedV762=true;}
+        else if(primaryV762.ok){publicOwnerColumnV762='user_id';selectedRemoteCountV762=0;publicFetchConfirmedV762=true;}
+      }
     }
-  }catch(e){}
+  }catch(e){publicFetchHadErrorV762=true;}
   publicCursorV627=happyadProfileCursorFromRowsV627(remoteRows)||publicCursorV627;
-  publicRemoteDoneV627=remoteRows.length<PUBLIC_REMOTE_PAGE_V627;
+  publicRemoteDoneV627=publicFetchConfirmedV762&&selectedRemoteCountV762<PUBLIC_REMOTE_PAGE_V627;
 
   try{
     var ident = remoteRows.find(function(x){return avatarOf(x);}) || remoteRows[0] || null;
@@ -4873,7 +4967,8 @@ function mapPost(r,ap){
       var attempts=0,added=0;
       while(attempts<3&&!publicRemoteDoneV627&&added===0){
         attempts++;
-        var q=c.from('happyad_posts').select('*').eq('user_id',uid).is('deleted_at',null).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(PUBLIC_REMOTE_PAGE_V627);
+        var ownerColumnV762=clean(publicOwnerColumnV762||'user_id')||'user_id';
+        var q=c.from('happyad_posts').select('*').eq(ownerColumnV762,uid).is('deleted_at',null).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(PUBLIC_REMOTE_PAGE_V627);
         q=happyadProfileApplyCursorV627(q,publicCursorV627);
         var r=await q;if(r&&r.error)throw r.error;var rows=(r&&r.data)||[];var cur=happyadProfileCursorFromRowsV627(rows);if(cur)publicCursorV627=cur;if(rows.length<PUBLIC_REMOTE_PAGE_V627)publicRemoteDoneV627=true;
         var mapped=rows.map(function(x){return mapPost(x,ap)}).filter(function(p){return visitorPostAllowedV612(p)&&happyadBelongsToPublicUidV658(p,uid)}),old=(postsCache||[]).filter(function(p){return happyadBelongsToPublicUidV658(p,uid)}),seen={};old.forEach(function(x){if(x&&x.id)seen[String(x.id)]=1;});mapped.forEach(function(x){if(x&&x.id&&!seen[String(x.id)]){old.push(x);seen[String(x.id)]=1;added++;}});old.sort(function(a,b){return (Number(b.createdAt)||Date.parse(b.created_at||0)||0)-(Number(a.createdAt)||Date.parse(a.created_at||0)||0)});postsCache=old;savePublicPostsCache(uid,old);
@@ -5163,7 +5258,7 @@ function mapPost(r,ap){
     uid = clean(uid);
     if(uid && publicStateUidV627!==uid){
       resetPublicSurfaceV668(uid,true);
-      publicStateUidV627=uid;publicRenderLimitV627=PUBLIC_INITIAL_V627;publicCursorV627=null;publicRemoteDoneV627=false;publicMoreLoadingV627=false;publicTotalV627=readPublicTotalV627(uid);postsCache=null;
+      publicStateUidV627=uid;publicRenderLimitV627=PUBLIC_INITIAL_V627;publicCursorV627=null;publicRemoteDoneV627=false;publicMoreLoadingV627=false;publicTotalV627=readPublicTotalV627(uid);publicOwnerColumnV762='user_id';publicFetchConfirmedV762=false;publicFetchHadErrorV762=false;postsCache=null;
     }else if(uid){resetPublicSurfaceV668(uid,false);}
 
     if(!uid){
@@ -5293,9 +5388,17 @@ function mapPost(r,ap){
 
       draw(ap,posts,false);
     }else{
-      try{savePublicEmptyCache(uid,true);}catch(_emptySave){}
-      try{var bx2=document.getElementById('publicationsBox'); if(bx2)bx2.dataset.happyadPublicEmptyConfirmed='1';}catch(_emptyBox){}
-      draw(ap,[],false);
+      /* V762 : une erreur réseau/colonne ne doit jamais transformer le profil
+         en faux profil vide pendant 24 h. On confirme l'état vide seulement
+         après une vraie réponse Supabase. */
+      if(publicFetchConfirmedV762){
+        try{savePublicEmptyCache(uid,true);}catch(_emptySave){}
+        try{var bx2=document.getElementById('publicationsBox'); if(bx2)bx2.dataset.happyadPublicEmptyConfirmed='1';}catch(_emptyBox){}
+        draw(ap,[],false);
+      }else{
+        try{clearPublicEmptyCache(uid);var bxWait=document.getElementById('publicationsBox');if(bxWait)delete bxWait.dataset.happyadPublicEmptyConfirmed;}catch(_waitClear){}
+        draw(ap,[],true);
+      }
 
       setTimeout(async function(){
         try{
@@ -5363,7 +5466,7 @@ function mapPost(r,ap){
   }
   function schedule(force){if(!isPublic())return false;if(timer)clearTimeout(timer);timer=setTimeout(function(){apply(!!force)},20);return true}
   function switchUid(force){
-    try{var target=clean(urlUid()||uidOf(active()||{}));applySeq++;loading=false;loadingUid='';postsCache=null;publicStateUidV627='';publicRenderLimitV627=PUBLIC_INITIAL_V627;publicCursorV627=null;publicRemoteDoneV627=false;publicMoreLoadingV627=false;publicTotalV627=null;if(timer){clearTimeout(timer);timer=null;}resetPublicSurfaceV668(target,true);var bx=document.getElementById('publicationsBox');if(bx){delete bx.dataset.happyadPublicEmptyConfirmed;delete bx.dataset.happyadProfileOwner;}}catch(_reset){}
+    try{var target=clean(urlUid()||uidOf(active()||{}));applySeq++;loading=false;loadingUid='';postsCache=null;publicStateUidV627='';publicRenderLimitV627=PUBLIC_INITIAL_V627;publicCursorV627=null;publicRemoteDoneV627=false;publicMoreLoadingV627=false;publicTotalV627=null;publicOwnerColumnV762='user_id';publicFetchConfirmedV762=false;publicFetchHadErrorV762=false;if(timer){clearTimeout(timer);timer=null;}resetPublicSurfaceV668(target,true);var bx=document.getElementById('publicationsBox');if(bx){delete bx.dataset.happyadPublicEmptyConfirmed;delete bx.dataset.happyadProfileOwner;}}catch(_reset){}
     return apply(force!==false);
   }
   window.HAPPYAD_PUBLIC_PROFILE_UID_LOCK={install:install,apply:apply,schedule:schedule,switchUid:switchUid};
