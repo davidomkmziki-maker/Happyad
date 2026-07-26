@@ -1,0 +1,20 @@
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/share-image/:post/:version"
+  to = "/.netlify/functions/happyad-share-image?post=:post&v=:version"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/s/:post/:version"
+  to = "/.netlify/functions/happyad-share-preview?post=:post&v=:version"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/s/:post"
+  to = "/.netlify/functions/happyad-share-preview?post=:post"
+  status = 200
+  force = true
