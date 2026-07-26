@@ -7691,7 +7691,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=779-push-popup-delivery-priority',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=780-push-activation-reliable',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9832,7 +9832,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 <script src="core/profile-master.js?v=core-profile-v15"></script>
 <script src="core/cache-master.js?v=core-grouped-v4"></script>
 <script src="core/auth-master.js?v=core-grouped-v4"></script>
-<script src="core/push-master.js?v=push-v43-popup-delivery-priority"></script>
+<script src="core/push-master.js?v=push-v44-activation-reliable"></script>
 <script src="core/media-master.js?v=core-grouped-v4"></script>
 <script src="core/radar-stories-master.js?v=core-grouped-v4"></script>
 <script src="core/home-ui-master.js?v=core-grouped-v4"></script>

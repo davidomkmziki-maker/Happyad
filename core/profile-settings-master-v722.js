@@ -187,6 +187,7 @@
     if(!info||info.supported===false)return 'Les notifications Push ne sont pas prises en charge sur ce téléphone.';
     if(info.permission==='denied')return 'Autorisation bloquée dans les paramètres du navigateur ou du téléphone.';
     if(info.permission==='granted'&&info.subscribed)return 'Notifications système actives sur ce lien.';
+    if(info.permission==='granted'&&info.last_error)return 'Autorisation accordée, mais enregistrement bloqué : '+clean(info.last_error);
     if(info.permission==='granted')return 'Autorisation accordée, mais le lien doit encore être enregistré.';
     return 'Notifications système non activées.';
   }
@@ -202,6 +203,7 @@
     try{
       var result=await (typeof master.activate==='function'?master.activate():null);
       if(result)status('Notifications activées sur ce lien uniquement.','ok');
+      else status('L’activation n’a pas été terminée. Vérifiez le message affiché puis réessayez.','bad');
       await refreshPushSystemStatusV776();
     }catch(err){status('Activation impossible : '+clean(err&&err.message||err),'bad')}finally{disable(btn,false);setTimeout(refreshPushSystemStatusV776,80)}
   }

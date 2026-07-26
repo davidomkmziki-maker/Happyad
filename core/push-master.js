@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_PUSH_MASTER_V43__)return;
-  window.__HAPPYAD_PUSH_MASTER_V43__=true;
+  if(window.__HAPPYAD_PUSH_MASTER_V44__)return;
+  window.__HAPPYAD_PUSH_MASTER_V44__=true;
 
-  var VERSION='HAPPYAD_PUSH_MASTER_V43_POPUP_DELIVERY_PRIORITY';
+  var VERSION='HAPPYAD_PUSH_MASTER_V44_ACTIVATION_RELIABLE_DIAGNOSTIC';
   var VAPID_PUBLIC_KEY='BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
   var INSTALL_KEY='HAPPYAD_PUSH_INSTALLATION_ID_V1';
   var DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V2';
@@ -13,7 +13,8 @@
   var VAPID_BINDING_KEY='HAPPYAD_PUSH_VAPID_PUBLIC_KEY_V1';
   var LAST_ENSURE_KEY='HAPPYAD_PUSH_LAST_ENSURE_AT_V1';
   var LAST_DELAY_NOTICE_KEY='HAPPYAD_PUSH_LAST_DELAY_NOTICE_AT_V1';
-  var REPAIR_KEY='HAPPYAD_PUSH_REPAIR_V779';
+  var REPAIR_KEY='HAPPYAD_PUSH_REPAIR_V780';
+  var LAST_ERROR_KEY='HAPPYAD_PUSH_LAST_ERROR_V780';
   var ENSURE_INTERVAL_MS=4*60*60*1000;
   var PROMPT_INTERVAL_MS=24*60*60*1000;
   var ui=null;
@@ -28,6 +29,30 @@
   function safeGet(k){try{return localStorage.getItem(k)||'';}catch(e){return '';}}
   function safeSet(k,v){try{localStorage.setItem(k,String(v));}catch(e){}}
   function safeRemove(k){try{localStorage.removeItem(k);}catch(e){}}
+  function rememberError(err){
+    var raw=clean(err&&err.message||err&&err.code||err);
+    if(raw)safeSet(LAST_ERROR_KEY,raw);else safeRemove(LAST_ERROR_KEY);
+    return raw;
+  }
+  function clearError(){safeRemove(LAST_ERROR_KEY);}
+  function activationErrorMessage(err){
+    var raw=clean(err&&err.message||err&&err.code||err).toUpperCase();
+    if(!raw)return 'Activation impossible. Réessayez après avoir actualisé HAPPYAD.';
+    if(raw.indexOf('AUTH_OR_SW_NOT_READY')>=0||raw.indexOf('AUTH_REQUIRED')>=0)return 'Reconnectez-vous puis réessayez l’activation.';
+    if(raw.indexOf('SERVICE_WORKER_TIMEOUT')>=0||raw.indexOf('SERVICE WORKER')>=0)return 'Le moteur de notification n’est pas encore prêt. Actualisez HAPPYAD puis réessayez.';
+    if(raw.indexOf('PGRST202')>=0||raw.indexOf('FUNCTION')>=0&&raw.indexOf('NOT FOUND')>=0||raw.indexOf('HAPPYAD_PUSH_REGISTER_SUBSCRIPTION')>=0)return 'Le SQL Push doit être réparé dans Supabase avant l’activation.';
+    if(raw.indexOf('SUBSCRIPTION_INCOMPLETE')>=0)return 'Le téléphone n’a pas créé une souscription Push complète. Réessayez après avoir actualisé.';
+    if(raw.indexOf('NOTALLOWEDERROR')>=0||raw.indexOf('PERMISSION')>=0)return 'Android ou Chrome bloque les notifications pour HAPPYAD.';
+    if(raw.indexOf('ABORTERROR')>=0||raw.indexOf('INVALIDSTATEERROR')>=0)return 'L’ancien abonnement du navigateur est bloqué. Actualisez HAPPYAD puis réessayez.';
+    if(raw.indexOf('NETWORK')>=0||raw.indexOf('FAILED TO FETCH')>=0)return 'Connexion impossible à Supabase. Vérifiez Internet puis réessayez.';
+    return 'Activation impossible : '+clean(err&&err.message||err&&err.code||err).slice(0,140);
+  }
+  function workerReady(timeoutMs){
+    return Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise(function(_resolve,reject){setTimeout(function(){reject(new Error('SERVICE_WORKER_TIMEOUT'));},Number(timeoutMs||10000));})
+    ]);
+  }
   function supports(){return !!(window.isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window);}
   function client(){
     try{if(typeof window.happyadSb==='function')return window.happyadSb();}catch(e){}
@@ -149,7 +174,7 @@
     box.querySelector('.haPushClose').addEventListener('click',function(){safeSet(promptKey(uid),now());hidePrompt();schedulePromptReminder(uid);});
     box.querySelector('.haPushEnable').addEventListener('click',function(){
       if(denied){safeSet(promptKey(uid),now());hidePrompt();schedulePromptReminder(uid);toast('Dans les paramètres du navigateur, ouvrez Autorisations puis activez Notifications pour HAPPYAD.');return;}
-      activateFromGesture();
+      activateFromGesture().catch(function(){});
     });
     document.body.appendChild(box);ui=box;
   }
@@ -194,38 +219,52 @@
       p_platform:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||''
     }).then(function(r){
       if(r&&r.error)throw r.error;
-      return cleanupOwnSubscriptions(session,s).then(function(){return verifySingleActiveSubscription(session,s);});
-    }).then(function(){
+      var data=r&&r.data;
+      if(data&&data.ok===false)throw new Error(clean(data.error)||'PUSH_REGISTER_REJECTED');
+
+      /* V780 : l’enregistrement atomique est la seule étape bloquante.
+         Les contrôles secondaires ne doivent plus annuler une activation réussie. */
+      Promise.resolve()
+        .then(function(){return cleanupOwnSubscriptions(session,s);})
+        .then(function(){return verifySingleActiveSubscription(session,s);})
+        .catch(function(err){try{console.warn('HAPPYAD PUSH secondary verification',err);}catch(_e){}});
+
       safeSet(LAST_UID_KEY,session.user.id);
       safeSet(VAPID_BINDING_KEY,VAPID_PUBLIC_KEY);
       safeSet(LAST_ENSURE_KEY,now());
       lastSessionUid=session.user.id;
+      clearError();
       notifyWorker('HAPPYAD_PUSH_SUBSCRIPTION_BOUND',{user_id:session.user.id,installation_id:installationId(),endpoint:s.endpoint});
       return sub;
     });
   }
-  function ensureSubscription(showErrors){
+
+  function ensureSubscription(showErrors,propagate){
     if(ensurePromise)return ensurePromise;
     if(!supports()||Notification.permission!=='granted')return Promise.resolve(null);
     busy=true;
-    ensurePromise=Promise.all([navigator.serviceWorker.ready,currentSession()]).then(function(values){
+    ensurePromise=Promise.all([workerReady(12000),currentSession()]).then(function(values){
       var reg=values[0],session=values[1];if(!reg||!session||!session.user)throw new Error('AUTH_OR_SW_NOT_READY');
       var previousUid=clean(safeGet(LAST_UID_KEY));
       return reg.pushManager.getSubscription().then(function(sub){
-        if(sub&&previousUid&&previousUid!==session.user.id){
-          return retireSubscription(session,sub);
-        }
-        if(sub&&!subscriptionUsesCurrentVapid(sub)){
-          return retireSubscription(session,sub);
-        }
+        if(sub&&previousUid&&previousUid!==session.user.id)return retireSubscription(session,sub);
+        if(sub&&!subscriptionUsesCurrentVapid(sub))return retireSubscription(session,sub);
         return sub;
       }).then(function(sub){
         if(sub)return sub;
         return reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToUint8Array(VAPID_PUBLIC_KEY)});
       }).then(function(sub){return saveSubscription(session,sub);});
-    }).catch(function(err){if(showErrors)toast('Impossible d’activer les notifications.');try{console.warn('HAPPYAD PUSH',err);}catch(e){}return null;}).finally(function(){busy=false;ensurePromise=null;});
+    }).catch(function(err){
+      rememberError(err);
+      var message=activationErrorMessage(err);
+      if(showErrors)toast(message);
+      try{console.warn('HAPPYAD PUSH activation',err);}catch(e){}
+      if(propagate)throw new Error(message);
+      return null;
+    }).finally(function(){busy=false;ensurePromise=null;});
     return ensurePromise;
   }
+
   function ensureIfDue(force){
     if(!supports()||Notification.permission!=='granted')return Promise.resolve(null);
     var last=Number(safeGet(LAST_ENSURE_KEY)||0);
@@ -255,12 +294,12 @@
     return p.then(function(permission){
       if(permission!=='granted'){if(uid){safeSet(promptKey(uid),now());schedulePromptReminder(uid);}hidePrompt();toast('Autorisation de notification non accordée.');return null;}
       if(uid)safeRemove(promptKey(uid));clearPromptTimer();
-      return ensureSubscription(true).then(function(sub){
+      return ensureSubscription(true,true).then(function(sub){
         if(!sub)return null;
         hidePrompt();toast('Notifications HAPPYAD activées sur ce lien uniquement.');
         return sub;
       });
-    }).catch(function(){toast('Impossible d’activer les notifications.');return null;});
+    }).catch(function(err){var msg=activationErrorMessage(err);rememberError(err);toast(msg);throw err;});
   }
   function testAfterClose(){
     return ensureSubscription(true).then(function(sub){
@@ -446,7 +485,7 @@
       if(!supports())return Promise.resolve({supported:false,permission:'unsupported',subscribed:false});
       return navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.getSubscription();}).then(function(sub){
         var uid=clean(lastSessionUid);var dismissed=uid?promptDismissedAt(uid):0;
-        return {supported:supports(),permission:Notification.permission,subscribed:!!sub,installation_id:installationId(),last_ensure_at:Number(safeGet(LAST_ENSURE_KEY)||0),prompt_due_at:dismissed?dismissed+PROMPT_INTERVAL_MS:0};
+        return {supported:supports(),permission:Notification.permission,subscribed:!!sub,installation_id:installationId(),last_ensure_at:Number(safeGet(LAST_ENSURE_KEY)||0),prompt_due_at:dismissed?dismissed+PROMPT_INTERVAL_MS:0,last_error:clean(safeGet(LAST_ERROR_KEY))};
       }).catch(function(){return {supported:supports(),permission:Notification.permission,subscribed:false};});
     }
   };
