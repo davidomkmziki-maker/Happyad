@@ -1385,8 +1385,9 @@ html:not(.happyadMainDockCssReadyV593) #happyadMainDockV585{
 .happyadHomeVirtualSpacerV616{display:none!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;pointer-events:none!important;}
 #list.homeTimeline .miniCard,#list.feedGrid .miniCard{content-visibility:auto;contain-intrinsic-size:auto 560px;}
 #list.feedGrid .miniCard{contain-intrinsic-size:auto 300px;}
-/* Les cartes déjà vues ne redeviennent jamais une surface vide pendant un retour rapide. */
-#list.homeTimeline .miniCard{content-visibility:visible!important;contain-intrinsic-size:none!important;}
+/* V768 : les cartes éloignées redeviennent légères. Le navigateur conserve leur
+   hauteur mémorisée sans repeindre toute la timeline à chaque mouvement. */
+#list.homeTimeline .miniCard{content-visibility:auto!important;contain-intrinsic-size:auto 560px!important;}
 </style>
 <style id="happyad-v643-home-media-fallback-css">
 .happyadVideoFallbackV643,.happyadMediaUnavailableV643{width:100%;height:100%;min-height:180px;display:grid;place-items:center;align-content:center;gap:8px;background:radial-gradient(circle at 50% 35%,#232936 0,#121722 42%,#090c12 100%);color:#e9edf5;font-weight:900;letter-spacing:.2px}
@@ -1439,6 +1440,11 @@ let HAPPYAD_HOME_MORE_LOADING=false;
 let HAPPYAD_HOME_REMOTE_DONE=false;
 let HAPPYAD_HOME_FULL_SYNC_RUNNING=false;
 let HAPPYAD_HOME_FULL_SYNC_DONE=false;
+/* HAPPYAD V770 — une seule vague de pagination peut travailler à la fois.
+   Les déclencheurs IntersectionObserver, resize et reprises partagent ce verrou. */
+let HAPPYAD_HOME_PAGINATION_CYCLE_V770=false;
+let HAPPYAD_HOME_PAGINATION_PENDING_V770=false;
+let HAPPYAD_HOME_PAGINATION_TIMER_V770=0;
 
 /* HAPPYAD V627 — pagination stable created_at + id.
    Les nouvelles publications ajoutées en haut ne déplacent plus les pages anciennes. */
@@ -4124,6 +4130,24 @@ function happyadUpdateHomePaginationStateV765(){
     }
   }catch(_e){}
 }
+function happyadScheduleHomePaginationV770(delay){
+  clearTimeout(HAPPYAD_HOME_PAGINATION_TIMER_V770);
+  HAPPYAD_HOME_PAGINATION_TIMER_V770=setTimeout(function(){
+    HAPPYAD_HOME_PAGINATION_TIMER_V770=0;
+    happyadMaybeLoadMoreHome();
+  },Math.max(120,Number(delay)||180));
+}
+function happyadReleaseHomePaginationV770(recheck,delay){
+  HAPPYAD_HOME_PAGINATION_CYCLE_V770=false;
+  var mustRecheck=!!recheck||HAPPYAD_HOME_PAGINATION_PENDING_V770;
+  HAPPYAD_HOME_PAGINATION_PENDING_V770=false;
+  if(mustRecheck)happyadScheduleHomePaginationV770(delay||180);
+}
+function happyadReleaseHomePaginationAfterPaintV770(recheck){
+  var done=function(){happyadReleaseHomePaginationV770(recheck,190);};
+  try{requestAnimationFrame(function(){requestAnimationFrame(done);});}
+  catch(_e){setTimeout(done,80);}
+}
 async function happyadLoadMoreRemotePosts(){
   if(HAPPYAD_HOME_MORE_LOADING||HAPPYAD_HOME_REMOTE_DONE)return false;
   const c=happyadSb();
@@ -4189,32 +4213,43 @@ async function happyadLoadMoreRemotePosts(){
     try{happyadEnsureHomeScrollLoader();happyadUpdateHomePaginationStateV765();}catch(_e){}
     /* Après une page de doublons ou une réponse lente, le sentinel relance proprement
        la vérification si l'utilisateur se trouve encore réellement au bas du fil. */
-    if(!lastError&&!visibleAdded&&!HAPPYAD_HOME_REMOTE_DONE&&rawAdded===0){setTimeout(happyadMaybeLoadMoreHome,180);}
+    if(!lastError&&!visibleAdded&&!HAPPYAD_HOME_REMOTE_DONE&&rawAdded===0){HAPPYAD_HOME_PAGINATION_PENDING_V770=true;}
   }
   return visibleAdded;
 }
 function happyadMaybeLoadMoreHome(){
   try{
     try{if(window.HappyStartupV727&&!window.HappyStartupV727.allowPagination())return;}catch(_g){}
+    if(HAPPYAD_HOME_PAGINATION_CYCLE_V770){HAPPYAD_HOME_PAGINATION_PENDING_V770=true;return;}
     if(window.scrollY<160 && window.__HAPPYAD_HOME_PENDING_NEW_V627__){window.__HAPPYAD_HOME_PENDING_NEW_V627__=false;HAPPYAD_LAST_RENDER_SIG='';render();}
     happyadMaintainHomeWindowV616();
     if(!list)return;
     var vh=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,600);
     var bottom=list.getBoundingClientRect().bottom;
-    /* V764 : la distance réelle jusqu'au bas de la liste est plus fiable que
-       document.scrollHeight sur Android/PWA avec le dock fixe. */
-    if(bottom>vh+1650)return;
+    /* V770 : déclencher près du bas, mais plus à presque deux écrans d'avance. */
+    var preloadDistance=Math.max(650,Math.min(1000,Math.round(vh*.9)));
+    if(bottom>vh+preloadDistance)return;
+
+    HAPPYAD_HOME_PAGINATION_CYCLE_V770=true;
     const total=happyadHomeVisibleTotal();
     if(HAPPYAD_HOME_RENDER_LIMIT<total){
       HAPPYAD_HOME_RENDER_LIMIT=Math.min(total,HAPPYAD_HOME_RENDER_LIMIT+HAPPYAD_HOME_PROGRESSIVE_STEP_V764);
       HAPPYAD_LAST_RENDER_SIG='';
       render();
       try{happyadUpdateHomePaginationStateV765();}catch(_state){}
-      setTimeout(happyadMaybeLoadMoreHome,90);
+      /* Une seule tranche de cinq cartes, puis attendre deux peintures avant
+         d'autoriser la vérification suivante. */
+      happyadReleaseHomePaginationAfterPaintV770(true);
       return;
     }
-    happyadLoadMoreRemotePosts();
-  }catch(e){}
+    Promise.resolve(happyadLoadMoreRemotePosts()).then(function(){
+      happyadReleaseHomePaginationV770(true,220);
+    }).catch(function(){
+      happyadReleaseHomePaginationV770(false,220);
+    });
+  }catch(e){
+    happyadReleaseHomePaginationV770(false,180);
+  }
 }
 function happyadEnsureHomePaginationSentinelV694(){
   try{
@@ -4231,7 +4266,7 @@ function happyadEnsureHomePaginationSentinelV694(){
     if(!window.__happyadHomePaginationObserverV694&&'IntersectionObserver' in window){
       window.__happyadHomePaginationObserverV694=new IntersectionObserver(function(entries){
         if(entries.some(function(entry){return entry.isIntersecting;}))happyadMaybeLoadMoreHome();
-      },{root:null,rootMargin:'1800px 0px 900px 0px',threshold:0});
+      },{root:null,rootMargin:'950px 0px 500px 0px',threshold:0});
     }
     if(window.__happyadHomePaginationObserverV694){
       if(window.__happyadHomePaginationSentinelNodeV764&&window.__happyadHomePaginationSentinelNodeV764!==sentinel){try{window.__happyadHomePaginationObserverV694.unobserve(window.__happyadHomePaginationSentinelNodeV764);}catch(_e){}}
@@ -4246,10 +4281,10 @@ function happyadEnsureHomeScrollLoader(){
   happyadEnsureHomePaginationSentinelV694();
   if(window.__happyadHomeScrollLoaderBound)return;
   window.__happyadHomeScrollLoaderBound=true;
-  let t=null;
-  window.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(happyadMaybeLoadMoreHome,55);},{passive:true});
-  window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(happyadMaybeLoadMoreHome,110);});
-  window.addEventListener('pageshow',function(e){if(!e||!e.persisted)return;setTimeout(function(){happyadEnsureHomePaginationSentinelV694();happyadMaybeLoadMoreHome();},120);},{passive:true});
+  /* V770 : IntersectionObserver est l'unique déclencheur pendant le scroll.
+     Resize et pageshow passent par le même ordonnanceur, sans listener scroll concurrent. */
+  window.addEventListener('resize',function(){happyadScheduleHomePaginationV770(140);});
+  window.addEventListener('pageshow',function(e){if(!e||!e.persisted)return;setTimeout(function(){happyadEnsureHomePaginationSentinelV694();happyadScheduleHomePaginationV770(140);},120);},{passive:true});
 }
 
 async function happyadRunHomeBootV655(){
@@ -10268,7 +10303,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 }
 </style>
 <script src="core/story-master-v699.js?v=728-story-analytics-events"></script>
-<script src="core/home-scroll-prepaint-master-v696.js?v=767-single-media-hydrator"></script>
+<script src="core/home-scroll-prepaint-master-v696.js?v=769-stable-style"></script>
 <style id="happyad-v635-story-compact-responsive">
 /* V635 — lecteur Story compact et adaptatif, même rendu depuis Radar et Profil. */
 #happyStoryViewerMasterV629.haStoryV629{
