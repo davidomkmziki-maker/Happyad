@@ -7691,7 +7691,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=786-push-banner-renew',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=785-push-real-sender-avatar',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9799,12 +9799,12 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
-<script src="core/navigation-master-v668.js?v=784-own-profile-nine-first"></script>
+<script src="core/navigation-master-v668.js?v=787-message-realtime-preload"></script>
 <script src="core/auth-session-master-v598.js?v=776-push-clean-signout"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=758-visitor-isolation"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=763-home-stable"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=763-home-stable"></script>
-<script src="core/main-tabs-master-v615.js?v=784-own-profile-nine-first"></script>
+<script src="core/main-tabs-master-v615.js?v=787-message-realtime-preload"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -9932,11 +9932,11 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 
 </script>
 
-<script id="happyad-message-realtime-global-phase5f-v37">
+<script id="happyad-message-realtime-global-phase5f-v787">
 (function(){
   'use strict';
-  if(window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V37__) return;
-  window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V37__ = true;
+  if(window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V787__) return;
+  window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V787__ = true;
 
   var TABLES=[
     'happyad_msg_messages',
@@ -9953,6 +9953,13 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   var authBound=false;
   var generation=0;
   var deliveredSeqByConversation=Object.create(null);
+  /* HAPPYAD V787 — Le pont Realtime doit attendre la vraie iframe Messages.
+     Une publication vers about:blank ou vers l'ancien identifiant était perdue. */
+  var messageCenterReadyV787=false;
+  var pendingRealtimeEventsV787=[];
+  var pendingRealtimeStatusV787=null;
+  var boundMessageFrameV787=null;
+  var MAX_PENDING_REALTIME_V787=240;
 
   function clean(value){return String(value==null?'':value).trim();}
   function isUuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(value));}
@@ -9965,21 +9972,66 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
     }catch(_e){}
     return null;
   }
-  function frame(){return document.getElementById('happyadMessageCenterFrame');}
+  function frame(){
+    return document.getElementById('happyadAppFrame_message') || document.getElementById('happyadMessageCenterFrame');
+  }
+  function bindMessageFrameV787(){
+    var f=frame();
+    if(!f||f===boundMessageFrameV787)return f;
+    boundMessageFrameV787=f;
+    try{
+      f.addEventListener('load',function(){
+        messageCenterReadyV787=false;
+        setTimeout(function(){
+          try{
+            if(f.contentWindow&&f.contentWindow.HappyadMessageMaster){
+              messageCenterReadyV787=true;
+              flushRealtimeQueueV787();
+            }
+          }catch(_e){}
+        },0);
+      });
+    }catch(_e){}
+    return f;
+  }
+  function postToMessageCenterV787(type,detail){
+    try{
+      var f=bindMessageFrameV787();
+      if(!messageCenterReadyV787||!f||!f.contentWindow)return false;
+      f.contentWindow.postMessage({type:type,detail:detail},'*');
+      return true;
+    }catch(_e){return false;}
+  }
+  function queueRealtimeEventV787(detail){
+    pendingRealtimeEventsV787.push(detail);
+    if(pendingRealtimeEventsV787.length>MAX_PENDING_REALTIME_V787){
+      pendingRealtimeEventsV787.splice(0,pendingRealtimeEventsV787.length-MAX_PENDING_REALTIME_V787);
+    }
+  }
+  function flushRealtimeQueueV787(){
+    if(!messageCenterReadyV787)return false;
+    var queued=pendingRealtimeEventsV787.splice(0,pendingRealtimeEventsV787.length);
+    for(var i=0;i<queued.length;i++){
+      if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_EVENT',queued[i])){
+        pendingRealtimeEventsV787=queued.slice(i).concat(pendingRealtimeEventsV787).slice(-MAX_PENDING_REALTIME_V787);
+        return false;
+      }
+    }
+    if(pendingRealtimeStatusV787){
+      var status=pendingRealtimeStatusV787;
+      pendingRealtimeStatusV787=null;
+      if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_STATUS',status))pendingRealtimeStatusV787=status;
+    }
+    return true;
+  }
   function publish(table,payload){
     var detail={table:table,payload:payload||{},at:Date.now()};
-    try{
-      var f=frame();
-      if(f&&f.contentWindow)f.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_EVENT',detail:detail},'*');
-    }catch(_e){}
+    if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_EVENT',detail))queueRealtimeEventV787(detail);
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_MESSAGE_REALTIME_EVENT',{detail:detail}));}catch(_e){}
   }
   function publishStatus(status,userId){
     var detail={status:clean(status),user_id:clean(userId),at:Date.now()};
-    try{
-      var f=frame();
-      if(f&&f.contentWindow)f.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_STATUS',detail:detail},'*');
-    }catch(_e){}
+    if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_STATUS',detail))pendingRealtimeStatusV787=detail;
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_MESSAGE_REALTIME_STATUS',{detail:detail}));}catch(_e){}
   }
   function refreshUnread(){
@@ -10022,6 +10074,8 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
     channel=null;
     channelUserId='';
     deliveredSeqByConversation=Object.create(null);
+    pendingRealtimeEventsV787=[];
+    pendingRealtimeStatusV787=null;
     if(old&&c&&typeof c.removeChannel==='function'){
       try{await c.removeChannel(old);}catch(_e){}
     }
@@ -10085,9 +10139,18 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   }
   function boot(){bindAuth();start(false).catch(function(){});setTimeout(bindAuth,900);}
 
-  window.HappyadMessageRealtime={version:'V38A2_DIFFERENTIAL_SYNC',start:start,stop:stop,getUserId:function(){return channelUserId;},getChannel:function(){return channel;}};
+  window.HappyadMessageRealtime={version:'V787_REALTIME_IFRAME_QUEUE',start:start,stop:stop,getUserId:function(){return channelUserId;},getChannel:function(){return channel;}};
   window.addEventListener('message',function(event){
-    try{var data=event&&event.data;if(data&&data.type==='HAPPYAD_MESSAGE_REALTIME_START')start(false).catch(function(){});}catch(_e){}
+    try{
+      var data=event&&event.data;
+      if(!data)return;
+      if(data.type==='HAPPYAD_MESSAGE_REALTIME_START')start(false).catch(function(){});
+      if(data.type==='HAPPYAD_MESSAGE_CENTER_READY'){
+        messageCenterReadyV787=true;
+        bindMessageFrameV787();
+        flushRealtimeQueueV787();
+      }
+    }catch(_e){}
   },true);
   window.addEventListener('online',function(){start(true).catch(function(){});});
   window.addEventListener('focus',function(){start(false).catch(function(){});});

@@ -3398,7 +3398,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V775_MESSAGES_COMPOSER_BOTTOM_STABLE';
+      const MASTER_VERSION = 'V787_MESSAGES_REALTIME_PRELOAD_CACHE';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -3550,6 +3550,13 @@
       const viewOnceTransitionIds = new Set();
       let realtimeConversationTimer = 0;
       let realtimeReadTimer = 0;
+      /* HAPPYAD V787 — Une iframe peut annoncer READY avant la fin de boot().
+         Les événements reçus pendant cette courte fenêtre restent en mémoire
+         puis sont fusionnés et persistés dès que le compte et IndexedDB sont prêts. */
+      let realtimeCacheReadyV787 = false;
+      const pendingRealtimeEventsV787 = [];
+      const MAX_PENDING_REALTIME_V787 = 240;
+      let drainingRealtimeEventsV787 = false;
       let activeMessageView = 'inbox';
       let personSelectorOpen = false;
       let personSelectorMode = 'new_conversation';
@@ -12238,7 +12245,7 @@
         refreshBlockState(target).catch(() => {});
       }
 
-      function handleRealtimeEvent(detail){
+      function applyRealtimeEventNowV787(detail){
         detail = detail && typeof detail === 'object' ? detail : {};
         const table = clean(detail.table);
         const payload = detail.payload && typeof detail.payload === 'object' ? detail.payload : {};
@@ -12276,6 +12283,39 @@
           scheduleRealtimeConversationRefresh(80);
           return;
         }
+      }
+
+      function realtimeCacheAvailableV787(){
+        const ownerId = clean(authUser && authUser.id);
+        return realtimeCacheReadyV787 && isUuid(ownerId) && clean(localDbUserId) === ownerId;
+      }
+
+      function queueRealtimeEventV787(detail){
+        pendingRealtimeEventsV787.push(detail && typeof detail === 'object' ? detail : {});
+        if(pendingRealtimeEventsV787.length > MAX_PENDING_REALTIME_V787){
+          pendingRealtimeEventsV787.splice(0,pendingRealtimeEventsV787.length - MAX_PENDING_REALTIME_V787);
+        }
+      }
+
+      function drainRealtimeEventsV787(){
+        if(drainingRealtimeEventsV787 || !realtimeCacheAvailableV787()) return false;
+        drainingRealtimeEventsV787 = true;
+        try{
+          while(pendingRealtimeEventsV787.length && realtimeCacheAvailableV787()){
+            applyRealtimeEventNowV787(pendingRealtimeEventsV787.shift());
+          }
+          return true;
+        }finally{
+          drainingRealtimeEventsV787 = false;
+        }
+      }
+
+      function handleRealtimeEvent(detail){
+        if(!realtimeCacheAvailableV787()){
+          queueRealtimeEventV787(detail);
+          return;
+        }
+        applyRealtimeEventNowV787(detail);
       }
 
       async function syncMessagesAfter(conversationId, afterServerSeq,options){
@@ -14217,6 +14257,7 @@
 
       async function boot(){
         if(bootPromise) return bootPromise;
+        realtimeCacheReadyV787 = false;
         bootPromise = (async function(){
           const hintedUserId = cachedSessionUserId();
           let hintedCache = [];
@@ -14261,8 +14302,11 @@
           setTimeout(() => refreshConnectedIdentitySoon(0),1100);
           subscribeProfileIdentityRealtime();
           refreshUnreadTotal().catch(() => {});
+          realtimeCacheReadyV787 = true;
+          drainRealtimeEventsV787();
           return user;
         })().catch(error => {
+          realtimeCacheReadyV787 = false;
           if(messageInput && (!authUser || !isUuid(authUser.id))) messageInput.disabled = true;
           if(!conversations.length) setListState('Connexion requise pour ouvrir Messages.');
           throw error;
@@ -14757,6 +14801,8 @@
           const previousId = clean(authUser && authUser.id);
           const changed = !!(previousId && previousId !== nextUser.id);
           if(changed){
+            realtimeCacheReadyV787 = false;
+            pendingRealtimeEventsV787.length = 0;
             try{ closeLocalMessageDb(true); }catch(_e){}
             conversations = [];
             conversationMessageBuckets.clear();
@@ -14787,6 +14833,8 @@
         return authRecoveryPromiseV595;
       }
       function applySignedOutV595(){
+        realtimeCacheReadyV787 = false;
+        pendingRealtimeEventsV787.length = 0;
         authUser = null;
         authProfile = null;
         if(profileRealtimeChannel){ try{ getClient().removeChannel(profileRealtimeChannel); }catch(_e){} profileRealtimeChannel = null; }
