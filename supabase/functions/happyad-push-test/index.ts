@@ -502,20 +502,21 @@ function notificationPreview(message: Record<string, unknown>): string {
   return prefix + (text || 'Nouveau message')
 }
 
-function rowsByUser(rows: Array<Record<string, unknown>>) {
-  const grouped = new Map<string, Array<Record<string, unknown>>>()
-  const seenEndpoints = new Set<string>()
+function newestRowByUser(rows: Array<Record<string, unknown>>) {
+  const selected = new Map<string, Record<string, unknown>>()
   for (const row of rows || []) {
     const uid = clean(row.user_id)
-    const endpoint = clean(row.endpoint)
-    if (!uid || !endpoint || seenEndpoints.has(endpoint)) continue
-    seenEndpoints.add(endpoint)
-    const list = grouped.get(uid) || []
-    list.push(row)
-    list.sort((a, b) => (Date.parse(clean(b.updated_at)) || 0) - (Date.parse(clean(a.updated_at)) || 0))
-    grouped.set(uid, list)
+    if (!uid) continue
+    const previous = selected.get(uid)
+    if (!previous) {
+      selected.set(uid, row)
+      continue
+    }
+    const previousTime = Date.parse(clean(previous.updated_at)) || 0
+    const currentTime = Date.parse(clean(row.updated_at)) || 0
+    if (currentTime >= previousTime) selected.set(uid, row)
   }
-  return grouped
+  return selected
 }
 
 Deno.serve(async (req) => {
@@ -592,19 +593,17 @@ Deno.serve(async (req) => {
     const delaySeconds = Math.max(0, Math.min(30, Math.floor(requestedDelay)))
     const task = async () => {
       if (delaySeconds > 0) await sleep(delaySeconds * 1000)
-      const requestedInstallation = clean(body.installation_id)
-      let subscriptionQuery = admin
+      const { data: subscriptions, error } = await admin
         .from('happyad_push_subscriptions')
-        .select('endpoint,p256dh,auth_key,installation_id,device_id,updated_at')
+        .select('endpoint,p256dh,auth_key,updated_at')
         .eq('user_id', user.id)
         .eq('enabled', true)
         .order('updated_at', { ascending: false })
-      if (requestedInstallation) subscriptionQuery = subscriptionQuery.eq('installation_id', requestedInstallation)
-      const { data: subscriptions, error } = await subscriptionQuery
+        .limit(1)
       if (error) throw error
-      const rows = (subscriptions || []) as Array<Record<string, unknown>>
-      if (!rows.length) return { sent: 0, failed: 0, devices: 0 }
-      const testPayload = JSON.stringify({
+      const row = subscriptions?.[0]
+      if (!row) return { sent: 0, failed: 0 }
+      return sendToRow(row, JSON.stringify({
         type: 'happyad_test',
         title: 'HAPPYAD',
         body: 'Les notifications HAPPYAD fonctionnent même lorsque l’application est fermée.',
@@ -616,15 +615,7 @@ Deno.serve(async (req) => {
         push_id: crypto.randomUUID(),
         sent_at: new Date().toISOString(),
         timestamp: Date.now(),
-      })
-      let sent = 0
-      let failed = 0
-      for (const row of rows) {
-        const result = await sendToRow(row, testPayload, 'happyad-push-test')
-        sent += result.sent
-        failed += result.failed
-      }
-      return { sent, failed, devices: rows.length }
+      }), 'happyad-push-test')
     }
     if (delaySeconds > 0) {
       EdgeRuntime.waitUntil(task().catch((error) => console.error('HAPPYAD delayed test failed', error)))
@@ -703,14 +694,14 @@ Deno.serve(async (req) => {
 
   const { data: subscriptionRows, error: subscriptionError } = await admin
     .from('happyad_push_subscriptions')
-    .select('endpoint,p256dh,auth_key,user_id,installation_id,device_id,updated_at')
+    .select('endpoint,p256dh,auth_key,user_id,updated_at')
     .in('user_id', recipients)
     .eq('enabled', true)
   if (subscriptionError) {
     console.error('HAPPYAD subscriptions lookup failed', subscriptionError)
     return json({ ok: false, error: 'SUBSCRIPTION_LOOKUP_FAILED' }, 500)
   }
-  const subscriptionsByUser = rowsByUser((subscriptionRows || []) as Array<Record<string, unknown>>)
+  const subscriptionByUser = newestRowByUser((subscriptionRows || []) as Array<Record<string, unknown>>)
 
   const { data: existingDeliveries } = await admin
     .from('happyad_push_deliveries')
@@ -730,7 +721,7 @@ Deno.serve(async (req) => {
       continue
     }
 
-    const activeSubscriptions = subscriptionsByUser.get(recipientId) || []
+    const activeSubscription = subscriptionByUser.get(recipientId)
     const member = (memberMap.get(recipientId) || {}) as Record<string, unknown>
     const lastReadSeq = Math.max(0, finite(member.last_read_seq || member.read_through_seq, 0))
     const unreadCount = Math.max(1, serverSeq > 0 ? serverSeq - lastReadSeq : 1)
@@ -739,13 +730,13 @@ Deno.serve(async (req) => {
       event_type: 'message',
       event_id: messageId,
       recipient_id: recipientId,
-      status: activeSubscriptions.length ? 'pending' : 'no_subscription',
+      status: activeSubscription ? 'pending' : 'no_subscription',
       attempts: 0,
       last_attempt_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'event_type,event_id,recipient_id' })
 
-    if (!activeSubscriptions.length) {
+    if (!activeSubscription) {
       skipped += 1
       continue
     }
@@ -794,29 +785,20 @@ Deno.serve(async (req) => {
       timestamp: Date.now(),
     })
 
-    let recipientSent = 0
-    let recipientFailed = 0
-    for (const activeSubscription of activeSubscriptions) {
-      const result = await sendToRow(
-        activeSubscription,
-        payload,
-        'msg-' + messageId.replace(/-/g, '').slice(0, 28),
-      )
-      recipientSent += result.sent
-      recipientFailed += result.failed
-    }
-    sent += recipientSent
-    failed += recipientFailed
+    const result = await sendToRow(
+      activeSubscription,
+      payload,
+      'msg-' + messageId.replace(/-/g, '').slice(0, 28),
+    )
+    sent += result.sent
+    failed += result.failed
 
-    const deliveryStatus = recipientSent === activeSubscriptions.length
-      ? 'sent'
-      : (recipientSent > 0 ? 'partial' : 'failed')
     await admin.from('happyad_push_deliveries').update({
-      status: deliveryStatus,
-      attempts: activeSubscriptions.length,
-      sent_at: recipientSent > 0 ? new Date().toISOString() : null,
+      status: result.sent > 0 ? 'sent' : 'failed',
+      attempts: 1,
+      sent_at: result.sent > 0 ? new Date().toISOString() : null,
       last_attempt_at: new Date().toISOString(),
-      last_error: recipientFailed > 0 ? 'ONE_OR_MORE_DEVICE_ENDPOINTS_FAILED' : null,
+      last_error: result.sent > 0 ? null : 'ACTIVE_ENDPOINT_FAILED',
       updated_at: new Date().toISOString(),
     })
       .eq('event_type', 'message')
@@ -837,6 +819,5 @@ Deno.serve(async (req) => {
     sender_avatar_field: senderAvatarField,
     sender_avatar_status: senderAvatarStatus,
     sender_avatar_fallback_reason: senderAvatarFallbackReason,
-    delivered_devices: sent,
   })
 })
