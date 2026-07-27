@@ -2,7 +2,7 @@
   "name": "HAPPYAD",
   "short_name": "HAPPYAD",
   "description": "HAPPYAD - réseau social et installation PWA.",
-  "start_url": "./index.html?source=pwa&v=787-push-avatar-real-png",
+  "start_url": "./index.html?source=pwa&v=752-auth-storage-quota-idb",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

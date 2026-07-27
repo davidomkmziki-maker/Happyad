@@ -1,4 +1,4 @@
-// HAPPYAD V788 — Push immédiat hors application + avatar exact authentifié sans contrôle réseau bloquant
+// HAPPYAD V785 — Push Messages : avatar expéditeur réel, source traçable et fallback sans perdre la livraison
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
@@ -70,21 +70,10 @@ function encodeStoragePath(path: string): string {
     .join('/')
 }
 
-function isHappyadApplicationAsset(value: string): boolean {
-  const lower = clean(value).toLowerCase()
-  if (!lower) return false
-  return [
-    '/icons/happyad-', 'happyad-icon-v', 'happyad-notification-badge',
-    'happyad-logo', 'logo-happyad', 'happyad_app_icon', 'happyad-app-icon',
-    '/favicon.', '/favicon/', 'android-chrome-', 'apple-touch-icon'
-  ].some((token) => lower.includes(token))
-}
-
 function isRejectedAvatarValue(value: string): boolean {
   const lower = value.toLowerCase()
   if (!value || value.length > 4096 || /^data:|^blob:/i.test(value)) return true
   if (['none', 'null', 'undefined', 'default', 'avatar', 'user', '👤', '🧑'].includes(lower)) return true
-  if (isHappyadApplicationAsset(value)) return true
   return lower.includes('placeholder') || lower.includes('default-avatar') || lower.includes('avatar-default')
 }
 
@@ -272,7 +261,7 @@ async function signedAvatarUrl(
 }
 
 async function resolveAvatarFromRows(
-  _admin: ReturnType<typeof createClient>,
+  admin: ReturnType<typeof createClient>,
   supabaseUrl: string,
   rows: IdentityRow[],
 ) {
@@ -295,17 +284,50 @@ async function resolveAvatarFromRows(
     return { avatar: '', source: '', field: '', status: 'missing', fallbackReason: 'NO_AVATAR_VALUE', table: '', match: '' }
   }
 
-  /* V788 : ne jamais retarder l'envoi Web Push avec un HEAD/GET d'avatar.
-     Android doit pouvoir réveiller le Service Worker et afficher le popup
-     même si HAPPYAD n'a pas été ouvert. La première URL HTTPS appartenant à
-     l'identité authentifiée est transmise directement à showNotification(). */
+  const checks = await Promise.all(expanded.map(async (candidate) => ({
+    candidate,
+    probe: await probeAvatarUrl(candidate.url),
+  })))
+  const verified = checks.find((item) => item.probe.ok)
+  if (verified) {
+    return {
+      avatar: verified.candidate.url,
+      source: verified.candidate.source + ':' + verified.candidate.method,
+      field: verified.candidate.field,
+      status: 'verified',
+      fallbackReason: '',
+      table: verified.candidate.table,
+      match: verified.candidate.match,
+    }
+  }
+
+  /* Si le bucket est privé, générer une URL signée longue durée. */
+  for (const candidate of expanded.slice(0, 6)) {
+    const signed = await signedAvatarUrl(admin, candidate)
+    if (!signed) continue
+    const probe = await probeAvatarUrl(signed)
+    if (!probe.ok) continue
+    return {
+      avatar: signed,
+      source: candidate.source + ':signed-' + candidate.method,
+      field: candidate.field,
+      status: 'verified-signed',
+      fallbackReason: '',
+      table: candidate.table,
+      match: candidate.match,
+    }
+  }
+
+  /* Ne pas supprimer une vraie valeur uniquement parce qu'un contrôle réseau
+     temporaire a expiré : le Service Worker la vérifie encore une fois. */
   const first = expanded[0]
+  const firstReason = checks[0]?.probe?.reason || 'unverified'
   return {
     avatar: first.url,
     source: first.source + ':' + first.method,
     field: first.field,
-    status: first.source === 'authenticated.client_hint' ? 'authenticated-visible-avatar' : 'selected-without-network-probe',
-    fallbackReason: '',
+    status: 'unverified',
+    fallbackReason: 'PROBE_' + firstReason.toUpperCase().replace(/[^A-Z0-9]+/g, '_'),
     table: first.table,
     match: first.match,
   }
@@ -315,7 +337,6 @@ async function collectIdentityRows(
   admin: ReturnType<typeof createClient>,
   userId: string,
   message: Record<string, unknown>,
-  authenticatedHint: Record<string, unknown> = {},
 ): Promise<IdentityRow[]> {
   const specs = [
     { table: 'profiles', column: 'id', priority: 10 },
@@ -331,28 +352,6 @@ async function collectIdentityRows(
     { table: 'happyad_presence', column: 'user_id', priority: 60 },
   ]
   const found: IdentityRow[] = []
-
-  /* V787 : le navigateur de l'expéditeur connaît déjà la photo réellement
-     affichée dans HAPPYAD. Le hint est accepté uniquement pour l'utilisateur
-     authentifié, puis repasse par la validation HTTPS et les contrôles image.
-     Il sert surtout quand une ancienne ligne `profiles` contient encore le
-     logo de l'application ou une valeur périmée. */
-  const hintedAvatar = unwrapAvatarValue(authenticatedHint.avatar_url || authenticatedHint.avatar)
-  if (hintedAvatar && !isRejectedAvatarValue(hintedAvatar)) {
-    found.push({
-      row: {
-        id: userId,
-        user_id: userId,
-        full_name: clean(authenticatedHint.full_name || authenticatedHint.name),
-        avatar_url: hintedAvatar,
-      },
-      source: 'authenticated.client_hint',
-      table: 'authenticated_request',
-      match: 'auth.user.id',
-      priority: 5,
-    })
-  }
-
   await Promise.all(specs.map(async (spec) => {
     try {
       const result = await admin.from(spec.table).select('*').eq(spec.column, userId).limit(4)
@@ -414,14 +413,11 @@ async function resolveSenderIdentity(
   supabaseUrl: string,
   userId: string,
   message: Record<string, unknown>,
-  authenticatedHint: Record<string, unknown> = {},
 ) {
-  const hintAvatar = unwrapAvatarValue(authenticatedHint.avatar_url || authenticatedHint.avatar)
-  const cacheKey = userId + '|' + hintAvatar
-  const cached = senderIdentityCache.get(cacheKey)
+  const cached = senderIdentityCache.get(userId)
   if (cached && cached.expires > Date.now() && clean(cached.value.avatar)) return cached.value
 
-  const rows = await collectIdentityRows(admin, userId, message, authenticatedHint)
+  const rows = await collectIdentityRows(admin, userId, message)
   let name = ''
   let nameSource = ''
   let badge = ''
@@ -449,7 +445,7 @@ async function resolveSenderIdentity(
     badge,
     handle,
   }
-  if (value.avatar) senderIdentityCache.set(cacheKey, { expires: Date.now() + 90000, value })
+  if (value.avatar) senderIdentityCache.set(userId, { expires: Date.now() + 90000, value })
   console.log('HAPPYAD_PUSH_SENDER_IDENTITY', JSON.stringify({
     sender_id: userId,
     rows: rows.length,
@@ -679,16 +675,7 @@ Deno.serve(async (req) => {
   /* V781 : l'identité ne doit jamais bloquer la livraison. La recherche
      complète les anciens comptes `user_id` et les métadonnées Auth, mais
      toutes les erreurs restent silencieuses et le Push continue. */
-  const senderIdentity = await resolveSenderIdentity(
-    admin,
-    supabaseUrl,
-    user.id,
-    message as Record<string, unknown>,
-    {
-      avatar_url: clean(body.sender_avatar_hint),
-      full_name: clean(body.sender_name_hint),
-    },
-  )
+  const senderIdentity = await resolveSenderIdentity(admin, supabaseUrl, user.id, message as Record<string, unknown>)
   const senderName = senderIdentity.name
   const senderAvatar = senderIdentity.avatar
   const senderBadge = senderIdentity.badge
@@ -828,7 +815,6 @@ Deno.serve(async (req) => {
     failed,
     skipped,
     sender_avatar_resolved: !!senderAvatar,
-    sender_avatar_hint_received: !!clean(body.sender_avatar_hint),
     sender_avatar_source: senderAvatarSource,
     sender_avatar_field: senderAvatarField,
     sender_avatar_status: senderAvatarStatus,

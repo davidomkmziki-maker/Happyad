@@ -8461,12 +8461,8 @@
         if(/^\/storage\/v1\/object\//i.test(url)) return SUPABASE_URL.replace(/\/+$/,'') + url;
         let path = url.replace(/^\/+/, '');
         let bucket = 'happyad-media';
-        const explicitBucket = path.match(/^happyad-media\/(.+)$/i);
-        if(explicitBucket){ path = explicitBucket[1]; }
-        /* V788 : `avatars/...`, `profile-photos/...` et `profile-images/...`
-           sont les dossiers officiels du bucket `happyad-media`. Les traiter
-           comme des buckets séparés fabrique une URL 404 et remplace ensuite
-           la photo par le logo de l'application dans Android. */
+        const bucketMatch = path.match(/^(happyad-media|avatars|profile-photos|profile-images)\/(.+)$/i);
+        if(bucketMatch){ bucket = bucketMatch[1]; path = bucketMatch[2]; }
         if(path.indexOf('/') < 0 && !/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(path)) return '';
         return SUPABASE_URL.replace(/\/+$/,'') + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + encodeURI(path);
       }
@@ -12336,66 +12332,6 @@
         flushMessagePushQueue().catch(() => {});
       }
 
-      function isHappyadApplicationAvatar(value){
-        const lower = clean(value).toLowerCase();
-        if(!lower) return false;
-        return [
-          '/icons/happyad-','happyad-icon-v','happyad-notification-badge',
-          'happyad-logo','logo-happyad','happyad_app_icon','happyad-app-icon',
-          '/favicon.','/favicon/','android-chrome-','apple-touch-icon'
-        ].some(token => lower.includes(token));
-      }
-
-      function usablePushAvatar(value){
-        const avatar = safeAvatar(value);
-        if(!/^https:\/\//i.test(avatar)) return '';
-        if(isHappyadApplicationAvatar(avatar)) return '';
-        return avatar;
-      }
-
-      /* V788 — prendre d'abord la photo réellement chargée dans l'interface
-         Messages au moment exact de l'envoi. Ce chemin ne dépend pas d'un
-         ancien cache de profil pouvant encore contenir le logo HAPPYAD. */
-      function exactVisibleSenderPushIdentity(){
-        let normalized = null;
-        try{
-          normalized = normalizedConnectedIdentity(
-            cachedConnectedIdentity(authUser && authUser.id),
-            authUser
-          );
-        }catch(_identityError){ normalized = null; }
-        const avatarCandidates = [];
-        try{
-          if(currentUserPhoto){
-            avatarCandidates.push(currentUserPhoto.currentSrc);
-            avatarCandidates.push(currentUserPhoto.src);
-            avatarCandidates.push(currentUserPhoto.dataset && currentUserPhoto.dataset.happyadAvatar);
-          }
-        }catch(_photoError){}
-        try{
-          if(window.parent && window.parent !== window){
-            const preview = window.parent.document && window.parent.document.getElementById('avatarPreview');
-            if(preview){
-              avatarCandidates.push(preview.currentSrc);
-              avatarCandidates.push(preview.src);
-              avatarCandidates.push(preview.dataset && (preview.dataset.stableAvatar || preview.dataset.publicAvatarStable));
-              avatarCandidates.push(preview.style && preview.style.backgroundImage);
-            }
-          }
-        }catch(_parentError){}
-        avatarCandidates.push(normalized && normalized.avatar);
-        avatarCandidates.push(authUser && authUser.user_metadata && (authUser.user_metadata.avatar_url || authUser.user_metadata.picture));
-        let avatar = '';
-        for(const candidate of avatarCandidates){
-          avatar = usablePushAvatar(candidate);
-          if(avatar) break;
-        }
-        return {
-          name:clean(normalized && normalized.name) || 'Utilisateur HAPPYAD',
-          avatar:avatar
-        };
-      }
-
       async function invokeMessagePush(payload){
         const sb = getClient();
         if(!sb || !sb.auth) throw new Error('PUSH_AUTH_UNAVAILABLE');
@@ -12405,18 +12341,12 @@
         const response = await fetch(SUPABASE_URL.replace(/\/+$/,'') + '/functions/v1/happyad-push-test',{
           method:'POST',keepalive:true,
           headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer ' + session.access_token},
-          body:JSON.stringify((() => {
-            const senderHint = exactVisibleSenderPushIdentity();
-            return {
-              action:'message',
-              message_id:clean(payload.message_id),
-              conversation_id:clean(payload.conversation_id),
-              client_message_id:clean(payload.client_message_id),
-              sender_name_hint:clean(senderHint && senderHint.name),
-              sender_avatar_hint:clean(senderHint && senderHint.avatar),
-              sender_avatar_hint_source:clean(senderHint && senderHint.avatar) ? 'visible-message-profile' : 'none'
-            };
-          })())
+          body:JSON.stringify({
+            action:'message',
+            message_id:clean(payload.message_id),
+            conversation_id:clean(payload.conversation_id),
+            client_message_id:clean(payload.client_message_id)
+          })
         });
         const data = await response.json().catch(() => ({}));
         if(!response.ok || !data || data.ok !== true){
