@@ -27,7 +27,7 @@
 
   var pages={
     home:'index.html',
-    profile:'modules/user.html',
+    profile:'modules/user.html?v=784-own-profile-nine-first',
     profile_public:'modules/user.html?public=1',
     video:'modules/video.html',
     photo:'modules/photo.html',
@@ -579,7 +579,7 @@
     page=String(page||'');
     if(page==='video')return 'modules/video.html';
     if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=783-message-read-story-age';
-    if(page==='profile')return 'modules/user.html';
+    if(page==='profile')return 'modules/user.html?v=784-own-profile-nine-first';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';
     return pages[page]||'index.html';
