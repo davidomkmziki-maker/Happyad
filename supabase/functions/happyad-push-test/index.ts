@@ -1,4 +1,4 @@
-// HAPPYAD V785 — Push Messages : avatar expéditeur réel, source traçable et fallback sans perdre la livraison
+// HAPPYAD V786 — Push Messages : avatar expéditeur réel, compatible relais image même origine
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 

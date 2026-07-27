@@ -1,7 +1,7 @@
-/* HAPPYAD V785 — Avatar Push réel : résolution, préchargement et fallback traçable */
+/* HAPPYAD V786 — Avatar Push réel : URL affichable Android via relais image même origine */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V785-push-real-sender-avatar-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V786-push-avatar-same-origin-20260727-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=785-push-real-sender-avatar-shell',
+  './index.html?v=786-push-avatar-same-origin-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -18,7 +18,7 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=785-push-real-sender-avatar',
+  './core/navigation-master-v668.js?v=786-push-avatar-same-origin',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -27,8 +27,8 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=785-push-real-sender-avatar',
-  './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
+  './core/main-tabs-master-v615.js?v=786-push-avatar-same-origin',
+  './core/push-master.js?v=push-v46-avatar-same-origin-v786',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',
@@ -36,7 +36,7 @@ var HAPPYAD_APP_SHELL = [
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
-  './modules/user.html?v=785-push-real-sender-avatar'
+  './modules/user.html?v=786-push-avatar-same-origin'
 ];
 
 function isHappyCache(name){
@@ -271,10 +271,39 @@ function happyadTinyHash(value){
   return (hash>>>0).toString(36);
 }
 
-function happyadAvatarCacheRequest(detail,url){
-  var sender=String(detail&&detail.sender_id||'anonymous').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64)||'anonymous';
-  var key=happyadTinyHash(String(url||''));
-  return new Request(new URL('./__happyad_push_avatar__/'+sender+'/'+key+'.img',self.location.href).href,{method:'GET'});
+/* V786 — La V785 préchargeait correctement la photo, puis transmettait à
+   Android une adresse artificielle `/__happyad_push_avatar__/...img` qui
+   n'existe que dans CacheStorage. Certains moteurs Android ne relisent pas
+   cette adresse à travers le Service Worker pour l'icône de notification :
+   ils remplaçaient alors silencieusement la photo par le logo de l'application.
+
+   La V786 transmet une vraie URL HTTP(S). Pour les photos Supabase HAPPYAD,
+   un relais Netlify de même origine renvoie l'image avec son vrai Content-Type.
+   Android reçoit donc une image accessible même lorsque la PWA est fermée. */
+function happyadAvatarDisplayUrl(exact,detail){
+  try{
+    var source=new URL(String(exact||''));
+    if(source.protocol!=='https:')return '';
+    var proxy=new URL('./.netlify/functions/happyad-push-avatar',self.location.href);
+    proxy.searchParams.set('src',source.href);
+    proxy.searchParams.set('uid',String(detail&&detail.sender_id||'').slice(0,80));
+    proxy.searchParams.set('v',happyadTinyHash(source.href));
+    return proxy.href;
+  }catch(_e){return '';}
+}
+
+function happyadProbeNotificationImage(url){
+  if(!url)return Promise.reject(new Error('EMPTY_ICON_URL'));
+  var controller=typeof AbortController!=='undefined'?new AbortController():null;
+  var timer=setTimeout(function(){try{if(controller)controller.abort();}catch(_e){}},7000);
+  return fetch(url,{cache:'no-store',credentials:'omit',redirect:'follow',signal:controller&&controller.signal,headers:{'Accept':'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'}}).then(function(response){
+    clearTimeout(timer);
+    if(!response||!response.ok)throw new Error('HTTP_'+String(response&&response.status||0));
+    var type='';try{type=String(response.headers.get('content-type')||'').toLowerCase();}catch(_e){}
+    if(type&&type.indexOf('image/')!==0)throw new Error('NOT_IMAGE_'+type.replace(/[^a-z0-9_-]/g,'_').slice(0,50));
+    try{if(response.body&&response.body.cancel)response.body.cancel();}catch(_e2){}
+    return url;
+  }).catch(function(error){clearTimeout(timer);throw error;});
 }
 
 function happyadPrepareMessageAvatar(data,detail){
@@ -284,29 +313,25 @@ function happyadPrepareMessageAvatar(data,detail){
   if(!exact){
     return Promise.resolve({icon:logo,status:'fallback-logo',reason:String(detail.sender_avatar_fallback_reason||'MISSING_SENDER_AVATAR')});
   }
-  var request=happyadAvatarCacheRequest(detail,exact);
-  return caches.open(HAPPYAD_PUSH_AVATAR_CACHE).then(function(cache){
-    return cache.match(request).then(function(cached){
-      if(cached)return {icon:request.url,status:'cache-hit',reason:''};
-      var controller=typeof AbortController!=='undefined'?new AbortController():null;
-      var timer=setTimeout(function(){try{if(controller)controller.abort();}catch(_e){}},6500);
-      return fetch(exact,{cache:'no-store',credentials:'omit',redirect:'follow',signal:controller&&controller.signal}).then(function(response){
-        clearTimeout(timer);
-        if(!response || (!response.ok && response.type!=='opaque'))throw new Error('HTTP_'+String(response&&response.status||0));
-        var type='';try{type=String(response.headers.get('content-type')||'').toLowerCase();}catch(_e){}
-        if(response.type!=='opaque' && type && type.indexOf('image/')!==0)throw new Error('NOT_IMAGE');
-        return cache.put(request,response.clone()).then(function(){
-          return {icon:request.url,status:'prefetched-cache',reason:''};
-        });
-      }).catch(function(error){
-        clearTimeout(timer);
-        /* Le lien réel reste essayé directement. On ne remplace pas l'avatar
-           simplement parce que le préchargement a été lent. */
-        return {icon:exact,status:'remote-direct',reason:'PREFETCH_'+String(error&&error.message||error||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)};
-      });
+
+  var display=happyadAvatarDisplayUrl(exact,detail);
+  if(!display)return Promise.resolve({icon:exact,status:'remote-direct',reason:'PROXY_URL_BUILD_FAILED'});
+
+  /* Le contrôle du relais est seulement une validation. L'URL donnée à
+     showNotification reste la vraie URL du relais, jamais une pseudo-URL de
+     CacheStorage. */
+  return happyadProbeNotificationImage(display).then(function(){
+    return {icon:display,status:'same-origin-proxy',reason:''};
+  }).catch(function(proxyError){
+    return happyadProbeNotificationImage(exact).then(function(){
+      return {icon:exact,status:'remote-direct',reason:'PROXY_'+String(proxyError&&proxyError.message||proxyError||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)};
+    }).catch(function(remoteError){
+      return {
+        icon:exact,
+        status:'remote-unverified',
+        reason:'PROXY_'+String(proxyError&&proxyError.message||proxyError||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,40)+'__REMOTE_'+String(remoteError&&remoteError.message||remoteError||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,40)
+      };
     });
-  }).catch(function(error){
-    return {icon:exact,status:'remote-direct',reason:'CACHE_'+String(error&&error.message||error||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)};
   });
 }
 
