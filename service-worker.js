@@ -1,7 +1,7 @@
-/* HAPPYAD V787 — Point 2 : Messages Realtime préchargés, Push V785 inchangé */
+/* HAPPYAD V788 — Point 3 : Compteurs conversation optimistes, confirmation Supabase silencieuse ; Push V785 inchangé */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V787-message-realtime-preload-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V788-unread-optimistic-20260727-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=787-message-realtime-preload-shell',
+  './index.html?v=788-unread-optimistic-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -18,7 +18,7 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=787-message-realtime-preload',
+  './core/navigation-master-v668.js?v=788-unread-optimistic',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -27,7 +27,7 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=787-message-realtime-preload',
+  './core/main-tabs-master-v615.js?v=788-unread-optimistic',
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',

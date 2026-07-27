@@ -9799,12 +9799,12 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
-<script src="core/navigation-master-v668.js?v=787-message-realtime-preload"></script>
+<script src="core/navigation-master-v668.js?v=788-unread-optimistic"></script>
 <script src="core/auth-session-master-v598.js?v=776-push-clean-signout"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=758-visitor-isolation"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=763-home-stable"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=763-home-stable"></script>
-<script src="core/main-tabs-master-v615.js?v=787-message-realtime-preload"></script>
+<script src="core/main-tabs-master-v615.js?v=788-unread-optimistic"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -9849,6 +9849,8 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   var retryTimer=0;
   var authBound=false;
   var lastTotal=0;
+  var lastServerTotal=0;
+  var pendingUnreadReductionV788=0;
 
   function badge(){
     var nav=document.querySelector('.bottom .messageNav,.bottom [data-happyad-message-ready]');
@@ -9865,11 +9867,16 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   function render(total){
     total=Math.max(0,Number(total||0)||0);
     var el=badge();
-    if(!el)return total;
+    if(!el){lastTotal=total;return total;}
     if(total>0){el.textContent=total>99?'99+':String(total);el.style.display='grid';}
     else{el.textContent='';el.style.display='none';}
     lastTotal=total;
     return total;
+  }
+  function renderServerV788(total,pendingOverride){
+    lastServerTotal=Math.max(0,Number(total||0)||0);
+    if(pendingOverride!=null&&pendingOverride!=='')pendingUnreadReductionV788=Math.max(0,Number(pendingOverride)||0);
+    return render(Math.max(0,lastServerTotal-pendingUnreadReductionV788));
   }
   function client(){
     try{
@@ -9897,13 +9904,13 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
     if(refreshPromise)return refreshPromise;
     refreshPromise=(async function(){
       var c=client();
-      if(!c||!c.auth||typeof c.rpc!=='function'){schedule(900);return render(0);}
+      if(!c||!c.auth||typeof c.rpc!=='function'){schedule(900);return renderServerV788(0);}
       var sessionResult=await c.auth.getSession();
       var session=sessionResult&&sessionResult.data&&sessionResult.data.session;
-      if(!session){return render(0);}
+      if(!session){pendingUnreadReductionV788=0;return renderServerV788(0,0);}
       var result=await c.rpc('happyad_msg_get_unread_total',{});
       if(result&&result.error)throw result.error;
-      return render(parse(result&&result.data));
+      return renderServerV788(parse(result&&result.data));
     })().catch(function(){schedule(1800);return lastTotal;}).finally(function(){refreshPromise=null;});
     return refreshPromise;
   }
@@ -9916,27 +9923,35 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   }
 
   window.happyadRenderMessageUnreadTotal=render;
+  window.happyadRenderMessageUnreadServerTotalV788=renderServerV788;
   window.happyadRefreshMessageUnreadTotal=refresh;
+  window.happyadAdjustMessageUnreadTotal=function(delta){
+    delta=Number(delta)||0;
+    if(delta<0)pendingUnreadReductionV788+=Math.abs(delta);
+    else if(delta>0)pendingUnreadReductionV788=Math.max(0,pendingUnreadReductionV788-delta);
+    return render(Math.max(0,lastServerTotal-pendingUnreadReductionV788));
+  };
   window.addEventListener('message',function(event){
     try{
       var data=event&&event.data;
-      if(data&&data.type==='HAPPYAD_MESSAGE_UNREAD_TOTAL')render(data.detail&&data.detail.total);
+      if(data&&data.type==='HAPPYAD_MESSAGE_UNREAD_TOTAL')renderServerV788(data.detail&&data.detail.total,data.detail&&data.detail.pendingReduction);
+      else if(data&&data.type==='HAPPYAD_MESSAGE_UNREAD_ADJUST_V788')window.happyadAdjustMessageUnreadTotal(data.detail&&data.detail.delta);
     }catch(_e){}
   },true);
   window.addEventListener('focus',function(){schedule(30);});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)schedule(30);});
-  function boot(){render(0);bindAuth();schedule(250);setTimeout(bindAuth,1000);}
+  function boot(){renderServerV788(0,0);bindAuth();schedule(250);setTimeout(bindAuth,1000);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
 })();
 
 </script>
 
-<script id="happyad-message-realtime-global-phase5f-v787">
+<script id="happyad-message-realtime-global-phase5f-v788">
 (function(){
   'use strict';
-  if(window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V787__) return;
-  window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V787__ = true;
+  if(window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V788__) return;
+  window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V788__ = true;
 
   var TABLES=[
     'happyad_msg_messages',
