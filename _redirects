@@ -1,4 +1,3 @@
-/push-avatar/:file  /.netlify/functions/happyad-push-avatar  200!
 /share-image/:post/:version  /.netlify/functions/happyad-share-image?post=:post&v=:version  200!
 /s/:post/:version  /.netlify/functions/happyad-share-preview?post=:post&v=:version  200!
 /s/:post  /.netlify/functions/happyad-share-preview?post=:post  200!

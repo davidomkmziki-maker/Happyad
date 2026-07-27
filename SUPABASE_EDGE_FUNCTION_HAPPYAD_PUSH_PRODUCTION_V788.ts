@@ -1,4 +1,4 @@
-// HAPPYAD V787 — Push Messages : avatar réel prioritaire, logo applicatif exclu, image PNG Android
+// HAPPYAD V788 — Push immédiat hors application + avatar exact authentifié sans contrôle réseau bloquant
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
@@ -272,7 +272,7 @@ async function signedAvatarUrl(
 }
 
 async function resolveAvatarFromRows(
-  admin: ReturnType<typeof createClient>,
+  _admin: ReturnType<typeof createClient>,
   supabaseUrl: string,
   rows: IdentityRow[],
 ) {
@@ -295,50 +295,17 @@ async function resolveAvatarFromRows(
     return { avatar: '', source: '', field: '', status: 'missing', fallbackReason: 'NO_AVATAR_VALUE', table: '', match: '' }
   }
 
-  const checks = await Promise.all(expanded.map(async (candidate) => ({
-    candidate,
-    probe: await probeAvatarUrl(candidate.url),
-  })))
-  const verified = checks.find((item) => item.probe.ok)
-  if (verified) {
-    return {
-      avatar: verified.candidate.url,
-      source: verified.candidate.source + ':' + verified.candidate.method,
-      field: verified.candidate.field,
-      status: 'verified',
-      fallbackReason: '',
-      table: verified.candidate.table,
-      match: verified.candidate.match,
-    }
-  }
-
-  /* Si le bucket est privé, générer une URL signée longue durée. */
-  for (const candidate of expanded.slice(0, 6)) {
-    const signed = await signedAvatarUrl(admin, candidate)
-    if (!signed) continue
-    const probe = await probeAvatarUrl(signed)
-    if (!probe.ok) continue
-    return {
-      avatar: signed,
-      source: candidate.source + ':signed-' + candidate.method,
-      field: candidate.field,
-      status: 'verified-signed',
-      fallbackReason: '',
-      table: candidate.table,
-      match: candidate.match,
-    }
-  }
-
-  /* Ne pas supprimer une vraie valeur uniquement parce qu'un contrôle réseau
-     temporaire a expiré : le Service Worker la vérifie encore une fois. */
+  /* V788 : ne jamais retarder l'envoi Web Push avec un HEAD/GET d'avatar.
+     Android doit pouvoir réveiller le Service Worker et afficher le popup
+     même si HAPPYAD n'a pas été ouvert. La première URL HTTPS appartenant à
+     l'identité authentifiée est transmise directement à showNotification(). */
   const first = expanded[0]
-  const firstReason = checks[0]?.probe?.reason || 'unverified'
   return {
     avatar: first.url,
     source: first.source + ':' + first.method,
     field: first.field,
-    status: 'unverified',
-    fallbackReason: 'PROBE_' + firstReason.toUpperCase().replace(/[^A-Z0-9]+/g, '_'),
+    status: first.source === 'authenticated.client_hint' ? 'authenticated-visible-avatar' : 'selected-without-network-probe',
+    fallbackReason: '',
     table: first.table,
     match: first.match,
   }
