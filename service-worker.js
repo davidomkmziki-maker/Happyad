@@ -1,7 +1,7 @@
-/* HAPPYAD V785 — Avatar Push réel : résolution, préchargement et fallback traçable */
+/* HAPPYAD V786 — Point 1 : nouvelle bannière système remise en tête à chaque message */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V785-push-real-sender-avatar-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V786-push-banner-renew-20260727-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=785-push-real-sender-avatar-shell',
+  './index.html?v=786-push-banner-renew-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -310,20 +310,66 @@ function happyadPrepareMessageAvatar(data,detail){
   });
 }
 
+function happyadNotificationSafeId(value,fallback){
+  var clean=String(value||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,64);
+  return clean||String(fallback||Date.now());
+}
+
+function happyadNotificationTag(data,detail){
+  if(String(detail&&detail.type||data.type||'')==='happyad_message'){
+    /* V786 : un tag par message oblige Android/Chrome à traiter le Push comme
+       une nouvelle bannière, au lieu d'une simple mise à jour silencieuse de
+       la notification précédente de la conversation. */
+    return 'happyad-message-'+happyadNotificationSafeId(
+      detail&&detail.message_id||data.message_id||detail&&detail.push_id||data.push_id,
+      Date.now()
+    );
+  }
+  return String(data.tag||('happyad-'+String(data.type||'notification')));
+}
+
+function happyadCloseSupersededConversationNotifications(detail,keepTag){
+  if(!detail||detail.type!=='happyad_message'||!detail.conversation_id)return Promise.resolve();
+  if(!self.registration||typeof self.registration.getNotifications!=='function')return Promise.resolve();
+  var conversationId=String(detail.conversation_id||'');
+  return self.registration.getNotifications().then(function(list){
+    (list||[]).forEach(function(notification){
+      try{
+        var notificationData=(notification&&notification.data)||{};
+        var sameConversation=String(notificationData.conversation_id||'')===conversationId;
+        var isCurrent=String(notification&&notification.tag||'')===String(keepTag||'');
+        if(sameConversation&&!isCurrent)notification.close();
+      }catch(_e){}
+    });
+  }).catch(function(){});
+}
+
+function happyadShowAndPromoteNotification(title,options,detail){
+  return self.registration.showNotification(title,options).then(function(){
+    return happyadCloseSupersededConversationNotifications(detail,options&&options.tag);
+  });
+}
+
 function happyadNotificationOptions(data,detail,preparedIcon,withActions){
   var logo=happyadNotificationAsset('./icons/happyad-icon-v535center1-192.png','./icons/happyad-icon-v535center1-192.png');
   var badge=happyadNotificationAsset(data.badge||'./icons/happyad-notification-badge-96.png','./icons/happyad-notification-badge-96.png');
   var icon=happyadNotificationAsset(preparedIcon,'')||happyadNotificationAsset(data.icon,logo)||logo;
+  var displayTime=Date.now();
+  var tag=happyadNotificationTag(data,detail);
+  detail.notification_tag=tag;
+  detail.displayed_at=displayTime;
   var options={
     body:String(data.body||'Vous avez une nouvelle notification.'),
     icon:icon,
     badge:badge,
-    tag:String(data.tag||('happyad-'+String(data.type||'notification'))),
-    renotify:data.renotify!==false,
+    tag:tag,
+    renotify:true,
     requireInteraction:!!data.requireInteraction,
     silent:false,
     vibrate:Array.isArray(data.vibrate)?data.vibrate:[180,80,180],
-    timestamp:happyadParseTime(data.sent_at)||Number(data.timestamp||Date.now()),
+    /* V786 : l'ordre Android suit le moment réel d'affichage sur le téléphone.
+       Le sent_at reste conservé dans data pour les diagnostics de livraison. */
+    timestamp:displayTime,
     data:detail
   };
   if(withActions!==false && detail.type==='happyad_message')options.actions=[{action:'reply',title:'Répondre'}];
@@ -349,20 +395,20 @@ function happyadShowNotification(data,detail){
     detail.sender_avatar_runtime_status=String(prepared.status||'');
     detail.sender_avatar_runtime_reason=String(prepared.reason||'');
     var fullOptions=happyadNotificationOptions(data,detail,prepared.icon,true);
-    return self.registration.showNotification(title,fullOptions).catch(function(firstError){
+    return happyadShowAndPromoteNotification(title,fullOptions,detail).catch(function(firstError){
       /* Certains Android refusent une action ou une option mais acceptent la
          même photo. Le second essai conserve donc l'avatar réel. */
       var compactOptions=happyadNotificationOptions(data,detail,prepared.icon,false);
       compactOptions.requireInteraction=false;
       return happyadAvatarDiagnostic(detail,String(firstError&&firstError.message||firstError||'FULL_OPTIONS_FAILED'),'full-options').then(function(){
-        return self.registration.showNotification(title,compactOptions);
+        return happyadShowAndPromoteNotification(title,compactOptions,detail);
       }).catch(function(secondError){
         detail.sender_avatar_runtime_status='fallback-logo';
         detail.sender_avatar_runtime_reason='SHOW_WITH_AVATAR_FAILED';
         var fallback=happyadNotificationOptions(data,detail,logo,false);
         fallback.requireInteraction=false;
         return happyadAvatarDiagnostic(detail,String(secondError&&secondError.message||secondError||'AVATAR_OPTIONS_FAILED'),'avatar-options').then(function(){
-          return self.registration.showNotification(title,fallback);
+          return happyadShowAndPromoteNotification(title,fallback,detail);
         }).catch(function(thirdError){
           try{console.warn('HAPPYAD notification failed',firstError,secondError,thirdError);}catch(_e){}
           throw thirdError;
