@@ -6,7 +6,7 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V735_NOTIFICATION_EXACT_STORY';
+  var VERSION='STORY_MASTER_V783_SERVER_AGE_LIVE';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,
@@ -15,7 +15,7 @@
     zoom:{scale:1,x:0,y:0},openToken:0,
     composerDismissGuard:false,composerDismissGuardUntil:0,composerDismissPointerId:null,
     composerDismissTimer:0,composerViewportBase:0,
-    shareOverlayOpen:false,shareResumePending:false
+    shareOverlayOpen:false,shareResumePending:false,ageTimer:0
   };
 
   var exactNotificationOpenTokenV735=0;
@@ -41,11 +41,33 @@
   function mediaOf(p){p=p||{};return clean(p.media_url||p.mediaUrl||p.story||p.url||p.media)}
   function typeOf(p){var t=clean(p&&(p.media_type||p.mediaType||p.kind||p.storyKind)).toLowerCase();return t.indexOf('video')>=0?'video':'photo'}
   function descOf(p){p=p||{};return clean(p.description||p.caption||p.story_description||p.story_caption||p.desc||p.storyDesc)}
-  function createdOf(p){var n=Number(p&&p.createdAt||0);if(n>0)return n;var d=Date.parse(clean(p&&(p.created_at||p.createdAt)));return Number.isFinite(d)?d:Date.now()}
+  function timestampMsV783(v){
+    if(v==null||v==='')return 0;
+    if(typeof v==='number'&&Number.isFinite(v))return v>0&&v<100000000000?v*1000:(v>0?v:0);
+    var text=clean(v);if(!text)return 0;
+    if(/^\d+(?:\.\d+)?$/.test(text)){var n=Number(text);return Number.isFinite(n)?(n<100000000000?n*1000:n):0}
+    var d=Date.parse(text);return Number.isFinite(d)?d:0;
+  }
+  function createdOf(p){
+    p=p||{};var values=[p.created_at,p.createdAt,p.story_created_at,p.published_at,p.inserted_at];
+    for(var i=0;i<values.length;i++){var ms=timestampMsV783(values[i]);if(ms>0)return ms}
+    return 0;
+  }
+  function createdIsoV783(p){var ms=createdOf(p);return ms>0?new Date(ms).toISOString():''}
   function active(p){if(!p)return false;if(p.is_active===false||p.active===false||p.deleted===true)return false;var ex=p.expires_at||p.expiresAt||p.expire_at||p.expired_at;if(ex&&Date.parse(ex)<Date.now())return false;return !!mediaOf(p)}
   function badgeHtml(b){try{return typeof window.badgeMarkHtml==='function'?window.badgeMarkHtml(b):''}catch(_e){return ''}}
   function initials(n){n=clean(n)||'H';return (n[0]||'H').toUpperCase()}
-  function ageOf(v){var d=createdOf(v),s=Math.max(0,Math.floor((Date.now()-d)/1000));if(s<60)return s+' s';if(s<3600)return Math.floor(s/60)+' min';if(s<86400)return Math.floor(s/3600)+' h';return Math.floor(s/86400)+' j'}
+  function ageOf(v){var d=createdOf(v);if(!d)return 'À l’instant';var s=Math.max(0,Math.floor((Date.now()-d)/1000));if(s<60)return s+' s';if(s<3600)return Math.floor(s/60)+' min';if(s<86400)return Math.floor(s/3600)+' h';return Math.floor(s/86400)+' j'}
+  function stopAgeTickerV783(){if(state.ageTimer){clearInterval(state.ageTimer);state.ageTimer=0}}
+  function refreshViewerAgeV783(){if(state.closed)return;var sub=$('ha629Sub'),row=currentRow();if(sub&&row)sub.textContent=ageOf(row)}
+  function startAgeTickerV783(){stopAgeTickerV783();refreshViewerAgeV783();state.ageTimer=setInterval(refreshViewerAgeV783,1000)}
+  function refreshRadarAgesV783(){
+    if(document.hidden)return;
+    document.querySelectorAll('[data-story-age-v783]').forEach(function(el){
+      var ms=timestampMsV783(el.getAttribute('data-story-created-at'));
+      if(ms>0)el.textContent=ageOf({createdAt:ms});
+    });
+  }
   function toast(msg){try{if(typeof window.toast==='function')return window.toast(msg)}catch(_e){}var old=$('haStoryToastV629');if(old)old.remove();var n=document.createElement('div');n.id='haStoryToastV629';n.textContent=msg;n.style.cssText='position:fixed;left:50%;bottom:calc(118px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483647;background:rgba(20,23,30,.94);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:10px 15px;font:800 13px system-ui;max-width:82vw;text-align:center';document.body.appendChild(n);setTimeout(function(){try{n.remove()}catch(_e){}},2200)}
 
   function itemFromRow(r,p){p=p||{};return {
@@ -54,11 +76,11 @@
     creatorName:clean(p.full_name||p.display_name||p.name||r.user_name||r.display_name||r.creatorName)||'Utilisateur HAPPYAD',
     handle:clean(p.username||p.handle||r.username||r.handle),avatar:clean(p.avatar_url||p.avatar||r.user_avatar||r.avatar_url||r.avatar),
     badge:clean(p.badge||p.user_badge||r.badge||r.user_badge),mediaUrl:mediaOf(r),media_url:mediaOf(r),mediaType:typeOf(r),kind:typeOf(r),
-    description:descOf(r),desc:descOf(r),createdAt:createdOf(r),created_at:r.created_at||new Date(createdOf(r)).toISOString(),expiresAt:r.expires_at||r.expiresAt||'',
+    description:descOf(r),desc:descOf(r),createdAt:createdOf(r),created_at:r.created_at||createdIsoV783(r),expiresAt:r.expires_at||r.expiresAt||'',
     isRadar:true,isLive:false,isSeen:!!(r.isSeen||r.seen||r.viewed),__storyTable:'happyad_stories'
   }}
   function rowFromItem(p){return {
-    id:storyId(p),user_id:ownerOf(p),media_url:mediaOf(p),media_type:typeOf(p),description:descOf(p),created_at:p.created_at||new Date(createdOf(p)).toISOString(),
+    id:storyId(p),user_id:ownerOf(p),media_url:mediaOf(p),media_type:typeOf(p),description:descOf(p),created_at:p.created_at||createdIsoV783(p),
     expires_at:p.expires_at||p.expiresAt||'',user_name:p.creatorName||p.user_name||p.title||'',user_avatar:p.avatar||p.user_avatar||p.avatar_url||'',
     badge:p.badge||p.userBadge||p.user_badge||'',username:clean(p.username||p.handle).replace(/^@+/,'')
   }}
@@ -71,9 +93,14 @@
     var seen={},out=[];
     arr.forEach(function(p){var id=storyId(p),key=id||ownerOf(p)+'|'+mediaOf(p);if(!key||seen[key]||!isStory(p)||!active(p)||isMutedOwner(ownerOf(p)))return;seen[key]=1;out.push(p)});
     var me=readUser(),uid=currentUid();
-    if(uid&&me.storyActive&&clean(me.story)){
+    /* V783 : le secours local n'invente plus Date.now() à chaque rendu.
+       Il n'est accepté que s'il possède l'identifiant et l'heure réels de la
+       ligne happyad_stories. Sinon le prochain fetch serveur reste la vérité. */
+    var localCreated=timestampMsV783(me.storyCreatedAt||me.story_created_at||me.storyCreated||'');
+    var localExpires=timestampMsV783(me.storyExpiresAt||me.story_expires_at||me.storyExpires||'');
+    if(uid&&me.storyActive&&clean(me.story)&&isUuid(me.storyId||me.story_id)&&localCreated>0&&(!localExpires||localExpires>Date.now())){
       var has=out.some(function(p){return ownerOf(p)===uid&&mediaOf(p)===clean(me.story)});
-      if(!has)out.push({id:clean(me.storyId||me.story_id)||('local-story-'+uid),sourceId:clean(me.storyId||me.story_id)||('local-story-'+uid),mode:'story',type:'story',category:'story',creatorId:uid,user_id:uid,creatorName:clean(me.name||me.full_name)||'Ta story',handle:clean(me.handle||me.username),avatar:clean(me.avatar||me.avatar_url),badge:clean(me.badge||me.user_badge),mediaUrl:clean(me.story),mediaType:clean(me.storyKind)||'photo',description:clean(me.storyDesc),createdAt:Date.now(),isRadar:true,isLive:false,__storyTable:'happyad_stories'});
+      if(!has)out.push({id:clean(me.storyId||me.story_id),sourceId:clean(me.storyId||me.story_id),mode:'story',type:'story',category:'story',creatorId:uid,user_id:uid,creatorName:clean(me.name||me.full_name)||'Ta story',handle:clean(me.handle||me.username),avatar:clean(me.avatar||me.avatar_url),badge:clean(me.badge||me.user_badge),mediaUrl:clean(me.story),mediaType:clean(me.storyKind)||'photo',description:clean(me.storyDesc),createdAt:localCreated,created_at:new Date(localCreated).toISOString(),expiresAt:localExpires?new Date(localExpires).toISOString():'',isRadar:true,isLive:false,__storyTable:'happyad_stories'});
     }
     return out;
   }
@@ -383,7 +410,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
   function close(reason){
     try{var closingRow=currentRow();if(closingRow&&reason!=='complete'&&reason!=='deleted'&&reason!=='empty'&&reason!=='error')analyticsTrackV728('story_exit',closingRow,{dedupeKey:'v728:story-exit:'+sessionStorage.getItem('HAPPYAD_ANALYTICS_SESSION_V728')+':'+storyId(closingRow)+':'+Math.floor(Date.now()/3000),metadata:{reason:clean(reason)||'close'}})}catch(_ae){}
-    state.closed=true;state.openToken++;stopTimer();stopMedia();clearTimeout(state.holdTimer);state.holdTimer=0;clearTimeout(state.composerDismissTimer);state.composerDismissTimer=0;state.composerDismissGuard=false;state.composerDismissGuardUntil=0;state.composerDismissPointerId=null;state.composerViewportBase=0;state.shareOverlayOpen=false;state.shareResumePending=false;state.pointers.clear();resetZoom(false);
+    state.closed=true;state.openToken++;stopTimer();stopAgeTickerV783();stopMedia();clearTimeout(state.holdTimer);state.holdTimer=0;clearTimeout(state.composerDismissTimer);state.composerDismissTimer=0;state.composerDismissGuard=false;state.composerDismissGuardUntil=0;state.composerDismissPointerId=null;state.composerViewportBase=0;state.shareOverlayOpen=false;state.shareResumePending=false;state.pointers.clear();resetZoom(false);
     if(state.box){
       state.box.classList.remove('on','full','haStoryShareUnderlayV705');
       state.box.setAttribute('aria-hidden','true');
@@ -590,7 +617,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     var backdrop=$('ha629Backdrop');if(typ==='photo')backdrop.style.backgroundImage='url("'+media.replace(/["\\]/g,'\\$&')+'")';else backdrop.style.backgroundImage='none';
     $('ha629Media').innerHTML=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Story" draggable="false">';
     resetSegments(state.index);renderBottom(row);window.__HAPPYAD_CURRENT_STORY_CTX={id:storyId(row),row:row,p:itemFromRow(row,p),profile:p,isMine:ownerOf(row)===currentUid()};
-    markSeen(row).then(function(){setTimeout(renderRadarHomeV629,50)});try{document.dispatchEvent(new CustomEvent('happyad:story-master-opened-v629'))}catch(_e){}startDuration(row)
+    startAgeTickerV783();markSeen(row).then(function(){setTimeout(renderRadarHomeV629,50)});try{document.dispatchEvent(new CustomEvent('happyad:story-master-opened-v629'))}catch(_e){}startDuration(row)
   }
 
   function show(owner,rows,profile,startId){
@@ -619,7 +646,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     function avatarHtml(p,name){var av=clean(p&&(p.avatar||p.user_avatar||p.avatar_url));return av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(name))+'</span>'}
     function addOnly(){var w=document.createElement('div');w.className='haStoryRadarUnitV629 haStoryAddOnlyV629';w.innerHTML='<a class="radarItem" href="modules/publish.html?mode=story"><div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Ajouter</div></a>';row.appendChild(w)}
     var mine=me&&groups[me];if(!mine||!mine.length)addOnly();
-    owners.forEach(function(owner){var items=groups[owner],first=items[items.length-1],name=owner===me?'Ta story':clean(first.creatorName||first.user_name||first.display_name||first.title)||'Utilisateur HAPPYAD',badge=clean(first.badge||first.userBadge||first.user_badge),seen=items.every(function(p){return !!(p.isSeen||p.seen||p.viewed)}),start=items.find(function(p){return !(p.isSeen||p.seen||p.viewed)})||items[0];var w=document.createElement('div');w.className='haStoryRadarUnitV629';var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.dataset.storyOwner=owner;btn.dataset.storyId=storyId(start);btn.innerHTML='<div class="radarAvatar '+(seen?'seen ':'')+'">'+avatarHtml(first,name)+'<i class="typeDot story"></i>'+(items.length>1?'<span class="radarStoryCount">'+items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+(owner===me?'':badgeHtml(badge))+'</div><div class="radarMeta">'+esc(ageOf(first))+'</div>';w.appendChild(btn);if(owner===me){var plus=document.createElement('a');plus.className='haStoryAddMiniV629';plus.href='modules/publish.html?mode=story';plus.setAttribute('aria-label','Ajouter une story');plus.textContent='+';plus.onclick=function(e){e.stopPropagation()};w.appendChild(plus)}row.appendChild(w)});
+    owners.forEach(function(owner){var items=groups[owner],first=items[items.length-1],name=owner===me?'Ta story':clean(first.creatorName||first.user_name||first.display_name||first.title)||'Utilisateur HAPPYAD',badge=clean(first.badge||first.userBadge||first.user_badge),seen=items.every(function(p){return !!(p.isSeen||p.seen||p.viewed)}),start=items.find(function(p){return !(p.isSeen||p.seen||p.viewed)})||items[0];var w=document.createElement('div');w.className='haStoryRadarUnitV629';var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.dataset.storyOwner=owner;btn.dataset.storyId=storyId(start);btn.innerHTML='<div class="radarAvatar '+(seen?'seen ':'')+'">'+avatarHtml(first,name)+'<i class="typeDot story"></i>'+(items.length>1?'<span class="radarStoryCount">'+items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+(owner===me?'':badgeHtml(badge))+'</div><div class="radarMeta" data-story-age-v783="1" data-story-created-at="'+esc(String(createdOf(first)||''))+'">'+esc(ageOf(first))+'</div>';w.appendChild(btn);if(owner===me){var plus=document.createElement('a');plus.className='haStoryAddMiniV629';plus.href='modules/publish.html?mode=story';plus.setAttribute('aria-label','Ajouter une story');plus.textContent='+';plus.onclick=function(e){e.stopPropagation()};w.appendChild(plus)}row.appendChild(w)});
     /* V631 : délégation locale robuste. Chaque nouveau rendu garde un clic actif,
        y compris après que la story a été marquée comme vue. */
     block.addEventListener('click',function(e){
@@ -682,5 +709,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   /* V631 : le CSS du cercle est présent avant le premier rendu, pas seulement après
      la première ouverture du fullscreen. */
   installCss();restorePublicRoutes();
+  setInterval(refreshRadarAgesV783,1000);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshRadarAgesV783()},true);
   setTimeout(renderRadarHomeV629,80);setTimeout(renderRadarHomeV629,500);
 })();

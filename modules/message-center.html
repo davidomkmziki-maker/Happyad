@@ -11396,6 +11396,7 @@
           }
         });
         await refreshUnreadTotal();
+        setTimeout(() => refreshCurrentReceiptExactV783('mark-read-confirm',true).catch(() => {}),80);
         return data;
       }
 
@@ -11470,6 +11471,66 @@
         currentReceipt.targetRead = Math.max(currentReceipt.targetRead || 0,item.targetRead || 0);
         patchMessageDeliveryStates(messages.filter(message => message && clean(message.conversationId) === clean(currentConversationId)));
       }
+
+
+      /* HAPPYAD V783 — état lu/livré exact.
+         Realtime reste le chemin immédiat. Cette lecture bornée est seulement un
+         filet de sécurité lorsque Android suspend un événement ou quand un ancien
+         cache garde encore les coches précédentes. Une seule RPC, uniquement
+         pendant qu'une conversation est réellement visible. */
+      let receiptRefreshInFlightV783 = false;
+      let receiptRefreshLastAtV783 = 0;
+      async function refreshCurrentReceiptExactV783(reason,force){
+        if(receiptRefreshInFlightV783 || !authUser || !isUuid(currentConversationId)) return false;
+        if(activeMessageView !== 'chat' || !messageCenterVisible()) return false;
+        const now = Date.now();
+        if(!force && now - receiptRefreshLastAtV783 < 2200) return false;
+        receiptRefreshInFlightV783 = true;
+        receiptRefreshLastAtV783 = now;
+        const id = currentConversationId;
+        try{
+          const data = await rpc('happyad_msg_receipt_state',[
+            {p_conversation_id:id},
+            {conversation_id:id}
+          ]);
+          if(id !== currentConversationId || activeMessageView !== 'chat') return false;
+          const row = firstRow(data) || {};
+          const before = [currentReceipt.myDelivered,currentReceipt.myRead,currentReceipt.targetDelivered,currentReceipt.targetRead].join(':');
+          const snapshot = receiptSnapshot(row);
+          mergeReceiptSnapshot(snapshot);
+          conversations.forEach(item => {
+            if(!item || item.id !== id) return;
+            item.myDelivered = Math.max(item.myDelivered || 0,snapshot.myDelivered || 0);
+            item.myRead = Math.max(item.myRead || 0,snapshot.myRead || 0);
+            item.targetDelivered = Math.max(item.targetDelivered || 0,snapshot.targetDelivered || 0);
+            item.targetRead = Math.max(item.targetRead || 0,snapshot.targetRead || 0);
+            if(item.myRead >= item.lastSeq) item.unread = 0;
+          });
+          const after = [currentReceipt.myDelivered,currentReceipt.myRead,currentReceipt.targetDelivered,currentReceipt.targetRead].join(':');
+          if(after !== before){
+            patchMessageDeliveryStates(messages.filter(message => message && clean(message.conversationId) === id));
+            renderMessages(false);
+            renderConversations(searchInput && searchInput.value);
+            queuePersistConversations();
+          }
+          return true;
+        }catch(_error){
+          /* Compatible avant installation du SQL V783 : le Realtime V781 reste actif. */
+          return false;
+        }finally{
+          receiptRefreshInFlightV783 = false;
+        }
+      }
+
+      const receiptRefreshTimerV783 = setInterval(() => {
+        refreshCurrentReceiptExactV783('visible-poll',false).catch(() => {});
+      },3000);
+      document.addEventListener('visibilitychange',() => {
+        if(document.visibilityState === 'visible') setTimeout(() => refreshCurrentReceiptExactV783('visibility',true).catch(() => {}),120);
+      },true);
+      window.addEventListener('focus',() => setTimeout(() => refreshCurrentReceiptExactV783('focus',true).catch(() => {}),120),true);
+      window.addEventListener('online',() => setTimeout(() => refreshCurrentReceiptExactV783('online',true).catch(() => {}),180),true);
+      window.addEventListener('beforeunload',() => clearInterval(receiptRefreshTimerV783),{once:true});
 
       async function fetchMessageDeltaPage(conversationId,afterServerSeq,limit){
         const id = clean(conversationId);
@@ -12110,6 +12171,7 @@
             currentReceipt.targetRead = Math.max(currentReceipt.targetRead || 0, read);
           }
           renderMessages(false);
+          setTimeout(() => refreshCurrentReceiptExactV783('member-realtime',false).catch(() => {}),60);
         }
         renderConversations(searchInput && searchInput.value);
       }

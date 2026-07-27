@@ -31,7 +31,7 @@
     profile_public:'modules/user.html?public=1',
     video:'modules/video.html',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=775-message-composer-bottom-stable',
+    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=783-message-read-story-age',
     publish:'modules/publish.html',
     map:'modules/map.html'
   };
@@ -496,7 +496,7 @@
       if(!key)return null;
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
-      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=775-message-composer-bottom-stable',source:'url'};
+      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=783-message-read-story-age',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/user.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
@@ -578,7 +578,7 @@
   function persistentMainUrl(page){
     page=String(page||'');
     if(page==='video')return 'modules/video.html';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=775-message-composer-bottom-stable';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=783-message-read-story-age';
     if(page==='profile')return 'modules/user.html';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';

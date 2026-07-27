@@ -11157,6 +11157,8 @@ function storyRowId(row){
     u.storyKind=storyRowKind(row);
     u.storyActive=true;
     u.storyDesc=storyRowDesc(row);
+    u.storyCreatedAt=row.created_at||row.createdAt||u.storyCreatedAt||'';
+    u.storyExpiresAt=row.expires_at||row.expiresAt||u.storyExpiresAt||'';
 
     saveUser(u,false);
 
@@ -11603,10 +11605,10 @@ setTimeout(()=>{applyProfileStoryFromCache();},1200);
   function rowKind(row){return String((row&&(row.media_type||row.mediaType||row.storyKind||row.kind))||'photo').toLowerCase().indexOf('video')>=0?'video':'photo'}
   function rowTitle(row){return String((row&&(row.title||row.name))||'Story active')}
   function rowDesc(row){var title=rowTitle(row).trim(); var vals=[row&&row.description,row&&row.caption,row&&row.desc,row&&row.story_description]; for(var i=0;i<vals.length;i++){var v=String(vals[i]||'').trim(); if(v&&v.toLowerCase()!==title.toLowerCase())return v;} return '';}
-  function clearLocalStoryCache(){try{var u=readU();u.story='';u.storyKind='';u.storyActive=false;u.storyDesc='';delete u.storyId;delete u.story_id;saveU(u);}catch(e){}}
+  function clearLocalStoryCache(){try{var u=readU();u.story='';u.storyKind='';u.storyActive=false;u.storyDesc='';delete u.storyId;delete u.story_id;delete u.storyCreatedAt;delete u.storyExpiresAt;saveU(u);}catch(e){}}
   function cleanStoryPayload(payload){var clean=Object.assign({},payload||{}); delete clean.badge; delete clean.user_badge; return clean;}
   async function insertCentralStoryClean(c,payload){var clean=cleanStoryPayload(payload); for(var i=0;i<12;i++){var r=await c.from('happyad_stories').insert(clean).select('id').single(); if(!r.error)return r; var msg=String(r.error.message||r.error.details||''); var m=msg.match(/'([^']+)' column/); if(m&&m[1]&&Object.prototype.hasOwnProperty.call(clean,m[1])){delete clean[m[1]]; continue;} throw r.error;} throw new Error('Impossible de publier la story: schéma happyad_stories incomplet');}
-  function applyStoryToUser(row){ if(!row||!rowMedia(row))return; var u=readU(); u.storyId=String(row.id||u.storyId||''); u.story=rowMedia(row); u.storyKind=rowKind(row); u.storyActive=true; u.storyDesc=rowDesc(row); saveU(u); }
+  function applyStoryToUser(row){ if(!row||!rowMedia(row))return; var u=readU(); u.storyId=String(row.id||u.storyId||''); u.story=rowMedia(row); u.storyKind=rowKind(row); u.storyActive=true; u.storyDesc=rowDesc(row); u.storyCreatedAt=row.created_at||row.createdAt||u.storyCreatedAt||''; u.storyExpiresAt=row.expires_at||row.expiresAt||u.storyExpiresAt||''; saveU(u); }
   function activePublicProfile(){try{return JSON.parse(localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')||'null')||null}catch(e){return null}}
   function isPublicProfile(){try{return location.search.indexOf('public=1')>-1 && !!localStorage.getItem('HAPPYAD_ACTIVE_PROFILE')}catch(e){return false}}
   function ownerIdFromProfile(ap){return String((ap&&(ap.id||ap.user_id||ap.creatorId||ap.ownerId||ap.userId))||'').trim()}
