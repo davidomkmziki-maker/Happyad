@@ -12341,12 +12341,27 @@
         const response = await fetch(SUPABASE_URL.replace(/\/+$/,'') + '/functions/v1/happyad-push-test',{
           method:'POST',keepalive:true,
           headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer ' + session.access_token},
-          body:JSON.stringify({
-            action:'message',
-            message_id:clean(payload.message_id),
-            conversation_id:clean(payload.conversation_id),
-            client_message_id:clean(payload.client_message_id)
-          })
+          body:JSON.stringify((() => {
+            /* HAPPYAD V787 : joindre l'identité réellement affichée sur le
+               téléphone de l'expéditeur. La fonction Supabase ne fait pas
+               confiance aveuglément à cette valeur : elle vérifie toujours
+               l'utilisateur authentifié et l'URL image avant le Push. */
+            let senderHint = null;
+            try{
+              senderHint = normalizedConnectedIdentity(
+                cachedConnectedIdentity(authUser && authUser.id),
+                authUser
+              );
+            }catch(_identityError){ senderHint = null; }
+            return {
+              action:'message',
+              message_id:clean(payload.message_id),
+              conversation_id:clean(payload.conversation_id),
+              client_message_id:clean(payload.client_message_id),
+              sender_name_hint:clean(senderHint && senderHint.name),
+              sender_avatar_hint:safeAvatar(senderHint && senderHint.avatar)
+            };
+          })())
         });
         const data = await response.json().catch(() => ({}));
         if(!response.ok || !data || data.ok !== true){

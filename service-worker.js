@@ -1,7 +1,7 @@
-/* HAPPYAD V786 — Avatar Push réel : URL affichable Android via relais image même origine */
+/* HAPPYAD V787 — Avatar Push réel : identité authentifiée + PNG Android normalisé */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V786-push-avatar-same-origin-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V787-push-avatar-real-png-20260727-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=786-push-avatar-same-origin-shell',
+  './index.html?v=787-push-avatar-real-png-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -18,7 +18,7 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=786-push-avatar-same-origin',
+  './core/navigation-master-v668.js?v=787-push-avatar-real-png',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -27,8 +27,8 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=786-push-avatar-same-origin',
-  './core/push-master.js?v=push-v46-avatar-same-origin-v786',
+  './core/main-tabs-master-v615.js?v=787-push-avatar-real-png',
+  './core/push-master.js?v=push-v47-avatar-real-png-v787',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',
@@ -36,7 +36,7 @@ var HAPPYAD_APP_SHELL = [
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
-  './modules/user.html?v=786-push-avatar-same-origin'
+  './modules/user.html?v=787-push-avatar-real-png'
 ];
 
 function isHappyCache(name){
@@ -271,23 +271,23 @@ function happyadTinyHash(value){
   return (hash>>>0).toString(36);
 }
 
-/* V786 — La V785 préchargeait correctement la photo, puis transmettait à
-   Android une adresse artificielle `/__happyad_push_avatar__/...img` qui
-   n'existe que dans CacheStorage. Certains moteurs Android ne relisent pas
-   cette adresse à travers le Service Worker pour l'icône de notification :
-   ils remplaçaient alors silencieusement la photo par le logo de l'application.
+/* V787 — La V786 servait encore le format original de la photo. Certains
+   moteurs Android acceptent l'URL mais remplacent silencieusement un JPEG
+   très grand, un WebP/AVIF, ou une orientation EXIF par l'icône de l'app.
 
-   La V786 transmet une vraie URL HTTP(S). Pour les photos Supabase HAPPYAD,
-   un relais Netlify de même origine renvoie l'image avec son vrai Content-Type.
-   Android reçoit donc une image accessible même lorsque la PWA est fermée. */
+   La V787 passe par une route HTTPS du domaine HAPPYAD qui renvoie toujours
+   un PNG carré 192 x 192. Le navigateur envoie aussi à Supabase la photo
+   réellement affichée sur le compte authentifié, sans jamais accepter le logo
+   HAPPYAD comme avatar d'expéditeur. */
 function happyadAvatarDisplayUrl(exact,detail){
   try{
     var source=new URL(String(exact||''));
     if(source.protocol!=='https:')return '';
-    var proxy=new URL('./.netlify/functions/happyad-push-avatar',self.location.href);
+    var hash=happyadTinyHash(source.href+'|'+String(detail&&detail.sender_id||''));
+    var proxy=new URL('./push-avatar/'+hash+'.png',self.location.href);
     proxy.searchParams.set('src',source.href);
     proxy.searchParams.set('uid',String(detail&&detail.sender_id||'').slice(0,80));
-    proxy.searchParams.set('v',happyadTinyHash(source.href));
+    proxy.searchParams.set('v','787-'+happyadTinyHash(source.href));
     return proxy.href;
   }catch(_e){return '';}
 }

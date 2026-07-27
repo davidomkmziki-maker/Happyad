@@ -2,6 +2,12 @@
   directory = "netlify/functions"
 
 [[redirects]]
+  from = "/push-avatar/:file"
+  to = "/.netlify/functions/happyad-push-avatar"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/share-image/:post/:version"
   to = "/.netlify/functions/happyad-share-image?post=:post&v=:version"
   status = 200
