@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_PUSH_MASTER_V45__)return;
-  window.__HAPPYAD_PUSH_MASTER_V45__=true;
+  if(window.__HAPPYAD_PUSH_MASTER_V46__)return;
+  window.__HAPPYAD_PUSH_MASTER_V46__=true;
 
-  var VERSION='HAPPYAD_PUSH_MASTER_V45_VOLUNTARY_SETTINGS';
+  var VERSION='HAPPYAD_PUSH_MASTER_V46_MULTI_DEVICE_DIRECT_UPDATE';
   var VAPID_PUBLIC_KEY='BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
   var INSTALL_KEY='HAPPYAD_PUSH_INSTALLATION_ID_V1';
   var DISMISS_KEY='HAPPYAD_PUSH_PROMPT_DISMISSED_AT_V2';
@@ -13,9 +13,9 @@
   var VAPID_BINDING_KEY='HAPPYAD_PUSH_VAPID_PUBLIC_KEY_V1';
   var LAST_ENSURE_KEY='HAPPYAD_PUSH_LAST_ENSURE_AT_V1';
   var LAST_DELAY_NOTICE_KEY='HAPPYAD_PUSH_LAST_DELAY_NOTICE_AT_V1';
-  var REPAIR_KEY='HAPPYAD_PUSH_REPAIR_V780';
-  var LAST_ERROR_KEY='HAPPYAD_PUSH_LAST_ERROR_V780';
-  var ENSURE_INTERVAL_MS=4*60*60*1000;
+  var REPAIR_KEY='HAPPYAD_PUSH_REPAIR_V789_MULTI_DEVICE';
+  var LAST_ERROR_KEY='HAPPYAD_PUSH_LAST_ERROR_V789';
+  var ENSURE_INTERVAL_MS=10*60*1000;
   var PROMPT_INTERVAL_MS=24*60*60*1000;
   var ui=null;
   var busy=false;
@@ -191,19 +191,21 @@
     var args={p_keep_endpoint:endpoint,p_keep_installation_id:installationId()};
     return c.rpc('happyad_push_cleanup_own_subscriptions',args).then(function(r){
       if(r&&r.error)throw r.error;return r&&r.data||r;
-    }).catch(function(first){
-      /* Compatibilité temporaire avec l'ancienne RPC sans paramètres. */
-      return c.rpc('happyad_push_cleanup_own_subscriptions',{}).then(function(r){if(r&&r.error)throw r.error;return r&&r.data||r;}).catch(function(){throw first;});
     });
   }
-  function verifySingleActiveSubscription(session,current){
-    var c=client();var endpoint=clean(current&&current.endpoint);
-    if(!c||!session||!session.user||!endpoint)return Promise.reject(new Error('PUSH_VERIFY_NOT_READY'));
-    return c.from('happyad_push_subscriptions').select('endpoint,enabled,updated_at').eq('user_id',session.user.id).eq('enabled',true).then(function(r){
-      if(r&&r.error)throw r.error;var rows=Array.isArray(r&&r.data)?r.data:[];
-      if(rows.length!==1||clean(rows[0]&&rows[0].endpoint)!==endpoint)throw new Error('PUSH_SINGLE_ACTIVE_LINK_NOT_CONFIRMED');
-      return true;
-    });
+  function verifyCurrentInstallation(session,current){
+    var c=client();var endpoint=clean(current&&current.endpoint);var install=installationId();
+    if(!c||!session||!session.user||!endpoint||!install)return Promise.reject(new Error('PUSH_VERIFY_NOT_READY'));
+    return c.from('happyad_push_subscriptions')
+      .select('endpoint,enabled,installation_id,device_id,updated_at')
+      .eq('user_id',session.user.id)
+      .eq('installation_id',install)
+      .eq('enabled',true)
+      .then(function(r){
+        if(r&&r.error)throw r.error;var rows=Array.isArray(r&&r.data)?r.data:[];
+        if(rows.length!==1||clean(rows[0]&&rows[0].endpoint)!==endpoint)throw new Error('PUSH_CURRENT_INSTALLATION_NOT_CONFIRMED');
+        return true;
+      });
   }
   function saveSubscription(session,sub){
     var c=client();var s=subscriptionJson(sub);
@@ -226,7 +228,7 @@
          Les contrôles secondaires ne doivent plus annuler une activation réussie. */
       Promise.resolve()
         .then(function(){return cleanupOwnSubscriptions(session,s);})
-        .then(function(){return verifySingleActiveSubscription(session,s);})
+        .then(function(){return verifyCurrentInstallation(session,s);})
         .catch(function(err){try{console.warn('HAPPYAD PUSH secondary verification',err);}catch(_e){}});
 
       safeSet(LAST_UID_KEY,session.user.id);
@@ -279,7 +281,7 @@
       return fetch(base+'/functions/v1/happyad-push-test',{
         method:'POST',keepalive:true,
         headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+session.access_token},
-        body:JSON.stringify({delay_seconds:Number(delaySeconds||0)})
+        body:JSON.stringify({delay_seconds:Number(delaySeconds||0),installation_id:installationId()})
       }).then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok||!j.ok)throw new Error(j.error||('HTTP_'+r.status));return j;});});
     });
   }
@@ -296,7 +298,7 @@
       if(uid)safeRemove(promptKey(uid));clearPromptTimer();
       return ensureSubscription(true,true).then(function(sub){
         if(!sub)return null;
-        hidePrompt();toast('Notifications HAPPYAD activées sur ce lien uniquement.');
+        hidePrompt();toast('Notifications HAPPYAD activées sur cet appareil.');
         return sub;
       });
     }).catch(function(err){var msg=activationErrorMessage(err);rememberError(err);toast(msg);throw err;});
@@ -317,14 +319,11 @@
   function deactivateCurrent(){
     if(!supports())return Promise.resolve(false);
     return Promise.all([navigator.serviceWorker.ready,currentSession()]).then(function(values){
-      var reg=values[0],session=values[1],c=client();
+      var reg=values[0],session=values[1];
       return reg.pushManager.getSubscription().then(function(sub){
-        var disableServer=Promise.resolve(false);
-        if(c&&session&&session.user){
-          disableServer=c.rpc('happyad_push_disable_all_own_subscriptions',{}).then(function(r){if(r&&r.error)throw r.error;return true;}).catch(function(){
-            return sub?disableSavedSubscription(session,sub):false;
-          });
-        }
+        /* Le bouton désactive uniquement cet appareil. Les autres téléphones du
+           même compte conservent leurs propres abonnements actifs. */
+        var disableServer=(session&&session.user&&sub)?disableSavedSubscription(session,sub):Promise.resolve(false);
         return Promise.resolve(disableServer).then(function(){
           return sub?sub.unsubscribe().catch(function(){return false;}):false;
         }).then(function(result){
@@ -342,7 +341,7 @@
       if(event==='SIGNED_OUT'){
         lastSessionUid='';hidePrompt();clearPromptTimer();unsubscribeLocal();return;
       }
-      if(uid){lastSessionUid=uid;if(Notification.permission==='granted')setTimeout(function(){ensureSubscription(false);},250);else schedulePromptReminder(uid,1500);}
+      if(uid){lastSessionUid=uid;if(Notification.permission==='granted')setTimeout(function(){ensureSubscription(false);},40);else schedulePromptReminder(uid,1500);}
     });
   }
   function boot(){
@@ -464,7 +463,7 @@
     }else if(payload.type==='HAPPYAD_PUSH_SHOWN'){
       maybeNoticeDelayedPush(payload.data||{});
     }else if(payload.type==='HAPPYAD_PUSH_SUBSCRIPTION_REFRESHED'){
-      setTimeout(function(){ensureSubscription(false);},80);
+      setTimeout(function(){ensureSubscription(false);},20);
     }
   }
   try{navigator.serviceWorker.addEventListener('message',handleServiceWorkerPush);}catch(_e){}
@@ -498,6 +497,6 @@
   window.addEventListener('focus',function(){refreshPushState(false);});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshPushState(false);});
   try{navigator.serviceWorker.addEventListener('controllerchange',function(){setTimeout(function(){refreshPushState(true);},250);});}catch(_controller){}
-  setInterval(function(){if(document.visibilityState==='visible')refreshPushState(false);},15*60*1000);
+  setInterval(function(){if(document.visibilityState==='visible')refreshPushState(false);},5*60*1000);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

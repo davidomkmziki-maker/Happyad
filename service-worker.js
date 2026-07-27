@@ -1,7 +1,7 @@
-/* HAPPYAD V785 — Avatar Push réel : résolution, préchargement et fallback traçable */
+/* HAPPYAD V789 — Push multi-appareils et mise à jour directe du Service Worker */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V785-push-real-sender-avatar-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V789-multi-device-direct-update-20260727-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=785-push-real-sender-avatar-shell',
+  './index.html?v=789-multi-device-direct-update-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -18,7 +18,7 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=785-push-real-sender-avatar',
+  './core/navigation-master-v668.js?v=789-multi-device-direct-update',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -27,8 +27,8 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=785-push-real-sender-avatar',
-  './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
+  './core/main-tabs-master-v615.js?v=789-multi-device-direct-update',
+  './core/push-master.js?v=push-v46-multi-device-direct-update-v789',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',
@@ -36,7 +36,7 @@ var HAPPYAD_APP_SHELL = [
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
-  './modules/user.html?v=785-push-real-sender-avatar'
+  './modules/user.html?v=789-multi-device-direct-update'
 ];
 
 function isHappyCache(name){
@@ -136,6 +136,14 @@ self.addEventListener('message', function(event){
   try{
     var type=event && event.data && event.data.type;
     if(type==='HAPPYAD_SKIP_WAITING')self.skipWaiting();
+    if(type==='HAPPYAD_PUSH_SUBSCRIPTION_BOUND'){
+      event.waitUntil(happyadStoreState('subscription-bound',{
+        user_id:String(event.data&&event.data.data&&event.data.data.user_id||''),
+        installation_id:String(event.data&&event.data.data&&event.data.data.installation_id||''),
+        endpoint:String(event.data&&event.data.data&&event.data.data.endpoint||''),
+        bound_at:Date.now()
+      }));
+    }
     if(type==='HAPPYAD_CLEAR_OLD_CACHES'){
       event.waitUntil(caches.keys().then(function(keys){
         return Promise.all(keys.map(function(key){
@@ -379,33 +387,37 @@ self.addEventListener('push', function(event){
   var sentAt=happyadParseTime(data.sent_at)||Number(data.timestamp||0);
   detail.delivery_delay_ms=sentAt>0?Math.max(0,Date.now()-sentAt):0;
 
-  event.waitUntil(
-    happyadStoreState('last-received',detail).then(function(){
-      return happyadVisibleClientsFast();
-    }).then(function(visible){
-      (visible||[]).forEach(function(client){
-        try{client.postMessage({type:'HAPPYAD_PUSH_FOREGROUND',data:detail});}catch(_e){}
-      });
+  var deliveryPromise=happyadStoreState('last-received',detail).then(function(){
+    return happyadVisibleClientsFast();
+  }).then(function(visible){
+    (visible||[]).forEach(function(client){
+      try{client.postMessage({type:'HAPPYAD_PUSH_FOREGROUND',data:detail});}catch(_e){}
+    });
 
-      /* V780 : chaque nouveau message reçu par Push produit un popup système.
-         Une fenêtre HAPPYAD ouverte reçoit aussi l'événement interne, mais ne
-         peut plus supprimer silencieusement la notification Android. */
-      return happyadShowNotification(data,detail).then(function(){
-        var shown={
-          push_id:detail.push_id,
-          message_id:detail.message_id,
-          conversation_id:detail.conversation_id,
-          sent_at:detail.sent_at,
-          received_at:detail.received_at,
-          shown_at:Date.now(),
-          delivery_delay_ms:detail.delivery_delay_ms
-        };
-        return happyadStoreState('last-shown',shown).then(function(){
-          return happyadPostToClients('HAPPYAD_PUSH_SHOWN',shown);
-        });
+    /* Chaque nouveau message produit immédiatement un popup système. */
+    return happyadShowNotification(data,detail).then(function(){
+      var shown={
+        push_id:detail.push_id,
+        message_id:detail.message_id,
+        conversation_id:detail.conversation_id,
+        sent_at:detail.sent_at,
+        received_at:detail.received_at,
+        shown_at:Date.now(),
+        delivery_delay_ms:detail.delivery_delay_ms
+      };
+      return happyadStoreState('last-shown',shown).then(function(){
+        return happyadPostToClients('HAPPYAD_PUSH_SHOWN',shown);
       });
-    })
-  );
+    });
+  });
+
+  /* Même lorsque HAPPYAD est fermé, un Push reçu force aussi la vérification
+     du nouveau Service Worker. La notification courante n'attend pas cette
+     mise à jour et reste affichée immédiatement. */
+  var updatePromise=Promise.resolve().then(function(){
+    return self.registration&&self.registration.update?self.registration.update():null;
+  }).catch(function(){return null;});
+  event.waitUntil(Promise.all([deliveryPromise,updatePromise]));
 });
 
 function happyadBase64UrlToUint8Array(base64String){

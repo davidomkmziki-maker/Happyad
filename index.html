@@ -1416,6 +1416,62 @@ html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 #list .happyadHomeProgressiveSentinelV764.is-loading i{display:block!important}
 #list .happyadHomeProgressiveSentinelV764.is-done,#list .happyadHomeProgressiveSentinelV764[hidden]{display:none!important;min-height:0!important;height:0!important}
 </style>
+<script id="happyad-v789-pwa-update-direct">
+(function(){
+  if(window.__HAPPYAD_V789_PWA_UPDATE_DIRECT__)return;
+  window.__HAPPYAD_V789_PWA_UPDATE_DIRECT__=true;
+  var registrationPromise=null;
+  var lastUpdateCheck=0;
+  function supported(){
+    return !window.__HAPPYAD_PWA_DISABLED__&&'serviceWorker' in navigator&&
+      (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1');
+  }
+  function activate(reg){
+    try{
+      if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
+      if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
+    }catch(_e){}
+  }
+  function attach(reg){
+    activate(reg);
+    try{
+      reg.addEventListener('updatefound',function(){
+        var worker=reg.installing;if(!worker)return;
+        worker.addEventListener('statechange',function(){
+          try{if(worker.state==='installed'&&reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_e){}
+        });
+      });
+    }catch(_e){}
+    return reg;
+  }
+  function registerNow(){
+    if(!supported())return Promise.resolve(null);
+    if(registrationPromise)return registrationPromise;
+    registrationPromise=navigator.serviceWorker.register('./service-worker.js?v=789-multi-device-direct-update',{scope:'./',updateViaCache:'none'})
+      .then(attach)
+      .catch(function(e){registrationPromise=null;try{console.warn('HAPPYAD PWA SW',e);}catch(_e){}return null;});
+    return registrationPromise;
+  }
+  function updateNow(force){
+    if(!supported())return;
+    var at=Date.now();if(!force&&at-lastUpdateCheck<60000)return;
+    lastUpdateCheck=at;
+    registerNow().then(function(reg){
+      if(!reg)return;
+      return reg.update().then(function(){activate(reg);}).catch(function(){});
+    });
+  }
+  /* L'enregistrement commence dès l'analyse du <head>, sans attendre le rendu,
+     l'idle, le chargement de l'Accueil ou un délai de plusieurs secondes. */
+  registerNow().then(function(reg){if(reg)updateNow(true);});
+  window.addEventListener('online',function(){updateNow(true);});
+  window.addEventListener('pageshow',function(){updateNow(true);});
+  window.addEventListener('focus',function(){updateNow(false);});
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')updateNow(false);});
+  try{navigator.serviceWorker.addEventListener('controllerchange',function(){try{sessionStorage.setItem('HAPPYAD_SW_CONTROLLER_V789',String(Date.now()));}catch(_e){}});}catch(_e){}
+  setInterval(function(){updateNow(false);},30*60*1000);
+})();
+</script>
 </head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="feedGrid"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
@@ -7682,47 +7738,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
 
 
 
-<script id="happyad-v727-pwa-startup-deferred">
-(function(){
-  if(window.__HAPPYAD_V727_PWA_STARTUP_DEFERRED__)return;
-  window.__HAPPYAD_V727_PWA_STARTUP_DEFERRED__=true;
-  function registerWorker(){
-    try{
-      if(window.__HAPPYAD_PWA_DISABLED__)return;
-      if(!('serviceWorker' in navigator))return;
-      if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=785-push-real-sender-avatar',{scope:'./',updateViaCache:'none'}).then(function(reg){
-        try{
-          if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
-          if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
-          reg.addEventListener('updatefound',function(){
-            var worker=reg.installing;if(!worker)return;
-            worker.addEventListener('statechange',function(){
-              try{if(worker.state==='installed'&&navigator.serviceWorker.controller&&reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});}catch(_e){}
-            });
-          });
-        }catch(_e){}
-      }).catch(function(e){try{console.warn('HAPPYAD PWA SW',e)}catch(_w){}});
-      navigator.serviceWorker.addEventListener('controllerchange',function(){
-        /* Le nouveau worker prend le contrôle sans recharger la page visible. */
-        try{sessionStorage.setItem('HAPPYAD_SW_CONTROLLER_V727',String(Date.now()));}catch(_e){}
-      });
-    }catch(_e){}
-  }
-  function deferRegistration(){
-    var boot=null;
-    try{if(typeof HAPPYAD_HOME_BOOT_PROMISE_V655!=='undefined')boot=HAPPYAD_HOME_BOOT_PROMISE_V655;}catch(_e){}
-    Promise.resolve(boot).catch(function(){}).then(function(){
-      try{
-        if(window.HappyStartupV727)return window.HappyStartupV727.whenIdle(registerWorker,2200);
-      }catch(_e){}
-      setTimeout(registerWorker,3200);
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',deferRegistration,{once:true});
-  else deferRegistration();
-})();
-</script>
+
 
 
 <script id="happyad-v493-module-deeplink-starter">
@@ -9832,7 +9848,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 <script src="core/profile-master.js?v=core-profile-v15"></script>
 <script src="core/cache-master.js?v=core-grouped-v4"></script>
 <script src="core/auth-master.js?v=core-grouped-v4"></script>
-<script src="core/push-master.js?v=push-v45-voluntary-settings-avatar-v785"></script>
+<script src="core/push-master.js?v=push-v46-multi-device-direct-update-v789"></script>
 <script src="core/media-master.js?v=core-grouped-v4"></script>
 <script src="core/radar-stories-master.js?v=core-grouped-v4"></script>
 <script src="core/home-ui-master.js?v=core-grouped-v4"></script>
