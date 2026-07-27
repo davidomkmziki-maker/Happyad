@@ -1,15 +1,16 @@
-/* HAPPYAD V784 — Mon profil : 9 publications initiales réelles puis pagination */
+/* HAPPYAD V785 — Avatar Push réel : résolution, préchargement et fallback traçable */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V784-own-profile-nine-first-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V785-push-real-sender-avatar-20260727-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
 var HAPPYAD_PUSH_STATE_CACHE = 'happyad-push-state-v1';
+var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=784-own-profile-nine-first-shell',
+  './index.html?v=785-push-real-sender-avatar-shell',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -17,7 +18,7 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-home-wordmark-v1.svg',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=784-own-profile-nine-first',
+  './core/navigation-master-v668.js?v=785-push-real-sender-avatar',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -26,8 +27,8 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=784-own-profile-nine-first',
-  './core/push-master.js?v=push-v45-voluntary-settings',
+  './core/main-tabs-master-v615.js?v=785-push-real-sender-avatar',
+  './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/assistance-integration-master-v738.css?v=757-audit-stable',
@@ -35,14 +36,14 @@ var HAPPYAD_APP_SHELL = [
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
-  './modules/user.html?v=784-own-profile-nine-first'
+  './modules/user.html?v=785-push-real-sender-avatar'
 ];
 
 function isHappyCache(name){
   return String(name||'').toLowerCase().indexOf('happyad') > -1;
 }
 function isCurrentCache(name){
-  return name === HAPPYAD_STATIC_CACHE || name === HAPPYAD_RUNTIME_CACHE || name === HAPPYAD_MEDIA_CACHE || name === HAPPYAD_PUSH_STATE_CACHE;
+  return name === HAPPYAD_STATIC_CACHE || name === HAPPYAD_RUNTIME_CACHE || name === HAPPYAD_MEDIA_CACHE || name === HAPPYAD_PUSH_STATE_CACHE || name === HAPPYAD_PUSH_AVATAR_CACHE;
 }
 function sameOrigin(url){
   try{return new URL(url).origin === self.location.origin;}catch(e){return false;}
@@ -183,6 +184,13 @@ function happyadPushData(data){
     sender_name:String(data.sender_name||''),
     sender_avatar:String(data.sender_avatar||''),
     sender_avatar_source:String(data.sender_avatar_source||''),
+    sender_avatar_field:String(data.sender_avatar_field||''),
+    sender_avatar_status:String(data.sender_avatar_status||''),
+    sender_avatar_fallback_reason:String(data.sender_avatar_fallback_reason||''),
+    sender_profile_table:String(data.sender_profile_table||''),
+    sender_profile_match:String(data.sender_profile_match||''),
+    sender_avatar_runtime_status:'',
+    sender_avatar_runtime_reason:'',
     sender_badge:String(data.sender_badge||''),
     sender_handle:String(data.sender_handle||''),
     message_kind:String(data.message_kind||''),
@@ -256,14 +264,56 @@ function happyadNotificationAsset(value,fallback){
   }catch(_e){return String(fallback||'');}
 }
 
-function happyadNotificationOptions(data,detail){
+
+function happyadTinyHash(value){
+  var text=String(value||''),hash=2166136261;
+  for(var i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
+  return (hash>>>0).toString(36);
+}
+
+function happyadAvatarCacheRequest(detail,url){
+  var sender=String(detail&&detail.sender_id||'anonymous').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64)||'anonymous';
+  var key=happyadTinyHash(String(url||''));
+  return new Request(new URL('./__happyad_push_avatar__/'+sender+'/'+key+'.img',self.location.href).href,{method:'GET'});
+}
+
+function happyadPrepareMessageAvatar(data,detail){
+  var logo=happyadNotificationAsset('./icons/happyad-icon-v535center1-192.png','./icons/happyad-icon-v535center1-192.png');
+  if(!detail || detail.type!=='happyad_message')return Promise.resolve({icon:happyadNotificationAsset(data.icon,logo)||logo,status:'not-message',reason:''});
+  var exact=happyadNotificationAsset(detail.sender_avatar||data.sender_avatar,'');
+  if(!exact){
+    return Promise.resolve({icon:logo,status:'fallback-logo',reason:String(detail.sender_avatar_fallback_reason||'MISSING_SENDER_AVATAR')});
+  }
+  var request=happyadAvatarCacheRequest(detail,exact);
+  return caches.open(HAPPYAD_PUSH_AVATAR_CACHE).then(function(cache){
+    return cache.match(request).then(function(cached){
+      if(cached)return {icon:request.url,status:'cache-hit',reason:''};
+      var controller=typeof AbortController!=='undefined'?new AbortController():null;
+      var timer=setTimeout(function(){try{if(controller)controller.abort();}catch(_e){}},6500);
+      return fetch(exact,{cache:'no-store',credentials:'omit',redirect:'follow',signal:controller&&controller.signal}).then(function(response){
+        clearTimeout(timer);
+        if(!response || (!response.ok && response.type!=='opaque'))throw new Error('HTTP_'+String(response&&response.status||0));
+        var type='';try{type=String(response.headers.get('content-type')||'').toLowerCase();}catch(_e){}
+        if(response.type!=='opaque' && type && type.indexOf('image/')!==0)throw new Error('NOT_IMAGE');
+        return cache.put(request,response.clone()).then(function(){
+          return {icon:request.url,status:'prefetched-cache',reason:''};
+        });
+      }).catch(function(error){
+        clearTimeout(timer);
+        /* Le lien réel reste essayé directement. On ne remplace pas l'avatar
+           simplement parce que le préchargement a été lent. */
+        return {icon:exact,status:'remote-direct',reason:'PREFETCH_'+String(error&&error.message||error||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)};
+      });
+    });
+  }).catch(function(error){
+    return {icon:exact,status:'remote-direct',reason:'CACHE_'+String(error&&error.message||error||'FAILED').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)};
+  });
+}
+
+function happyadNotificationOptions(data,detail,preparedIcon,withActions){
   var logo=happyadNotificationAsset('./icons/happyad-icon-v535center1-192.png','./icons/happyad-icon-v535center1-192.png');
   var badge=happyadNotificationAsset(data.badge||'./icons/happyad-notification-badge-96.png','./icons/happyad-notification-badge-96.png');
-  var exactAvatar='';
-  if(detail.type==='happyad_message'){
-    exactAvatar=happyadNotificationAsset(detail.sender_avatar||data.sender_avatar,'');
-  }
-  var icon=exactAvatar||happyadNotificationAsset(data.icon,logo)||logo;
+  var icon=happyadNotificationAsset(preparedIcon,'')||happyadNotificationAsset(data.icon,logo)||logo;
   var options={
     body:String(data.body||'Vous avez une nouvelle notification.'),
     icon:icon,
@@ -276,36 +326,52 @@ function happyadNotificationOptions(data,detail){
     timestamp:happyadParseTime(data.sent_at)||Number(data.timestamp||Date.now()),
     data:detail
   };
-  /* L'avatar exact reste l'icône principale. Le badge monochrome HAPPYAD
-     identifie l'application dans la barre système Android. */
-  if(detail.type==='happyad_message')options.actions=[{action:'reply',title:'Répondre'}];
+  if(withActions!==false && detail.type==='happyad_message')options.actions=[{action:'reply',title:'Répondre'}];
   return options;
+}
+
+function happyadAvatarDiagnostic(detail,reason,stage){
+  var diagnostic={
+    at:Date.now(),stage:String(stage||''),reason:String(reason||''),
+    sender_id:String(detail&&detail.sender_id||''),message_id:String(detail&&detail.message_id||''),
+    sender_avatar:String(detail&&detail.sender_avatar||''),sender_avatar_source:String(detail&&detail.sender_avatar_source||''),
+    sender_avatar_field:String(detail&&detail.sender_avatar_field||''),sender_avatar_status:String(detail&&detail.sender_avatar_status||''),
+    sender_avatar_runtime_status:String(detail&&detail.sender_avatar_runtime_status||''),
+    sender_avatar_runtime_reason:String(detail&&detail.sender_avatar_runtime_reason||'')
+  };
+  return happyadStoreState('last-avatar-fallback',diagnostic).then(function(){return happyadPostToClients('HAPPYAD_PUSH_AVATAR_DIAGNOSTIC',diagnostic);});
 }
 
 function happyadShowNotification(data,detail){
   var title=String(data.title||'HAPPYAD');
-  var options=happyadNotificationOptions(data,detail);
-  return self.registration.showNotification(title,options).catch(function(firstError){
-    /* La livraison du popup reste prioritaire : si l'avatar distant ou une
-       option Android est refusée, réessayer immédiatement avec le logo local. */
-    var fallback={
-      body:String(data.body||'Vous avez une nouvelle notification.'),
-      icon:'./icons/happyad-icon-v535center1-192.png',
-      badge:'./icons/happyad-notification-badge-96.png',
-      tag:String(data.tag||('happyad-'+String(data.type||'notification'))),
-      renotify:true,
-      silent:false,
-      vibrate:[180,80,180],
-      timestamp:happyadParseTime(data.sent_at)||Date.now(),
-      data:detail
-    };
-    if(detail.type==='happyad_message')fallback.actions=[{action:'reply',title:'Répondre'}];
-    return self.registration.showNotification(title,fallback).catch(function(secondError){
-      try{console.warn('HAPPYAD notification failed',firstError,secondError);}catch(_e){}
-      throw secondError;
+  var logo=happyadNotificationAsset('./icons/happyad-icon-v535center1-192.png','./icons/happyad-icon-v535center1-192.png');
+  return happyadPrepareMessageAvatar(data,detail).then(function(prepared){
+    detail.sender_avatar_runtime_status=String(prepared.status||'');
+    detail.sender_avatar_runtime_reason=String(prepared.reason||'');
+    var fullOptions=happyadNotificationOptions(data,detail,prepared.icon,true);
+    return self.registration.showNotification(title,fullOptions).catch(function(firstError){
+      /* Certains Android refusent une action ou une option mais acceptent la
+         même photo. Le second essai conserve donc l'avatar réel. */
+      var compactOptions=happyadNotificationOptions(data,detail,prepared.icon,false);
+      compactOptions.requireInteraction=false;
+      return happyadAvatarDiagnostic(detail,String(firstError&&firstError.message||firstError||'FULL_OPTIONS_FAILED'),'full-options').then(function(){
+        return self.registration.showNotification(title,compactOptions);
+      }).catch(function(secondError){
+        detail.sender_avatar_runtime_status='fallback-logo';
+        detail.sender_avatar_runtime_reason='SHOW_WITH_AVATAR_FAILED';
+        var fallback=happyadNotificationOptions(data,detail,logo,false);
+        fallback.requireInteraction=false;
+        return happyadAvatarDiagnostic(detail,String(secondError&&secondError.message||secondError||'AVATAR_OPTIONS_FAILED'),'avatar-options').then(function(){
+          return self.registration.showNotification(title,fallback);
+        }).catch(function(thirdError){
+          try{console.warn('HAPPYAD notification failed',firstError,secondError,thirdError);}catch(_e){}
+          throw thirdError;
+        });
+      });
     });
   });
 }
+
 
 self.addEventListener('push', function(event){
   var data=happyadPushPayload(event);
@@ -411,11 +477,17 @@ self.addEventListener('notificationclick', function(event){
 self.addEventListener('fetch', function(event){
   var request=event.request;
   if(!request || request.method !== 'GET')return;
+  var path='';try{path=new URL(request.url).pathname;}catch(_e){}
+  if(/\/__happyad_push_avatar__\//i.test(path)){
+    event.respondWith(caches.open(HAPPYAD_PUSH_AVATAR_CACHE).then(function(cache){
+      return cache.match(request).then(function(response){return response||new Response('',{status:404});});
+    }));
+    return;
+  }
   if(isSupabaseOrExternal(request.url) || isHeavyMedia(request))return;
   if(!sameOrigin(request.url))return;
 
   var dest=request.destination||'';
-  var path='';try{path=new URL(request.url).pathname;}catch(_e){}
   /* La version est portée par la query. Une fois préchauffée, l’Assistance
      doit s’ouvrir depuis le cache immédiatement, sans second passage réseau. */
   if(/\/modules\/assistance\.html$/i.test(path)){
