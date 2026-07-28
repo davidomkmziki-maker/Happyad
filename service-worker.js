@@ -1,7 +1,7 @@
-/* HAPPYAD V788 — Point 3 : Compteurs conversation optimistes, confirmation Supabase silencieuse ; Push V785 inchangé */
+/* HAPPYAD V809 — notifications de décision sans mention de l’équipe */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V788-unread-optimistic-20260727-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V809-system-decision-copy-clean-20260728-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,15 +10,24 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=788-unread-optimistic-shell',
+  './index.html?v=808-verification-copy-clean',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
   './icons/happyad-notification-badge-96.png',
   './icons/happyad-home-wordmark-v1.svg',
+  './icons/happyad-chat-sticker-v797-transparent.png',
+  './core/chat-sticker-living-v791.css?v=799-smaller-mouth-only',
+  './core/chat-sticker-living-v791.js?v=799-smaller-mouth-only',
+  './core/chat-integration-master-v795.css?v=806-outer-viewport-unique',
+  './core/system-notification-master-v807.js?v=807-system-events',
+  './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
+  './core/product-publication-supabase-master-v804.js?v=807-price-currency-system-notifications',
+  './core/chat-integration-master-v795.js?v=808-verification-copy-clean',
+  './modules/happyad-chat.html?v=808-verification-copy-clean',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=788-unread-optimistic',
+  './core/navigation-master-v668.js?v=785-push-real-sender-avatar',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
@@ -27,7 +36,7 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=788-unread-optimistic',
+  './core/main-tabs-master-v615.js?v=785-push-real-sender-avatar',
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
@@ -36,7 +45,7 @@ var HAPPYAD_APP_SHELL = [
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
-  './modules/user.html?v=785-push-real-sender-avatar'
+  './modules/user.html?v=795-chat-viewport-safe'
 ];
 
 function isHappyCache(name){

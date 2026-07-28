@@ -3398,7 +3398,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V788_CONVERSATION_UNREAD_OPTIMISTIC_SILENT_CONFIRM';
+      const MASTER_VERSION = 'V775_MESSAGES_COMPOSER_BOTTOM_STABLE';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -3550,13 +3550,6 @@
       const viewOnceTransitionIds = new Set();
       let realtimeConversationTimer = 0;
       let realtimeReadTimer = 0;
-      /* HAPPYAD V787 — Une iframe peut annoncer READY avant la fin de boot().
-         Les événements reçus pendant cette courte fenêtre restent en mémoire
-         puis sont fusionnés et persistés dès que le compte et IndexedDB sont prêts. */
-      let realtimeCacheReadyV787 = false;
-      const pendingRealtimeEventsV787 = [];
-      const MAX_PENDING_REALTIME_V787 = 240;
-      let drainingRealtimeEventsV787 = false;
       let activeMessageView = 'inbox';
       let personSelectorOpen = false;
       let personSelectorMode = 'new_conversation';
@@ -3585,12 +3578,6 @@
       let chatOpenedAt = 0;
       const deliveredSync = new Map();
       const readSync = new Map();
-      /* HAPPYAD V788 — Dès le premier toucher, le badge de la conversation
-         disparaît localement. Supabase confirme ensuite la lecture en silence.
-         Le plafond server_seq empêche un ancien snapshot réseau de restaurer
-         le badge, tout en laissant un vrai nouveau message le recréer. */
-      const optimisticReadStateV788 = new Map();
-      const silentReadConfirmStateV788 = new Map();
       const signatureIndex = Object.create(null);
       const profileMap = new Map();
       /* V759 : la valeur distante de profiles est la seule autorité pour la photo
@@ -5010,23 +4997,10 @@
           const targetId = clean(item.targetId || previous.targetId);
           const mergedFallback = sanitizeCachedProfileForTargetV759(Object.assign({},previous.fallbackTarget || {},item.fallbackTarget || {}),targetId);
           const mergedTarget = sanitizeCachedProfileForTargetV759(item.target || previous.target || {},targetId);
-          const merged = Object.assign({},previous,item,{
+          map.set(item.id,Object.assign({},previous,item,{
             fallbackTarget:mergedFallback,
             target:Object.keys(mergedTarget).length ? mergedTarget : null
-          });
-          const optimistic = optimisticReadStateV788.get(item.id);
-          if(optimistic){
-            const throughSeq = Math.max(0,finiteNumber(optimistic.throughSeq,0));
-            const remoteLastSeq = Math.max(0,finiteNumber(merged.lastSeq,0),finiteNumber(merged.previewSeq,0));
-            if(remoteLastSeq <= throughSeq || (remoteLastSeq <= 0 && optimistic.forceZero)){
-              merged.unread = 0;
-            }else{
-              /* Un server_seq supérieur est un vrai nouveau message arrivé
-                 après l'ouverture : son compteur est de nouveau autorisé. */
-              optimisticReadStateV788.delete(item.id);
-            }
-          }
-          map.set(item.id,merged);
+          }));
         });
         return Array.from(map.values()).filter(item => !isConversationDeletedForMe(item)).sort((a,b) => {
           const left = Math.max(finiteNumber(a.previewSeq,0),finiteNumber(a.lastSeq,0));
@@ -5534,162 +5508,23 @@
         ],0));
       }
 
-      function remainingOptimisticUnreadReductionV788(){
-        let total = 0;
-        optimisticReadStateV788.forEach(state => {
-          if(state && !state.serverConfirmed) total += Math.max(0,finiteNumber(state.clearedUnread,0));
-        });
-        return Math.max(0,total);
-      }
-
-      function publishUnreadTotal(total,pendingOverride){
+      function publishUnreadTotal(total){
         total = Math.max(0,finiteNumber(total,0));
-        const pendingReduction = pendingOverride == null
-          ? remainingOptimisticUnreadReductionV788()
-          : Math.max(0,finiteNumber(pendingOverride,0));
-        let handled = false;
         try{
-          if(window.parent && typeof window.parent.happyadRenderMessageUnreadServerTotalV788 === 'function'){
-            window.parent.happyadRenderMessageUnreadServerTotalV788(total,pendingReduction);
-            handled = true;
-          }else if(window.parent && typeof window.parent.happyadRenderMessageUnreadTotal === 'function'){
-            window.parent.happyadRenderMessageUnreadTotal(Math.max(0,total - pendingReduction));
-            handled = true;
+          if(window.parent && typeof window.parent.happyadRenderMessageUnreadTotal === 'function'){
+            window.parent.happyadRenderMessageUnreadTotal(total);
           }
         }catch(_e){}
-        if(!handled){
-          try{
-            window.parent.postMessage({type:'HAPPYAD_MESSAGE_UNREAD_TOTAL',detail:{total,pendingReduction}}, '*');
-          }catch(_e){}
-        }
-        return Math.max(0,total - pendingReduction);
-      }
-
-      function publishUnreadAdjustmentV788(delta){
-        delta = finiteNumber(delta,0);
-        if(!delta) return 0;
-        let handled = false;
         try{
-          if(window.parent && typeof window.parent.happyadAdjustMessageUnreadTotal === 'function'){
-            window.parent.happyadAdjustMessageUnreadTotal(delta);
-            handled = true;
-          }
+          window.parent.postMessage({type:'HAPPYAD_MESSAGE_UNREAD_TOTAL',detail:{total}}, '*');
         }catch(_e){}
-        if(!handled){
-          try{
-            window.parent.postMessage({type:'HAPPYAD_MESSAGE_UNREAD_ADJUST_V788',detail:{delta}}, '*');
-          }catch(_e){}
-        }
-        return delta;
+        return total;
       }
 
-      function optimisticReadThroughSeqV788(item,requestedSeq){
-        item = item && typeof item === 'object' ? item : {};
-        return Math.max(
-          0,
-          finiteNumber(requestedSeq,0),
-          finiteNumber(item.lastSeq,0),
-          finiteNumber(item.previewSeq,0),
-          finiteNumber(item.myRead,0)
-        );
-      }
-
-      function clearConversationUnreadOptimisticallyV788(item,requestedSeq){
-        if(!item || !isUuid(item.id)) return {conversationId:'',throughSeq:0,clearedUnread:0};
-        const conversationId = clean(item.id);
-        const throughSeq = optimisticReadThroughSeqV788(item,requestedSeq);
-        const previousUnread = Math.max(0,finiteNumber(item.unread,0));
-        const existing = optimisticReadStateV788.get(conversationId) || {};
-        const previousThroughSeq = Math.max(0,finiteNumber(existing.throughSeq,0));
-        const advanced = throughSeq > previousThroughSeq;
-        optimisticReadStateV788.set(conversationId,{
-          throughSeq:Math.max(throughSeq,previousThroughSeq),
-          forceZero:true,
-          openedAt:Date.now(),
-          clearedUnread:Math.max(0,finiteNumber(existing.clearedUnread,0)) + previousUnread,
-          serverConfirmed:(previousUnread > 0 || advanced) ? false : !!existing.serverConfirmed,
-          confirmedAt:existing.confirmedAt || 0
-        });
-
-        item.unread = 0;
-        conversations.forEach(row => {
-          if(row && clean(row.id) === conversationId) row.unread = 0;
-        });
-        patchConversationDynamicStates(conversations);
-        queuePersistConversations();
-        if(previousUnread > 0) publishUnreadAdjustmentV788(-previousUnread);
-        return {conversationId,throughSeq,clearedUnread:previousUnread};
-      }
-
-      function queueSilentReadConfirmationV788(conversationId,serverSeq,options){
-        const id = clean(conversationId);
-        const seq = Math.max(0,finiteNumber(serverSeq,0));
-        if(!isUuid(id) || seq <= 0) return null;
-        options = options && typeof options === 'object' ? options : {};
-        const previous = silentReadConfirmStateV788.get(id) || {seq:0,attempt:0,timer:0};
-        const state = {
-          seq:Math.max(seq,finiteNumber(previous.seq,0)),
-          attempt:options.resetAttempt ? 0 : finiteNumber(previous.attempt,0),
-          timer:previous.timer || 0
-        };
-        if(state.timer) clearTimeout(state.timer);
-        const delay = Math.max(0,finiteNumber(options.delay,0));
-        state.timer = setTimeout(async () => {
-          state.timer = 0;
-          if(!authUser || !isUuid(authUser.id)){
-            silentReadConfirmStateV788.delete(id);
-            return;
-          }
-          try{
-            const markResultV788 = await markRead(id,state.seq);
-            if(markResultV788 == null) await refreshUnreadTotal();
-            silentReadConfirmStateV788.delete(id);
-            const optimistic = optimisticReadStateV788.get(id);
-            if(optimistic){
-              optimistic.forceZero = false;
-              optimistic.serverConfirmed = true;
-              optimistic.confirmedAt = Date.now();
-              optimistic.throughSeq = Math.max(finiteNumber(optimistic.throughSeq,0),state.seq);
-              optimisticReadStateV788.set(id,optimistic);
-              setTimeout(() => {
-                const current = optimisticReadStateV788.get(id);
-                if(current && finiteNumber(current.throughSeq,0) <= state.seq) optimisticReadStateV788.delete(id);
-              },30000);
-            }
-            renderConversations(searchInput && searchInput.value);
-            queuePersistConversations();
-          }catch(_error){
-            state.attempt = Math.min(6,finiteNumber(state.attempt,0) + 1);
-            silentReadConfirmStateV788.set(id,state);
-            const retryDelay = Math.min(30000,1200 * Math.pow(2,state.attempt - 1));
-            queueSilentReadConfirmationV788(id,state.seq,{delay:retryDelay});
-          }
-        },delay);
-        silentReadConfirmStateV788.set(id,state);
-        return state;
-      }
-
-      window.addEventListener('online',() => {
-        silentReadConfirmStateV788.forEach((state,id) => {
-          queueSilentReadConfirmationV788(id,state && state.seq,{delay:80,resetAttempt:true});
-        });
-      });
-
-      async function refreshUnreadTotal(options){
-        options = options && typeof options === 'object' ? options : {};
-        if(options.forceFresh && unreadRefreshPromise){
-          try{ await unreadRefreshPromise; }catch(_e){}
-        }
+      async function refreshUnreadTotal(){
         if(unreadRefreshPromise) return unreadRefreshPromise;
-        const pendingAtRequestV788 = remainingOptimisticUnreadReductionV788();
         unreadRefreshPromise = rpc('happyad_msg_get_unread_total',[{}])
-          .then(data => {
-            /* Une requête partie avant l'ouverture ou avant la confirmation peut
-               retourner un ancien total. Garder la réduction la plus forte entre
-               le départ et l'arrivée empêche tout clignotement du compteur. */
-            const pendingAtResponseV788 = remainingOptimisticUnreadReductionV788();
-            return publishUnreadTotal(parseUnreadTotal(data),Math.max(pendingAtRequestV788,pendingAtResponseV788));
-          })
+          .then(data => publishUnreadTotal(parseUnreadTotal(data)))
           .catch(() => null)
           .finally(() => { unreadRefreshPromise = null; });
         return unreadRefreshPromise;
@@ -11560,17 +11395,7 @@
             item.myRead = Math.max(item.myRead || 0,confirmedRead);
           }
         });
-        const optimisticV788 = optimisticReadStateV788.get(conversationId);
-        if(optimisticV788){
-          optimisticV788.serverConfirmed = true;
-          optimisticV788.confirmedAt = Date.now();
-          optimisticV788.throughSeq = Math.max(finiteNumber(optimisticV788.throughSeq,0),confirmedRead);
-          optimisticReadStateV788.set(conversationId,optimisticV788);
-        }
-        const refreshedUnreadV788 = await refreshUnreadTotal({forceFresh:true});
-        if(refreshedUnreadV788 == null){
-          setTimeout(() => refreshUnreadTotal().catch(() => {}),1800);
-        }
+        await refreshUnreadTotal();
         setTimeout(() => refreshCurrentReceiptExactV783('mark-read-confirm',true).catch(() => {}),80);
         return data;
       }
@@ -12021,13 +11846,14 @@
 
           const maxSeq = latestServerSeq(activeMessages);
           if(maxSeq > 0){
-            /* V788 : l'ouverture n'attend plus Supabase. Le compteur est déjà
-               effacé localement ; la RPC confirme la lecture en arrière-plan. */
-            const activeItemV788 = conversations.find(row => row && clean(row.id) === id);
-            if(activeItemV788) clearConversationUnreadOptimisticallyV788(activeItemV788,maxSeq);
-            queueSilentReadConfirmationV788(id,maxSeq,{delay:0,resetAttempt:true});
-            renderMessages(false);
-            renderConversations(searchInput && searchInput.value);
+            try{
+              await markRead(id,maxSeq);
+              if(!stillActive()) return (conversationMessageBuckets.get(conversationKey) || []).slice();
+              renderMessages(false);
+              renderConversations(searchInput && searchInput.value);
+            }catch(error){
+              if(stillActive()) showToast(error.message || 'Lecture non synchronisée.');
+            }
           }else{
             refreshUnreadTotal().catch(() => {});
             if(stillActive() && !(conversationMessageBuckets.get(conversationKey) || []).length){
@@ -12102,8 +11928,6 @@
         if(token !== openToken) return;
         currentConversationId = opened.conversationId;
         currentConversationMeta = opened.row || null;
-        const openedListItemV788 = conversations.find(row => row && clean(row.id) === clean(currentConversationId));
-        if(openedListItemV788) clearConversationUnreadOptimisticallyV788(openedListItemV788,openedListItemV788.lastSeq);
         readEligibleConversationId = currentConversationId;
         chatOpenedAt = Date.now();
         currentReceipt = {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
@@ -12125,7 +11949,6 @@
         if(!isUuid(id)) return openTarget(target);
 
         const cachedConversation = conversations.find(item => item && clean(item.id) === id) || null;
-        if(cachedConversation) clearConversationUnreadOptimisticallyV788(cachedConversation,cachedConversation.lastSeq);
         currentConversationId = id;
         currentConversationMeta = cachedConversation;
         readEligibleConversationId = id;
@@ -12164,7 +11987,6 @@
         clearStickerDraft();
         clearComposerContext(false);
         const token = ++openToken;
-        clearConversationUnreadOptimisticallyV788(item,item.lastSeq);
         currentConversationId = item.id;
         currentConversationMeta = item;
         readEligibleConversationId = currentConversationId;
@@ -12390,12 +12212,13 @@
             && conversationId === readEligibleConversationId
             && messageCenterVisible();
           if(mayReadNow){
-            const currentItemV788 = conversations.find(item => item && clean(item.id) === conversationId);
-            if(currentItemV788) clearConversationUnreadOptimisticallyV788(currentItemV788,normalized.serverSeq);
             clearTimeout(realtimeReadTimer);
             realtimeReadTimer = setTimeout(() => {
               if(conversationId !== currentConversationId || conversationId !== readEligibleConversationId || !messageCenterVisible()) return;
-              queueSilentReadConfirmationV788(conversationId,normalized.serverSeq,{delay:0});
+              markRead(conversationId, normalized.serverSeq).then(() => {
+                renderMessages(false);
+                renderConversations(searchInput && searchInput.value);
+              }).catch(() => {});
             }, 350);
           }
         }
@@ -12415,7 +12238,7 @@
         refreshBlockState(target).catch(() => {});
       }
 
-      function applyRealtimeEventNowV787(detail){
+      function handleRealtimeEvent(detail){
         detail = detail && typeof detail === 'object' ? detail : {};
         const table = clean(detail.table);
         const payload = detail.payload && typeof detail.payload === 'object' ? detail.payload : {};
@@ -12453,39 +12276,6 @@
           scheduleRealtimeConversationRefresh(80);
           return;
         }
-      }
-
-      function realtimeCacheAvailableV787(){
-        const ownerId = clean(authUser && authUser.id);
-        return realtimeCacheReadyV787 && isUuid(ownerId) && clean(localDbUserId) === ownerId;
-      }
-
-      function queueRealtimeEventV787(detail){
-        pendingRealtimeEventsV787.push(detail && typeof detail === 'object' ? detail : {});
-        if(pendingRealtimeEventsV787.length > MAX_PENDING_REALTIME_V787){
-          pendingRealtimeEventsV787.splice(0,pendingRealtimeEventsV787.length - MAX_PENDING_REALTIME_V787);
-        }
-      }
-
-      function drainRealtimeEventsV787(){
-        if(drainingRealtimeEventsV787 || !realtimeCacheAvailableV787()) return false;
-        drainingRealtimeEventsV787 = true;
-        try{
-          while(pendingRealtimeEventsV787.length && realtimeCacheAvailableV787()){
-            applyRealtimeEventNowV787(pendingRealtimeEventsV787.shift());
-          }
-          return true;
-        }finally{
-          drainingRealtimeEventsV787 = false;
-        }
-      }
-
-      function handleRealtimeEvent(detail){
-        if(!realtimeCacheAvailableV787()){
-          queueRealtimeEventV787(detail);
-          return;
-        }
-        applyRealtimeEventNowV787(detail);
       }
 
       async function syncMessagesAfter(conversationId, afterServerSeq,options){
@@ -14427,7 +14217,6 @@
 
       async function boot(){
         if(bootPromise) return bootPromise;
-        realtimeCacheReadyV787 = false;
         bootPromise = (async function(){
           const hintedUserId = cachedSessionUserId();
           let hintedCache = [];
@@ -14472,11 +14261,8 @@
           setTimeout(() => refreshConnectedIdentitySoon(0),1100);
           subscribeProfileIdentityRealtime();
           refreshUnreadTotal().catch(() => {});
-          realtimeCacheReadyV787 = true;
-          drainRealtimeEventsV787();
           return user;
         })().catch(error => {
-          realtimeCacheReadyV787 = false;
           if(messageInput && (!authUser || !isUuid(authUser.id))) messageInput.disabled = true;
           if(!conversations.length) setListState('Connexion requise pour ouvrir Messages.');
           throw error;
@@ -14971,8 +14757,6 @@
           const previousId = clean(authUser && authUser.id);
           const changed = !!(previousId && previousId !== nextUser.id);
           if(changed){
-            realtimeCacheReadyV787 = false;
-            pendingRealtimeEventsV787.length = 0;
             try{ closeLocalMessageDb(true); }catch(_e){}
             conversations = [];
             conversationMessageBuckets.clear();
@@ -15003,8 +14787,6 @@
         return authRecoveryPromiseV595;
       }
       function applySignedOutV595(){
-        realtimeCacheReadyV787 = false;
-        pendingRealtimeEventsV787.length = 0;
         authUser = null;
         authProfile = null;
         if(profileRealtimeChannel){ try{ getClient().removeChannel(profileRealtimeChannel); }catch(_e){} profileRealtimeChannel = null; }

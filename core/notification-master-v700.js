@@ -101,6 +101,17 @@
     }
     return {};
   }
+  function normalizeSystemMessage(value){
+    var text=clean(value);
+    if(!text)return '';
+    return text
+      .replace(/\s+par\s+l[’']équipe\s+HAPPYAD(?=[.!,;:?]|$)/gi,'')
+      .replace(/\s+par\s+les\s+équipes?\s+HAPPYAD(?=[.!,;:?]|$)/gi,'')
+      .replace(/\s+par\s+HAPPYAD(?=[.!,;:?]|$)/gi,'')
+      .replace(/\s+([.!,;:?])/g,'$1')
+      .replace(/\s{2,}/g,' ')
+      .trim();
+  }
   function relativeTime(value){
     var stamp=Date.parse(value||'');
     if(!Number.isFinite(stamp))return '';
@@ -145,7 +156,10 @@
     else if(type==='favorite')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a ajouté votre publication aux favoris.';
     else if(type==='repost')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a republié votre publication.';
     else if(type==='share'){var shareUnits=Math.max(1,finite(meta.share_units||1));bodyHtml='<strong>'+escapeHtml(name)+'</strong> a partagé votre publication'+(shareUnits>1?' '+shareUnits+' fois.':'.');}
-    else bodyHtml=escapeHtml(row.body||row.title||'Nouvelle activité HAPPYAD');
+    else {
+      var fallbackBody=row.body||row.title||'Nouvelle activité HAPPYAD';
+      bodyHtml=escapeHtml(type==='system'?normalizeSystemMessage(fallbackBody):fallbackBody);
+    }
 
     return {
       id:clean(row.id),
@@ -183,7 +197,7 @@
       preview_url:clean(row.preview_url),
       html:bodyHtml,
       title:clean(row.title),
-      body:clean(row.body),
+      body:type==='system'?normalizeSystemMessage(row.body):clean(row.body),
       time:relativeTime(row.created_at),
       created_at:row.created_at,
       unread:row.is_read!==true,

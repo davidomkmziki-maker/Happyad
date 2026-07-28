@@ -1416,6 +1416,9 @@ html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 #list .happyadHomeProgressiveSentinelV764.is-loading i{display:block!important}
 #list .happyadHomeProgressiveSentinelV764.is-done,#list .happyadHomeProgressiveSentinelV764[hidden]{display:none!important;min-height:0!important;height:0!important}
 </style>
+
+<link id="happyad-chat-sticker-living-v791-css" rel="stylesheet" href="core/chat-sticker-living-v791.css?v=799-smaller-mouth-only">
+<link id="happyad-chat-integration-master-v795-css" rel="stylesheet" href="core/chat-integration-master-v795.css?v=807-stable-outer-viewport">
 </head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="feedGrid"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
@@ -3801,7 +3804,7 @@ function renderRadarHome(){
  let others=source.filter(p=>!happyadIsMine(p)&&!happyadIsLive(p)).sort((a,b)=>happyadScorePost(b)-happyadScorePost(a));
  let items=[...mine.slice(0,1),...liveItems,...others].filter((p,i,arr)=>arr.findIndex(x=>String(x.id)===String(p.id))===i).slice(0,14);
  const block=document.createElement('section'); block.id='homeRadarBlock'; block.className='radarBlock';
- block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" href="modules/map.html">⌖ Voir sur la carte</a></div><div class="radarRow"></div>';
+ block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
  const row=block.querySelector('.radarRow');
  const add=document.createElement('a'); add.href='modules/publish.html?mode=story'; add.className='radarItem'; add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>'; row.appendChild(add);
  items.forEach(p=>{const owner=postOwnerData(p);const live=happyadIsLive(p);const isStory=(happyadIsStory(p)||String(p.sourceType||p.source_type||p.type||p.mode||'').toLowerCase()==='story');const a=document.createElement('button');a.type='button';a.className='radarItem';a.style.background='transparent';a.style.border='0';a.style.padding='0';a.style.cursor='pointer'; const av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="radarInitial">'+esc(initials(owner.name))+'</span>'; const meta=live?'👁 '+(Number(getA(p.id).likes||p.likes_count||24)+24):(isStory?(typeof happyadTimeAgo==='function'?happyadTimeAgo(p.createdAt||p.created_at||Date.now()):'Story'):''); a.innerHTML='<div class="radarAvatar '+(live?'live':'')+'">'+av+(live?'<span class="liveBadge">LIVE</span>':'')+'<i class="typeDot '+happyadTypeClass(p)+'"></i></div><div class="radarName">'+esc(owner.name)+badgeMarkHtml(owner.badge)+'</div><div class="radarMeta">'+esc(meta)+'</div>'; a.onclick=()=>{ try{ if(String(p.sourceType||p.source_type||'').toLowerCase()==='story'){ openRadarPost(p); return;} openRadarPost(p);}catch(e){openRadarPost(p);} }; row.appendChild(a);});
@@ -4974,7 +4977,7 @@ function stableStoryCache(){
     var others=source.filter(function(p){return !isMine(p)&&!isLive(p)}).sort(function(a,b){return Number(b.createdAt||0)-Number(a.createdAt||0)});
     var items=[].concat(my.slice(0,1),others).filter(function(p,i,aa){var id=String(p.id||p.source_id||p.sourceId||p.story_id||i);return aa.findIndex(function(x,j){return String(x.id||x.source_id||x.sourceId||x.story_id||j)===id})===i}).slice(0,14);
     var block=document.createElement('section'); block.id='homeRadarBlock'; block.className='radarBlock';
-    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" href="modules/map.html">⌖ Voir sur la carte</a></div><div class="radarRow"></div>';
+    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
     var row=block.querySelector('.radarRow');
     var add=document.createElement('a'); add.href='modules/publish.html?mode=story'; add.className='radarItem'; add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>'; row.appendChild(add);
     items.forEach(function(p){
@@ -5730,7 +5733,7 @@ if(like)like.onclick=function(e){
   function renderAvatar(p){return p.avatar||p.user_avatar||p.avatar_url||p.userAvatar||''}
   function renderBadge(p){return p.badge||p.userBadge||p.user_badge||''}
   var oldRender=window.renderRadarHome;
-  window.renderRadarHome=function(){var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}var old=$('homeRadarBlock');if(old)old.remove();var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});list=list.slice(0,14);var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" href="modules/map.html">⌖ Voir sur la carte</a></div><div class="radarRow"></div>';var row=block.querySelector('.radarRow');var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);list.forEach(function(g){var p=g.first,av=renderAvatar(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(name))+'</span>')+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">Story '+g.items.length+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn)});chips.insertAdjacentElement('afterend',block)};
+  window.renderRadarHome=function(){var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}var old=$('homeRadarBlock');if(old)old.remove();var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});list=list.slice(0,14);var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';var row=block.querySelector('.radarRow');var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);list.forEach(function(g){var p=g.first,av=renderAvatar(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(name))+'</span>')+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">Story '+g.items.length+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn)});chips.insertAdjacentElement('afterend',block)};
   setTimeout(function(){try{if(typeof window.fetchRadarItems==='function'){Promise.resolve(window.fetchRadarItems()).then(function(){try{window.renderRadarHome()}catch(e){}})}else window.renderRadarHome()}catch(e){}},250);
 })();
 </script>
@@ -5962,7 +5965,7 @@ async function saveRemote(id,on){
     list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(tsOf(b.first))-Number(tsOf(a.first))});
     list=list.slice(0,14);
     var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';
-    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" href="modules/map.html">⌖ Voir sur la carte</a></div><div class="radarRow"></div>';
+    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
     var row=block.querySelector('.radarRow');
     var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);
     list.forEach(function(g){var p=g.first,av=previewHtml(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+av+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">'+esc(ageOf(p))+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();startOn(btn);try{var start=g.items[0]||p;if(typeof window.openRadarPost==='function')window.openRadarPost(start);else if(typeof window.openHappyadStoryViewer==='function')window.openHappyadStoryViewer(start)}catch(_e){stopAll()}return false};row.appendChild(btn)});
@@ -7691,7 +7694,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=785-push-real-sender-avatar',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=793-chat-v37-integrated',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -8130,7 +8133,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(tsOf(b.first))-Number(tsOf(a.first))});
     list=list.slice(0,14);
     var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';
-    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" href="modules/map.html">⌖ Voir sur la carte</a></div><div class="radarRow"></div>';
+    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
     var row=block.querySelector('.radarRow');
     var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);
     list.forEach(function(g){
@@ -9799,12 +9802,12 @@ html,body{background:#000!important;}
 .happyadAppFrame{background:#000!important;}
 </style>
 <!-- HAPPYAD CORE V10: navigation, vidéo et profil maîtres actifs -->
-<script src="core/navigation-master-v668.js?v=788-unread-optimistic"></script>
+<script src="core/navigation-master-v668.js?v=784-own-profile-nine-first"></script>
 <script src="core/auth-session-master-v598.js?v=776-push-clean-signout"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=758-visitor-isolation"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=763-home-stable"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=763-home-stable"></script>
-<script src="core/main-tabs-master-v615.js?v=788-unread-optimistic"></script>
+<script src="core/main-tabs-master-v615.js?v=784-own-profile-nine-first"></script>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -9824,7 +9827,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 <script src="core/share-button-bridge.js?v=share-v567-real-events"></script>
 <script src="core/share-count-master.js?v=share-count-v567"></script>
 <script src="core/notification-home-comment-center.js?v=notification-home-comment-center-v547-close-to-post"></script>
-<script src="core/notification-master-v700.js?v=700-notification-infinite-scroll"></script>
+<script src="core/notification-master-v700.js?v=809-system-copy-clean"></script>
 <script src="core/video-master.js?v=core-nav-v10"></script>
 
 <!-- HAPPYAD CORE V4: regroupement passif des maîtres par module/catégorie, sans changer le design -->
@@ -9849,8 +9852,6 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   var retryTimer=0;
   var authBound=false;
   var lastTotal=0;
-  var lastServerTotal=0;
-  var pendingUnreadReductionV788=0;
 
   function badge(){
     var nav=document.querySelector('.bottom .messageNav,.bottom [data-happyad-message-ready]');
@@ -9867,16 +9868,11 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   function render(total){
     total=Math.max(0,Number(total||0)||0);
     var el=badge();
-    if(!el){lastTotal=total;return total;}
+    if(!el)return total;
     if(total>0){el.textContent=total>99?'99+':String(total);el.style.display='grid';}
     else{el.textContent='';el.style.display='none';}
     lastTotal=total;
     return total;
-  }
-  function renderServerV788(total,pendingOverride){
-    lastServerTotal=Math.max(0,Number(total||0)||0);
-    if(pendingOverride!=null&&pendingOverride!=='')pendingUnreadReductionV788=Math.max(0,Number(pendingOverride)||0);
-    return render(Math.max(0,lastServerTotal-pendingUnreadReductionV788));
   }
   function client(){
     try{
@@ -9904,13 +9900,13 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
     if(refreshPromise)return refreshPromise;
     refreshPromise=(async function(){
       var c=client();
-      if(!c||!c.auth||typeof c.rpc!=='function'){schedule(900);return renderServerV788(0);}
+      if(!c||!c.auth||typeof c.rpc!=='function'){schedule(900);return render(0);}
       var sessionResult=await c.auth.getSession();
       var session=sessionResult&&sessionResult.data&&sessionResult.data.session;
-      if(!session){pendingUnreadReductionV788=0;return renderServerV788(0,0);}
+      if(!session){return render(0);}
       var result=await c.rpc('happyad_msg_get_unread_total',{});
       if(result&&result.error)throw result.error;
-      return renderServerV788(parse(result&&result.data));
+      return render(parse(result&&result.data));
     })().catch(function(){schedule(1800);return lastTotal;}).finally(function(){refreshPromise=null;});
     return refreshPromise;
   }
@@ -9923,35 +9919,27 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   }
 
   window.happyadRenderMessageUnreadTotal=render;
-  window.happyadRenderMessageUnreadServerTotalV788=renderServerV788;
   window.happyadRefreshMessageUnreadTotal=refresh;
-  window.happyadAdjustMessageUnreadTotal=function(delta){
-    delta=Number(delta)||0;
-    if(delta<0)pendingUnreadReductionV788+=Math.abs(delta);
-    else if(delta>0)pendingUnreadReductionV788=Math.max(0,pendingUnreadReductionV788-delta);
-    return render(Math.max(0,lastServerTotal-pendingUnreadReductionV788));
-  };
   window.addEventListener('message',function(event){
     try{
       var data=event&&event.data;
-      if(data&&data.type==='HAPPYAD_MESSAGE_UNREAD_TOTAL')renderServerV788(data.detail&&data.detail.total,data.detail&&data.detail.pendingReduction);
-      else if(data&&data.type==='HAPPYAD_MESSAGE_UNREAD_ADJUST_V788')window.happyadAdjustMessageUnreadTotal(data.detail&&data.detail.delta);
+      if(data&&data.type==='HAPPYAD_MESSAGE_UNREAD_TOTAL')render(data.detail&&data.detail.total);
     }catch(_e){}
   },true);
   window.addEventListener('focus',function(){schedule(30);});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)schedule(30);});
-  function boot(){renderServerV788(0,0);bindAuth();schedule(250);setTimeout(bindAuth,1000);}
+  function boot(){render(0);bindAuth();schedule(250);setTimeout(bindAuth,1000);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
 })();
 
 </script>
 
-<script id="happyad-message-realtime-global-phase5f-v788">
+<script id="happyad-message-realtime-global-phase5f-v37">
 (function(){
   'use strict';
-  if(window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V788__) return;
-  window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V788__ = true;
+  if(window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V37__) return;
+  window.__HAPPYAD_MESSAGE_REALTIME_GLOBAL_PHASE5F_V37__ = true;
 
   var TABLES=[
     'happyad_msg_messages',
@@ -9968,13 +9956,6 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   var authBound=false;
   var generation=0;
   var deliveredSeqByConversation=Object.create(null);
-  /* HAPPYAD V787 — Le pont Realtime doit attendre la vraie iframe Messages.
-     Une publication vers about:blank ou vers l'ancien identifiant était perdue. */
-  var messageCenterReadyV787=false;
-  var pendingRealtimeEventsV787=[];
-  var pendingRealtimeStatusV787=null;
-  var boundMessageFrameV787=null;
-  var MAX_PENDING_REALTIME_V787=240;
 
   function clean(value){return String(value==null?'':value).trim();}
   function isUuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(value));}
@@ -9987,66 +9968,21 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
     }catch(_e){}
     return null;
   }
-  function frame(){
-    return document.getElementById('happyadAppFrame_message') || document.getElementById('happyadMessageCenterFrame');
-  }
-  function bindMessageFrameV787(){
-    var f=frame();
-    if(!f||f===boundMessageFrameV787)return f;
-    boundMessageFrameV787=f;
-    try{
-      f.addEventListener('load',function(){
-        messageCenterReadyV787=false;
-        setTimeout(function(){
-          try{
-            if(f.contentWindow&&f.contentWindow.HappyadMessageMaster){
-              messageCenterReadyV787=true;
-              flushRealtimeQueueV787();
-            }
-          }catch(_e){}
-        },0);
-      });
-    }catch(_e){}
-    return f;
-  }
-  function postToMessageCenterV787(type,detail){
-    try{
-      var f=bindMessageFrameV787();
-      if(!messageCenterReadyV787||!f||!f.contentWindow)return false;
-      f.contentWindow.postMessage({type:type,detail:detail},'*');
-      return true;
-    }catch(_e){return false;}
-  }
-  function queueRealtimeEventV787(detail){
-    pendingRealtimeEventsV787.push(detail);
-    if(pendingRealtimeEventsV787.length>MAX_PENDING_REALTIME_V787){
-      pendingRealtimeEventsV787.splice(0,pendingRealtimeEventsV787.length-MAX_PENDING_REALTIME_V787);
-    }
-  }
-  function flushRealtimeQueueV787(){
-    if(!messageCenterReadyV787)return false;
-    var queued=pendingRealtimeEventsV787.splice(0,pendingRealtimeEventsV787.length);
-    for(var i=0;i<queued.length;i++){
-      if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_EVENT',queued[i])){
-        pendingRealtimeEventsV787=queued.slice(i).concat(pendingRealtimeEventsV787).slice(-MAX_PENDING_REALTIME_V787);
-        return false;
-      }
-    }
-    if(pendingRealtimeStatusV787){
-      var status=pendingRealtimeStatusV787;
-      pendingRealtimeStatusV787=null;
-      if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_STATUS',status))pendingRealtimeStatusV787=status;
-    }
-    return true;
-  }
+  function frame(){return document.getElementById('happyadMessageCenterFrame');}
   function publish(table,payload){
     var detail={table:table,payload:payload||{},at:Date.now()};
-    if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_EVENT',detail))queueRealtimeEventV787(detail);
+    try{
+      var f=frame();
+      if(f&&f.contentWindow)f.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_EVENT',detail:detail},'*');
+    }catch(_e){}
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_MESSAGE_REALTIME_EVENT',{detail:detail}));}catch(_e){}
   }
   function publishStatus(status,userId){
     var detail={status:clean(status),user_id:clean(userId),at:Date.now()};
-    if(!postToMessageCenterV787('HAPPYAD_MESSAGE_REALTIME_STATUS',detail))pendingRealtimeStatusV787=detail;
+    try{
+      var f=frame();
+      if(f&&f.contentWindow)f.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_STATUS',detail:detail},'*');
+    }catch(_e){}
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_MESSAGE_REALTIME_STATUS',{detail:detail}));}catch(_e){}
   }
   function refreshUnread(){
@@ -10089,8 +10025,6 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
     channel=null;
     channelUserId='';
     deliveredSeqByConversation=Object.create(null);
-    pendingRealtimeEventsV787=[];
-    pendingRealtimeStatusV787=null;
     if(old&&c&&typeof c.removeChannel==='function'){
       try{await c.removeChannel(old);}catch(_e){}
     }
@@ -10154,18 +10088,9 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
   }
   function boot(){bindAuth();start(false).catch(function(){});setTimeout(bindAuth,900);}
 
-  window.HappyadMessageRealtime={version:'V787_REALTIME_IFRAME_QUEUE',start:start,stop:stop,getUserId:function(){return channelUserId;},getChannel:function(){return channel;}};
+  window.HappyadMessageRealtime={version:'V38A2_DIFFERENTIAL_SYNC',start:start,stop:stop,getUserId:function(){return channelUserId;},getChannel:function(){return channel;}};
   window.addEventListener('message',function(event){
-    try{
-      var data=event&&event.data;
-      if(!data)return;
-      if(data.type==='HAPPYAD_MESSAGE_REALTIME_START')start(false).catch(function(){});
-      if(data.type==='HAPPYAD_MESSAGE_CENTER_READY'){
-        messageCenterReadyV787=true;
-        bindMessageFrameV787();
-        flushRealtimeQueueV787();
-      }
-    }catch(_e){}
+    try{var data=event&&event.data;if(data&&data.type==='HAPPYAD_MESSAGE_REALTIME_START')start(false).catch(function(){});}catch(_e){}
   },true);
   window.addEventListener('online',function(){start(true).catch(function(){});});
   window.addEventListener('focus',function(){start(false).catch(function(){});});
@@ -10705,4 +10630,10 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   margin:0!important;
 }
 </style>
+
+<script id="happyad-chat-sticker-living-v791-js" src="core/chat-sticker-living-v791.js?v=799-smaller-mouth-only"></script>
+<script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=809-system-copy-clean"></script>
+<script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
+<script id="happyad-product-publication-supabase-v804-js" src="core/product-publication-supabase-master-v804.js?v=807-price-currency-system-notifications"></script>
+<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=808-verification-copy-clean"></script>
 </body></html>
