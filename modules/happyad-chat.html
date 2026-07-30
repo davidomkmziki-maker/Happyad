@@ -1667,6 +1667,10 @@
       font-size:12px;
     }
     .market-empty:not(.hidden){display:grid}
+    .market-load-more{display:none;width:100%;min-height:46px;margin:14px 0 2px;border:1px solid rgba(75,139,255,.34);border-radius:14px;background:linear-gradient(145deg,rgba(31,78,151,.22),rgba(10,17,27,.90));color:#dce9ff;font-size:11.5px;font-weight:950;cursor:pointer;align-items:center;justify-content:center;gap:8px}
+    .market-load-more:not(.hidden){display:flex}
+    .market-load-more:disabled{opacity:.62;cursor:wait}
+    .market-load-more svg{width:17px;height:17px;color:#69a7ff}
     .market-empty-publish{margin-top:11px;min-height:42px;padding:0 15px;border:0;border-radius:12px;background:linear-gradient(135deg,#f36e17,#ff8a25);color:#fff;font-weight:900;cursor:pointer}
     .listing-publish-preview{
       margin:12px 0 14px;
@@ -2657,6 +2661,7 @@
       </header>
       <div class="market-scroll" id="marketScroll">
         <div class="market-list" id="marketList"></div>
+        <button class="market-load-more hidden" id="marketLoadMore" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Voir plus d’annonces</span></button>
         <div class="market-empty hidden" id="marketEmpty">
           <span>Aucune annonce active reçue de HAPPYAD dans cette catégorie.</span>
           <button class="market-empty-publish" id="marketEmptyPublish" type="button">Publier la première annonce</button>
@@ -2928,12 +2933,57 @@
         typeof candidate.getOffers==='function'
       ))||null;
     }
-    async function readOffersFromBridge(){
+    const MARKET_INITIAL_PER_CATEGORY=3;
+    const MARKET_FETCH_CATEGORIES=['Immobilier','Terrain','Véhicule','Électronique','Produit','Service','Emploi','Autre'];
+    const marketCategoryTotals=new Map();
+    const marketExpandedCategories=new Set();
+    const marketCategoryLoadPromises=new Map();
+
+    function marketplaceOfferPriority(a,b){
+      const coverA=a?.showOnHome===true||a?.marketplace_show_on_home===true?1:0;
+      const coverB=b?.showOnHome===true||b?.marketplace_show_on_home===true?1:0;
+      if(coverA!==coverB)return coverB-coverA;
+      const mediaA=offerPrimaryMedia(a);const mediaB=offerPrimaryMedia(b);
+      const validA=mediaA?.src&&mediaA.src!==EMPTY_MEDIA_SVG?1:0;
+      const validB=mediaB?.src&&mediaB.src!==EMPTY_MEDIA_SVG?1:0;
+      if(validA!==validB)return validB-validA;
+      return (Date.parse(b?.createdAt||b?.created_at||'')||0)-(Date.parse(a?.createdAt||a?.created_at||'')||0);
+    }
+    function initialOffersByCategory(rows=[]){
+      const groups=new Map();
+      rows.map(normalizeRealOffer).filter(Boolean).forEach(offer=>{
+        const category=offer.category||'Produit';
+        if(!groups.has(category))groups.set(category,[]);
+        groups.get(category).push(offer);
+      });
+      const result=[];
+      MARKET_FETCH_CATEGORIES.forEach(category=>{
+        const group=(groups.get(category)||[]).sort(marketplaceOfferPriority);
+        marketCategoryTotals.set(category,Math.max(Number(marketCategoryTotals.get(category)||0),group.length));
+        result.push(...group.slice(0,MARKET_INITIAL_PER_CATEGORY));
+      });
+      return result;
+    }
+    async function readOffersFromBridge(options={}){
       const bridge=resolveMarketplaceBridge();
       if(!bridge)return [];
       const fn=bridge.getActiveListings||bridge.listActiveOffers||bridge.getOffers;
-      const response=await fn.call(bridge,{status:'active',limit:500,source:'happyad-chat'});
-      return Array.isArray(response)?response:(response?.data||response?.listings||response?.offers||[]);
+      const category=String(options.category||'').trim();
+      const limit=Number(options.limit|| (category?120:MARKET_INITIAL_PER_CATEGORY*MARKET_FETCH_CATEGORIES.length));
+      const response=await fn.call(bridge,{status:'active',category:category||undefined,limit,source:'happyad-chat'});
+      const rows=Array.isArray(response)?response:(response?.data||response?.listings||response?.offers||[]);
+      if(category)marketCategoryTotals.set(category,Number(response?.count||response?.total||rows.length));
+      return rows;
+    }
+    async function readInitialOffersFromBridge(){
+      const bridge=resolveMarketplaceBridge();if(!bridge)return [];
+      const batches=await Promise.all(MARKET_FETCH_CATEGORIES.map(async category=>{
+        try{
+          const rows=await readOffersFromBridge({category,limit:MARKET_INITIAL_PER_CATEGORY});
+          return rows.map(normalizeRealOffer).filter(offer=>offer&&offer.category===category).sort(marketplaceOfferPriority).slice(0,MARKET_INITIAL_PER_CATEGORY);
+        }catch(_){return []}
+      }));
+      return batches.flat();
     }
     function resolveSupabaseClient(){
       const candidates=[];
@@ -2941,33 +2991,73 @@
       try{if(window.parent&&window.parent!==window)candidates.push(window.parent.HAPPYAD_SUPABASE,window.parent.supabaseClient,window.parent.__supabaseClient,window.parent.supabase)}catch(_){}
       return candidates.find(candidate=>candidate&&typeof candidate.from==='function')||null;
     }
-    async function readOffersFromSupabase(){
+    async function readInitialOffersFromSupabase(){
       const client=resolveSupabaseClient();
       if(!client)return [];
+      const batches=await Promise.all(MARKET_FETCH_CATEGORIES.map(async category=>{
+        try{
+          let query=client.from('happyad_posts').select('*',{count:'exact'})
+            .eq('happyad_marketplace',true)
+            .eq('listing_status','active')
+            .eq('is_active',true)
+            .is('deleted_at',null)
+            .eq('marketplace_category',category)
+            .order('marketplace_show_on_home',{ascending:false})
+            .order('created_at',{ascending:false})
+            .limit(MARKET_INITIAL_PER_CATEGORY);
+          let response=await query;
+          if(response?.error){
+            response=await client.from('happyad_posts').select('*',{count:'exact'})
+              .eq('happyad_marketplace',true).eq('listing_status','active')
+              .eq('marketplace_category',category).order('created_at',{ascending:false})
+              .limit(MARKET_INITIAL_PER_CATEGORY);
+          }
+          const rows=Array.isArray(response?.data)?response.data:[];
+          marketCategoryTotals.set(category,Number(response?.count||rows.length));
+          return rows.map(normalizeRealOffer).filter(Boolean).sort(marketplaceOfferPriority).slice(0,MARKET_INITIAL_PER_CATEGORY);
+        }catch(_){marketCategoryTotals.set(category,0);return []}
+      }));
+      return batches.flat();
+    }
+    async function readOffersFromSupabase(options={}){
+      const client=resolveSupabaseClient();
+      if(!client)return [];
+      const category=String(options.category||'').trim();
+      const listingId=String(options.id||'').trim();
+      const limit=Math.max(1,Math.min(Number(options.limit|| (category?120:500)),500));
       try{
-        let response=await client.from('happyad_posts').select('*').eq('happyad_marketplace',true).eq('listing_status','active').order('created_at',{ascending:false}).limit(500);
-        let rows=(!response?.error&&Array.isArray(response?.data))?response.data:[];
-        /* Un résultat filtré vide ne doit pas masquer d'anciennes annonces réelles
-           créées avant l'ajout du marqueur happyad_marketplace. */
-        if(!rows.length){
-          response=await client.from('happyad_posts').select('*').order('created_at',{ascending:false}).limit(500);
-          rows=Array.isArray(response?.data)?response.data:[];
+        let query=client.from('happyad_posts').select('*',{count:'exact'})
+          .eq('happyad_marketplace',true).eq('listing_status','active');
+        if(listingId)query=query.eq('id',listingId);
+        if(category)query=query.eq('marketplace_category',category);
+        query=query.order('marketplace_show_on_home',{ascending:false}).order('created_at',{ascending:false}).limit(listingId?1:limit);
+        let response=await query;
+        if(response?.error){
+          query=client.from('happyad_posts').select('*',{count:'exact'}).eq('happyad_marketplace',true).eq('listing_status','active');
+          if(listingId)query=query.eq('id',listingId);
+          if(category)query=query.eq('marketplace_category',category);
+          response=await query.order('created_at',{ascending:false}).limit(listingId?1:limit);
         }
-        return rows.map(normalizeRealOffer).filter(Boolean);
+        const rows=Array.isArray(response?.data)?response.data:[];
+        if(category)marketCategoryTotals.set(category,Number(response?.count||rows.length));
+        return rows.map(normalizeRealOffer).filter(Boolean).sort(marketplaceOfferPriority);
       }catch(_){return []}
     }
     async function loadRealHappyadOffers(){
       try{
-        let rows=await readOffersFromBridge();
-        let normalized=rows.map(normalizeRealOffer).filter(Boolean);
-        if(!normalized.length)normalized=await readOffersFromSupabase();
+        let normalized=await readInitialOffersFromBridge();
+        const covered=new Set(normalized.map(offer=>offer.category));
+        if(covered.size<MARKET_FETCH_CATEGORIES.length){
+          const supabaseInitial=await readInitialOffersFromSupabase();
+          normalized=initialOffersByCategory(mergeOfferCollections(normalized,supabaseInitial));
+        }
         if(normalized.length){
-          offers=normalized;
+          offers=mergeOfferCollections(normalized,[]);
           offersDataSource='happyad-real';
           marketInitialized=false;
           resultOfferRegistry.clear();
           if(mode==='market')openMarketCenter();
-          document.dispatchEvent(new CustomEvent('HAPPYAD_REAL_OFFERS_READY',{detail:{count:offers.length}}));
+          document.dispatchEvent(new CustomEvent('HAPPYAD_REAL_OFFERS_READY',{detail:{count:offers.length,initialPerCategory:MARKET_INITIAL_PER_CATEGORY}}));
           return true;
         }
       }catch(error){console.warn('HAPPYAD real offers loader',error)}
@@ -5476,7 +5566,51 @@
     }
 
     function marketVisibleOffers(){
-      return marketCategory==='Toutes' ? [...offers] : offers.filter(offer=>offer.category===marketCategory);
+      if(marketCategory==='Toutes'){
+        const expanded=marketExpandedCategories.has('Toutes');
+        const visible=[];
+        MARKET_FETCH_CATEGORIES.forEach(category=>{
+          const group=offers.filter(offer=>offer.category===category).sort(marketplaceOfferPriority);
+          visible.push(...(expanded?group:group.slice(0,MARKET_INITIAL_PER_CATEGORY)));
+        });
+        return visible;
+      }
+      const group=offers.filter(offer=>offer.category===marketCategory).sort(marketplaceOfferPriority);
+      return marketExpandedCategories.has(marketCategory)?group:group.slice(0,MARKET_INITIAL_PER_CATEGORY);
+    }
+    function marketKnownTotal(category=marketCategory){
+      if(category==='Toutes'){
+        return MARKET_FETCH_CATEGORIES.reduce((sum,item)=>sum+Math.max(Number(marketCategoryTotals.get(item)||0),offers.filter(offer=>offer.category===item).length),0);
+      }
+      return Math.max(Number(marketCategoryTotals.get(category)||0),offers.filter(offer=>offer.category===category).length);
+    }
+    function marketHasMore(category=marketCategory){
+      return marketKnownTotal(category)>marketVisibleOffers().length&&!marketExpandedCategories.has(category);
+    }
+    async function loadMarketRemainder(category=marketCategory){
+      category=category||'Toutes';
+      if(marketCategoryLoadPromises.has(category))return marketCategoryLoadPromises.get(category);
+      const task=(async()=>{
+        const button=document.querySelector('#marketLoadMore');
+        if(button){button.disabled=true;button.querySelector('span').textContent='Chargement…'}
+        let rows=[];
+        if(category==='Toutes'){
+          rows=await readOffersFromBridge({limit:500});
+          if(!rows.length)rows=await readOffersFromSupabase({limit:500});
+        }else{
+          rows=await readOffersFromBridge({category,limit:120});
+          if(!rows.length)rows=await readOffersFromSupabase({category,limit:120});
+        }
+        if(rows.length)applyIntegratedOffers(rows,{replace:false});
+        marketExpandedCategories.add(category);
+        renderMarketCategories();renderMarketOffers();
+        return rows.length;
+      })().finally(()=>{
+        marketCategoryLoadPromises.delete(category);
+        const button=document.querySelector('#marketLoadMore');
+        if(button){button.disabled=false;button.querySelector('span').textContent='Voir plus d’annonces'}
+      });
+      marketCategoryLoadPromises.set(category,task);return task;
     }
 
     function renderMarketCategories(){
@@ -5501,11 +5635,19 @@
       const list=document.querySelector('#marketList');
       const empty=document.querySelector('#marketEmpty');
       const total=document.querySelector('#marketTotal');
+      const loadMore=document.querySelector('#marketLoadMore');
       if(!list||!empty||!total)return;
       const visible=marketVisibleOffers();
-      total.textContent=`${visible.length} annonce${visible.length>1?'s':''}`;
+      const knownTotal=marketKnownTotal();
+      total.textContent=knownTotal>visible.length?`${visible.length} sur ${knownTotal}`:`${visible.length} annonce${visible.length>1?'s':''}`;
       list.innerHTML='';
       empty.classList.toggle('hidden',visible.length>0);
+      if(loadMore){
+        const canLoad=marketHasMore();
+        loadMore.classList.toggle('hidden',!canLoad||visible.length===0);
+        loadMore.onclick=()=>loadMarketRemainder(marketCategory);
+        const label=loadMore.querySelector('span');if(label)label.textContent=marketCategory==='Toutes'?'Voir plus d’annonces':'Voir toutes les annonces de cette catégorie';
+      }
 
       visible.forEach(offer=>{
         const offerKey=`market:${offer.id}`;
@@ -5562,8 +5704,8 @@
       let target=offers.find(offer=>String(offer?.id)===id);
       if(!target){
         try{
-          const rows=await readOffersFromSupabase();
-          if(Array.isArray(rows)&&rows.length)applyIntegratedOffers(rows,{replace:true});
+          const rows=await readOffersFromSupabase({id,limit:1});
+          if(Array.isArray(rows)&&rows.length)applyIntegratedOffers(rows,{replace:false});
           target=offers.find(offer=>String(offer?.id)===id);
         }catch(_){ }
       }
@@ -5572,13 +5714,14 @@
       const key=`market:${target.id}`;resultOfferRegistry.set(key,{...target,media:offerMedia(target),reasons:['Annonce directe']});
       requestAnimationFrame(()=>openDetail(key));return true;
     }
-    function openMarketForIntent(intent={}){
-      const available=new Set(offers.map(offer=>offer.category));
+    function openMarketForIntent(intent={},options={}){
+      const available=new Set([...offers.map(offer=>offer.category),...MARKET_FETCH_CATEGORIES]);
       const requested=intent.category||searchContext.category||'Toutes';
       marketCategory=available.has(requested)?requested:'Toutes';
       setMode('market');
       renderMarketCategories();
       renderMarketOffers();
+      if(options.expand===true)loadMarketRemainder(marketCategory);
       requestAnimationFrame(()=>{
         document.querySelector('#marketScroll')?.scrollTo({top:0,behavior:'auto'});
         document.querySelector(`[data-market-category="${listingCssEscape(marketCategory)}"]`)?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
@@ -5719,7 +5862,7 @@
         more.classList.toggle('hidden',matches.length<=blockVisibleCount);
       }
       draw();
-      more.onclick=()=>openMarketForIntent(intent);
+      more.onclick=()=>openMarketForIntent(intent,{expand:true});
       renderResultFeedback(block,query,intent,matches,sessionId);
 
       list.addEventListener('click',e=>{
@@ -7880,7 +8023,7 @@
     }
     function detailMediaMarkup(item){
       if(item.type==='video'){
-        return `<video controls playsinline preload="metadata" poster="${escapeHtml(item.poster||'')}" data-happyad-detail-video="1"></video>`;
+        return `<video controls autoplay playsinline preload="auto" poster="${escapeHtml(item.poster||'')}" data-happyad-detail-video="1"></video>`;
       }
       return `<img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt||activeOffer?.title||'Média')}" draggable="false">`;
     }
@@ -7941,6 +8084,7 @@
       const counter=document.querySelector('#detailMediaCounter');
       const thumbs=document.querySelector('#detailMediaThumbs');
       if(!content||!counter||!thumbs)return;
+      pauseListingVideos();
       content.innerHTML=detailMediaMarkup(item);
       counter.textContent=`${detailMediaIndex+1} / ${media.length}`;
       document.querySelector('#detailMediaPrev').style.display=media.length>1?'block':'none';
@@ -7956,9 +8100,10 @@
       const visual=content.querySelector('img,video');
       if(item.type==='video'&&visual?.tagName==='VIDEO'){
         loadListingVideoElement(visual,item,{
-          onReady(){visual.onclick=()=>openMediaViewer(activeOffer,detailMediaIndex)},
+          onReady(){visual.onclick=()=>openMediaViewer(activeOffer,detailMediaIndex);playListingVideoImmediately(visual,true)},
           onFail(){content.innerHTML='<div class="detail-media-unavailable">Vidéo indisponible sur cet appareil</div>'}
         });
+        playListingVideoImmediately(visual,true);
       }else if(visual){
         visual.addEventListener('error',()=>{content.innerHTML='<div class="detail-media-unavailable">Média indisponible sur cet appareil</div>'},{once:true});
       }
@@ -7999,6 +8144,7 @@
       };
     }
     async function openHappyadMessage(o){
+      pauseListingVideos();
       const payload=happyadMessagePayload(o);
       integrationState.lastMessageRequest=clonePlain(payload);
       let bridge=null;
@@ -8042,10 +8188,29 @@
       return {handled:false,response:null,error:new Error('Le maître Publication HAPPYAD n’a pas répondu.')};
     }
 
+    function pauseListingVideos(except=null){
+      document.querySelectorAll('#detailModal video,#mediaViewer video').forEach(video=>{
+        if(video===except)return;
+        try{video.pause()}catch(_){}
+      });
+    }
+    function playListingVideoImmediately(video,restart=false){
+      if(!video)return;
+      pauseListingVideos(video);
+      try{video.autoplay=true;video.playsInline=true;video.preload='auto';video.muted=false;video.volume=1;if(restart&&video.readyState>=1)video.currentTime=0}catch(_){}
+      const attempt=()=>{
+        let promise=null;try{promise=video.play()}catch(_){return}
+        if(promise&&typeof promise.catch==='function')promise.catch(()=>{
+          try{video.muted=true;video.play().catch(()=>{})}catch(_){}
+        });
+      };
+      attempt();setTimeout(attempt,80);
+    }
     function pauseViewerMedia(){
       document.querySelectorAll('#mediaViewerStage video').forEach(video=>{try{video.pause()}catch(_){}});
     }
     function openMediaViewer(o,index=0){
+      pauseListingVideos();
       viewerOffer={...o,media:o.media||offerMedia(o)};
       viewerIndex=index;
       document.querySelector('#mediaViewer').classList.add('show');
@@ -8083,7 +8248,7 @@
         stage.innerHTML='<div class="media-viewer-fallback"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4V5Z" stroke="currentColor" stroke-width="1.7"/><path d="m6.5 16 4-4 3 3 2-2 2 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Média sélectionné</strong><span>Le navigateur de ce téléphone n’a pas pu créer l’aperçu après plusieurs essais. Le fichier original reste conservé pour la publication.</span></div>';
       };
       if(item.type==='video'){
-        const video=document.createElement('video');video.controls=true;video.autoplay=false;video.playsInline=true;video.preload='auto';if(item.poster)video.poster=item.poster;stage.appendChild(video);loadListingVideoElement(video,item,{onReady(){try{video.focus({preventScroll:true})}catch(_){}},onFail:showFallback});bindViewerSwipe(stage);
+        const video=document.createElement('video');video.controls=true;video.autoplay=true;video.playsInline=true;video.preload='auto';if(item.poster)video.poster=item.poster;stage.appendChild(video);loadListingVideoElement(video,item,{onReady(){try{video.focus({preventScroll:true})}catch(_){}playListingVideoImmediately(video,true)},onFail:showFallback});playListingVideoImmediately(video,true);bindViewerSwipe(stage);
       }else{
         const surface=document.createElement('div');surface.className='zoom-surface';surface.id='zoomSurface';
         const image=document.createElement('img');image.alt=item.alt||viewerOffer.title||'Média';image.draggable=false;surface.appendChild(image);stage.appendChild(surface);loadListingImageElement(image,item,{onReady(){bindNaturalZoom(surface)},onFail:showFallback});
@@ -8467,8 +8632,8 @@
           document.querySelector('.market-card.just-published')?.scrollIntoView({behavior:'smooth',block:'start'});
         });
         toast('Annonce publiée. Le formulaire a été remis à zéro.');
-        readOffersFromSupabase().then(rows=>{
-          if(Array.isArray(rows)&&rows.length)applyIntegratedOffers(rows,{replace:true});
+        readOffersFromSupabase({category:publishedCategory,limit:MARKET_INITIAL_PER_CATEGORY}).then(rows=>{
+          if(Array.isArray(rows)&&rows.length)applyIntegratedOffers(rows,{replace:false});
           else applyIntegratedOffers([published],{replace:false});
           marketCategory=publishedCategory;renderMarketCategories();renderMarketOffers();
           requestAnimationFrame(()=>document.querySelector('.market-card.just-published')?.scrollIntoView({behavior:'smooth',block:'start'}));

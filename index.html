@@ -2744,7 +2744,7 @@ function openLongVideo(id){
   try{happyadVideoCardClickFeedback(id)}catch(_fb){}
   try{happyadVideoFastOpenPayload(id)}catch(_fast){}
   try{setTimeout(function(){try{happyadMarkVideoViewFromHome(id)}catch(e){}},240)}catch(e){}
-  if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/video.html?post='+encodeURIComponent(id),{source:'home-video-card-v16u'});}else{location.href='modules/video.html?post='+encodeURIComponent(id)}
+  if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492('modules/video.html?post='+encodeURIComponent(id)+'&autoplay=1&from=home',{source:'home-video-card-v830-autoplay'});}else{location.href='modules/video.html?post='+encodeURIComponent(id)+'&autoplay=1&from=home'}
   return false;
 }
 function openLongPhoto(id){
@@ -9858,7 +9858,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 <script src="core/share-count-master.js?v=share-count-v567"></script>
 <script src="core/notification-home-comment-center.js?v=notification-home-comment-center-v547-close-to-post"></script>
 <script src="core/notification-master-v700.js?v=809-system-copy-clean"></script>
-<script src="core/video-master.js?v=core-nav-v10"></script>
+<script src="core/video-master.js?v=830-autoplay-home-listing"></script>
 
 <!-- HAPPYAD CORE V4: regroupement passif des maîtres par module/catégorie, sans changer le design -->
 <script src="core/photo-master.js?v=core-photo-v14"></script>
@@ -10665,6 +10665,6 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=809-system-copy-clean"></script>
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
-<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=828-poster-gallery-home-stable"></script>
+<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=830-autoplay-market-3-per-category"></script>
 <script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=828-poster-gallery-home-stable"></script>
 </body></html>

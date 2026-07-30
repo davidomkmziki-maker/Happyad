@@ -1988,6 +1988,20 @@ function pauseOne(v,manual){
   function pauseOthers(target){
     try{document.querySelectorAll('.reel video').forEach(function(v){if(!target||!target.contains(v)){try{v.pause();}catch(_p){}}});}catch(_e){}
   }
+  function targetAutoplayRequested(){try{return new URLSearchParams(location.search).get('autoplay')==='1'}catch(_e){return false}}
+  function startTargetVideo(reel){
+    if(!targetAutoplayRequested()||!reel)return;
+    var video=reel.querySelector('video');if(!video)return;
+    try{video.dataset.happyadManualPause='0';video.muted=false;video.volume=1;}catch(_e){}
+    var start=function(){
+      try{
+        if(typeof happyadPlayFromBeginning==='function')happyadPlayFromBeginning(video);
+        else if(typeof happyadPlayVideo==='function')happyadPlayVideo(video,true);
+        else{var p=video.play();if(p&&p.catch)p.catch(function(){try{video.muted=true;video.play().catch(function(){})}catch(_e){}})}
+      }catch(_e){}
+    };
+    start();setTimeout(start,90);setTimeout(start,260);
+  }
   function focusNow(id){
     id=clean(id||pending);if(!id)return false;
     var f=feed();if(!f)return false;
@@ -2004,10 +2018,10 @@ function pauseOne(v,manual){
         try{
           if(typeof f.__happyadVideoPickAndPlay==='function')f.__happyadVideoPickAndPlay();
           var v=reel.querySelector('video');
-          if(v){v.dataset.happyadManualPause='0';}
+          if(v){v.dataset.happyadManualPause='0';startTargetVideo(reel);}
         }catch(_e){}
       });
-      setTimeout(function(){try{if(typeof f.__happyadVideoPickAndPlay==='function')f.__happyadVideoPickAndPlay();}catch(_e){}},100);
+      setTimeout(function(){try{if(typeof f.__happyadVideoPickAndPlay==='function')f.__happyadVideoPickAndPlay();startTargetVideo(reel);}catch(_e){}},100);
       try{sessionStorage.removeItem(KEY);}catch(_s){}
       pending='';tries=0;
       return true;

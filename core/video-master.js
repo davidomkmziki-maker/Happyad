@@ -13,7 +13,7 @@
     clearOneShot();
     try{if(typeof window.happyadVideoFastOpenPayload==='function')window.happyadVideoFastOpenPayload(id);}catch(_e){}
     try{if(typeof window.happyadMarkVideoViewFromHome==='function')window.happyadMarkVideoViewFromHome(id);}catch(_e){}
-    var url='modules/video.html?post='+encodeURIComponent(id);
+    var url='modules/video.html?post='+encodeURIComponent(id)+'&autoplay=1&from=home';
     try{if(window.HappyNavigation&&typeof window.HappyNavigation.openVideoPost==='function')return window.HappyNavigation.openVideoPost(url,{source:MASTER_VERSION,postId:id});if(window.HappyNavigation)return window.HappyNavigation.open(url,{source:MASTER_VERSION,postId:id});}catch(_e){}
     try{location.href=url;return true;}catch(_e2){return false;}
   }

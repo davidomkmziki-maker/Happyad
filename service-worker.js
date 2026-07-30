@@ -1,7 +1,7 @@
-/* HAPPYAD V828 — galerie vidéo, miniature en place et Accueil stable */
+/* HAPPYAD V830 — autoplay annonces et 3 annonces initiales par catégorie */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V828-poster-gallery-home-stable-20260729-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V830-autoplay-market-3-per-category-20260730-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=828-poster-gallery-home-stable',
+  './index.html?v=830-autoplay-market-3-per-category',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -23,10 +23,10 @@ var HAPPYAD_APP_SHELL = [
   './core/system-notification-master-v807.js?v=807-system-events',
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
-  './core/chat-integration-master-v795.js?v=828-poster-gallery-home-stable',
+  './core/chat-integration-master-v795.js?v=830-autoplay-market-3-per-category',
   './core/marketplace-home-master-v828.js?v=828-poster-gallery-home-stable',
-  './modules/happyad-chat.html?v=828-poster-gallery-home-stable',
-  './modules/video.html?v=828-poster-gallery-home-stable',
+  './modules/happyad-chat.html?v=830-autoplay-market-3-per-category',
+  './modules/video.html?v=830-autoplay-market-3-per-category',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
   './core/navigation-master-v668.js?v=785-push-real-sender-avatar',
