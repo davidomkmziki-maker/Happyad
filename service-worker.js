@@ -1,7 +1,7 @@
-/* HAPPYAD V830 — autoplay annonces et 3 annonces initiales par catégorie */
+/* HAPPYAD V844 — listes explicites sans perte et clarification ciblée */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V830-autoplay-market-3-per-category-20260730-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V844-no-loss-list-clarification-20260730-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=830-autoplay-market-3-per-category',
+  './index.html?v=844-no-loss-list',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -23,9 +23,9 @@ var HAPPYAD_APP_SHELL = [
   './core/system-notification-master-v807.js?v=807-system-events',
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
-  './core/chat-integration-master-v795.js?v=830-autoplay-market-3-per-category',
+  './core/chat-integration-master-v795.js?v=844-no-loss-list',
   './core/marketplace-home-master-v828.js?v=828-poster-gallery-home-stable',
-  './modules/happyad-chat.html?v=830-autoplay-market-3-per-category',
+  './modules/happyad-chat.html?v=844-no-loss-list',
   './modules/video.html?v=830-autoplay-market-3-per-category',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',

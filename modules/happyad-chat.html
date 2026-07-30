@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#050911" />
-  <title>HAPPYAD — Chat Intelligence V38 · Galerie V828</title>
+  <title>HAPPYAD — Chat Intelligence V49 · Parcours rapide V843</title>
   <style>
     :root{
       --bg:#07090d;--panel:#0f131b;--panel2:#151a24;--field:#0b0f15;
@@ -775,6 +775,33 @@
     .typing-dots i:nth-child(2){animation-delay:.16s}
     .typing-dots i:nth-child(3){animation-delay:.32s}
     .typed-copy{white-space:pre-wrap}
+    /* V839 — la bulle utilisateur conserve exactement les retours à la ligne,
+       la numérotation et les espaces internes saisis dans le composeur. */
+    .bubble.user{
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      tab-size:4;
+    }
+    /* V840 — une seule opération visuelle pour plusieurs demandes. */
+    .results-batch-v840{
+      display:grid;gap:14px;margin:4px 0 12px;animation:happyadResultsIn .24s ease-out both;
+    }
+    .results-batch-v840>.results-block{margin:0}
+    .results-batch-v840 .batch-section-empty{
+      padding:13px 15px;border:1px solid rgba(126,162,210,.18);border-radius:16px;
+      background:rgba(10,21,35,.76);color:#aebbd0;font-size:13px;line-height:1.45;
+    }
+    .results-batch-v840 .batch-section-clarification-v844{
+      border-color:rgba(255,139,55,.34);background:rgba(35,23,15,.62);color:#d8c3ae;
+    }
+    .results-batch-v840 .results-head strong{font-size:14px;color:#f5f8ff}
+    .grouped-feedback-v840{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
+      border:1px solid rgba(126,162,210,.2);border-radius:17px;background:rgba(10,21,35,.9);
+    }
+    .grouped-feedback-v840 strong{font-size:12px;color:#f4f7fc;line-height:1.35}
+    .grouped-feedback-v840 .result-feedback-actions{flex:0 0 auto}
     .results-block.recalculated{
       animation:happyadResultsIn .24s ease-out both;
     }
@@ -933,7 +960,7 @@
     .match-card{cursor:pointer;position:relative;transition:transform .14s ease,border-color .14s ease,background .14s ease;-webkit-tap-highlight-color:transparent}
     .match-card:active{transform:scale(.992);border-color:rgba(255,255,255,.22)}
     .match-card:focus-visible{outline:2px solid rgba(90,168,255,.78);outline-offset:2px}
-    .cover-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+    .cover-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#070c14}
     .cover-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04) 40%,rgba(0,0,0,.65));z-index:1}
     .cover-price{z-index:3}
     .media-kind{position:absolute;right:7px;top:7px;z-index:3;width:27px;height:27px;border-radius:9px;display:grid;place-items:center;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.16)}
@@ -951,7 +978,7 @@
     .detail-thumbs{display:flex;gap:7px;overflow-x:auto;padding:1px}
     .detail-thumb{width:66px;height:52px;flex:0 0 auto;padding:0;border-radius:10px;overflow:hidden;border:2px solid transparent;background:#080b10;cursor:pointer;position:relative}
     .detail-thumb.active{border-color:var(--orange)}
-    .detail-thumb img{width:100%;height:100%;display:block;object-fit:cover}
+    .detail-thumb img,.detail-thumb video{width:100%;height:100%;display:block;object-fit:cover;background:#070c14}
     .detail-thumb .thumb-play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.28);font-size:17px}
     .detail-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}
     .detail-info{padding:10px 11px;border:1px solid var(--line);border-radius:13px;background:#121720}
@@ -1544,7 +1571,7 @@
       place-items:center;
       background:var(--market-cover,#18202b);
     }
-    .market-media img{
+    .market-media img,.market-media video{
       position:absolute;
       inset:0;
       width:100%;
@@ -2779,6 +2806,53 @@
     }
     function offerPrimaryMedia(o){const media=offerMedia(o);return media[offerCoverIndex(o)]||media[0]}
     function mediaThumb(item){return item?.type==='video'?(item.poster||EMPTY_MEDIA_SVG):(item?.src||EMPTY_MEDIA_SVG)}
+
+    /* V837 : une vidéo sans poster utilise sa première image réelle au lieu d'une carte noire. */
+    function listingCoverMarkup(item,className='cover-media',alt=''){
+      const safeAlt=escapeHtml(alt||'Média de l’annonce');
+      if(item?.type==='video'&&!String(item.poster||'').trim()){
+        return `<video class="${escapeHtml(className)}" muted playsinline preload="metadata" aria-label="${safeAlt}" data-happyad-video-cover-preview="1"></video>`;
+      }
+      return `<img class="${escapeHtml(className)}" src="${escapeHtml(mediaThumb(item))}" alt="${safeAlt}" loading="lazy">`;
+    }
+    function prepareListingVideoCover(root,item,selector){
+      if(!root||item?.type!=='video')return;
+      let visual=root.querySelector(selector);
+      const mountVideo=()=>{
+        if(!visual||visual.tagName==='VIDEO')return visual;
+        const video=document.createElement('video');
+        video.className=visual.className||'';video.muted=true;video.playsInline=true;video.preload='metadata';
+        video.setAttribute('aria-label',visual.getAttribute('alt')||'Aperçu vidéo');
+        video.dataset.happyadVideoCoverPreview='1';
+        visual.replaceWith(video);visual=video;return video;
+      };
+      if(visual?.tagName==='IMG'){
+        if(visual.complete&&visual.naturalWidth===0){mountVideo();}
+        else{
+          visual.addEventListener('error',()=>{mountVideo();prepareListingVideoCover(root,item,selector)},{once:true});
+          return;
+        }
+      }
+      if(!visual||visual.tagName!=='VIDEO')return;
+      visual.muted=true;visual.playsInline=true;visual.preload='metadata';
+      loadListingVideoElement(visual,item,{
+        onReady(video){
+          const reveal=()=>{
+            try{
+              video.muted=true;video.pause();
+              const duration=Number(video.duration)||0;
+              const target=duration>.4?Math.min(.22,duration/8):0;
+              if(target>0&&Math.abs((video.currentTime||0)-target)>.03)video.currentTime=target;
+            }catch(_){ }
+          };
+          reveal();setTimeout(reveal,140);
+        },
+        onFail(){
+          const img=document.createElement('img');img.className=visual.className||'';img.src=EMPTY_MEDIA_SVG;img.alt='Média indisponible';
+          visual.replaceWith(img);visual=img;
+        }
+      });
+    }
     const activeDemands=[];
 
     /* ===== V30 — adaptateur unique vers les vraies annonces HAPPYAD ===== */
@@ -2987,9 +3061,37 @@
     }
     function resolveSupabaseClient(){
       const candidates=[];
-      try{candidates.push(window.HAPPYAD_SUPABASE,window.supabaseClient,window.__supabaseClient,window.supabase)}catch(_){}
-      try{if(window.parent&&window.parent!==window)candidates.push(window.parent.HAPPYAD_SUPABASE,window.parent.supabaseClient,window.parent.__supabaseClient,window.parent.supabase)}catch(_){}
-      return candidates.find(candidate=>candidate&&typeof candidate.from==='function')||null;
+      /* V833 : le client réel du site s'appelle happyadSupabase. V832 cherchait
+         surtout des alias qui ne sont généralement pas initialisés dans l'iframe,
+         puis retombait silencieusement sur l'ancien moteur local. */
+      try{
+        if(typeof window.happyadSb==='function')candidates.push(window.happyadSb());
+        candidates.push(window.happyadSupabase,window.HAPPYAD_SUPABASE,window.supabaseClient,window.__supabaseClient);
+      }catch(_){}
+      try{
+        if(window.parent&&window.parent!==window){
+          if(typeof window.parent.happyadSb==='function')candidates.push(window.parent.happyadSb());
+          candidates.push(window.parent.happyadSupabase,window.parent.HAPPYAD_SUPABASE,window.parent.supabaseClient,window.parent.__supabaseClient);
+          if(window.parent.supabase&&typeof window.parent.supabase.createClient==='function'&&window.parent.HAPPYAD_SUPABASE_URL&&window.parent.HAPPYAD_SUPABASE_KEY){
+            window.parent.happyadSupabase=window.parent.happyadSupabase||window.parent.supabase.createClient(
+              window.parent.HAPPYAD_SUPABASE_URL,
+              window.parent.HAPPYAD_SUPABASE_KEY,
+              {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+            );
+            candidates.push(window.parent.happyadSupabase);
+          }
+        }
+      }catch(_){}
+      return candidates.find(candidate=>candidate&&typeof candidate.from==='function'&&typeof candidate.rpc==='function')||null;
+    }
+    async function resolveSupabaseClientReadyV833(waitMs=2400){
+      const started=Date.now();
+      let client=resolveSupabaseClient();
+      while(!client&&Date.now()-started<waitMs){
+        await new Promise(resolve=>setTimeout(resolve,120));
+        client=resolveSupabaseClient();
+      }
+      return client;
     }
     async function readInitialOffersFromSupabase(){
       const client=resolveSupabaseClient();
@@ -3092,9 +3194,14 @@
     let verificationState=null, verifiedSeller=null, draftOffer=null;
     let justPublishedListingId='';
     let lastSearchIntent=null, conversationLang='', typingJob=0;
+    const HAPPYAD_CHAT_INTELLIGENCE_RPC='happyad_chat_understand_v2';
+    const HAPPYAD_CHAT_INTELLIGENCE_CLIENT_VERSION='V843';
+    const HAPPYAD_CHAT_DECOMPOSE_RPC='happyad_chat_decompose_requests_v1';
+    const HAPPYAD_CHAT_BATCH_RPC='happyad_chat_search_batch_v1';
+    let lastGroupedSearchV840=null;
 
     const CHAT_MEMORY_KEY='happyad_chat_memory_v37_clean';
-    const CHAT_MEMORY_VERSION=4;
+    const CHAT_MEMORY_VERSION=5;
     const MAX_SAVED_CONVERSATIONS=6;
     let activeConversationId='';
     let conversationEvents=[];
@@ -3105,7 +3212,11 @@
       category:'',city:'',country:'',area:'',locationMode:'none',
       suggestedCity:'',suggestedCountry:'',
       budget:0,budgetCurrency:'',budgetMode:'',budgetMin:0,budgetMax:0,budgetTarget:0,experience:'',bedrooms:0,transaction:'',language:'',
-      features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',pendingQuestion:'',pendingFields:[],refinement:{}
+      features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',pendingQuestion:'',pendingFields:[],refinement:{},
+      intelligenceContext:{},intelligenceVersion:'',intelligenceUpdatedAt:0,
+        slots:{},queryFields:{},askedFields:[],searchReady:false,
+        brand:'',model:'',productType:'',condition:'',jobContract:'',jobWorkMode:'',
+        serviceMode:'',servicePricing:'',propertyType:'',serviceFrequency:'',liveIn:null
     };
 
 
@@ -3174,6 +3285,9 @@
     }
 
     function closeHappyadChat(){
+      stopAllMarketplacePlaybackV837(true);
+      closeMediaViewer();
+      closeModal('detailModal');
       let bridge=null;
       try{bridge=window.HAPPYAD_HOST_BRIDGE||(window.parent&&window.parent!==window?window.parent.HAPPYAD_HOST_BRIDGE:null)}catch(_){}
       try{
@@ -3401,6 +3515,10 @@
         suggestedCity:'',suggestedCountry:'',
         budget:0,budgetCurrency:'',budgetMode:'',budgetMin:0,budgetMax:0,budgetTarget:0,experience:'',bedrooms:0,transaction:'',language:conversationLang||'',
         features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',pendingQuestion:'',pendingFields:[],refinement:{},
+        intelligenceContext:{},intelligenceVersion:'',intelligenceUpdatedAt:0,
+        slots:{},queryFields:{},askedFields:[],searchReady:false,
+        brand:'',model:'',productType:'',condition:'',jobContract:'',jobWorkMode:'',
+        serviceMode:'',servicePricing:'',propertyType:'',serviceFrequency:'',liveIn:null,
         ...clonePlain(memory.context),
         features:[...(memory.context?.features||[])]
       };
@@ -3429,7 +3547,11 @@
         suggestedCity:'',suggestedCountry:'',
         budget:0,budgetCurrency:'',budgetMode:'',budgetMin:0,budgetMax:0,budgetTarget:0,experience:'',bedrooms:0,transaction:'',language:conversationLang||'',
         features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',
-        pendingQuestion:'',pendingFields:[],refinement:{}
+        pendingQuestion:'',pendingFields:[],refinement:{},
+        intelligenceContext:{},intelligenceVersion:'',intelligenceUpdatedAt:0,
+        slots:{},queryFields:{},askedFields:[],searchReady:false,
+        brand:'',model:'',productType:'',condition:'',jobContract:'',jobWorkMode:'',
+        serviceMode:'',servicePricing:'',propertyType:'',serviceFrequency:'',liveIn:null
       };
     }
     function formatConversationDate(timestamp){
@@ -3560,6 +3682,10 @@
         suggestedCity:'',suggestedCountry:'',
         budget:0,budgetCurrency:'',budgetMode:'',budgetMin:0,budgetMax:0,budgetTarget:0,experience:'',bedrooms:0,transaction:'',language:conversationLang||'',
         features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',pendingQuestion:'',pendingFields:[],refinement:{},
+        intelligenceContext:{},intelligenceVersion:'',intelligenceUpdatedAt:0,
+        slots:{},queryFields:{},askedFields:[],searchReady:false,
+        brand:'',model:'',productType:'',condition:'',jobContract:'',jobWorkMode:'',
+        serviceMode:'',servicePricing:'',propertyType:'',serviceFrequency:'',liveIn:null,
         ...clonePlain(conversation.searchContext),
         features:[...(conversation.searchContext?.features||[])]
       };
@@ -4307,7 +4433,11 @@
         category:'',city:'',country:'',area:'',locationMode:'none',
         suggestedCity:'',suggestedCountry:'',
         budget:0,budgetCurrency:'',budgetMode:'',budgetMin:0,budgetMax:0,budgetTarget:0,experience:'',bedrooms:0,transaction:'',language:conversationLang||'',
-        features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',pendingQuestion:'',pendingFields:[],refinement:{}
+        features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',pendingQuestion:'',pendingFields:[],refinement:{},
+        intelligenceContext:{},intelligenceVersion:'',intelligenceUpdatedAt:0,
+        slots:{},queryFields:{},askedFields:[],searchReady:false,
+        brand:'',model:'',productType:'',condition:'',jobContract:'',jobWorkMode:'',
+        serviceMode:'',servicePricing:'',propertyType:'',serviceFrequency:'',liveIn:null
       };
     }
     function mergeSearchContext(fragment,combinedText){
@@ -5036,21 +5166,14 @@
       return labels[lang]?.[intent.transaction]||labels.fr[intent.transaction]||'';
     }
     function zoneFallbackMessage(intent,lang='fr'){
-      const zone=requestedZoneLabel(intent)||(
-        lang==='en'?'the requested area':
-        lang==='sw'?'eneo uliloomba':
-        lang==='ln'?'esika oyo osengi':
-        'la zone demandée'
-      );
-      const transaction=transactionLabel(intent,lang);
       const messages={
-        fr:`Aucune annonce active exacte n’est actuellement disponible à ${zone}${transaction?` pour ${transaction}`:''}. Voici des annonces similaires de la même catégorie, dans d’autres zones ou avec un critère différent. Leur pourcentage est volontairement réduit.`,
-        en:`No exact active listing is currently available in ${zone}${transaction?` for ${transaction}`:''}. Here are similar listings from the same category in other areas or with one different criterion. Their percentages are intentionally reduced.`,
-        sw:`Hakuna tangazo hai linalolingana kabisa katika ${zone}${transaction?` kwa ${transaction}`:''}. Haya ni matangazo yanayofanana ya aina ileile katika maeneo mengine au yenye kigezo kimoja tofauti. Asilimia zake zimepunguzwa kwa makusudi.`,
-        ln:`Annonce active oyo ekokani mpenza ezali te sikoyo na ${zone}${transaction?` mpo na ${transaction}`:''}. Tala ba annonces ya lolenge moko na bisika mosusu to oyo ezali na critère moko ekeseni. Pourcentage na yango ekitisami na bosolo.`,
-        es:`No hay actualmente un anuncio activo exacto en ${zone}${transaction?` para ${transaction}`:''}. Estas son opciones similares de la misma categoría, en otras zonas o con un criterio diferente. Sus porcentajes se reducen intencionalmente.`,
-        pt:`Não há atualmente um anúncio ativo exato em ${zone}${transaction?` para ${transaction}`:''}. Estas são opções semelhantes da mesma categoria, em outras zonas ou com um critério diferente. As percentagens foram reduzidas intencionalmente.`,
-        de:`Derzeit gibt es in ${zone}${transaction?` für ${transaction}`:''} kein exakt passendes aktives Angebot. Hier sind ähnliche Angebote derselben Kategorie aus anderen Gebieten oder mit einem abweichenden Kriterium. Die Prozentwerte sind bewusst niedriger.`
+        fr:'Les propositions ci-dessous diffèrent sur la zone ou sur un critère important.',
+        en:'The options below differ by location or by one important criterion.',
+        sw:'Matokeo yaliyo hapa chini yanatofautiana kwa eneo au kigezo kimoja muhimu.',
+        ln:'Ba résultats oyo ezali awa na nse ekeseni na esika to na critère moko ya ntina.',
+        es:'Las opciones siguientes difieren por la zona o por un criterio importante.',
+        pt:'As opções abaixo diferem na zona ou num critério importante.',
+        de:'Die folgenden Optionen unterscheiden sich beim Ort oder bei einem wichtigen Kriterium.'
       };
       return messages[lang]||messages.fr;
     }
@@ -5386,12 +5509,13 @@
     }
     function contextIntentFromSnapshot(text,snapshot={},language='',understanding={}){
       const u=understanding&&understanding.ok?understanding:{};
+      const fields=(u.query_fields&&typeof u.query_fields==='object')?u.query_fields:((u.slots&&typeof u.slots==='object')?u.slots:{});
       const base=inferIntentBase(text,language||snapshot.language||u.language||resolveConversationLanguage(text));
       const understoodBudget=Number(u?.budget?.target||u?.budget?.max||u?.budget?.min||0)||0;
       const understoodBudgetMode=String(u?.budget?.mode||'');
       const city=cleanPlace(snapshot.city||u.city||base.city);
       const country=canonicalCountry(snapshot.country||u.country||base.country||CITY_COUNTRY[normalize(city)]||'');
-      const objectLabel=snapshot.objectLabel||u.model||u.product||u.service||base.objectLabel||'';
+      const objectLabel=snapshot.objectLabel||u.object_label||fields.object_label||u.model||u.product||u.service||base.objectLabel||'';
       const productType=inferRequestedProductType(objectLabel||text,u,snapshot.category||base.category||'');
       const intent={
         ...base,
@@ -5408,17 +5532,17 @@
         budgetMin:snapshot.budgetMin||Number(u?.budget?.min||0)||base.budgetMin||0,
         budgetMax:snapshot.budgetMax||Number(u?.budget?.max||0)||base.budgetMax||0,
         budgetTarget:snapshot.budgetTarget||Number(u?.budget?.target||0)||understoodBudget||base.budgetTarget||0,
-        experience:snapshot.experience||base.experience||'',
+        experience:snapshot.experience||fields.job_experience||base.experience||'',
         bedrooms:snapshot.bedrooms||base.bedrooms,
-        transaction:snapshot.transaction||u.transaction||base.transaction,
+        transaction:snapshot.transaction||u.transaction||fields.transaction||base.transaction,
         features:[...(snapshot.features||[])],
         preferredOfferId:snapshot.preferredOfferId||0,
         preferredTitle:snapshot.preferredTitle||'',
         objectLabel,
-        brand:u.brand||base.brand||inferRequestedBrand(text,u),
-        model:u.model||base.model||inferRequestedModel(text,u),
+        brand:u.brand||fields.brand||base.brand||inferRequestedBrand(text,u),
+        model:u.model||fields.model||base.model||inferRequestedModel(text,u),
         productType,
-        condition:u.condition||base.condition||inferRequestedCondition(text,u),
+        condition:u.condition||fields.condition||base.condition||inferRequestedCondition(text,u),
         availability:base.availability||inferRequestedAvailability(text)
       };
       intent.requestedCriteria=[
@@ -5431,7 +5555,7 @@
     }
 
     function isOfferActive(offer){
-      if(!offer)return false;
+      if(!offer||listingIsLocallyDeletedV838(offer))return false;
       const status=normalize(offer.status||offer.listing_status||'active');
       if(status&&/^(removed|expired|sold|paused|deleted|rejected|archived|inactive)$/.test(status))return false;
       if(offer.deletedAt||offer.deleted_at||offer.is_active===false)return false;
@@ -5662,7 +5786,7 @@
         card.innerHTML=`
           <div class="market-media" style="--market-cover:${escapeHtml(offer.color||'#18202b')}">
             <span class="market-media-fallback">${escapeHtml(marketCategoryInitial(offer.category))}</span>
-            <img src="${escapeHtml(thumb)}" alt="${escapeHtml(offer.title)}" loading="lazy">
+            ${listingCoverMarkup(primary,'market-cover-media',offer.title)}
             <span class="market-media-badge">${escapeHtml(MARKET_CATEGORY_LABELS[offer.category]||offer.category)}</span>
             <span class="market-media-count">${enriched.media.length} média${enriched.media.length>1?'s':''}</span>
             <span class="market-media-price">${escapeHtml(displayPrice)}</span>
@@ -5683,7 +5807,8 @@
             </div>
           </div>`;
         const image=card.querySelector('.market-media img');
-        image?.addEventListener('error',()=>{image.src=EMPTY_MEDIA_SVG},{once:true});
+        image?.addEventListener('error',()=>{if(primary.type==='video'){prepareListingVideoCover(card,primary,'.market-media img,.market-media video')}else image.src=EMPTY_MEDIA_SVG},{once:true});
+        prepareListingVideoCover(card,primary,'.market-media img,.market-media video');
         card.querySelector('[data-market-view]').onclick=()=>openDetail(offerKey);
         card.querySelector('[data-market-contact]').onclick=()=>openHappyadMessage(enriched);
         card.dataset.marketOfferKey=offerKey;
@@ -5790,6 +5915,8 @@
     }
     function renderResults(query,intent,matches,sessionId=0,options={}){
       const lang=intent.language||responseLang(query);
+      const mount=options.target||document.querySelector('#chatStream');
+      const sectionLabel=String(options.sectionLabel||'').trim();
       if(!intent.requestedCriteria?.length&&matches[0]?.requestedCriteria)intent.requestedCriteria=[...matches[0].requestedCriteria];
       currentIntent=intent;currentMatches=matches;let blockVisibleCount=Math.min(5,matches.length);
       const block=document.createElement('div');
@@ -5797,7 +5924,7 @@
       block.dir=lang==='ar'?'rtl':'auto';
       block.innerHTML=`
         ${intent.identityUnavailable?`<div class="identity-warning">${escapeHtml(lang==='fr'?"Aucune annonce ne reprend exactement la marque ou le modèle demandé. Les propositions ci-dessous sont seulement des alternatives et leur pourcentage reste faible.":"No listing exactly matches the requested brand or model. The options below are alternatives only and keep a low score.")}</div>`:''}
-        ${intent.zoneUnavailable?`
+        ${intent.zoneUnavailable&&options.hideFallbackNotice!==true?`
           <div class="zone-fallback-notice">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12Z" stroke="currentColor" stroke-width="1.8"/>
@@ -5805,15 +5932,17 @@
             </svg>
             <div><strong>${lang==='en'?'Similar results':lang==='sw'?'Matokeo yanayofanana':lang==='ln'?'Ba résultats ya ndenge moko':'Résultats similaires'}</strong>${escapeHtml(zoneFallbackMessage(intent,lang))}</div>
           </div>`:''}
-        <div class="results-head"><strong>${escapeHtml(tr(lang,'best'))}</strong><span class="result-meta"></span></div>
+        <div class="results-head"><strong>${escapeHtml(sectionLabel||tr(lang,'best'))}</strong><span class="result-meta"></span></div>
         <div class="match-list"></div>
         <button class="load-more hidden" type="button">${escapeHtml(tr(lang,'more'))}</button>`;
       block.dataset.sessionId=String(sessionId||0);
-      document.querySelectorAll('#chatStream .results-block').forEach(old=>{
-        if(old.dataset.sessionId===String(sessionId||0))old.remove();
-      });
+      if(options.removeExisting!==false){
+        document.querySelectorAll('#chatStream .results-block').forEach(old=>{
+          if(old.dataset.sessionId===String(sessionId||0))old.remove();
+        });
+      }
       block.classList.add('recalculated');
-      document.querySelector('#chatStream').appendChild(block);
+      mount.appendChild(block);
 
       const list=block.querySelector('.match-list');
       const meta=block.querySelector('.result-meta');
@@ -5838,7 +5967,7 @@
           card.dataset.offerKey=offerKey;
           card.innerHTML=`
             <div class="cover" style="--cover:${o.color}">
-              <img class="cover-media" src="${escapeHtml(thumb)}" alt="" loading="lazy">
+              ${listingCoverMarkup(primary,'cover-media',o.title)}
               <span class="cover-shade"></span>
               <span class="media-kind">${typeIcon}</span>
               <span class="media-count">${enriched.media.length} média${enriched.media.length>1?'s':''}</span>
@@ -5854,7 +5983,8 @@
               </div>
             </div>`;
           const cardImage=card.querySelector('.cover-media');
-          if(cardImage)cardImage.addEventListener('error',()=>{cardImage.src=EMPTY_MEDIA_SVG},{once:true});
+          if(cardImage?.tagName==='IMG')cardImage.addEventListener('error',()=>{if(primary.type==='video'){prepareListingVideoCover(card,primary,'.cover-media')}else cardImage.src=EMPTY_MEDIA_SVG},{once:true});
+          prepareListingVideoCover(card,primary,'.cover-media');
           list.appendChild(card);
           observeListingCard(card,enriched,'chat_results');
         });
@@ -5863,7 +5993,7 @@
       }
       draw();
       more.onclick=()=>openMarketForIntent(intent,{expand:true});
-      renderResultFeedback(block,query,intent,matches,sessionId);
+      if(options.feedback!==false)renderResultFeedback(block,query,intent,matches,sessionId);
 
       list.addEventListener('click',e=>{
         const contact=e.target.closest('[data-contact-key]');
@@ -5900,7 +6030,7 @@
           sessionId
         });
       }
-      if(options.scroll!==false){
+      if(options.scroll!==false&&mount===document.querySelector('#chatStream')){
         requestAnimationFrame(()=>{
           const sc=document.querySelector('#chatScroll');
           const available=Math.max(120,sc.clientHeight-18);
@@ -7027,44 +7157,279 @@
       });
     }
 
-    async function loadV810IntelligentListings(text,contextSnapshot={},language='fr'){
+    /* ===== V835 — formulaire cerveau, champs structurés et recherche sans répétition =====
+       Le ZIP appelle toujours la même RPC stable. Les ajouts de termes, règles,
+       langues, métiers, marques ou exemples dans Supabase deviennent donc actifs
+       au prochain message, sans nouvelle publication du site. */
+    function marketplaceCategoryCodeV832(value=''){
+      const category=canonicalMarketplaceCategory(value||'');
+      if(category==='Immobilier')return 'immobilier';
+      if(category==='Terrain')return 'terrain';
+      if(category==='Véhicule')return 'vehicule';
+      if(category==='Électronique')return 'electronique';
+      if(category==='Service')return 'service';
+      if(category==='Emploi')return 'emploi';
+      if(category==='Autre')return 'autre';
+      return 'produit';
+    }
+    function cleanIntelligenceJsonV832(value,fallback={}){
+      if(!value||typeof value!=='object'||Array.isArray(value))return clonePlain(fallback);
+      return clonePlain(value);
+    }
+    function shouldResetIntelligenceContextV832(text='',snapshot=searchContext){
+      const n=normalize(text);
+      /* V836 : le client ne supprime plus le contexte sur une simple phrase longue.
+         Supabase compare d'abord l'ancien objet, la nouvelle catégorie et les blocs
+         de sens, puis renvoie new_search/replace uniquement quand c'est nécessaire. */
+      return /\b(nouvelle recherche|nouvelle demande|recommencer|efface la recherche|oublie la recherche|new search|start over|reset search)\b/.test(n);
+    }
+    function buildIntelligenceContextV832(text='',snapshot=searchContext,language='fr'){
+      if(shouldResetIntelligenceContextV832(text,snapshot))return {language:language||snapshot?.language||'fr'};
+      const saved=cleanIntelligenceJsonV832(snapshot?.intelligenceContext,{});
+      const category=snapshot?.category?marketplaceCategoryCodeV832(snapshot.category):'';
+      if(!saved.intent&&category)saved.intent='search';
+      if(!saved.language)saved.language=language||snapshot?.language||conversationLang||'fr';
+      if(!saved.primary_category&&category)saved.primary_category=category;
+      if((!Array.isArray(saved.categories)||!saved.categories.length)&&category)saved.categories=[category];
+      if(!saved.city&&snapshot?.city)saved.city=snapshot.city;
+      if(!saved.country&&snapshot?.country)saved.country=snapshot.country;
+      if(!saved.subcategory&&snapshot?.productType)saved.subcategory=snapshot.productType;
+      if(!saved.brand&&snapshot?.brand)saved.brand=snapshot.brand;
+      if(!saved.model&&snapshot?.model)saved.model=snapshot.model;
+      if(!saved.condition&&snapshot?.condition)saved.condition=snapshot.condition;
+      if(!saved.transaction&&snapshot?.transaction)saved.transaction=snapshot.transaction;
+      if((!saved.attributes||!Array.isArray(saved.attributes))&&Array.isArray(snapshot?.features))saved.attributes=[...snapshot.features];
+      if((!saved.slots||typeof saved.slots!=='object')&&snapshot?.slots&&typeof snapshot.slots==='object')saved.slots=clonePlain(snapshot.slots);
+      if((!saved.query_fields||typeof saved.query_fields!=='object')&&snapshot?.queryFields&&typeof snapshot.queryFields==='object')saved.query_fields=clonePlain(snapshot.queryFields);
+      if(!Array.isArray(saved.asked_fields)&&Array.isArray(snapshot?.askedFields))saved.asked_fields=[...snapshot.askedFields];
+      if(snapshot?.objectLabel&&!saved.object_label)saved.object_label=snapshot.objectLabel;
+      if(snapshot?.jobContract&&!saved.job_contract)saved.job_contract=snapshot.jobContract;
+      if(snapshot?.jobWorkMode&&!saved.job_work_mode)saved.job_work_mode=snapshot.jobWorkMode;
+      if(snapshot?.serviceMode&&!saved.service_mode)saved.service_mode=snapshot.serviceMode;
+      if(snapshot?.propertyType&&!saved.property_type)saved.property_type=snapshot.propertyType;
+      if((!saved.budget||typeof saved.budget!=='object')&&Number(snapshot?.budget||snapshot?.budgetTarget||0)>0){
+        saved.budget={
+          mode:snapshot.budgetMode||'around',
+          target:Number(snapshot.budgetTarget||snapshot.budget)||null,
+          min:Number(snapshot.budgetMin||0)||null,
+          max:Number(snapshot.budgetMax||0)||null,
+          currency:snapshot.budgetCurrency||null
+        };
+      }
+      return saved;
+    }
+    async function requestDynamicUnderstandingV832(text,language='fr',snapshot=searchContext){
+      const client=await resolveSupabaseClientReadyV833();
+      if(!client||typeof client.rpc!=='function'){
+        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'SUPABASE_CLIENT_NOT_FOUND',at:Date.now()};
+        return null;
+      }
+      const resetContext=shouldResetIntelligenceContextV832(text,snapshot);
+      const rpcContext=buildIntelligenceContextV832(text,snapshot,language);
+      const wordCount=String(text||'').trim().split(/\s+/).filter(Boolean).length;
+      const languageHint=wordCount<=3?null:String(language||snapshot?.language||conversationLang||'fr');
+      try{
+        const response=await client.rpc(HAPPYAD_CHAT_INTELLIGENCE_RPC,{
+          p_text:String(text||''),
+          p_language:languageHint,
+          p_country:resetContext?null:(snapshot?.country||rpcContext.country||null),
+          p_city:resetContext?null:(snapshot?.city||rpcContext.city||null),
+          p_context:rpcContext
+        });
+        if(response?.error){
+          console.warn('HAPPYAD V837 RPC intelligence indisponible',response.error);
+          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'RPC_ERROR',message:String(response.error?.message||response.error),details:response.error,at:Date.now()};
+          return null;
+        }
+        const data=response?.data;
+        if(data&&data.ok){
+          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_SUCCESS={version:'V843',rpc:HAPPYAD_CHAT_INTELLIGENCE_RPC,serverVersion:String(data.version||''),searchReady:data.search_ready===true,primaryCategory:String(data.primary_category||''),at:Date.now()};
+          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR=null;
+          return data;
+        }
+        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'RPC_EMPTY_RESULT',data:data||null,at:Date.now()};
+        return null;
+      }catch(error){
+        console.warn('HAPPYAD V837 intelligence fallback local',error);
+        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'RPC_EXCEPTION',message:String(error?.message||error),at:Date.now()};
+        return null;
+      }
+    }
+    function understandingAttributesV832(value){
+      if(!Array.isArray(value))return [];
+      return uniqueValues(value.map(item=>typeof item==='string'?item:(item?.value||item?.canonical_value||item?.label||'')).filter(Boolean));
+    }
+    function resetSearchContextFromServerV834(language='fr'){
+      try{if(hasActiveSearchContext())rememberSearchSession(searchSessionId)}catch(_e){}
+      cancelAllActiveSearches();
+      resultOfferRegistry.clear();
+      currentMatches=[];
+      activeSearchId=0;
+      searchSessionId=Math.max(1,Number(searchSessionId)||1)+1;
+      requestParts=[];
+      lastSearchIntent=null;
+      currentIntent=null;
+      searchContext={
+        category:'',city:'',country:'',area:'',locationMode:'none',
+        suggestedCity:'',suggestedCountry:'',
+        budget:0,budgetCurrency:'',budgetMode:'',budgetMin:0,budgetMax:0,budgetTarget:0,
+        experience:'',bedrooms:0,transaction:'',language:language||conversationLang||'fr',
+        features:[],preferredOfferId:0,preferredTitle:'',objectLabel:'',
+        pendingQuestion:'',pendingFields:[],refinement:{},
+        intelligenceContext:{},intelligenceVersion:'',intelligenceUpdatedAt:0,
+        slots:{},queryFields:{},askedFields:[],searchReady:false,
+        brand:'',model:'',productType:'',condition:'',jobContract:'',jobWorkMode:'',
+        serviceMode:'',servicePricing:'',propertyType:'',serviceFrequency:'',liveIn:null
+      };
+      return searchContext;
+    }
+    function applyDynamicUnderstandingV832(understanding,text='',language='fr'){
+      if(!understanding||!understanding.ok)return searchContext;
+      const fields=(understanding.query_fields&&typeof understanding.query_fields==='object')
+        ?understanding.query_fields
+        :((understanding.slots&&typeof understanding.slots==='object')?understanding.slots:{});
+      const primary=String(understanding.primary_category||understanding?.context?.primary_category||fields.category_code||'').trim();
+      const category=primary?canonicalMarketplaceCategory(primary):'';
+      const interaction=String(understanding.interaction_type||'');
+      const resetFromServer=understanding.reset_context===true||interaction==='new_search'||String(understanding.context_action||'')==='replace';
+      if(resetFromServer)resetSearchContextFromServerV834(language);
+      if((interaction==='correction'||resetFromServer)&&category&&searchContext.category&&searchContext.category!==category){
+        searchContext.brand='';searchContext.model='';searchContext.productType='';searchContext.condition='';
+        searchContext.features=[];searchContext.objectLabel='';searchContext.slots={};searchContext.queryFields={};
+      }
+      if(category)searchContext.category=category;
+      const serverLabel=String(understanding.object_label||fields.object_label||understanding.model||understanding.product||understanding.service||understanding.search_query||'').trim();
+      if(serverLabel)searchContext.objectLabel=serverLabel;
+      if(understanding.product_type||fields.product_type)searchContext.productType=String(understanding.product_type||fields.product_type||'');
+      else if(understanding.subcategory)searchContext.productType=String(understanding.subcategory);
+      if(understanding.brand!==undefined||fields.brand!==undefined)searchContext.brand=String(understanding.brand||fields.brand||'');
+      if(understanding.model!==undefined||fields.model!==undefined)searchContext.model=String(understanding.model||fields.model||'');
+      if(understanding.condition!==undefined||fields.condition!==undefined)searchContext.condition=String(understanding.condition||fields.condition||'');
+      if(understanding.transaction!==undefined||fields.transaction!==undefined)searchContext.transaction=String(understanding.transaction||fields.transaction||'');
+      const country=understanding.country||fields.country;
+      const city=understanding.city||fields.city;
+      if(country)searchContext.country=cleanPlace(String(country));
+      if(city){searchContext.city=cleanPlace(String(city));searchContext.locationMode='explicit'}
+      const budgetSource=(understanding.budget&&typeof understanding.budget==='object')?understanding.budget:fields.budget;
+      const budget=budgetSource&&typeof budgetSource==='object'?budgetSource:{};
+      const budgetMode=String(budget.mode||'');
+      const target=Number(budget.target||0)||0,min=Number(budget.min||0)||0,max=Number(budget.max||0)||0;
+      if(budgetMode==='any'){
+        searchContext.budget=0;searchContext.budgetTarget=0;searchContext.budgetMin=0;searchContext.budgetMax=0;
+        searchContext.budgetMode='any';searchContext.budgetCurrency='';
+      }else if(target||min||max){
+        searchContext.budget=target||max||min;
+        searchContext.budgetTarget=target;
+        searchContext.budgetMin=min;
+        searchContext.budgetMax=max;
+        searchContext.budgetMode=String(budget.mode||searchContext.budgetMode||'around');
+        searchContext.budgetCurrency=String(budget.currency||searchContext.budgetCurrency||'');
+      }
+      if(fields.job_experience)searchContext.experience=String(fields.job_experience);
+      if(fields.job_contract)searchContext.jobContract=String(fields.job_contract);
+      if(fields.job_work_mode)searchContext.jobWorkMode=String(fields.job_work_mode);
+      if(fields.service_mode)searchContext.serviceMode=String(fields.service_mode);
+      if(fields.service_pricing)searchContext.servicePricing=String(fields.service_pricing);
+      if(fields.property_type)searchContext.propertyType=String(fields.property_type);
+      if(fields.service_frequency)searchContext.serviceFrequency=String(fields.service_frequency);
+      if(Object.prototype.hasOwnProperty.call(fields,'live_in'))searchContext.liveIn=fields.live_in===true||String(fields.live_in)==='true';
+      if(fields.property_rooms)searchContext.bedrooms=Number(fields.property_rooms)||searchContext.bedrooms||0;
+      const attrs=understandingAttributesV832(understanding.attributes);
+      if(attrs.length)searchContext.features=uniqueValues([...(searchContext.features||[]),...attrs]);
+      searchContext.language=String(understanding.language||language||searchContext.language||conversationLang||'fr');
+      searchContext.pendingFields=Array.isArray(understanding.clarify_fields)?[...understanding.clarify_fields]:[];
+      searchContext.searchReady=understanding.search_ready===true;
+      searchContext.pendingQuestion=understanding.needs_clarification&&!searchContext.searchReady
+        ?(understanding.needs_form?'supabase-form':'supabase-message')
+        :'';
+      searchContext.slots=clonePlain(understanding.slots||fields||{});
+      searchContext.queryFields=clonePlain(fields||{});
+      searchContext.askedFields=Array.isArray(understanding.asked_fields)?[...understanding.asked_fields]:[];
+      searchContext.intelligenceContext=cleanIntelligenceJsonV832(understanding.context,buildIntelligenceContextV832(text,searchContext,language));
+      searchContext.intelligenceVersion=String(understanding.version||'V843');
+      searchContext.intelligenceUpdatedAt=Date.now();
+      rememberSearchSession(searchSessionId);
+      return searchContext;
+    }
+    function assistantMessageV832(understanding,language='fr'){
+      const message=String(understanding?.assistant_message||'').trim();
+      if(message)return message;
+      if(language==='en')return 'I understood your request. Add the missing detail so I can continue accurately.';
+      if(language==='sw')return 'Nimeelewa ombi lako. Ongeza maelezo yanayokosekana ili niendelee kwa usahihi.';
+      if(language==='ln')return 'Nasosoli demande na yo. Bakisa précision oyo ezangi mpo nakoba malamu.';
+      return 'J’ai compris ta demande. Ajoute la précision manquante afin que je poursuive correctement.';
+    }
+    function dynamicUnderstandingCanSearchV832(understanding){
+      if(!understanding?.ok||understanding.greeting_only||understanding.in_scope===false)return false;
+      if(understanding.search_ready===true)return true;
+      const intent=String(understanding.intent||'');
+      return !understanding.needs_clarification&&(!!understanding.primary_category||['search','compare','price_question'].includes(intent));
+    }
+    window.HAPPYAD_CHAT_INTELLIGENCE_V832={
+      version:HAPPYAD_CHAT_INTELLIGENCE_CLIENT_VERSION,
+      rpc:HAPPYAD_CHAT_INTELLIGENCE_RPC,
+      getContext:()=>clonePlain(searchContext.intelligenceContext||{}),
+      clearContext:()=>{searchContext.intelligenceContext={};searchContext.intelligenceVersion='';searchContext.intelligenceUpdatedAt=0;return true},
+      understand:(text,language)=>requestDynamicUnderstandingV832(text,language||conversationLang||phoneLanguage(),searchContext)
+    };
+    window.HAPPYAD_CHAT_INTELLIGENCE_V833=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V834=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V835=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V837=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V839=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V840=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V842=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V843=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+
+    let deletedListingIdsCacheV838={at:0,ids:new Set()};
+    function deletedListingIdsV838(){
+      const now=Date.now();
+      if(now-deletedListingIdsCacheV838.at<800)return deletedListingIdsCacheV838.ids;
+      const ids=new Set();
+      const readFrom=target=>{
+        try{
+          const raw=target?.localStorage?.getItem('HAPPYAD_DELETED_POST_IDS_V1')||'[]';
+          const parsed=JSON.parse(raw);
+          if(Array.isArray(parsed))parsed.forEach(id=>{const value=String(id||'').trim();if(value)ids.add(value)});
+        }catch(_){ }
+      };
+      readFrom(window);
+      try{if(window.parent&&window.parent!==window)readFrom(window.parent)}catch(_){ }
+      deletedListingIdsCacheV838={at:now,ids};
+      return ids;
+    }
+    function listingIsLocallyDeletedV838(offer={}){
+      const id=String(offer.id||offer.post_id||offer.postId||'').trim();
+      return !!id&&deletedListingIdsV838().has(id);
+    }
+
+    async function loadV810IntelligentListings(text,contextSnapshot={},language='fr',prefetchedUnderstanding=null){
       const client=resolveSupabaseClient();
       if(!client||typeof client.rpc!=='function')return {ok:false,items:[],understanding:null};
       try{
-        const previousContext={
-          intent:'search',
-          language:language||contextSnapshot.language||'',
-          primary_category:contextSnapshot.category?normalize(contextSnapshot.category):null,
-          categories:contextSnapshot.category?[normalize(contextSnapshot.category)]:[],
-          city:contextSnapshot.city||null,
-          country:contextSnapshot.country||null,
-          budget:contextSnapshot.budget?{
-            mode:contextSnapshot.budgetMode||'around',
-            target:Number(contextSnapshot.budgetTarget||contextSnapshot.budget)||null,
-            min:Number(contextSnapshot.budgetMin||0)||null,
-            max:Number(contextSnapshot.budgetMax||0)||null,
-            currency:contextSnapshot.budgetCurrency||null
-          }:{},
-          brand:contextSnapshot.brand||null,
-          model:contextSnapshot.model||null,
-          subcategory:contextSnapshot.productType||null,
-          condition:contextSnapshot.condition||null,
-          attributes:[...(contextSnapshot.features||[])]
-        };
-        const understood=await client.rpc('happyad_chat_understand_v1',{
-          p_text:String(text||''),
-          p_language:String(language||contextSnapshot.language||'fr'),
-          p_country:contextSnapshot.country||null,
-          p_city:contextSnapshot.city||null,
-          p_context:previousContext
-        });
-        if(understood?.error||!understood?.data?.ok)return {ok:false,items:[],understanding:understood?.data||null};
+        const previousContext=buildIntelligenceContextV832(text,contextSnapshot,language);
+        let understanding=prefetchedUnderstanding&&prefetchedUnderstanding.ok?prefetchedUnderstanding:null;
+        if(!understanding){
+          understanding=await requestDynamicUnderstandingV832(text,language,contextSnapshot);
+        }
+        if(!understanding){
+          const understood=await client.rpc('happyad_chat_understand_v1',{
+            p_text:String(text||''),
+            p_language:String(language||contextSnapshot.language||'fr'),
+            p_country:contextSnapshot.country||null,
+            p_city:contextSnapshot.city||null,
+            p_context:previousContext
+          });
+          if(understood?.error||!understood?.data?.ok)return {ok:false,items:[],understanding:understood?.data||null};
+          understanding=understood.data;
+        }
         const searched=await client.rpc('happyad_chat_search_posts_v1',{
-          p_understanding:understood.data,
+          p_understanding:understanding,
           p_offset:0,
-          p_limit_per_category:5
+          p_limit_per_category:Number(understanding.result_limit_per_category||5)||5
         });
-        if(searched?.error||!searched?.data?.ok)return {ok:false,items:[],understanding:understood.data};
+        if(searched?.error||!searched?.data?.ok)return {ok:false,items:[],understanding};
+        const deletedIds=deletedListingIdsV838();
         const items=(searched.data.groups||[]).flatMap(group=>(group.items||[]).map((item,index)=>({
           ...item,
           marketplace_category:item.category||group.category,
@@ -7075,33 +7440,167 @@
           __happyadAiCategory:group.category,
           __happyadAiMatchKind:item.match_kind||'',
           __happyadAiMatchScore:Number(item.match_score||0)
-        })));
+        }))).filter(item=>!deletedIds.has(String(item.id||item.post_id||'')));
         if(items.length)applyIntegratedOffers(items,{replace:false});
-        return {ok:true,items,understanding:understood.data,search:searched.data};
+        return {ok:true,items,understanding,search:searched.data};
       }catch(error){
-        console.warn('HAPPYAD V810 intelligent search fallback',error);
+        console.warn('HAPPYAD V832 intelligent search fallback',error);
         return {ok:false,items:[],understanding:null};
       }
     }
 
-    function prioritizeV810Matches(matches=[],aiItems=[]){
-      const order=new Map(aiItems.map((item,index)=>[String(item.id),index]));
-      /* V817 : le score calculé avec les critères réellement demandés reste
-         prioritaire. L'ordre V810 sert seulement de départage et ne supprime
-         jamais une annonce exacte trouvée localement. */
-      return [...matches].sort((a,b)=>b.score-a.score||((order.get(String(a.id))??999)-(order.get(String(b.id))??999)));
+    function prioritizeV810Matches(matches=[],aiItems=[],serverAuthoritative=false){
+      const meta=new Map(aiItems.map((item,index)=>[String(item.id),{
+        index,kind:String(item.__happyadAiMatchKind||item.match_kind||''),score:Number(item.__happyadAiMatchScore||item.match_score||0)
+      }]));
+      const rank={exact:0,close:1,relevant:1,alternative:2,category_alternative:2,'':3};
+      const deletedIds=deletedListingIdsV838();
+      const serverIds=new Set(aiItems.map(item=>String(item.id||item.post_id||'')).filter(Boolean));
+      let sourceMatches=matches.filter(match=>!deletedIds.has(String(match.id||match.post_id||'')));
+      if(serverAuthoritative)sourceMatches=sourceMatches.filter(match=>serverIds.has(String(match.id||match.post_id||'')));
+      let decorated=sourceMatches.map(match=>{
+        const server=meta.get(String(match.id))||{index:999,kind:'',score:0};
+        const serverScore=Math.max(0,Math.min(100,server.score||0));
+        const localScore=Math.max(0,Math.min(100,Number(match.score)||0));
+        const blended=serverScore?Math.round(serverScore*.72+localScore*.28):localScore;
+        return {...match,score:blended,__serverKind:server.kind,__serverScore:serverScore,__serverIndex:server.index};
+      });
+      const hasExact=decorated.some(item=>item.__serverKind==='exact');
+      if(hasExact)decorated=decorated.filter(item=>item.__serverKind==='exact');
+      else{
+        const hasClose=decorated.some(item=>['close','relevant'].includes(item.__serverKind));
+        if(hasClose)decorated=decorated.filter(item=>['close','relevant','exact'].includes(item.__serverKind));
+      }
+      return decorated.sort((a,b)=>(rank[a.__serverKind]??3)-(rank[b.__serverKind]??3)||b.__serverScore-a.__serverScore||b.score-a.score||a.__serverIndex-b.__serverIndex);
     }
 
-    function launchSearchQuery(text,writtenLang){
-      activateSearchMemoryForText(text);
+    function mergeStructuredFragmentV835(text,understanding={}){
+      const serverReset=understanding.reset_context===true||understanding.interaction_type==='new_search'||understanding.context_action==='replace';
+      if(serverReset)requestParts=[];
+      requestParts.push(String(text||''));
+      if(requestParts.length>20)requestParts=requestParts.slice(-20);
+      const combined=String(understanding.search_query||understanding.object_label||searchContext.objectLabel||text||'').trim();
+      return {combined,previousText:'',context:{...searchContext,features:[...(searchContext.features||[])],slots:clonePlain(searchContext.slots||{}),queryFields:clonePlain(searchContext.queryFields||{})},sessionId:searchSessionId,startedNewSearch:serverReset};
+    }
+    function subjectKeyV838(value=''){
+      const folded=typeof foldLatin==='function'?foldLatin(String(value||'')):String(value||'').toLowerCase();
+      const tokens=folded.toLowerCase().replace(/[’']/g,' ').replace(/[^a-z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean);
+      return tokens.filter((token,index)=>index===0||token!==tokens[index-1]).join(' ');
+    }
+    function naturalSearchSubjectV838(understanding={},context={},intent={}){
+      const category=canonicalMarketplaceCategory(context.category||intent.category||understanding.primary_category||'');
+      const object=String(context.objectLabel||understanding.object_label||understanding.search_query||'').trim();
+      const key=subjectKeyV838(object);
+      const transaction=String(context.transaction||understanding.transaction||'');
+      if(category==='Service')return key==='aide a domicile'?'aide à domicile':(object||'service');
+      if(category==='Emploi')return object||'emploi';
+      if(category==='Immobilier'){
+        const base=key==='maison'?'maison':key==='appartement'?'appartement':(object||'logement');
+        return `${base}${transaction==='buy'?' en vente':transaction==='rent'?' à louer':''}`;
+      }
+      if(category==='Véhicule'){
+        if(!key||['vehicule','vehicules','vehicule vehicule'].includes(key))return 'véhicule';
+        return object;
+      }
+      if(category==='Électronique'){
+        if(['telephone','telephones','telephone telephone','smartphone','smartphones'].includes(key))return 'téléphone';
+        return object||'appareil électronique';
+      }
+      if(category==='Terrain')return object||'terrain';
+      return object||'produit';
+    }
+    function resultPhrasesV838(category,subject){
+      const key=subjectKeyV838(subject);
+      if(category==='Emploi')return {
+        one:subject==='emploi'?'une offre d’emploi disponible':`une offre d’emploi de ${subject} disponible`,
+        many:n=>subject==='emploi'?`${n} offres d’emploi disponibles`:`${n} offres d’emploi de ${subject} disponibles`,
+        noneExact:subject==='emploi'?'aucune offre d’emploi correspondant exactement à ta demande':`aucune offre d’emploi de ${subject} correspondant exactement à ta demande`,
+        none:subject==='emploi'?'aucune offre d’emploi disponible':`aucune offre d’emploi de ${subject} disponible`
+      };
+      if(category==='Service')return key==='aide a domicile'?{
+        one:'une annonce d’aide à domicile disponible',many:n=>`${n} annonces d’aide à domicile disponibles`,
+        noneExact:'aucune annonce d’aide à domicile correspondant exactement à ta demande',none:'aucune annonce d’aide à domicile disponible'
+      }:{
+        one:`une annonce disponible pour le service « ${subject} »`,many:n=>`${n} annonces disponibles pour le service « ${subject} »`,
+        noneExact:`aucune annonce pour le service « ${subject} » correspondant exactement à ta demande`,none:`aucune annonce disponible pour le service « ${subject} »`
+      };
+      if(category==='Véhicule'){
+        const generic=key==='vehicule';
+        return {
+          one:generic?'un véhicule disponible':`un véhicule ${subject} disponible`,
+          many:n=>generic?`${n} véhicules disponibles`:`${n} véhicules ${subject} disponibles`,
+          noneExact:generic?'aucun véhicule correspondant exactement à ta demande':`aucun véhicule ${subject} correspondant exactement à ta demande`,
+          none:generic?'aucun véhicule disponible':`aucun véhicule ${subject} disponible`
+        };
+      }
+      if(category==='Électronique'&&key==='telephone')return {
+        one:'un téléphone disponible',many:n=>`${n} téléphones disponibles`,
+        noneExact:'aucun téléphone correspondant exactement à ta demande',none:'aucun téléphone disponible'
+      };
+      if(category==='Immobilier')return {
+        one:`une annonce disponible pour ${subject}`,many:n=>`${n} annonces disponibles pour ${subject}`,
+        noneExact:`aucune annonce pour ${subject} correspondant exactement à ta demande`,none:`aucune annonce disponible pour ${subject}`
+      };
+      const article=/^[aeiouyhàâäéèêëîïôöùûü]/i.test(subject)?`d’${subject}`:`de ${subject}`;
+      return {
+        one:`une annonce disponible ${article}`,many:n=>`${n} annonces disponibles ${article}`,
+        noneExact:`aucune annonce ${article} correspondant exactement à ta demande`,none:`aucune annonce disponible ${article}`
+      };
+    }
+    function contextualSearchReplyV838({understanding={},context={},intent={},matches=[],language='fr'}={}){
+      const lang=String(language||intent.language||'fr');
+      const category=canonicalMarketplaceCategory(context.category||intent.category||understanding.primary_category||'');
+      const subject=naturalSearchSubjectV838(understanding,context,intent);
+      const city=String(context.city||understanding.city||intent.city||'').trim();
+      const country=String(context.country||understanding.country||intent.country||'').trim();
+      const zone=city?` à ${city}`:country?` en ${country}`:'';
+      const exact=matches.filter(item=>item.__serverKind==='exact');
+      const first=matches[0]||null;
+      const price=Number(first?.price||0)||0;
+      const currency=String(first?.currency||context.budgetCurrency||'').trim();
+      const target=Number(context.budgetTarget||context.budget||0)||0;
+      const sameCurrency=!context.budgetCurrency||!currency||normalize(currency)===normalize(context.budgetCurrency);
+      if(lang==='en'){
+        const label=category==='Emploi'?(subject==='emploi'?'job listing':`${subject} job listing`):`${subject} listing`;
+        if(exact.length)return `I found ${exact.length===1?'one active '+label:`${exact.length} active ${label}s`}${zone}.`;
+        if(matches.length)return `I found no exact active ${label}${zone}. Here ${matches.length===1?'is the closest option':'are the closest options'}.`;
+        return `I found no active ${label}${zone}. You can broaden the area or change one criterion.`;
+      }
+      const phrases=resultPhrasesV838(category,subject);
+      if(exact.length){
+        let message=`J’ai trouvé ${exact.length===1?phrases.one:phrases.many(exact.length)}${zone}.`;
+        if(exact.length===1&&price&&currency)message+=` Prix indiqué : ${cleanMoneyLabel(price,currency)}.`;
+        return message;
+      }
+      if(matches.length){
+        let message=`Je n’ai trouvé ${phrases.noneExact}${zone}. Voici ${matches.length===1?'l’option la plus proche':`${matches.length} options proches`}.`;
+        if(first?.city&&city&&normalize(first.city)!==normalize(city))message+=matches.length===1?` Cette option se trouve à ${capitalize(first.city)}.`:` La première option se trouve à ${capitalize(first.city)}.`;
+        else if(target&&price&&sameCurrency&&price>target)message+=` Son prix dépasse ton budget approximatif de ${cleanMoneyLabel(price-target,currency||context.budgetCurrency)}.`;
+        return message;
+      }
+      return `Je n’ai trouvé ${phrases.none}${zone}. Tu peux élargir la zone ou modifier un critère sans recommencer la recherche.`;
+    }
+
+    function launchSearchQuery(text,writtenLang,options={}){
+      const suppliedUnderstanding=options?.understanding&&options.understanding.ok?options.understanding:null;
+      if(!suppliedUnderstanding)activateSearchMemoryForText(text);
 
       const pendingBefore=searchContext.pendingQuestion||'';
       const beforeContext=clonePlain(searchContext);
-      const merged=mergeFragment(text);
+      const merged=suppliedUnderstanding?mergeStructuredFragmentV835(text,suppliedUnderstanding):mergeFragment(text);
       const combined=merged.combined;
       const sessionId=merged.sessionId;
-      const contextSnapshot=JSON.parse(JSON.stringify(merged.context));
-      const runId=++activeSearchId;
+      /* L’intelligence a déjà été appliquée dans runRequest. Ne pas la réappliquer ici :
+         un signal new_search réinitialiserait sinon deux fois la même demande. */
+      const contextSnapshot=JSON.parse(JSON.stringify({
+        ...merged.context,
+        ...searchContext,
+        features:[...(searchContext.features||[])],
+        intelligenceContext:clonePlain(searchContext.intelligenceContext||{}),
+        slots:clonePlain(searchContext.slots||{}),queryFields:clonePlain(searchContext.queryFields||{}),askedFields:[...(searchContext.askedFields||[])]
+      }));
+      const preflight=options?.preflight||null;
+      const runId=preflight?.runId||++activeSearchId;
 
       conversationSteps.push({
         at:Date.now(),
@@ -7129,8 +7628,23 @@
       if(conversationSteps.length>80)conversationSteps=conversationSteps.slice(-80);
       rememberSearchSession(sessionId);
 
-      const missingFields=missingRequiredSearchFields(contextSnapshot);
+      if(suppliedUnderstanding?.needs_form){
+        disposePreflightV843(preflight);
+        const message=assistantMessageV832(suppliedUnderstanding,writtenLang);
+        typeAssistant(message,writtenLang,()=>{
+          renderGuidedSearchForm({lang:writtenLang,context:clonePlain(contextSnapshot),source:'supabase-v2'});
+          persistCurrentConversation();
+        });
+        return;
+      }
+      if(suppliedUnderstanding?.needs_clarification){
+        disposePreflightV843(preflight);
+        typeAssistant(assistantMessageV832(suppliedUnderstanding,writtenLang),writtenLang,()=>persistCurrentConversation());
+        return;
+      }
+      const missingFields=suppliedUnderstanding?[]:missingRequiredSearchFields(contextSnapshot);
       if(missingFields.length){
+        disposePreflightV843(preflight);
         const progressed=!!(
           contextSnapshot.category!==beforeContext.category ||
           contextSnapshot.objectLabel!==beforeContext.objectLabel ||
@@ -7162,7 +7676,8 @@
         }
       });
 
-      const card=makeSearchCard(combined,runId);
+      const card=preflight?.card?.isConnected?preflight.card:makeSearchCard(combined,runId);
+      if(card?.querySelector('.search-copy span'))card.querySelector('.search-copy span').textContent=combined.length>92?combined.slice(0,89)+'…':combined;
 
       const timer=setTimeout(async()=>{
         try{
@@ -7175,32 +7690,22 @@
 
           /* V817 : la compréhension/recherche Supabase V810 est interrogée en premier.
              Les résultats réels sont fusionnés sans supprimer les annonces déjà chargées. */
-          const intelligent=await loadV810IntelligentListings(combined,contextSnapshot,writtenLang);
+          const intelligent=await loadV810IntelligentListings(combined,contextSnapshot,writtenLang,suppliedUnderstanding);
           if(!activeSearches.has(runId))return;
           const localResult=getMatches(combined,contextSnapshot,writtenLang,intelligent.understanding||{});
           const intent=localResult.intent;
-          const matches=prioritizeV810Matches(localResult.matches,intelligent.items||[]);
+          const matches=prioritizeV810Matches(localResult.matches,intelligent.items||[],intelligent.ok===true);
 
           activeSearches.delete(runId);
           if(card.isConnected)card.remove();
 
-          const reformulation=professionalReformulation(intent);
-          const reply=intent.zoneUnavailable
-            ?`${reformulation} ${zoneFallbackMessage(intent,intent.language||writtenLang)}`
-            :reformulation;
+          const reply=contextualSearchReplyV838({
+            understanding:intelligent.understanding||suppliedUnderstanding||{},
+            context:contextSnapshot,intent,matches,search:intelligent.search||{},
+            language:intent.language||writtenLang
+          });
           typeAssistant(reply,intent.language||writtenLang,()=>{
-            if(matches.length){
-              renderResults(combined,intent,matches,sessionId);
-            }else{
-              const followUp=intent.category==='Emploi'
-                ?(intent.language==='en'
-                  ?"I have kept your complete request, but no active job listing matches it closely yet. You can add another area, skill or experience detail without losing the search."
-                  :"J’ai conservé toute ta demande, mais aucune offre d’emploi active ne correspond encore assez précisément. Tu peux ajouter une autre zone, une compétence ou une précision sur ton expérience sans perdre la recherche.")
-                :(intent.language==='en'
-                  ?"I have kept your complete request, but there is no active listing that matches it closely yet. You can add another area, budget or condition without losing the current search."
-                  :"J’ai conservé toute ta demande, mais aucune annonce active ne correspond encore assez précisément. Tu peux ajouter une autre zone, un budget ou un critère sans perdre la recherche actuelle.");
-              typeAssistant(followUp,intent.language||writtenLang);
-            }
+            if(matches.length)renderResults(combined,intent,matches,sessionId);
             lastSearchIntent=intent;
             const memory=searchMemories.get(String(sessionId));
             if(memory){
@@ -7219,7 +7724,7 @@
             writtenLang
           );
         }
-      },900);
+      },20);
 
       activeSearches.set(runId,{
         id:runId,
@@ -7230,8 +7735,486 @@
       });
     }
 
-    function runRequest(raw){
-      const text=String(raw||'').trim();
+
+    /* ===== V844 — listes sans perte + plusieurs demandes prudentes ===== */
+    const V839_REQUEST_OBJECTS={
+      emploi:/\b(emploi|travail|poste|job|offre d emploi|carriere|chauffeur de bus|conducteur de bus|chauffeur poids lourd|ingenieur|comptable|enseignant|infirmier|developpeur)\b/,
+      service:/\b(service|aide a domicile|travailleur de maison|travailleur a domicile|travailleur a la maison|baby[ -]?sitter|babysitter|garde d enfant|garde enfant|garde bebe|nounou|yaya|plombier|electricien|couturier|fashion designer|menagere|jardinier|gardien|cuisinier)\b/,
+      electronique:/\b(telephone|telephones|smartphone|smartphones|iphone|samsung galaxy|ordinateur|laptop|tablette|ipad|television|televiseur|camera|console)\b/,
+      immobilier:/\b(maison|maisons|appartement|appartements|logement|logements|studio|villa|immeuble|chambre|bureau|boutique)\b/,
+      terrain:/\b(terrain|terrains|parcelle|parcelles)\b/,
+      vehicule:/\b(vehicule|vehicules|voiture|voitures|moto|motos|camion|camions|bus|minibus|pickup|suv|automobile)\b/,
+      produit:/\b(produit|produits|meuble|meubles|vetement|vetements|chaussure|chaussures|sac|montre)\b/
+    };
+    function requestCategoriesV839(value=''){
+      let n=normalize(value);
+      /* Les métiers composés ont priorité : « chauffeur de bus » est un emploi,
+         le mot bus ne doit pas créer une recherche Véhicule. */
+      const hasJobRole=/\b(chauffeur de bus|conducteur de bus|chauffeur poids lourd|driver de bus)\b/.test(n);
+      if(hasJobRole)n=n.replace(/\b(chauffeur de bus|conducteur de bus|chauffeur poids lourd|driver de bus)\b/g,' emploi_role ');
+      const found=[];
+      Object.entries(V839_REQUEST_OBJECTS).forEach(([category,pattern])=>{
+        if(pattern.test(n))found.push(category);
+      });
+      if(hasJobRole&&!found.includes('emploi'))found.unshift('emploi');
+      return [...new Set(found)];
+    }
+    function stripSharedTailV839(value=''){
+      return String(value||'')
+        .replace(/\s+(?:tous?|toutes?)\s+(?:ça|ca)\s+(?:à|a|en|dans)\s+[^,;.\n]+[.!?]*\s*$/iu,'')
+        .replace(/\s+tout\s+(?:ça|ca)\s+(?:à|a|en|dans)\s+[^,;.\n]+[.!?]*\s*$/iu,'')
+        .replace(/\s+les\s+(?:deux|trois|quatre|cinq|six|\d+)\s+(?:à|a|en|dans)\s+[^,;.\n]+[.!?]*\s*$/iu,'')
+        .trim();
+    }
+    function sharedRequestFieldsV839(value=''){
+      const city=cleanPlace(inferCity(value)||'');
+      const country=canonicalCountry(inferCountry(value)||(city?CITY_COUNTRY[normalize(city)]||'':''));
+      return {city,country};
+    }
+    function ambiguousExplicitRequestV844(item='',ordinal=1){
+      const categories=requestCategoriesV839(item);
+      const normalized=normalize(item);
+      const genericWorker=/^(?:un |une |des |le |la |les )?(?:travailleur|travailleuse|personne|employe|employee|ouvrier|ouvriere)s?$/.test(normalized);
+      const needsClarification=categories.length===0;
+      return {
+        text:item,explicit:true,ordinal,categories,
+        needsClarification,
+        classificationStatus:needsClarification?'needs_clarification':'ready',
+        objectHint:genericWorker?'travailleur':item,
+        clarificationQuestion:genericWorker
+          ?'Quel type de travailleur recherches-tu : aide à domicile, chauffeur, garde d’enfants ou un autre métier ?'
+          :(needsClarification?'Précise le type exact de cette recherche.':'')
+      };
+    }
+    function numberedRequestsV839(value=''){
+      const raw=String(value||'').replace(/\r\n?/g,'\n');
+      const marker=/(?:^|[\s;])([1-9]\d?)[.)-]\s*/g;
+      const matches=[];
+      let m;
+      while((m=marker.exec(raw))){
+        const digitOffset=m[0].lastIndexOf(m[1]);
+        matches.push({start:m.index+digitOffset,contentStart:marker.lastIndex,number:Number(m[1])});
+      }
+      if(matches.length<2)return null;
+      const requests=[];
+      for(let i=0;i<matches.length;i++){
+        const start=matches[i].contentStart;
+        const end=i+1<matches.length?matches[i+1].start:raw.length;
+        const item=stripSharedTailV839(raw.slice(start,end).trim().replace(/[;,.]+$/,''));
+        if(item)requests.push(ambiguousExplicitRequestV844(item,matches[i].number));
+      }
+      return requests.length>=2?requests:null;
+    }
+    function bulletRequestsV839(value=''){
+      const lines=String(value||'').replace(/\r\n?/g,'\n').split('\n');
+      const requests=lines.map((line,index)=>{
+        /* V844 : une puce explicite est conservée avec ou sans espace après le tiret. */
+        const m=line.match(/^\s*(?:[-•▪◦*]|[1-9]\d?[.)-])\s*(\S.+|\S)$/u);
+        if(!m)return null;
+        const item=stripSharedTailV839(m[1]);
+        return item?ambiguousExplicitRequestV844(item,index+1):null;
+      }).filter(Boolean);
+      return requests.length>=2?requests:null;
+    }
+    function naturalRequestPartsV839(value=''){
+      const raw=String(value||'').replace(/\r\n?/g,'\n').trim();
+      if(!raw)return [raw];
+      /* On ne sépare qu'avant un nouvel article + objet. Un simple « et diesel »,
+         « avec jardin » ou « qui ressemble à un camion » reste un critère. */
+      return raw.split(/\s*(?:;|\n|,(?=\s*(?:un|une|des|du|de la|le|la|les)\s+)|\bet\b(?=\s+(?:un|une|des|du|de la|le|la|les)\s+))\s*/iu)
+        .map(part=>part.trim()).filter(Boolean);
+    }
+    function localMultiRequestPlanV839(value=''){
+      const raw=String(value||'').replace(/\r\n?/g,'\n').trim();
+      const shared=sharedRequestFieldsV839(raw);
+      const explicit=numberedRequestsV839(raw)||bulletRequestsV839(raw);
+      if(explicit){
+        return {mode:'multi',requests:explicit.slice(0,6),shared,confidence:.99,reason:'explicit_list'};
+      }
+      const parts=naturalRequestPartsV839(raw);
+      if(parts.length<2)return {mode:'single',requests:[{text:raw}],shared,confidence:.95,reason:'single_sentence'};
+      const useful=parts.map(text=>({text:stripSharedTailV839(text),categories:requestCategoriesV839(text)}))
+        .filter(item=>item.text&&item.categories.length);
+      if(useful.length<2)return {mode:'single',requests:[{text:raw}],shared,confidence:.78,reason:'criteria_not_requests'};
+      const primary=useful.map(item=>item.categories[0]);
+      const distinct=[...new Set(primary)];
+      if(distinct.length>=2){
+        return {mode:'multi',requests:useful.slice(0,6).map((item,index)=>({text:item.text,explicit:false,ordinal:index+1})),shared,confidence:.92,reason:'distinct_objects'};
+      }
+      /* Deux objets de la même catégorie reliés naturellement peuvent être deux
+         recherches ou une description. On ne devine pas : clarification courte. */
+      const relation=/\b(qui ressemble a|de type|style|marque|modele|avec|sans|diesel|essence|electrique|automatique|manuel)\b/.test(normalize(raw));
+      if(!relation){
+        return {
+          mode:'clarify',requests:useful,shared,confidence:.58,reason:'same_category_ambiguous',
+          message:`Cherches-tu ${useful.map(item=>`« ${item.text} »`).join(' et ')} comme deux recherches séparées, ou s’agit-il des caractéristiques d’une seule demande ?`
+        };
+      }
+      return {mode:'single',requests:[{text:raw}],shared,confidence:.88,reason:'single_rich_request'};
+    }
+    async function serverMultiRequestPlanV839(value='',language='fr'){
+      const client=await resolveSupabaseClientReadyV833();
+      if(!client||typeof client.rpc!=='function')return null;
+      try{
+        const response=await client.rpc(HAPPYAD_CHAT_DECOMPOSE_RPC,{p_text:String(value||''),p_language:language||null});
+        if(response?.error)return null;
+        const data=response?.data;
+        if(!data?.ok||!Array.isArray(data.requests))return null;
+        return {
+          mode:String(data.mode||'single'),
+          requests:data.requests.map((item,index)=>({
+            text:String(item?.text||item||'').trim(),explicit:!!item?.explicit,ordinal:Number(item?.ordinal||index+1),
+            categoryHint:String(item?.category_hint||''),objectHint:String(item?.object_hint||''),
+            needsClarification:item?.needs_clarification===true||String(item?.classification_status||'')==='needs_clarification',
+            classificationStatus:String(item?.classification_status||''),
+            clarificationQuestion:String(item?.clarification_question||'')
+          })).filter(item=>item.text),
+          shared:cleanIntelligenceJsonV832(data.shared_fields||{}),confidence:Number(data.confidence||0),reason:String(data.reason||'server'),
+          message:String(data.assistant_message||''),
+          clarificationCount:Number(data.clarification_request_count||0)
+        };
+      }catch(_e){return null;}
+    }
+    function shouldConsultServerDecompositionV843(value='',localPlan=null){
+      const raw=String(value||'').replace(/\r\n?/g,'\n').trim();
+      if(!raw)return false;
+      if(localPlan?.mode==='multi'||localPlan?.mode==='clarify')return true;
+      const explicitMarkers=(raw.match(/(?:^|\n)\s*(?:[-•▪◦*]|[1-9]\d?[.)-])\s+/gu)||[]).length;
+      if(explicitMarkers>=2)return true;
+      const parts=naturalRequestPartsV839(raw);
+      if(parts.length<2)return false;
+      const recognized=parts.filter(part=>requestCategoriesV839(part).length>0).length;
+      return recognized>=2;
+    }
+    async function prepareMultiRequestPlanV839(value='',language='fr'){
+      const local=localMultiRequestPlanV839(value);
+      /* V843 : une demande clairement simple ne contacte plus la RPC de
+         décomposition. Elle passe directement à happyad_chat_understand_v2.
+         Le serveur reste prioritaire pour les listes, les demandes multiples
+         probables et les ambiguïtés, afin que les futurs alias SQL restent actifs. */
+      if(!shouldConsultServerDecompositionV843(value,local))return local;
+      const server=await serverMultiRequestPlanV839(value,language);
+      if(local.mode==='clarify')return server?.mode==='multi'?server:local;
+      if(server?.mode==='clarify'&&local.mode!=='multi')return server;
+      if(server?.mode==='multi'&&Array.isArray(server.requests)&&server.requests.length>=2){
+        if(local.mode!=='multi')return server;
+        const serverCount=server.requests.length;
+        const localCount=Array.isArray(local.requests)?local.requests.length:0;
+        if(serverCount>localCount)return server;
+        /* V844 : à nombre égal, le serveur garde les métadonnées dynamiques
+           (demande ambiguë, question ciblée, alias Supabase). */
+        if(serverCount===localCount)return server;
+      }
+      if(local.mode==='multi')return local;
+      return server?.mode==='single'?server:local;
+    }
+    function likelySearchTurnV843(value=''){
+      const text=String(value||'').trim();
+      if(!text||isPaymentOrCheckoutRequest(text)||isThanksOnly(text)||isAcknowledgementOnly(text))return false;
+      const local=localMultiRequestPlanV839(text);
+      return local.mode!=='single'||requestCategoriesV839(text).length>0||isExplicitSearchPhrase(text)||isMarketplaceQuestion(text);
+    }
+    function createPreflightSearchV843(value=''){
+      if(!likelySearchTurnV843(value))return null;
+      const runId=++activeSearchId;
+      const card=makeSearchCard(String(value||''),runId);
+      activeSearches.set(runId,{id:runId,timer:null,card,sessionId:0,contextSnapshot:{preflight:true}});
+      return {runId,card};
+    }
+    function preflightActiveV843(preflight){
+      return !preflight||activeSearches.has(preflight.runId);
+    }
+    function disposePreflightV843(preflight,removeCard=true){
+      if(!preflight)return;
+      const job=activeSearches.get(preflight.runId);
+      if(job?.timer)clearTimeout(job.timer);
+      activeSearches.delete(preflight.runId);
+      if(removeCard&&preflight.card?.isConnected)preflight.card.remove();
+    }
+    function requestHasLocationV839(value=''){
+      return !!(inferCity(value)||inferCountry(value)||/\b(meme ville|même ville|ici|same city|same area)\b/i.test(String(value||'')));
+    }
+    function applySharedFieldsV839(value='',shared={}){
+      let result=String(value||'').trim();
+      if(!requestHasLocationV839(result)){
+        if(shared.city)result+=` à ${shared.city}`;
+        else if(shared.country)result+=` en ${shared.country}`;
+      }
+      return result;
+    }
+    function serverSearchItemsV840(search={}){
+      const deletedIds=deletedListingIdsV838();
+      const items=(search.groups||[]).flatMap(group=>(group.items||[]).map((item,index)=>({
+        ...item,
+        marketplace_category:item.category||group.category,
+        happyad_marketplace:true,
+        listing_status:'active',
+        is_active:true,
+        __happyadAiOrder:index,
+        __happyadAiCategory:group.category,
+        __happyadAiMatchKind:item.match_kind||'',
+        __happyadAiMatchScore:Number(item.match_score||0)
+      }))).filter(item=>!deletedIds.has(String(item.id||item.post_id||'')));
+      if(items.length)applyIntegratedOffers(items,{replace:false});
+      return items;
+    }
+    function groupedContextSnapshotV840(query,understanding,language='fr'){
+      resetSearchContext();
+      const serverLang=String(understanding?.language||language||'fr');
+      if(understanding?.ok)applyDynamicUnderstandingV832(understanding,query,serverLang);
+      const merged=understanding?.ok?mergeStructuredFragmentV835(query,understanding):mergeFragment(query);
+      return {
+        combined:merged.combined,
+        sessionId:++searchSessionId,
+        context:JSON.parse(JSON.stringify({
+          ...merged.context,
+          ...searchContext,
+          features:[...(searchContext.features||[])],
+          intelligenceContext:clonePlain(searchContext.intelligenceContext||{}),
+          slots:clonePlain(searchContext.slots||{}),
+          queryFields:clonePlain(searchContext.queryFields||{}),
+          askedFields:[...(searchContext.askedFields||[])]
+        }))
+      };
+    }
+    function buildGroupedResultV840(query,understanding,search,language='fr',ordinal=1,meta={}){
+      const needsClarification=meta?.needs_clarification===true||meta?.needsClarification===true||understanding?.needs_clarification===true;
+      if(needsClarification){
+        const city=String(understanding?.city||meta?.city||'').trim();
+        const country=String(understanding?.country||meta?.country||'').trim();
+        const objectHint=String(meta?.object_hint||meta?.objectHint||understanding?.object_label||query||'recherche').trim();
+        return {
+          ordinal,query,understanding:understanding||{},search:search||{},
+          context:{city,country,objectLabel:objectHint},sessionId:++searchSessionId,
+          intent:{language,city,country,objectLabel:objectHint},matches:[],
+          needsClarification:true,objectHint,
+          clarificationQuestion:String(meta?.clarification_question||meta?.clarificationQuestion||understanding?.assistant_message||'Précise le type exact de cette recherche.')
+        };
+      }
+      const snap=groupedContextSnapshotV840(query,understanding,language);
+      const aiItems=serverSearchItemsV840(search||{});
+      const localResult=getMatches(snap.combined,snap.context,language,understanding||{});
+      const matches=prioritizeV810Matches(localResult.matches,aiItems,true);
+      return {
+        ordinal,query,understanding:understanding||{},search:search||{},
+        context:snap.context,sessionId:snap.sessionId,
+        intent:localResult.intent,matches,needsClarification:false
+      };
+    }
+    async function serverBatchSearchV840(originalText='',language='fr',plan=null){
+      const client=await resolveSupabaseClientReadyV833();
+      if(!client||typeof client.rpc!=='function')return null;
+      try{
+        const response=await client.rpc(HAPPYAD_CHAT_BATCH_RPC,{
+          p_text:String(originalText||''),
+          p_language:language||null,
+          p_requests:Array.isArray(plan?.requests)?plan.requests.map((item,index)=>({
+            ordinal:Number(item.ordinal||index+1),text:String(item.text||'').trim(),
+            category_hint:String(item.categoryHint||item.category_hint||''),
+            object_hint:String(item.objectHint||item.object_hint||''),
+            needs_clarification:item.needsClarification===true||item.needs_clarification===true,
+            classification_status:String(item.classificationStatus||item.classification_status||''),
+            clarification_question:String(item.clarificationQuestion||item.clarification_question||'')
+          })):null,
+          p_shared_fields:cleanIntelligenceJsonV832(plan?.shared||{}),
+          p_limit_per_request:5
+        });
+        if(response?.error||!response?.data?.ok||!Array.isArray(response.data.results))return null;
+        return response.data;
+      }catch(_error){return null;}
+    }
+    async function collectOnePlannedRequestV840(query,language='fr',ordinal=1){
+      resetSearchContext();
+      const understanding=await requestDynamicUnderstandingV832(query,language,searchContext);
+      if(!understanding||understanding.in_scope===false||understanding.interaction_type==='out_of_scope'){
+        return {ordinal,query,understanding:understanding||{},search:{groups:[]},context:{},sessionId:++searchSessionId,intent:contextIntent(query,language),matches:[]};
+      }
+      const snap=groupedContextSnapshotV840(query,understanding,language);
+      await prepareLocationSuggestion();
+      await realOffersReady.catch(()=>false);
+      const intelligent=await loadV810IntelligentListings(snap.combined,snap.context,language,understanding);
+      const localResult=getMatches(snap.combined,snap.context,language,intelligent.understanding||understanding||{});
+      const matches=prioritizeV810Matches(localResult.matches,intelligent.items||[],intelligent.ok===true);
+      return {
+        ordinal,query,understanding:intelligent.understanding||understanding,
+        search:intelligent.search||{},context:snap.context,sessionId:snap.sessionId,
+        intent:localResult.intent,matches
+      };
+    }
+    function groupedSubjectV840(result={}){
+      if(result.needsClarification){
+        return String(result.objectHint||result.understanding?.object_label||result.query||'recherche')
+          .replace(/^\s*(?:un|une|des|le|la|les)\s+/i,'').trim()||'recherche';
+      }
+      const subject=naturalSearchSubjectV838(result.understanding||{},result.context||{},result.intent||{});
+      return String(subject||'recherche').trim();
+    }
+    function groupedSectionTitleV840(result={},index=0){
+      const subject=groupedSubjectV840(result);
+      const city=String(result.context?.city||result.understanding?.city||result.intent?.city||'').trim();
+      const country=String(result.context?.country||result.understanding?.country||result.intent?.country||'').trim();
+      const zone=city?` à ${capitalize(city)}`:country?` en ${country}`:'';
+      return `${index+1}. ${capitalize(subject)}${zone}`;
+    }
+    function groupedSummaryV840(results=[],plan={},language='fr'){
+      const count=results.length;
+      const sharedCity=String(plan?.shared?.city||'').trim();
+      const sharedCountry=String(plan?.shared?.country||'').trim();
+      const zone=sharedCity?` à ${capitalize(sharedCity)}`:sharedCountry?` en ${sharedCountry}`:'';
+      if(language==='en'){
+        const lines=results.map((result,index)=>{
+          const subject=groupedSubjectV840(result);
+          if(result.needsClarification)return `${index+1}. ${capitalize(subject)}: clarification needed.`;
+          const exact=result.matches.filter(item=>item.__serverKind==='exact');
+          if(exact.length)return `${index+1}. ${capitalize(subject)}: ${exact.length} exact result${exact.length>1?'s':''}.`;
+          if(result.matches.length){
+            const city=String(result.matches[0]?.city||'').trim();
+            return `${index+1}. ${capitalize(subject)}: no exact result${zone}; closest option${city?` in ${capitalize(city)}`:''}.`;
+          }
+          return `${index+1}. ${capitalize(subject)}: no active result found${zone}.`;
+        });
+        return `I processed your ${count} searches${zone}:\n${lines.join('\n')}`;
+      }
+      const lines=results.map((result,index)=>{
+        const subject=groupedSubjectV840(result);
+        if(result.needsClarification)return `${index+1}. ${capitalize(subject)} : précision nécessaire.`;
+        const exact=result.matches.filter(item=>item.__serverKind==='exact');
+        if(exact.length)return `${index+1}. ${capitalize(subject)} : ${exact.length} résultat${exact.length>1?'s':''} exact${exact.length>1?'s':''}.`;
+        if(result.matches.length){
+          const city=String(result.matches[0]?.city||'').trim();
+          return `${index+1}. ${capitalize(subject)} : aucun résultat exact${zone}; option la plus proche${city?` à ${capitalize(city)}`:''}.`;
+        }
+        return `${index+1}. ${capitalize(subject)} : aucune annonce active trouvée${zone}.`;
+      });
+      return `J’ai traité tes ${count} recherches${zone} :\n${lines.join('\n')}`;
+    }
+    function renderGroupedFeedbackV840(parent,results=[],language='fr'){
+      const feedback=document.createElement('div');
+      feedback.className='grouped-feedback-v840';
+      const pending=results.filter(result=>result.needsClarification);
+      if(pending.length){
+        const question=pending.length===1
+          ?String(pending[0].clarificationQuestion||'Précise le type exact de cette recherche.')
+          :(language==='en'
+            ?`Clarify searches ${pending.map(item=>item.ordinal).join(', ')} by giving the exact type for each one.`
+            :`Précise les recherches ${pending.map(item=>item.ordinal).join(', ')} en indiquant le type exact pour chacune.`);
+        feedback.innerHTML=`
+          <strong>${escapeHtml(question)}</strong>
+          <div class="result-feedback-actions">
+            <button class="feedback-choice negative" type="button" data-answer="clarify">${escapeHtml(language==='en'?'Reply':'Préciser')}</button>
+          </div>`;
+        feedback.querySelector('[data-answer="clarify"]').onclick=()=>{
+          lastGroupedSearchV840={results:clonePlain(results.map(r=>({ordinal:r.ordinal,query:r.query,context:r.context,intent:r.intent,needsClarification:r.needsClarification}))),at:Date.now()};
+          document.querySelector('#requestInput')?.focus();
+        };
+        parent.appendChild(feedback);
+        return;
+      }
+      feedback.innerHTML=`
+        <strong>${escapeHtml(language==='en'?'Are these grouped results useful, or would you like to refine one search?':'Ces résultats groupés te conviennent-ils, ou souhaites-tu préciser une recherche ?')}</strong>
+        <div class="result-feedback-actions">
+          <button class="feedback-choice positive" type="button" data-answer="yes">${escapeHtml(guidedText(language,'yes'))}</button>
+          <button class="feedback-choice negative" type="button" data-answer="no">${escapeHtml(guidedText(language,'no'))}</button>
+        </div>`;
+      parent.appendChild(feedback);
+      feedback.querySelector('[data-answer="yes"]').onclick=()=>{
+        feedback.innerHTML=`<strong>${escapeHtml(guidedText(language,'thanks'))}</strong>`;
+        persistCurrentConversation();
+      };
+      feedback.querySelector('[data-answer="no"]').onclick=()=>{
+        feedback.innerHTML=`<strong>${escapeHtml(language==='en'?'Write the number of the search to refine and the criterion to change.':'Écris le numéro de la recherche à préciser et le critère à modifier.')}</strong>`;
+        lastGroupedSearchV840={results:clonePlain(results.map(r=>({ordinal:r.ordinal,query:r.query,context:r.context,intent:r.intent}))),at:Date.now()};
+        document.querySelector('#requestInput')?.focus();
+        persistCurrentConversation();
+      };
+    }
+    function renderGroupedResultsV840(results=[],language='fr'){
+      const stream=document.querySelector('#chatStream');
+      const batch=document.createElement('section');
+      batch.className='results-batch-v840';
+      batch.dataset.batchId=`v840-${Date.now()}`;
+      stream.appendChild(batch);
+      results.forEach((result,index)=>{
+        if(result.needsClarification){
+          const pending=document.createElement('div');
+          pending.className='batch-section-empty batch-section-clarification-v844';
+          pending.innerHTML=`<strong>${escapeHtml(groupedSectionTitleV840(result,index))}</strong><br>${escapeHtml(language==='en'?'Clarification needed before searching.':'Précision nécessaire avant la recherche.')}`;
+          batch.appendChild(pending);
+        }else if(result.matches.length){
+          renderResults(result.query,result.intent,result.matches,result.sessionId,{
+            target:batch,feedback:false,removeExisting:false,scroll:false,persist:false,
+            hideFallbackNotice:true,sectionLabel:groupedSectionTitleV840(result,index)
+          });
+        }else{
+          const empty=document.createElement('div');
+          empty.className='batch-section-empty';
+          empty.innerHTML=`<strong>${escapeHtml(groupedSectionTitleV840(result,index))}</strong><br>${escapeHtml(language==='en'?'No active result found.':'Aucune annonce active trouvée.')}`;
+          batch.appendChild(empty);
+        }
+      });
+      renderGroupedFeedbackV840(batch,results,language);
+      recordConversationEvent({
+        type:'grouped_results_v840',
+        results:clonePlain(results.map(item=>({query:item.query,intent:item.intent,matches:item.matches,sessionId:item.sessionId})))
+      });
+      requestAnimationFrame(()=>{
+        const sc=document.querySelector('#chatScroll');
+        sc.scrollTo({top:Math.max(0,batch.offsetTop-8),behavior:'smooth'});
+      });
+    }
+    async function runMultiRequestPlanV840(plan,originalText='',language='fr',options={}){
+      const count=Math.min(6,plan.requests.length);
+      const preflight=options?.preflight||null;
+      const runId=preflight?.runId||++activeSearchId;
+      const card=preflight?.card?.isConnected?preflight.card:makeSearchCard(originalText,runId);
+      activeSearches.set(runId,{id:runId,timer:null,card,sessionId:searchSessionId,contextSnapshot:{multi:true}});
+      try{
+        let results=[];
+        const batch=await serverBatchSearchV840(originalText,language,plan);
+        if(!activeSearches.has(runId))return;
+        if(batch?.results?.length){
+          results=batch.results.slice(0,count).map((entry,index)=>buildGroupedResultV840(
+            String(entry.query||applySharedFieldsV839(plan.requests[index]?.text||'',plan.shared||{})),
+            entry.understanding||{},entry.search||{},language,index+1,{
+              ...entry,...(plan.requests[index]||{}),
+              city:plan.shared?.city||'',country:plan.shared?.country||''
+            }
+          ));
+        }else{
+          for(let i=0;i<count;i++){
+            if(!activeSearches.has(runId))return;
+            const request=plan.requests[i]||{};
+            const query=applySharedFieldsV839(request.text,plan.shared||{});
+            if(request.needsClarification||request.needs_clarification){
+              results.push(buildGroupedResultV840(query,{
+                ok:true,needs_clarification:true,object_label:request.objectHint||request.object_hint||request.text,
+                assistant_message:request.clarificationQuestion||request.clarification_question||'',
+                city:plan.shared?.city||'',country:plan.shared?.country||''
+              },{groups:[]},language,i+1,{...request,city:plan.shared?.city||'',country:plan.shared?.country||''}));
+            }else{
+              results.push(await collectOnePlannedRequestV840(query,language,i+1));
+            }
+          }
+        }
+        activeSearches.delete(runId);
+        if(card.isConnected)card.remove();
+        lastGroupedSearchV840={results:clonePlain(results.map(r=>({ordinal:r.ordinal,query:r.query,context:r.context,intent:r.intent}))),at:Date.now()};
+        const summary=groupedSummaryV840(results,plan,language);
+        typeAssistant(summary,language,()=>{
+          renderGroupedResultsV840(results,language);
+          persistCurrentConversation();
+        });
+      }catch(error){
+        console.error('HAPPYAD V840 grouped search error',error);
+        activeSearches.delete(runId);
+        if(card.isConnected)card.remove();
+        typeAssistant(SEARCH_ERROR_REPLIES[language]||SEARCH_ERROR_REPLIES.fr,language);
+      }
+    }
+
+    async function runRequest(raw){
+      const original=String(raw||'').replace(/\r\n?/g,'\n');
+      const text=original.trim();
       if(!text){toast(tr(responseLang(raw),'empty'));return}
 
       const writtenLang=resolveConversationLanguage(text);
@@ -7241,15 +8224,95 @@
       input.value='';
       resizeComposer();
 
+      /* Les réponses locales évidentes restent instantanées et ne déclenchent
+         ni décomposition ni indicateur de recherche. */
+      if(isPaymentOrCheckoutRequest(text)){
+        appendScopeNotice(scopeBoundaryReply(writtenLang,'payment'),writtenLang);
+        persistCurrentConversation();
+        return;
+      }
+      if(isThanksOnly(text)||isAcknowledgementOnly(text)){
+        handleNonSearchMessage(text,writtenLang);
+        persistCurrentConversation();
+        return;
+      }
+
+      /* V843 : l’indicateur apparaît avant le premier appel Supabase. */
+      const preflight=createPreflightSearchV843(text);
+
       try{
+        const multiPlan=await prepareMultiRequestPlanV839(text,writtenLang);
+        if(!preflightActiveV843(preflight))return;
+        if(multiPlan.mode==='clarify'){
+          disposePreflightV843(preflight);
+          typeAssistant(multiPlan.message||'Cette phrase peut représenter une ou plusieurs recherches. Précise si tu veux des recherches séparées.',writtenLang,()=>persistCurrentConversation());
+          return;
+        }
+        if(multiPlan.mode==='multi'&&multiPlan.requests.length>=2){
+          await runMultiRequestPlanV840(multiPlan,text,writtenLang,{preflight});
+          return;
+        }
+
+        const dynamicUnderstanding=await requestDynamicUnderstandingV832(text,writtenLang,searchContext);
+        if(!preflightActiveV843(preflight))return;
+        if(dynamicUnderstanding){
+          const serverLang=String(dynamicUnderstanding.language||writtenLang||'fr');
+          conversationLang=serverLang;
+          applyDynamicUnderstandingV832(dynamicUnderstanding,text,serverLang);
+
+          if(dynamicUnderstanding.greeting_only||dynamicUnderstanding.interaction_type==='greeting'){
+            disposePreflightV843(preflight);
+            typeAssistant(assistantMessageV832(dynamicUnderstanding,serverLang),serverLang,()=>persistCurrentConversation());
+            return;
+          }
+
+          if(dynamicUnderstanding.in_scope===false||dynamicUnderstanding.interaction_type==='out_of_scope'){
+            disposePreflightV843(preflight);
+            appendScopeNotice(assistantMessageV832(dynamicUnderstanding,serverLang),serverLang);
+            persistCurrentConversation();
+            return;
+          }
+
+          if(dynamicUnderstanding.search_ready===true&&dynamicUnderstandingCanSearchV832(dynamicUnderstanding)){
+            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v2',preflight});
+            return;
+          }
+
+          if(dynamicUnderstanding.needs_form||dynamicUnderstanding.clarify_mode==='form'){
+            disposePreflightV843(preflight);
+            typeAssistant(assistantMessageV832(dynamicUnderstanding,serverLang),serverLang,()=>persistCurrentConversation());
+            return;
+          }
+
+          if(dynamicUnderstanding.needs_clarification){
+            disposePreflightV843(preflight);
+            typeAssistant(assistantMessageV832(dynamicUnderstanding,serverLang),serverLang,()=>persistCurrentConversation());
+            return;
+          }
+
+          if(dynamicUnderstandingCanSearchV832(dynamicUnderstanding)){
+            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v2',preflight});
+            return;
+          }
+
+          if(dynamicUnderstanding.assistant_message){
+            disposePreflightV843(preflight);
+            typeAssistant(assistantMessageV832(dynamicUnderstanding,serverLang),serverLang,()=>persistCurrentConversation());
+            return;
+          }
+        }
+
+        /* Secours hors ligne / RPC indisponible : ancien moteur local intact. */
         const analysis=analyseConversationTurn(text);
 
         if(analysis.outside.length){
+          disposePreflightV843(preflight);
           const kind=analysis.outside.some(item=>item.kind==='payment')?'payment':'outside';
           appendScopeNotice(scopeBoundaryReply(writtenLang,kind),writtenLang);
         }
 
         if(!analysis.groups.length){
+          disposePreflightV843(preflight);
           if(analysis.social.length||!analysis.outside.length){
             handleNonSearchMessage(text,writtenLang);
           }
@@ -7258,10 +8321,11 @@
         }
 
         analysis.groups.forEach((group,index)=>{
-          setTimeout(()=>launchSearchQuery(group.text,writtenLang),index*130);
+          setTimeout(()=>launchSearchQuery(group.text,writtenLang,index===0?{preflight}:{}),index*80);
         });
       }catch(error){
         console.error('HAPPYAD request error',error);
+        disposePreflightV843(preflight);
         typeAssistant(
           SEARCH_ERROR_REPLIES[writtenLang]||SEARCH_ERROR_REPLIES.fr,
           writtenLang
@@ -8091,7 +9155,7 @@
       document.querySelector('#detailMediaNext').style.display=media.length>1?'block':'none';
       thumbs.innerHTML=media.map((m,index)=>`
         <button class="detail-thumb ${index===detailMediaIndex?'active':''}" type="button" data-detail-media="${index}">
-          <img src="${escapeHtml(mediaThumb(m))}" alt="">
+          ${listingCoverMarkup(m,'detail-thumb-media',activeOffer?.title||'Média')}
           ${m.type==='video'?'<span class="thumb-play">▶</span>':''}
         </button>`).join('');
       thumbs.querySelectorAll('[data-detail-media]').forEach(button=>{
@@ -8109,7 +9173,12 @@
       }
       const image=content.querySelector('img');
       if(image)image.onclick=()=>openMediaViewer(activeOffer,detailMediaIndex);
-      thumbs.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.src=EMPTY_MEDIA_SVG},{once:true}));
+      thumbs.querySelectorAll('[data-detail-media]').forEach(button=>{
+        const index=Number(button.dataset.detailMedia)||0;
+        prepareListingVideoCover(button,media[index],'.detail-thumb-media');
+        const img=button.querySelector('img');
+        if(img)img.addEventListener('error',()=>{if(media[index]?.type==='video')prepareListingVideoCover(button,media[index],'.detail-thumb-media');else img.src=EMPTY_MEDIA_SVG},{once:true});
+      });
     }
     function openDetail(key){
       activeOfferKey=String(key);
@@ -8188,14 +9257,30 @@
       return {handled:false,response:null,error:new Error('Le maître Publication HAPPYAD n’a pas répondu.')};
     }
 
-    function pauseListingVideos(except=null){
+    function stopListingVideoV837(video,release=false){
+      if(!video)return;
+      try{video.pause()}catch(_){ }
+      try{video.muted=true;video.removeAttribute('autoplay')}catch(_){ }
+      if(release){
+        try{video.removeAttribute('src');video.querySelectorAll('source').forEach(source=>source.remove());video.load()}catch(_){ }
+      }
+    }
+    function pauseListingVideos(except=null,release=false){
       document.querySelectorAll('#detailModal video,#mediaViewer video').forEach(video=>{
         if(video===except)return;
-        try{video.pause()}catch(_){}
+        stopListingVideoV837(video,release);
+      });
+    }
+    function stopAllMarketplacePlaybackV837(release=true){
+      document.querySelectorAll('#detailModal video,#mediaViewer video,.match-card video,.market-card video').forEach(video=>{
+        const destructive=release&&!!video.closest('#detailModal,#mediaViewer');
+        stopListingVideoV837(video,destructive);
       });
     }
     function playListingVideoImmediately(video,restart=false){
-      if(!video)return;
+      if(!video||!video.isConnected)return;
+      const modal=video.closest('.modal');if(modal&&!modal.classList.contains('show'))return;
+      const viewer=video.closest('#mediaViewer');if(viewer&&!viewer.classList.contains('show'))return;
       pauseListingVideos(video);
       try{video.autoplay=true;video.playsInline=true;video.preload='auto';video.muted=false;video.volume=1;if(restart&&video.readyState>=1)video.currentTime=0}catch(_){}
       const attempt=()=>{
@@ -8220,9 +9305,12 @@
     }
     function closeMediaViewer(){
       pauseViewerMedia();
+      document.querySelectorAll('#mediaViewer video').forEach(video=>stopListingVideoV837(video,true));
+      document.querySelectorAll('#detailModal video').forEach(video=>stopListingVideoV837(video,false));
       document.querySelector('#mediaViewer').classList.remove('show');
       document.querySelector('#mediaViewer').setAttribute('aria-hidden','true');
       document.body.classList.remove('media-viewer-open');
+      const stage=document.querySelector('#mediaViewerStage');if(stage)stage.innerHTML='';
       viewerOffer=null;
     }
     function changeViewerMedia(step){
@@ -8335,6 +9423,7 @@
         if(document.activeElement===input)input.blur();
         document.body.classList.remove('edit-message-keyboard-open');
       }
+      if(id==='detailModal')pauseListingVideos(null,true);
       modal.classList.remove('show');
       if(!document.querySelector('.modal.show'))document.body.style.overflow='';
       setTimeout(syncHappyadViewport,60);
@@ -8381,7 +9470,8 @@
       event.stopPropagation();
       if(requestSubmitting)return;
 
-      const value=requestInput.value.trim();
+      const rawValue=String(requestInput.value||'').replace(/\r\n?/g,'\n');
+      const value=rawValue.trim();
       if(!value){
         requestInput.focus({preventScroll:true});
         toast(tr(responseLang(''),'empty'));
@@ -8391,7 +9481,7 @@
       requestSubmitting=true;
       sendRequestButton.disabled=true;
       try{
-        runRequest(value);
+        runRequest(rawValue);
       }catch(error){
         console.error('HAPPYAD send error',error);
         typeAssistant(
@@ -8649,6 +9739,9 @@
 
     document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
     document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
+    window.addEventListener('pagehide',()=>stopAllMarketplacePlaybackV837(true));
+    window.addEventListener('beforeunload',()=>stopAllMarketplacePlaybackV837(true));
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAllMarketplacePlaybackV837(false)});
 
     document.querySelector('#closeMediaViewer').onclick=closeMediaViewer;
     document.querySelector('#mediaViewerPrev').onclick=()=>changeViewerMedia(-1);

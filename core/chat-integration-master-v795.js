@@ -7,7 +7,7 @@
   window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__=true;
 
   var VERSION='V828_POSTER_GALLERY_HOME_STABLE';
-  var CHAT_URL='modules/happyad-chat.html?v=830-autoplay-market-3-per-category';
+  var CHAT_URL='modules/happyad-chat.html?v=844-no-loss-list';
   var HOST_ID='happyadChatHostV795';
   var FRAME_ID='happyadChatFrameV795';
   var host=null,frame=null,frameReady=false,pendingMode='ask',pendingContext=null;

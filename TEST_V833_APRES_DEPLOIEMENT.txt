@@ -1,0 +1,14 @@
+HAPPYAD V833 — TEST APRÈS DÉPLOIEMENT
+
+1. Ouvrir le Chat dans une nouvelle ouverture du site.
+2. Écrire : Bonjour mon frère
+   Réponse Supabase V831 attendue : « Bonjour 👋 Que cherches-tu aujourd’hui sur HAPPYAD ? »
+   L’ancienne longue réponse « Je vais très bien… » indique que l’ancien moteur local est encore affiché.
+3. Écrire : Je peux trouver un travailleur de la maison ?
+   Catégorie attendue : Service
+   Sous-catégorie attendue : domestic_help
+   La réponse doit demander le pays/la ville et si le travail est régulier ou occasionnel.
+4. Écrire : Non, un travailleur, pas une maison
+   Le contexte doit rester Service et ne doit pas ouvrir le formulaire Immobilier.
+
+Aucun SQL supplémentaire n’est nécessaire : les règles V831 déjà exécutées sont utilisées par la RPC happyad_chat_understand_v2.

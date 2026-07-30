@@ -7724,7 +7724,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=811-all-categories-real-publication',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=844-no-loss-list',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -10665,6 +10665,6 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=809-system-copy-clean"></script>
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
-<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=830-autoplay-market-3-per-category"></script>
+<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=844-no-loss-list"></script>
 <script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=828-poster-gallery-home-stable"></script>
 </body></html>
