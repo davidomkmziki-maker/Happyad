@@ -1,0 +1,20 @@
+HAPPYAD V811 — PUBLICATION RÉELLE DE TOUTES LES CATÉGORIES
+
+Prérequis déjà installés : V801, V803/V804 et V810.
+
+Exécuter strictement dans cet ordre :
+1. 01_V811_TABLES_COLONNES_SECURITE.sql
+2. 02_V811_STORAGE_PUBLIC_PRIVE.sql
+3. 03_V811_RPC_PUBLICATION_TOUTES_CATEGORIES.sql
+4. 04_V811_COMPATIBILITE_GESTION_CONTROLES.sql
+
+Après chaque partie, Supabase doit afficher « Success ».
+En cas d'erreur, arrêter immédiatement et envoyer le message complet.
+Ne pas rejouer V801, V803 ou V810.
+
+Architecture :
+- annonces publiques : public.happyad_posts uniquement ;
+- médias visibles : bucket happyad-media ;
+- documents sensibles : bucket privé happyad-marketplace-private ;
+- références privées : public.happyad_marketplace_private_proofs ;
+- moteur unique : public.happyad_publish_listing_v1.

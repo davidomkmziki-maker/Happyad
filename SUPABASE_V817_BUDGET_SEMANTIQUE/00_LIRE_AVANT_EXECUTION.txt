@@ -1,0 +1,7 @@
+HAPPYAD V817 — ordre d’exécution
+
+1. 01_V817_COMPREHENSION_BUDGET.sql
+2. 02_V817_RECHERCHE_BUDGET.sql
+3. 03_V817_CONTROLES.sql
+
+Arrêter en cas d’erreur et ne pas rejouer les anciennes parties V810 à V813.

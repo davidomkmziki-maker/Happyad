@@ -6,8 +6,8 @@
   if(window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__)return;
   window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__=true;
 
-  var VERSION='V808_VERIFICATION_PENDING_COPY_CLEAN';
-  var CHAT_URL='modules/happyad-chat.html?v=808-verification-copy-clean';
+  var VERSION='V828_POSTER_GALLERY_HOME_STABLE';
+  var CHAT_URL='modules/happyad-chat.html?v=828-poster-gallery-home-stable';
   var HOST_ID='happyadChatHostV795';
   var FRAME_ID='happyadChatFrameV795';
   var host=null,frame=null,frameReady=false,pendingMode='ask',pendingContext=null;
@@ -115,10 +115,12 @@
     return rows.slice(0,420);
   }
   function mediaList(row){
-    var out=[],seen={};
+    var out=[],bySrc={};
     function add(src,type,poster){
-      src=clean(src);if(!src||seen[src])return;seen[src]=1;
-      out.push({src:src,type:clean(type)||(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(src)?'video':'image'),poster:clean(poster)});
+      src=clean(src);if(!src)return;
+      var video=clean(type).toLowerCase().indexOf('video')>=0||/\.(mp4|webm|mov|m4v|3gp|3g2|mkv|avi|mpeg|mpg)(\?|#|$)/i.test(src);
+      if(bySrc[src]){if(video)bySrc[src].type='video';if(clean(poster)&&!bySrc[src].poster)bySrc[src].poster=clean(poster);return;}
+      var item={src:src,type:video?'video':'image',poster:clean(poster)};bySrc[src]=item;out.push(item);
     }
     var arrays=['marketplace_media','media','medias','media_list','media_urls','images','photos','videos','attachments','files'];
     arrays.forEach(function(key){
@@ -130,8 +132,15 @@
         else if(item&&typeof item==='object')add(first(item,['src','url','media_url','image_url','video_url','file_url'],''),first(item,['type','media_type','kind'],''),first(item,['poster','poster_url','thumbnail_url'],''));
       });
     });
-    add(first(row,['media_url','mediaUrl','image_url','imageUrl','photo_url','cover_url','file_url','url'],''),first(row,['media_type','mediaType','content_type','kind'],''),first(row,['poster_url','poster','thumbnail_url'],''));
-    add(first(row,['video_url','videoUrl'],''),'video',first(row,['poster_url','poster','thumbnail_url','cover_url'],''));
+    var rowPoster=clean(first(row,['thumbnail_url','thumbnailUrl','poster_url','posterUrl','cover_url','coverUrl'],''));
+    add(first(row,['marketplace_cover_url','media_url','mediaUrl','image_url','imageUrl','photo_url','cover_url','file_url','url'],''),first(row,['marketplace_cover_type','media_type','mediaType','content_type','kind'],''),rowPoster);
+    add(first(row,['video_url','videoUrl'],''),'video',rowPoster);
+    if(rowPoster){
+      var coverIndex=Math.max(0,Number(first(row,['marketplace_cover_index','coverIndex'],0)||0)),coverType=clean(first(row,['marketplace_cover_type','media_type','mediaType','kind'],'')).toLowerCase(),target=-1;
+      if(coverType.indexOf('video')>=0&&out[coverIndex]&&out[coverIndex].type==='video')target=coverIndex;
+      if(target<0)target=out.findIndex(function(item){return item.type==='video';});
+      if(target>=0)out[target].poster=rowPoster;
+    }
     return out.slice(0,10);
   }
   function slimListing(row,index){
@@ -159,10 +168,16 @@
       seller_name:seller,owner_name:seller,author_name:seller,
       seller_avatar:clean(first(row,['seller_avatar','owner_avatar','author_avatar','creatorAvatar','user_avatar','avatar_url','avatar'],'')),
       seller_badge:clean(first(row,['seller_badge','owner_badge','author_badge','badge','user_badge'],'')),
-      media:medias,
-      media_url:medias[0]&&medias[0].src||'',
-      media_type:medias[0]&&medias[0].type||clean(first(row,['media_type','mediaType'],'')),
+      media:medias,marketplace_media:first(row,['marketplace_media'],medias),
+      media_url:clean(first(row,['marketplace_cover_url','media_url','mediaUrl'],medias[0]&&medias[0].src||'')),
+      media_type:clean(first(row,['marketplace_cover_type','media_type','mediaType'],medias[0]&&medias[0].type||'')),
       thumbnail_url:clean(first(row,['thumbnail_url','poster_url','cover_url'],medias[0]&&medias[0].poster||'')),
+      marketplace_show_on_home:first(row,['marketplace_show_on_home','showOnHome'],false)===true,
+      marketplace_cover_index:Number(first(row,['marketplace_cover_index','coverIndex'],0)||0),
+      marketplace_cover_url:clean(first(row,['marketplace_cover_url','media_url','mediaUrl'],'')),
+      marketplace_cover_path:clean(first(row,['marketplace_cover_path','media_path','mediaPath'],'')),
+      marketplace_cover_type:clean(first(row,['marketplace_cover_type','media_type','mediaType'],'')),
+      listing_views_count:Number(first(row,['listing_views_count','viewsCount'],0)||0),
       status:clean(first(row,['listing_status','status','state','moderation_status'],'active')),
       listing_status:clean(first(row,['listing_status','status','state','moderation_status'],'active')),
       happyad_marketplace:first(row,['happyad_marketplace','is_marketplace'],false)===true,
@@ -171,6 +186,12 @@
       quantity:Number(first(row,['quantity','stock_quantity'],0)||0),
       product_brand:clean(first(row,['product_brand','brand'],'')),
       product_model:clean(first(row,['product_model','model','reference'],'')),
+      marketplace_details:first(row,['marketplace_details'],{}),
+      vehicle_year:first(row,['vehicle_year'],null),vehicle_mileage:first(row,['vehicle_mileage'],null),
+      land_area:first(row,['land_area'],null),land_area_unit:clean(first(row,['land_area_unit'],'')),land_use:clean(first(row,['land_use'],'')),land_document_type:clean(first(row,['land_document_type'],'')),
+      service_mode:clean(first(row,['service_mode'],'')),service_pricing:clean(first(row,['service_pricing'],'')),service_experience:clean(first(row,['service_experience'],'')),
+      company_name:clean(first(row,['company_name'],'')),job_contract:clean(first(row,['job_contract'],'')),job_work_mode:clean(first(row,['job_work_mode'],'')),job_experience:clean(first(row,['job_experience'],'')),job_positions:first(row,['job_positions'],null),job_deadline:first(row,['job_deadline'],null),
+      property_type:clean(first(row,['property_type'],'')),property_rooms:first(row,['property_rooms'],null),property_area:first(row,['property_area'],null),
       is_active:first(row,['is_active','active'],true)!==false,
       deleted_at:first(row,['deleted_at'],null),
       created_at:first(row,['created_at','createdAt','published_at','publishedAt'],null),
@@ -210,27 +231,35 @@
     }catch(_e){}
     return [];
   }
+  function activeListingRow(row){
+    row=row&&typeof row==='object'?row:{};
+    var status=clean(row.listing_status||row.status||'active').toLowerCase();
+    return !row.deleted_at&&row.is_active!==false&&['removed','expired','sold','paused','deleted','rejected','archived'].indexOf(status)<0;
+  }
+  function newestFirst(rows){
+    return (rows||[]).sort(function(a,b){
+      var ad=Date.parse(a&&a.created_at||'')||0;
+      var bd=Date.parse(b&&b.created_at||'')||0;
+      return bd-ad;
+    });
+  }
   async function activeListings(){
-    /* V804 : restaurer la priorité rapide de V802. Une ouverture du Chat ne doit pas
-       attendre Supabase lorsque le maître ou le cache local possède déjà des annonces. */
+    /* V815 : Supabase reste la source de vérité. Le cache local accélère l’ouverture,
+       mais ne peut plus remplacer les anciennes annonces par la dernière publication. */
+    var priorRows=[];
     if(previousBridges.marketplace){
       var fn=previousBridges.marketplace.getActiveListings||previousBridges.marketplace.listActiveOffers||previousBridges.marketplace.getOffers;
       if(typeof fn==='function'){
         try{
-          var prior=await fn.call(previousBridges.marketplace,{status:'active',limit:420,source:'happyad-chat-v806'});
-          prior=Array.isArray(prior)?prior:first(prior||{},['data','listings','offers'],[]);
-          var priorClean=mergeListings(prior,[]);
-          if(priorClean.length)return priorClean.map(slimListing).filter(function(row){return !row.deleted_at&&row.is_active!==false;});
+          var prior=await fn.call(previousBridges.marketplace,{status:'active',limit:500,source:'happyad-chat-v817'});
+          priorRows=Array.isArray(prior)?prior:first(prior||{},['data','listings','offers'],[]);
         }catch(_e){}
       }
     }
-    var localClean=mergeListings(localPostRows(),[]);
-    if(localClean.length)return localClean.map(slimListing).filter(function(row){return !row.deleted_at&&row.is_active!==false;});
-    var remoteClean=mergeListings(await fetchRemoteListings(),[]);
-    return remoteClean.map(slimListing).filter(function(row){
-      var status=clean(row.listing_status||row.status||'active').toLowerCase();
-      return !row.deleted_at&&row.is_active!==false&&['removed','expired','sold','paused','deleted'].indexOf(status)<0;
-    });
+    var localRows=localPostRows();
+    var remoteRows=await fetchRemoteListings();
+    var merged=mergeListings(remoteRows,mergeListings(priorRows,localRows));
+    return newestFirst(merged.map(slimListing).filter(activeListingRow)).slice(0,500);
   }
 
   function ensureHost(){
@@ -474,21 +503,22 @@
       });
     }
   },true);
-  document.addEventListener('happyad:marketplace-product-published',function(){
-    if(frame&&frameReady){
-      activeListings().then(function(list){
-        try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_OFFERS',payload:{listings:list}},'*');}catch(_e){}
-      });
-    }
-  });
+  function refreshPublishedListings(event){
+    if(!(frame&&frameReady))return;
+    activeListings().then(function(list){
+      try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_OFFERS',payload:{listings:list,replace:true,source:'supabase-v820'}},'*');}catch(_e){}
+    });
+  }
+  document.addEventListener('happyad:marketplace-product-published',refreshPublishedListings);
+  document.addEventListener('happyad:marketplace-listing-published',refreshPublishedListings);
   document.addEventListener('keydown',function(event){if(event.key==='Escape'&&host&&host.classList.contains('happyadChatHostOpenV795'))closeChat({reason:'escape'});},true);
 
   window.HappyadChatIntegrationV795={
     version:VERSION,
     open:openChat,
     close:closeChat,
-    reloadListings:function(){return activeListings().then(function(list){if(frame&&frame.contentWindow)frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_OFFERS',payload:{listings:list}},'*');return list.length;});},
+    reloadListings:function(){return activeListings().then(function(list){if(frame&&frame.contentWindow)frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_OFFERS',payload:{listings:list,replace:true,source:'supabase-v820'}},'*');return list.length;});},
     getState:function(){return {open:!!(host&&host.classList.contains('happyadChatHostOpenV795')),ready:frameReady,mode:pendingMode};}
   };
-  try{if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('chat-integration',{file:'core/chat-integration-master-v795.js',responsibility:'frame Chat isolée plein écran V806, un seul gestionnaire viewport interne, publication Produit V804, vérification vendeur Supabase/admin, retour et maître Messages',active:true,version:VERSION});}catch(_e){}
+  try{if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('chat-integration',{file:'core/chat-integration-master-v795.js',responsibility:'frame Chat isolée plein écran V806, un seul gestionnaire viewport interne, publication Marketplace V820, vérification vendeur Supabase/admin, retour et maître Messages',active:true,version:VERSION});}catch(_e){}
 })();

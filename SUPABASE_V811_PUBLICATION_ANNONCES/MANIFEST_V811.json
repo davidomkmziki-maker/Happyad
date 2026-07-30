@@ -1,0 +1,14 @@
+{
+  "version": "V811",
+  "feature": "Publication réelle de toutes les catégories Marketplace",
+  "execution_order": [
+    "01_V811_TABLES_COLONNES_SECURITE.sql",
+    "02_V811_STORAGE_PUBLIC_PRIVE.sql",
+    "03_V811_RPC_PUBLICATION_TOUTES_CATEGORIES.sql",
+    "04_V811_COMPATIBILITE_GESTION_CONTROLES.sql"
+  ],
+  "public_listing_table": "public.happyad_posts",
+  "private_proof_table": "public.happyad_marketplace_private_proofs",
+  "rpc": "public.happyad_publish_listing_v1",
+  "categories": ["Produit", "Électronique", "Véhicule", "Terrain", "Service", "Emploi", "Immobilier", "Autre"]
+}

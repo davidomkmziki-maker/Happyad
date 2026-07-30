@@ -230,7 +230,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
-<script src="../core/video-cover-editor-master-v693.js?v=693-global-poster-immediate"></script>
+<script src="../core/video-cover-editor-master-v693.js?v=828-marketplace-poster-in-place"></script>
 <script src="../core/post-options-master-v693.js?v=693-global-poster-immediate"></script>
 
 
@@ -317,6 +317,10 @@ html.happyadVideoEmbeddedV613E .reel .timeControls{bottom:0!important}
 @media(max-height:720px){html.happyadVideoEmbeddedV613E .reel .side{bottom:122px!important}html.happyadVideoEmbeddedV613E .reel .info{bottom:38px!important}}
 </style>
 <script id="happyad-v613e-video-embedded-class">(function(){try{if(window.parent&&window.parent!==window)document.documentElement.classList.add('happyadVideoEmbeddedV613E');}catch(e){}})();</script>
+<style id="happyad-v820-video-listing-cta-css">
+.reel .happyadVideoListingCtaV820{position:absolute;left:16px;bottom:132px;z-index:16;min-height:44px;border:0;border-radius:14px;padding:0 16px;background:linear-gradient(135deg,#ff731c,#ff9d31);color:#111;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:1000;box-shadow:0 12px 28px rgba(255,112,20,.25);touch-action:manipulation}
+.reel .happyadVideoListingCtaV820 svg{width:18px;height:18px}.reel.clean .happyadVideoListingCtaV820{opacity:0!important;pointer-events:none!important}
+</style>
 </head>
 <body>
 <div class="screen">
@@ -448,10 +452,10 @@ function happyadVideoNormalizeMediaSrc(src,p){
 }
 function mapHappyPost(r){
   r=r||{};
-  const mediaPath=String(r.media_path||r.mediaPath||'').trim();
-  const directUrl=String(r.media_url||r.mediaUrl||r.home_media_url||r.homeMediaUrl||r.video_url||r.videoUrl||r.url||r.src||'').trim();
+  const mediaPath=String(r.marketplace_cover_path||r.media_path||r.mediaPath||'').trim();
+  const directUrl=String(r.marketplace_cover_url||r.media_url||r.mediaUrl||r.home_media_url||r.homeMediaUrl||r.video_url||r.videoUrl||r.url||r.src||'').trim();
   const url=happyadVideoNormalizeMediaSrc(directUrl||mediaPath,{mediaPath:mediaPath,media_path:mediaPath});
-  const rawKind=happyadVideoNormalizeKind(r.media_type,r.kind,r.mediaType,r.type,r.mime_type,r.mime,r.home_media_type,r.homeMediaType,(happyadVideoUrlLooksVideo(url)?'video':''));
+  const rawKind=happyadVideoNormalizeKind(r.marketplace_cover_type,r.media_type,r.kind,r.mediaType,r.type,r.mime_type,r.mime,r.home_media_type,r.homeMediaType,(happyadVideoUrlLooksVideo(url)?'video':''));
   const kind=rawKind||'photo';
   return {
     id:r.id||r.post_id,
@@ -490,6 +494,11 @@ function mapHappyPost(r){
     shares_count:Number(r.shares_count||0),
     saves_count:Number(r.saves_count||0),
     views_count:Number(r.views_count||r.view_count||r.video_views_count||0),
+    happyadMarketplace:(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace'),
+    happyad_marketplace:(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace'),
+    marketplaceShowOnHome:(r.marketplace_show_on_home===true||r.showOnHome===true),marketplace_show_on_home:(r.marketplace_show_on_home===true||r.showOnHome===true),
+    marketplaceCategory:r.marketplace_category||r.category||'',marketplace_category:r.marketplace_category||r.category||'',
+    listingViewsCount:Number(r.listing_views_count||r.viewsCount||0),listing_views_count:Number(r.listing_views_count||r.viewsCount||0),
     supabase:!!(r.supabase||r.created_at||r.media_url)
   };
 }
@@ -618,7 +627,7 @@ async function fetchRemotePosts(userOnly, force){
   const allKey='HAPPYAD_PUBLISH_POSTS_V2';
   const globalKey='HAPPYAD_GLOBAL_POSTS_CACHE_V1';
   const userKey='HAPPYAD_PROFILE_POSTS_CACHE_V1';
-  const syncKey=userOnly?'HAPPYAD_PROFILE_POSTS_LAST_SYNC':'HAPPYAD_ALL_POSTS_LAST_SYNC';
+  const syncKey=userOnly?'HAPPYAD_VIDEO_PROFILE_POSTS_LAST_SYNC_V821':'HAPPYAD_VIDEO_ALL_POSTS_LAST_SYNC_V821';
   const ttl=userOnly?120000:45000;
   function safeArr(k){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
   function uniq(arr){return happyadVideoUniq(arr)}
@@ -670,8 +679,34 @@ function currentUser(){try{return JSON.parse(localStorage.getItem('HAPPYAD_CENTR
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('HAPPYAD_MEDIA_DB',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('media'))req.result.createObjectStore('media',{keyPath:'id'});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
 async function getMedia(id){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('media','readonly');const req=tx.objectStore('media').get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+function happyadVideoIsMarketplaceV820(p){return !!p&&(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace')}
+function happyadVideoMarketplaceVisibleV820(p){
+  if(!happyadVideoIsMarketplaceV820(p))return true;
+  var visible=p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true;
+  var target='';try{target=String(new URLSearchParams(location.search).get('post')||window.__HAPPYAD_VIDEO_TARGET_POST_V594||'').trim()}catch(_e){}
+  return visible||(target&&String(p.id||p.post_id)===target);
+}
+function happyadVideoListingViewerKeyV820(){
+  var uid='';try{uid=String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim()}catch(_e){}if(uid)return 'user:'+uid;
+  var key='HAPPYAD_LISTING_VIEWER_KEY_V820',value='';try{value=String(localStorage.getItem(key)||'').trim()}catch(_e){}
+  if(value.length<8){value='device:'+Date.now().toString(36)+':'+Math.random().toString(36).slice(2,12);try{localStorage.setItem(key,value)}catch(_e){}}
+  return value;
+}
+const HAPPYAD_VIDEO_LISTING_VIEW_PENDING_V820=new Map();
+async function happyadRecordListingVideoViewV820(p){
+  if(!happyadVideoIsMarketplaceV820(p))return 0;var id=String(p.id||p.post_id||'').trim();if(!id)return 0;
+  if(HAPPYAD_VIDEO_LISTING_VIEW_PENDING_V820.has(id))return HAPPYAD_VIDEO_LISTING_VIEW_PENDING_V820.get(id);
+  var task=(async function(){var c=happyadSb&&happyadSb();if(!c||typeof c.rpc!=='function')return 0;var r=await c.rpc('happyad_record_listing_view_v1',{p_listing_id:id,p_source:'video',p_viewer_key:happyadVideoListingViewerKeyV820()});if(r&&r.error)throw r.error;var count=Number(r&&r.data&&r.data.count||0)||0;p.listing_views_count=count;p.listingViewsCount=count;return count})().catch(function(){return Number(p.listing_views_count||0)}).finally(function(){setTimeout(function(){HAPPYAD_VIDEO_LISTING_VIEW_PENDING_V820.delete(id)},900)});
+  HAPPYAD_VIDEO_LISTING_VIEW_PENDING_V820.set(id,task);return task;
+}
+function happyadOpenVideoListingV820(p){
+  var id=String(p&&p.id||p&&p.post_id||'').trim();if(!id)return false;
+  try{if(window.parent&&window.parent!==window&&typeof window.parent.HappyadOpenMarketplaceListingV821==='function')return window.parent.HappyadOpenMarketplaceListingV821(id,'home-video-fullscreen');if(window.parent&&window.parent!==window&&typeof window.parent.HappyadOpenMarketplaceListingV820==='function')return window.parent.HappyadOpenMarketplaceListingV820(id,'home-video-fullscreen')}catch(_e){}
+  try{if(window.parent&&window.parent.HappyadChatIntegrationV795&&typeof window.parent.HappyadChatIntegrationV795.open==='function'){window.parent.HappyadChatIntegrationV795.open({mode:'market',context:{source:'home-video-fullscreen',listingId:id}});return true}}catch(_e){}
+  return false;
+}
 function isVideo(p){
-  if(!p)return false;
+  if(!p||!happyadVideoMarketplaceVisibleV820(p))return false;
   const raw=String(p.kind||p.type||p.mediaType||p.media_type||p.mime||p.mime_type||p.homeMediaType||p.home_media_type||'').toLowerCase();
   const url=String(p.mediaUrl||p.media_url||p.homeMediaUrl||p.home_media_url||p.videoUrl||p.video_url||p.url||p.src||'');
   return raw.indexOf('video')>=0 || happyadVideoUrlLooksVideo(url);
@@ -1002,6 +1037,8 @@ function happyadApplyVideoPosterLoader(reel,p){
   }catch(e){}
 }
 function makeReel(p){const reel=document.createElement('section');reel.className='reel';reel.dataset.id=p.id;reel.__happyadPostV613E=p;reel.dataset.search=(creatorName(p)+' '+creatorHandle(p)+' '+(p.title||'')+' '+(p.desc||p.description||'')).toLowerCase();const name=creatorName(p), handle=creatorHandle(p), title=p.title||'Vidéo HAPPYAD', desc=p.desc||p.description||'Aucune description.', av=creatorAvatar(p), badge=creatorBadge(p);reel.innerHTML='<div class="loader" aria-label="Vidéo en préparation"></div><div class="shade"></div><div class="creatorPill"><div class="avatar">'+(av?'<img src="'+esc(av)+'" alt="">':esc(initials(name)))+'</div><div class="who"><b>'+esc(name)+badgeHtml(badge)+'</b></div></div><div class="side"><div class="act" data-act="like"><button type="button" aria-label="J’aime"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="comment"><button type="button" aria-label="Commentaire"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="share"><button type="button" aria-label="Partager"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="repost"><button type="button" aria-label="Republier"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="fav"><button type="button" aria-label="Favoris"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span></button><span class="actCount">0</span></div><div class="act haPostMoreActV613F"><button class="haPostMoreV613E" type="button" aria-label="Options de publication">⋯</button></div></div><div class="info"><div class="title">'+esc(title)+'</div><div class="desc">'+esc(desc)+'</div><span class="more">Voir plus</span>'+'</div><div class="pauseMark">▶</div><button class="tapSound" type="button">Toucher pour activer le son</button><div class="timeHot"></div><div class="timeControls"><span class="timeText cur">0:00</span><input class="seek" type="range" min="0" max="1000" value="0"><span class="timeText dur">0:00</span></div>';
+
+if(happyadVideoIsMarketplaceV820(p)){const listingButton=document.createElement('button');listingButton.type='button';listingButton.className='happyadVideoListingCtaV820';listingButton.innerHTML='<span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';listingButton.onclick=e=>{e.preventDefault();e.stopPropagation();happyadOpenVideoListingV820(p)};reel.appendChild(listingButton);}
 happyadApplyVideoPosterLoader(reel,p);
 reel.querySelector('.creatorPill').onclick=e=>{e.stopPropagation();openProfile(p)};
 reel.querySelector('.more').onclick=e=>{e.stopPropagation();const info=reel.querySelector('.info');info.classList.toggle('expanded');reel.querySelector('.more').textContent=info.classList.contains('expanded')?'Réduire':'Voir plus'};
@@ -1082,7 +1119,7 @@ async function attachVideo(reel,p){
     if(seek){seek.addEventListener('input',e=>{e.stopPropagation();seek.dragging=true;const d=v.duration||0;const pct=Math.max(0,Math.min(100,Number(seek.value||0)/10));if(controls)controls.style.setProperty('--haVideoProgress',String(pct));if(d)v.currentTime=(seek.value/1000)*d});seek.addEventListener('change',()=>{seek.dragging=false;happyadSetVideoProgress();});}
     if(hot)hot.onclick=e=>{e.stopPropagation();reel.classList.add('showTime');clearTimeout(reel.timer);reel.timer=setTimeout(()=>reel.classList.remove('showTime'),4200)};
     if(controls)controls.onclick=e=>e.stopPropagation();
-    v.addEventListener('play',()=>{revealVideo();setPausedUI(v);try{happyadMarkVideoViewSupabase(p.id).then(()=>refreshVideoLikeFromSupabase(p.id))}catch(e){}});
+    v.addEventListener('play',()=>{revealVideo();setPausedUI(v);try{happyadMarkVideoViewSupabase(p.id).then(()=>refreshVideoLikeFromSupabase(p.id))}catch(e){}try{happyadRecordListingVideoViewV820(p)}catch(e){}});
 v.addEventListener('ended',()=>{try{v.currentTime=0;happyadPlayVideo(v,true);}catch(e){}});
 v.addEventListener('pause',()=>setPausedUI(v));
     return v;
