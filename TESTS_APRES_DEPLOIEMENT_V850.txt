@@ -1,0 +1,10 @@
+HAPPYAD V850 — TESTS APRÈS DÉPLOIEMENT
+
+1. Ouvrir la Centrale vidéo et lancer une vidéo avec le son.
+2. Toucher « Voir l’annonce ».
+3. Le son et la vidéo doivent s’arrêter au même toucher.
+4. Le bouton doit afficher « Ouverture… » sans double clic.
+5. L’onglet Annonces doit s’ouvrir directement sur la bonne annonce.
+6. Revenir à la Centrale vidéo : aucune ancienne vidéo ne doit continuer en arrière-plan.
+7. Fermer puis rouvrir le site pour confirmer que le Service Worker V850 sert la nouvelle version.
+8. Tester une deuxième annonce vidéo différente pour vérifier que l’ID ne reste pas bloqué sur la première.

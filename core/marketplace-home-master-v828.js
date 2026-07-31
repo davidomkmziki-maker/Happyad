@@ -139,12 +139,24 @@
     pending.set(id,task);return task;
   }
   function closeHomeFullscreen(){try{var box=document.getElementById('happyadHomePhotoFullscreen');if(box){box.classList.remove('on');document.body.classList.remove('haHomePhotoFsLock');}}catch(_e){}}
-  function openListing(id,source){
-    id=clean(id);if(!id)return false;closeHomeFullscreen();
-    try{if(window.HappyadChatIntegrationV795&&typeof window.HappyadChatIntegrationV795.open==='function'){window.HappyadChatIntegrationV795.open({mode:'market',context:{source:source||'home-listing',listingId:id}});return true;}}catch(_e){}
-    try{document.dispatchEvent(new CustomEvent('happyad:annonces-requested',{detail:{source:source||'home-listing',listingId:id}}));return true;}catch(_e){}
+  function stopVideoBeforeListingV850(){
+    try{document.querySelectorAll('video,audio').forEach(function(media){try{media.pause();media.muted=true;}catch(_m){}});}catch(_e){}
+    try{var fr=document.getElementById('happyadAppFrame_video');if(fr&&fr.contentWindow)fr.contentWindow.postMessage({type:'HAPPYAD_STOP_MEDIA',source:'listing-open-v850'},'*');}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_PAUSE_ALL_MEDIA',{detail:{source:'listing-open-v850'}}));}catch(_e){}
+  }
+  function safeListingV850(row){
+    if(!row||typeof row!=='object')return null;
+    try{return JSON.parse(JSON.stringify(row));}catch(_e){return row;}
+  }
+  function openListing(id,source,listing){
+    id=clean(id);if(!id)return false;closeHomeFullscreen();stopVideoBeforeListingV850();
+    var fastListing=safeListingV850(postById(id)||listing||null);
+    try{if(fastListing)sessionStorage.setItem('HAPPYAD_DIRECT_LISTING_V850',JSON.stringify({id:id,listing:fastListing,at:Date.now()}));}catch(_e){}
+    try{if(window.HappyadChatIntegrationV795&&typeof window.HappyadChatIntegrationV795.open==='function'){window.HappyadChatIntegrationV795.open({mode:'market',context:{source:source||'home-listing',listingId:id,listing:fastListing,fastOpen:true}});return true;}}catch(_e){}
+    try{document.dispatchEvent(new CustomEvent('happyad:annonces-requested',{detail:{source:source||'home-listing',listingId:id,listing:fastListing,fastOpen:true}}));return true;}catch(_e){}
     return false;
   }
+  window.HappyadOpenMarketplaceListingV850=openListing;
   window.HappyadOpenMarketplaceListingV828=openListing;
   window.HappyadOpenMarketplaceListingV821=openListing;
   window.HappyadOpenMarketplaceListingV820=openListing; // compatibilité centrale Vidéo V820.

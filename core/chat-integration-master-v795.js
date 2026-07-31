@@ -6,8 +6,8 @@
   if(window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__)return;
   window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__=true;
 
-  var VERSION='V828_POSTER_GALLERY_HOME_STABLE';
-  var CHAT_URL='modules/happyad-chat.html?v=844-no-loss-list';
+  var VERSION='V850_VIDEO_LISTING_FAST_OPEN';
+  var CHAT_URL='modules/happyad-chat.html?v=850-video-listing-fast-open';
   var HOST_ID='happyadChatHostV795';
   var FRAME_ID='happyadChatFrameV795';
   var host=null,frame=null,frameReady=false,pendingMode='ask',pendingContext=null;
@@ -278,6 +278,7 @@
       frame.addEventListener('load',function(){
         frameReady=true;
         host.classList.add('happyadChatFrameReadyV795');
+        sendFastListingOpenV850();
         sendInitialization(pendingMode,pendingContext);
       });
       frame.setAttribute('src',CHAT_URL);
@@ -309,6 +310,21 @@
     if(!frame||!frame.contentWindow)return false;
     try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_VERIFICATION',payload:{verification:clone(state||null)},source:'happyad-host',version:VERSION},location.origin);return true;}catch(_e){
       try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_VERIFICATION',payload:{verification:clone(state||null)},source:'happyad-host',version:VERSION},'*');return true;}catch(_e2){return false;}
+    }
+  }
+  function readFastListingV850(context){
+    context=context&&typeof context==='object'?context:{};
+    if(context.listing&&typeof context.listing==='object')return clone(context.listing);
+    try{var saved=JSON.parse(sessionStorage.getItem('HAPPYAD_DIRECT_LISTING_V850')||'null');if(saved&&saved.listing&&Date.now()-Number(saved.at||0)<120000)return clone(saved.listing);}catch(_e){}
+    return null;
+  }
+  function sendFastListingOpenV850(){
+    if(!frame||!frame.contentWindow||pendingMode!=='market')return false;
+    var context=clone(pendingContext||{}),id=clean(context.listingId||context.listing_id||'');
+    if(!id)return false;
+    var payload={mode:'market',listingId:id,listing:readFastListingV850(context),context:context,openSessionId:openSessionId,source:'happyad-host-v850'};
+    try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_OPEN_LISTING_FAST',payload:payload,source:'happyad-host',version:VERSION},location.origin);return true;}catch(_e){
+      try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_OPEN_LISTING_FAST',payload:payload,source:'happyad-host',version:VERSION},'*');return true;}catch(_e2){return false;}
     }
   }
   async function sendInitialization(mode,context){
@@ -355,8 +371,9 @@
     host.classList.add('happyadChatHostOpenV795');
     host.setAttribute('aria-hidden','false');
     if(frameReady){
+      sendFastListingOpenV850();
       sendInitialization(pendingMode,pendingContext);
-      try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_OPEN_MODE',payload:{mode:pendingMode,openSessionId:openSessionId}},location.origin);}catch(_e){}
+      try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_OPEN_MODE',payload:{mode:pendingMode,openSessionId:openSessionId,context:clone(pendingContext||{})}},location.origin);}catch(_e){}
     }
     return false;
   }
@@ -482,8 +499,12 @@
     openChat({mode:'ask',context:{source:'home-sticker',detail:clone(event&&event.detail||{})}});
   });
   document.addEventListener('happyad:annonces-requested',function(event){
-    openChat({mode:'market',context:{source:'home-annonces',detail:clone(event&&event.detail||{})}});
+    var detail=clone(event&&event.detail||{});
+    openChat({mode:'market',context:Object.assign({source:'home-annonces'},detail||{})});
   });
+  window.addEventListener('message',function(event){
+    try{var data=event&&event.data||{};if(data.type==='HAPPYAD_VIDEO_TAB_READY_V594'||data.type==='HAPPYAD_VIDEO_READY'){setTimeout(function(){try{ensureHost();}catch(_e){}},120);}}catch(_e){}
+  },true);
   window.addEventListener('message',function(event){
     if(frame&&event.source!==frame.contentWindow)return;
     var data=event&&event.data||{};
@@ -491,6 +512,7 @@
     if(data.type==='HAPPYAD_CHAT_READY'){
       frameReady=true;
       if(host)host.classList.add('happyadChatFrameReadyV795');
+      sendFastListingOpenV850();
       sendInitialization(pendingMode,pendingContext);
     }else if(data.type==='HAPPYAD_CHAT_MODE_CHANGED'){
       if(['ask','offer','market'].indexOf(payload.mode)>=0)pendingMode=payload.mode;
