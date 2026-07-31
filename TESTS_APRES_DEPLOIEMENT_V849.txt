@@ -1,0 +1,39 @@
+HAPPYAD V849 — TESTS APRÈS DÉPLOIEMENT
+
+Avant le ZIP :
+1. Exécuter SUPABASE_V849_RESULTATS_AVANT_PRECISION/08A_V849_LIEU_COMMUN.sql
+2. Exécuter SUPABASE_V849_RESULTATS_AVANT_PRECISION/08B_V849_BATCH_RESULTATS_AVANT_PRECISION.sql
+3. Exécuter 08C et vérifier les trois statuts OK.
+
+Après le ZIP :
+
+TEST 1 — lieu commun
+Je cherche
+- une maison
+- un véhicule
+- un travailleur
+- un téléphone
+Tous à Bunia
+
+Attendu :
+- résultats pour maison, véhicule et téléphone à Bunia ;
+- seul « travailleur » demande le type exact ;
+- la question dit aide à domicile, chauffeur, garde d’enfants ou autre métier.
+
+TEST 2 — aucun lieu
+- maison de 4 chambres
+- un travailleur de la maison
+- un téléphone iPhone
+- un véhicule Mercedes
+
+Attendu :
+- résultats affichés pour les quatre demandes ;
+- une seule question facultative demande la ville ou le pays pour mieux filtrer ;
+- aucune carte ne dit seulement « précision nécessaire ».
+
+TEST 3 — simple sans lieu
+Je cherche un iPhone
+
+Attendu :
+- résultats affichés immédiatement ;
+- le Chat propose ensuite une ville ou un pays comme filtre facultatif.

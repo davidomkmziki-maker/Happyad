@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#050911" />
-  <title>HAPPYAD — Chat Intelligence V49 · Parcours rapide V843</title>
+  <title>HAPPYAD — Chat Intelligence V50 · Résultats avant précision V849</title>
   <style>
     :root{
       --bg:#07090d;--panel:#0f131b;--panel2:#151a24;--field:#0b0f15;
@@ -3194,10 +3194,11 @@
     let verificationState=null, verifiedSeller=null, draftOffer=null;
     let justPublishedListingId='';
     let lastSearchIntent=null, conversationLang='', typingJob=0;
-    const HAPPYAD_CHAT_INTELLIGENCE_RPC='happyad_chat_understand_v2';
-    const HAPPYAD_CHAT_INTELLIGENCE_CLIENT_VERSION='V843';
-    const HAPPYAD_CHAT_DECOMPOSE_RPC='happyad_chat_decompose_requests_v1';
-    const HAPPYAD_CHAT_BATCH_RPC='happyad_chat_search_batch_v1';
+    const HAPPYAD_CHAT_INTELLIGENCE_RPC='happyad_chat_understand_v3';
+    const HAPPYAD_CHAT_INTELLIGENCE_CLIENT_VERSION='V849';
+    const HAPPYAD_CHAT_DECOMPOSE_RPC='happyad_chat_decompose_requests_v2';
+    const HAPPYAD_CHAT_BATCH_RPC='happyad_chat_search_batch_v2';
+    const HAPPYAD_CHAT_SEARCH_RPC='happyad_chat_search_posts_v2';
     let lastGroupedSearchV840=null;
 
     const CHAT_MEMORY_KEY='happyad_chat_memory_v37_clean';
@@ -7221,7 +7222,7 @@
     async function requestDynamicUnderstandingV832(text,language='fr',snapshot=searchContext){
       const client=await resolveSupabaseClientReadyV833();
       if(!client||typeof client.rpc!=='function'){
-        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'SUPABASE_CLIENT_NOT_FOUND',at:Date.now()};
+        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V849',code:'SUPABASE_CLIENT_NOT_FOUND',at:Date.now()};
         return null;
       }
       const resetContext=shouldResetIntelligenceContextV832(text,snapshot);
@@ -7238,20 +7239,20 @@
         });
         if(response?.error){
           console.warn('HAPPYAD V837 RPC intelligence indisponible',response.error);
-          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'RPC_ERROR',message:String(response.error?.message||response.error),details:response.error,at:Date.now()};
+          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V849',code:'RPC_ERROR',message:String(response.error?.message||response.error),details:response.error,at:Date.now()};
           return null;
         }
         const data=response?.data;
         if(data&&data.ok){
-          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_SUCCESS={version:'V843',rpc:HAPPYAD_CHAT_INTELLIGENCE_RPC,serverVersion:String(data.version||''),searchReady:data.search_ready===true,primaryCategory:String(data.primary_category||''),at:Date.now()};
+          window.HAPPYAD_CHAT_INTELLIGENCE_LAST_SUCCESS={version:'V849',rpc:HAPPYAD_CHAT_INTELLIGENCE_RPC,serverVersion:String(data.version||''),searchReady:data.search_ready===true,primaryCategory:String(data.primary_category||''),at:Date.now()};
           window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR=null;
           return data;
         }
-        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'RPC_EMPTY_RESULT',data:data||null,at:Date.now()};
+        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V849',code:'RPC_EMPTY_RESULT',data:data||null,at:Date.now()};
         return null;
       }catch(error){
         console.warn('HAPPYAD V837 intelligence fallback local',error);
-        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V843',code:'RPC_EXCEPTION',message:String(error?.message||error),at:Date.now()};
+        window.HAPPYAD_CHAT_INTELLIGENCE_LAST_ERROR={version:'V849',code:'RPC_EXCEPTION',message:String(error?.message||error),at:Date.now()};
         return null;
       }
     }
@@ -7346,7 +7347,7 @@
       searchContext.queryFields=clonePlain(fields||{});
       searchContext.askedFields=Array.isArray(understanding.asked_fields)?[...understanding.asked_fields]:[];
       searchContext.intelligenceContext=cleanIntelligenceJsonV832(understanding.context,buildIntelligenceContextV832(text,searchContext,language));
-      searchContext.intelligenceVersion=String(understanding.version||'V843');
+      searchContext.intelligenceVersion=String(understanding.version||'V849');
       searchContext.intelligenceUpdatedAt=Date.now();
       rememberSearchSession(searchSessionId);
       return searchContext;
@@ -7380,6 +7381,8 @@
     window.HAPPYAD_CHAT_INTELLIGENCE_V840=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
     window.HAPPYAD_CHAT_INTELLIGENCE_V842=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
     window.HAPPYAD_CHAT_INTELLIGENCE_V843=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V848=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
+    window.HAPPYAD_CHAT_INTELLIGENCE_V849=window.HAPPYAD_CHAT_INTELLIGENCE_V832;
 
     let deletedListingIdsCacheV838={at:0,ids:new Set()};
     function deletedListingIdsV838(){
@@ -7423,7 +7426,7 @@
           if(understood?.error||!understood?.data?.ok)return {ok:false,items:[],understanding:understood?.data||null};
           understanding=understood.data;
         }
-        const searched=await client.rpc('happyad_chat_search_posts_v1',{
+        const searched=await client.rpc(HAPPYAD_CHAT_SEARCH_RPC,{
           p_understanding:understanding,
           p_offset:0,
           p_limit_per_category:Number(understanding.result_limit_per_category||5)||5
@@ -7451,20 +7454,49 @@
 
     function prioritizeV810Matches(matches=[],aiItems=[],serverAuthoritative=false){
       const meta=new Map(aiItems.map((item,index)=>[String(item.id),{
-        index,kind:String(item.__happyadAiMatchKind||item.match_kind||''),score:Number(item.__happyadAiMatchScore||item.match_score||0)
+        index,
+        kind:String(item.__happyadAiMatchKind||item.match_kind||''),
+        score:Number(item.__happyadAiMatchScore||item.match_score||0),
+        item
       }]));
       const rank={exact:0,close:1,relevant:1,alternative:2,category_alternative:2,'':3};
       const deletedIds=deletedListingIdsV838();
-      const serverIds=new Set(aiItems.map(item=>String(item.id||item.post_id||'')).filter(Boolean));
-      let sourceMatches=matches.filter(match=>!deletedIds.has(String(match.id||match.post_id||'')));
-      if(serverAuthoritative)sourceMatches=sourceMatches.filter(match=>serverIds.has(String(match.id||match.post_id||'')));
-      let decorated=sourceMatches.map(match=>{
-        const server=meta.get(String(match.id))||{index:999,kind:'',score:0};
-        const serverScore=Math.max(0,Math.min(100,server.score||0));
-        const localScore=Math.max(0,Math.min(100,Number(match.score)||0));
-        const blended=serverScore?Math.round(serverScore*.72+localScore*.28):localScore;
-        return {...match,score:blended,__serverKind:server.kind,__serverScore:serverScore,__serverIndex:server.index};
-      });
+      let decorated=[];
+      if(serverAuthoritative){
+        const localById=new Map(matches.map(item=>[String(item.id||item.post_id||''),item]));
+        const integratedById=new Map(offers.map(item=>[String(item.id||item.post_id||''),item]));
+        decorated=aiItems
+          .filter(item=>!deletedIds.has(String(item.id||item.post_id||'')))
+          .map((serverItem,index)=>{
+            const id=String(serverItem.id||serverItem.post_id||'');
+            const local=localById.get(id)||integratedById.get(id)||{};
+            const serverScore=Math.max(0,Math.min(100,Number(serverItem.__happyadAiMatchScore||serverItem.match_score)||0));
+            const serverKind=String(serverItem.__happyadAiMatchKind||serverItem.match_kind||'');
+            return {
+              ...serverItem,
+              ...local,
+              score:Math.round(serverScore),
+              match_score:serverScore,
+              match_kind:serverKind,
+              match_details:serverItem.match_details||local.match_details||null,
+              priority_fields:serverItem.priority_fields||local.priority_fields||[],
+              active_fields:serverItem.active_fields||local.active_fields||[],
+              __serverKind:serverKind,
+              __serverScore:serverScore,
+              __serverIndex:index
+            };
+          });
+      }else{
+        decorated=matches
+          .filter(match=>!deletedIds.has(String(match.id||match.post_id||'')))
+          .map(match=>({
+            ...match,
+            score:Math.max(0,Math.min(100,Number(match.score)||0)),
+            __serverKind:'',
+            __serverScore:0,
+            __serverIndex:999
+          }));
+      }
       const hasExact=decorated.some(item=>item.__serverKind==='exact');
       if(hasExact)decorated=decorated.filter(item=>item.__serverKind==='exact');
       else{
@@ -7583,6 +7615,7 @@
 
     function launchSearchQuery(text,writtenLang,options={}){
       const suppliedUnderstanding=options?.understanding&&options.understanding.ok?options.understanding:null;
+      const optionalLocationClarification=optionalLocationClarificationV849(suppliedUnderstanding||{});
       if(!suppliedUnderstanding)activateSearchMemoryForText(text);
 
       const pendingBefore=searchContext.pendingQuestion||'';
@@ -7632,12 +7665,12 @@
         disposePreflightV843(preflight);
         const message=assistantMessageV832(suppliedUnderstanding,writtenLang);
         typeAssistant(message,writtenLang,()=>{
-          renderGuidedSearchForm({lang:writtenLang,context:clonePlain(contextSnapshot),source:'supabase-v2'});
+          renderGuidedSearchForm({lang:writtenLang,context:clonePlain(contextSnapshot),source:'supabase-v3'});
           persistCurrentConversation();
         });
         return;
       }
-      if(suppliedUnderstanding?.needs_clarification){
+      if(suppliedUnderstanding?.needs_clarification&&!optionalLocationClarification){
         disposePreflightV843(preflight);
         typeAssistant(assistantMessageV832(suppliedUnderstanding,writtenLang),writtenLang,()=>persistCurrentConversation());
         return;
@@ -7704,7 +7737,12 @@
             context:contextSnapshot,intent,matches,search:intelligent.search||{},
             language:intent.language||writtenLang
           });
-          typeAssistant(reply,intent.language||writtenLang,()=>{
+          const replyWithOptionalLocation=optionalLocationClarification
+            ?`${reply}
+
+J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle ville ou quel pays veux-tu les limiter ?`
+            :reply;
+          typeAssistant(replyWithOptionalLocation,intent.language||writtenLang,()=>{
             if(matches.length)renderResults(combined,intent,matches,sessionId);
             lastSearchIntent=intent;
             const memory=searchMemories.get(String(sessionId));
@@ -7829,7 +7867,7 @@
       const shared=sharedRequestFieldsV839(raw);
       const explicit=numberedRequestsV839(raw)||bulletRequestsV839(raw);
       if(explicit){
-        return {mode:'multi',requests:explicit.slice(0,6),shared,confidence:.99,reason:'explicit_list'};
+        return {mode:'multi',requests:explicit.slice(0,12),shared,confidence:.99,reason:'explicit_list'};
       }
       const parts=naturalRequestPartsV839(raw);
       if(parts.length<2)return {mode:'single',requests:[{text:raw}],shared,confidence:.95,reason:'single_sentence'};
@@ -7839,7 +7877,7 @@
       const primary=useful.map(item=>item.categories[0]);
       const distinct=[...new Set(primary)];
       if(distinct.length>=2){
-        return {mode:'multi',requests:useful.slice(0,6).map((item,index)=>({text:item.text,explicit:false,ordinal:index+1})),shared,confidence:.92,reason:'distinct_objects'};
+        return {mode:'multi',requests:useful.slice(0,12).map((item,index)=>({text:item.text,explicit:false,ordinal:index+1})),shared,confidence:.92,reason:'distinct_objects'};
       }
       /* Deux objets de la même catégorie reliés naturellement peuvent être deux
          recherches ou une description. On ne devine pas : clarification courte. */
@@ -7889,7 +7927,7 @@
     async function prepareMultiRequestPlanV839(value='',language='fr'){
       const local=localMultiRequestPlanV839(value);
       /* V843 : une demande clairement simple ne contacte plus la RPC de
-         décomposition. Elle passe directement à happyad_chat_understand_v2.
+         décomposition. Elle passe directement à happyad_chat_understand_v3.
          Le serveur reste prioritaire pour les listes, les demandes multiples
          probables et les ambiguïtés, afin que les futurs alias SQL restent actifs. */
       if(!shouldConsultServerDecompositionV843(value,local))return local;
@@ -7930,6 +7968,30 @@
       if(job?.timer)clearTimeout(job.timer);
       activeSearches.delete(preflight.runId);
       if(removeCard&&preflight.card?.isConnected)preflight.card.remove();
+    }
+    function explicitSharedLocationV849(value=''){
+      const raw=String(value||'').replace(/\r\n?/g,'\n').trim();
+      if(!raw)return {};
+      const markerRx=/(?:^|\b)(?:tous|toutes|tout|toute|pour tous|pour toutes|chaque demande|les demandes|m[eê]me ville|m[eê]me endroit)(?:\b|\s)/i;
+      if(!markerRx.test(raw))return {};
+      const lines=raw.split(/\n+/).map(line=>line.trim()).filter(Boolean);
+      const markerLine=lines.find(line=>markerRx.test(line))||'';
+      const inline=raw.match(/(?:tous|toutes|tout|toute|pour tous|pour toutes|chaque demande|les demandes|m[eê]me ville|m[eê]me endroit)[^\n;.!?]*/i)?.[0]||'';
+      const source=markerLine||inline||raw;
+      const city=cleanPlace(String(inferCity(source)||''));
+      const country=cleanPlace(String(inferCountry(source)||''));
+      return {city,country,source:'explicit-universal-v849'};
+    }
+    function optionalLocationClarificationV849(understanding={}){
+      if(!understanding?.ok||understanding.needs_clarification!==true)return false;
+      const fields=Array.isArray(understanding.clarify_fields)
+        ?understanding.clarify_fields.map(value=>String(value||'').trim()).filter(Boolean)
+        :[];
+      if(fields.length!==1||fields[0]!=='location')return false;
+      const queryFields=understanding.query_fields&&typeof understanding.query_fields==='object'?understanding.query_fields:{};
+      const category=String(understanding.primary_category||queryFields.category_code||'').trim();
+      const object=String(understanding.object_label||queryFields.object_label||understanding.search_query||'').trim();
+      return !!category&&!!object;
     }
     function requestHasLocationV839(value=''){
       return !!(inferCity(value)||inferCountry(value)||/\b(meme ville|même ville|ici|same city|same area)\b/i.test(String(value||'')));
@@ -7979,18 +8041,23 @@
     }
     function buildGroupedResultV840(query,understanding,search,language='fr',ordinal=1,meta={}){
       const needsClarification=meta?.needs_clarification===true||meta?.needsClarification===true||understanding?.needs_clarification===true;
-      if(needsClarification){
-        const city=String(understanding?.city||meta?.city||'').trim();
-        const country=String(understanding?.country||meta?.country||'').trim();
-        const objectHint=String(meta?.object_hint||meta?.objectHint||understanding?.object_label||query||'recherche').trim();
+      const clarificationOptional=meta?.clarification_is_optional===true||meta?.clarificationOptional===true||optionalLocationClarificationV849(understanding||{});
+      const city=String(understanding?.city||meta?.city||'').trim();
+      const country=String(understanding?.country||meta?.country||'').trim();
+      const objectHint=String(meta?.object_hint||meta?.objectHint||understanding?.object_label||query||'recherche').trim();
+      const clarificationQuestion=String(
+        meta?.clarification_question||meta?.clarificationQuestion||understanding?.assistant_message||'Précise le type exact de cette recherche.'
+      ).trim();
+
+      if(needsClarification&&!clarificationOptional){
         return {
           ordinal,query,understanding:understanding||{},search:search||{},
           context:{city,country,objectLabel:objectHint},sessionId:++searchSessionId,
           intent:{language,city,country,objectLabel:objectHint},matches:[],
-          needsClarification:true,objectHint,
-          clarificationQuestion:String(meta?.clarification_question||meta?.clarificationQuestion||understanding?.assistant_message||'Précise le type exact de cette recherche.')
+          needsClarification:true,clarificationOptional:false,objectHint,clarificationQuestion
         };
       }
+
       const snap=groupedContextSnapshotV840(query,understanding,language);
       const aiItems=serverSearchItemsV840(search||{});
       const localResult=getMatches(snap.combined,snap.context,language,understanding||{});
@@ -7998,13 +8065,24 @@
       return {
         ordinal,query,understanding:understanding||{},search:search||{},
         context:snap.context,sessionId:snap.sessionId,
-        intent:localResult.intent,matches,needsClarification:false
+        intent:localResult.intent,matches,
+        needsClarification:needsClarification,
+        clarificationOptional:needsClarification&&clarificationOptional,
+        clarificationQuestion,objectHint
       };
     }
     async function serverBatchSearchV840(originalText='',language='fr',plan=null){
       const client=await resolveSupabaseClientReadyV833();
       if(!client||typeof client.rpc!=='function')return null;
       try{
+        const explicitShared=explicitSharedLocationV849(originalText);
+        const sharedPayload={
+          ...(plan?.shared&&typeof plan.shared==='object'?plan.shared:{}),
+          ...(explicitShared.city?{city:explicitShared.city}:{}),
+          ...(explicitShared.country?{country:explicitShared.country}:{}),
+          ...(explicitShared.source?{source:explicitShared.source}:{})
+        };
+        if(plan&&typeof plan==='object')plan.shared=sharedPayload;
         const response=await client.rpc(HAPPYAD_CHAT_BATCH_RPC,{
           p_text:String(originalText||''),
           p_language:language||null,
@@ -8016,10 +8094,15 @@
             classification_status:String(item.classificationStatus||item.classification_status||''),
             clarification_question:String(item.clarificationQuestion||item.clarification_question||'')
           })):null,
-          p_shared_fields:cleanIntelligenceJsonV832(plan?.shared||{}),
+          p_shared_fields:cleanIntelligenceJsonV832(sharedPayload),
           p_limit_per_request:5
         });
-        if(response?.error||!response?.data?.ok||!Array.isArray(response.data.results))return null;
+        if(response?.error||!response?.data)return null;
+        if(response.data.ok===false)return response.data;
+        if(!Array.isArray(response.data.results))return null;
+        if(plan&&response.data.shared_fields&&typeof response.data.shared_fields==='object'){
+          plan.shared={...(plan.shared||{}),...response.data.shared_fields};
+        }
         return response.data;
       }catch(_error){return null;}
     }
@@ -8064,40 +8147,48 @@
       if(language==='en'){
         const lines=results.map((result,index)=>{
           const subject=groupedSubjectV840(result);
-          if(result.needsClarification)return `${index+1}. ${capitalize(subject)}: clarification needed.`;
-          const exact=result.matches.filter(item=>item.__serverKind==='exact');
-          if(exact.length)return `${index+1}. ${capitalize(subject)}: ${exact.length} exact result${exact.length>1?'s':''}.`;
-          if(result.matches.length){
-            const city=String(result.matches[0]?.city||'').trim();
-            return `${index+1}. ${capitalize(subject)}: no exact result${zone}; closest option${city?` in ${capitalize(city)}`:''}.`;
+          if(result.needsClarification&&!result.clarificationOptional){
+            return `${index+1}. ${capitalize(subject)}: ${String(result.clarificationQuestion||'essential detail required')}`;
           }
-          return `${index+1}. ${capitalize(subject)}: no active result found${zone}.`;
+          const exact=result.matches.filter(item=>item.__serverKind==='exact');
+          let line='';
+          if(exact.length)line=`${index+1}. ${capitalize(subject)}: ${exact.length} exact result${exact.length>1?'s':''}.`;
+          else if(result.matches.length){
+            const city=String(result.matches[0]?.city||'').trim();
+            line=`${index+1}. ${capitalize(subject)}: ${result.matches.length} closest option${result.matches.length>1?'s':''}${city?` in ${capitalize(city)}`:''}.`;
+          }else line=`${index+1}. ${capitalize(subject)}: no active result found${zone}.`;
+          if(result.clarificationOptional)line+=' Results are already shown; add a city or country only to narrow them.';
+          return line;
         });
         return `I processed your ${count} searches${zone}:\n${lines.join('\n')}`;
       }
       const lines=results.map((result,index)=>{
         const subject=groupedSubjectV840(result);
-        if(result.needsClarification)return `${index+1}. ${capitalize(subject)} : précision nécessaire.`;
-        const exact=result.matches.filter(item=>item.__serverKind==='exact');
-        if(exact.length)return `${index+1}. ${capitalize(subject)} : ${exact.length} résultat${exact.length>1?'s':''} exact${exact.length>1?'s':''}.`;
-        if(result.matches.length){
-          const city=String(result.matches[0]?.city||'').trim();
-          return `${index+1}. ${capitalize(subject)} : aucun résultat exact${zone}; option la plus proche${city?` à ${capitalize(city)}`:''}.`;
+        if(result.needsClarification&&!result.clarificationOptional){
+          return `${index+1}. ${capitalize(subject)} : ${String(result.clarificationQuestion||'précision essentielle nécessaire')}`;
         }
-        return `${index+1}. ${capitalize(subject)} : aucune annonce active trouvée${zone}.`;
+        const exact=result.matches.filter(item=>item.__serverKind==='exact');
+        let line='';
+        if(exact.length)line=`${index+1}. ${capitalize(subject)} : ${exact.length} résultat${exact.length>1?'s':''} exact${exact.length>1?'s':''}.`;
+        else if(result.matches.length){
+          const city=String(result.matches[0]?.city||'').trim();
+          line=`${index+1}. ${capitalize(subject)} : ${result.matches.length} option${result.matches.length>1?'s':''} proche${result.matches.length>1?'s':''}${city?` à ${capitalize(city)}`:''}.`;
+        }else line=`${index+1}. ${capitalize(subject)} : aucune annonce active trouvée${zone}.`;
+        if(result.clarificationOptional)line+=' Résultats déjà affichés ; précise la ville ou le pays seulement pour mieux filtrer.';
+        return line;
       });
       return `J’ai traité tes ${count} recherches${zone} :\n${lines.join('\n')}`;
     }
-    function renderGroupedFeedbackV840(parent,results=[],language='fr'){
+    function renderGroupedFeedbackV840(parent,results=[],language='fr',finalQuestion=''){
       const feedback=document.createElement('div');
       feedback.className='grouped-feedback-v840';
       const pending=results.filter(result=>result.needsClarification);
       if(pending.length){
-        const question=pending.length===1
+        const question=String(finalQuestion||'').trim()||(pending.length===1
           ?String(pending[0].clarificationQuestion||'Précise le type exact de cette recherche.')
           :(language==='en'
-            ?`Clarify searches ${pending.map(item=>item.ordinal).join(', ')} by giving the exact type for each one.`
-            :`Précise les recherches ${pending.map(item=>item.ordinal).join(', ')} en indiquant le type exact pour chacune.`);
+            ?`Clarify searches ${pending.map(item=>item.ordinal).join(', ')} by giving the missing essential detail for each one.`
+            :`Précise les recherches ${pending.map(item=>item.ordinal).join(', ')} en donnant l’information essentielle manquante pour chacune.`));
         feedback.innerHTML=`
           <strong>${escapeHtml(question)}</strong>
           <div class="result-feedback-actions">
@@ -8128,31 +8219,35 @@
         persistCurrentConversation();
       };
     }
-    function renderGroupedResultsV840(results=[],language='fr'){
+    function renderGroupedResultsV840(results=[],language='fr',options={}){
       const stream=document.querySelector('#chatStream');
       const batch=document.createElement('section');
       batch.className='results-batch-v840';
       batch.dataset.batchId=`v840-${Date.now()}`;
       stream.appendChild(batch);
       results.forEach((result,index)=>{
-        if(result.needsClarification){
-          const pending=document.createElement('div');
-          pending.className='batch-section-empty batch-section-clarification-v844';
-          pending.innerHTML=`<strong>${escapeHtml(groupedSectionTitleV840(result,index))}</strong><br>${escapeHtml(language==='en'?'Clarification needed before searching.':'Précision nécessaire avant la recherche.')}`;
-          batch.appendChild(pending);
-        }else if(result.matches.length){
+        if(result.matches.length){
           renderResults(result.query,result.intent,result.matches,result.sessionId,{
             target:batch,feedback:false,removeExisting:false,scroll:false,persist:false,
             hideFallbackNotice:true,sectionLabel:groupedSectionTitleV840(result,index)
           });
+        }else if(result.needsClarification&&!result.clarificationOptional){
+          const pending=document.createElement('div');
+          pending.className='batch-section-empty batch-section-clarification-v844';
+          const preciseQuestion=String(result.clarificationQuestion||'Précise le type exact de cette recherche.').trim();
+          pending.innerHTML=`<strong>${escapeHtml(groupedSectionTitleV840(result,index))}</strong><br>${escapeHtml(preciseQuestion)}`;
+          batch.appendChild(pending);
         }else{
           const empty=document.createElement('div');
           empty.className='batch-section-empty';
-          empty.innerHTML=`<strong>${escapeHtml(groupedSectionTitleV840(result,index))}</strong><br>${escapeHtml(language==='en'?'No active result found.':'Aucune annonce active trouvée.')}`;
+          const optionalNote=result.clarificationOptional
+            ?(language==='en'?' No location was specified; you can add one to narrow the search.':' Aucun lieu n’est précisé ; tu peux en ajouter un pour mieux filtrer.')
+            :'';
+          empty.innerHTML=`<strong>${escapeHtml(groupedSectionTitleV840(result,index))}</strong><br>${escapeHtml((language==='en'?'No active result found.':'Aucune annonce active trouvée.')+optionalNote)}`;
           batch.appendChild(empty);
         }
       });
-      renderGroupedFeedbackV840(batch,results,language);
+      renderGroupedFeedbackV840(batch,results,language,String(options.finalClarificationQuestion||''));
       recordConversationEvent({
         type:'grouped_results_v840',
         results:clonePlain(results.map(item=>({query:item.query,intent:item.intent,matches:item.matches,sessionId:item.sessionId})))
@@ -8163,7 +8258,7 @@
       });
     }
     async function runMultiRequestPlanV840(plan,originalText='',language='fr',options={}){
-      const count=Math.min(6,plan.requests.length);
+      const count=Math.min(12,plan.requests.length);
       const preflight=options?.preflight||null;
       const runId=preflight?.runId||++activeSearchId;
       const card=preflight?.card?.isConnected?preflight.card:makeSearchCard(originalText,runId);
@@ -8172,6 +8267,12 @@
         let results=[];
         const batch=await serverBatchSearchV840(originalText,language,plan);
         if(!activeSearches.has(runId))return;
+        if(batch?.ok===false&&batch?.error==='TOO_MANY_REQUESTS'){
+          activeSearches.delete(runId);
+          if(card.isConnected)card.remove();
+          typeAssistant(String(batch.message||'Le message contient plus de 12 demandes. Divise-le en deux messages.'),language,()=>persistCurrentConversation());
+          return;
+        }
         if(batch?.results?.length){
           results=batch.results.slice(0,count).map((entry,index)=>buildGroupedResultV840(
             String(entry.query||applySharedFieldsV839(plan.requests[index]?.text||'',plan.shared||{})),
@@ -8201,7 +8302,7 @@
         lastGroupedSearchV840={results:clonePlain(results.map(r=>({ordinal:r.ordinal,query:r.query,context:r.context,intent:r.intent}))),at:Date.now()};
         const summary=groupedSummaryV840(results,plan,language);
         typeAssistant(summary,language,()=>{
-          renderGroupedResultsV840(results,language);
+          renderGroupedResultsV840(results,language,{finalClarificationQuestion:String(batch?.final_clarification_question||'')});
           persistCurrentConversation();
         });
       }catch(error){
@@ -8274,7 +8375,12 @@
           }
 
           if(dynamicUnderstanding.search_ready===true&&dynamicUnderstandingCanSearchV832(dynamicUnderstanding)){
-            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v2',preflight});
+            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v3',preflight});
+            return;
+          }
+
+          if(optionalLocationClarificationV849(dynamicUnderstanding)){
+            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v3-v849',preflight});
             return;
           }
 
@@ -8291,7 +8397,7 @@
           }
 
           if(dynamicUnderstandingCanSearchV832(dynamicUnderstanding)){
-            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v2',preflight});
+            launchSearchQuery(text,serverLang,{understanding:dynamicUnderstanding,source:'supabase-v3',preflight});
             return;
           }
 

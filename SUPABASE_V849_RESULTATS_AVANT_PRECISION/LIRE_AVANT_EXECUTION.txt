@@ -1,0 +1,19 @@
+HAPPYAD V849 — RÉSULTATS AVANT PRÉCISION
+
+Ordre :
+1. 08A_V849_LIEU_COMMUN.sql
+   Attendu : V849_PART_08A_OK
+
+2. 08B_V849_BATCH_RESULTATS_AVANT_PRECISION.sql
+   Attendu : V849_PART_08B_OK
+
+3. 08C_V849_TEST_CONSOLIDE.sql
+   Envoyer resultat_complet.
+
+Comportements :
+- « Tous à Bunia » applique Bunia à toutes les lignes ;
+- une ville manquante ne bloque plus les résultats ;
+- les annonces sont affichées avant la question facultative de lieu ;
+- la question finale précise exactement ce qui manque ;
+- « un travailleur » reste bloqué jusqu'au type de métier ;
+- les autres demandes continuent leur recherche.
