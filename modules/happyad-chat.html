@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#050911" />
   <title>HAPPYAD — Chat Intelligence V50 · Résultats avant précision V849</title>
   <style>
@@ -2365,6 +2365,87 @@
     .detail-seller-inline{display:inline-flex;align-items:center;gap:5px}.detail-views-inline{display:inline-flex;align-items:center;gap:5px}.detail-views-inline svg{width:14px;height:14px}
     @media(max-width:380px){.listing-home-choice{padding:12px}.market-view-count{padding:5px 7px}.market-active-mark{display:none}}
   </style>
+
+  <style id="happyad-v851r1-market-manual-search-css">
+    /* V851R1 — recherche manuelle : champ visuel unique, sans contour interne au focus. */
+    .market-heading{align-items:center;min-height:42px;margin-bottom:10px}
+    .market-heading>.market-kicker{margin:0;line-height:1.2}
+    .market-search-toggle{
+      position:relative;width:36px;height:36px;min-width:36px;padding:0;border:1px solid rgba(255,255,255,.14);
+      border-radius:11px;display:grid;place-items:center;background:#121821;color:#eef4fb;cursor:pointer;
+      box-shadow:0 8px 18px rgba(0,0,0,.2);-webkit-tap-highlight-color:transparent
+    }
+    .market-search-toggle svg{width:18px;height:18px}
+    .market-search-toggle:active{transform:scale(.96)}
+    .market-search-toggle.has-query{border-color:rgba(255,139,50,.62);background:rgba(255,126,35,.13);color:#ffad72}
+    .market-search-toggle.has-query:after{content:"";position:absolute;right:5px;top:5px;width:5px;height:5px;border-radius:50%;background:#ff7b24;box-shadow:0 0 0 2px #121821}
+    .market-search-form{position:absolute;z-index:6;left:12px;right:12px;top:13px;margin:0}
+    .market-search-shell{
+      min-height:42px;display:grid;grid-template-columns:20px minmax(0,1fr) 34px 34px;align-items:center;gap:5px;
+      padding:4px 5px 4px 11px;border:1px solid rgba(255,255,255,.13);border-radius:13px;background:#0e141d;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025)
+    }
+    .market-search-leading{width:17px;height:17px;color:#8595aa}
+    #marketSearchInput{
+      width:100%;min-width:0;height:32px;padding:0 4px;border:0!important;outline:0!important;background:transparent!important;color:#f5f7fa;
+      border-radius:0!important;box-shadow:none!important;-webkit-appearance:none;appearance:none;
+      font:inherit;font-size:11px;font-weight:750;caret-color:#ff842c
+    }
+    #marketSearchInput:focus,#marketSearchInput:focus-visible{
+      border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important
+    }
+    .market-search-shell:focus-within{
+      border-color:rgba(47,124,255,.38);
+      box-shadow:0 0 0 2px rgba(47,124,255,.055),inset 0 1px 0 rgba(255,255,255,.025)
+    }
+    #marketSearchInput::placeholder{color:#718096;font-weight:650}
+    #marketSearchInput::-webkit-search-cancel-button{display:none}
+    .market-search-clear,.market-search-submit{
+      width:32px;height:32px;padding:0;border-radius:10px;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent
+    }
+    .market-search-clear{border:0;background:transparent;color:#9aa8ba}
+    .market-search-clear svg{width:16px;height:16px}
+    .market-search-submit{border:1px solid rgba(255,139,50,.4);background:linear-gradient(135deg,#f36e17,#ff8a25);color:#fff;box-shadow:0 7px 15px rgba(255,117,20,.16)}
+    .market-search-submit svg{width:17px;height:17px}
+    .market-search-clear:active,.market-search-submit:active{transform:scale(.95)}
+    @media(max-width:360px){
+      .market-search-shell{grid-template-columns:18px minmax(0,1fr) 32px 32px;padding-left:9px}
+      #marketSearchInput{font-size:10.5px}
+    }
+  </style>
+
+  <style id="happyad-v851r2-keyboard-rows-css">
+    /* V851R2 — l'iframe est déjà redimensionnée par le parent.
+       La barre devient la rangée haute locale, jamais un élément du viewport clavier. */
+    html,body{
+      width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;
+      overflow:hidden!important;overscroll-behavior:none!important;
+    }
+    body.ask-mode,body.offer-mode,body.market-mode{height:100%!important;min-height:0!important;overflow:hidden!important;}
+    body.ask-mode .app,body.offer-mode .app,body.market-mode .app{
+      box-sizing:border-box!important;position:relative!important;
+      width:min(760px,100%)!important;height:100%!important;min-height:0!important;max-height:100%!important;
+      margin:0 auto!important;padding:calc(54px + env(safe-area-inset-top,0px)) 7px 0!important;
+      overflow:hidden!important;
+    }
+    .switcher{
+      position:absolute!important;
+      top:calc(6px + env(safe-area-inset-top,0px))!important;
+      bottom:auto!important;left:50%!important;transform:translateX(-50%)!important;
+      translate:none!important;
+    }
+    body.ask-mode #askPanel,body.market-mode #marketPanel{
+      width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+      margin:0!important;overflow:hidden!important;
+    }
+    body.ask-mode #askPanel{display:flex!important;flex-direction:column!important;}
+    body.ask-mode #chatScroll{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;}
+    body.ask-mode #requestForm{position:relative!important;inset:auto!important;flex:0 0 auto!important;transform:none!important;}
+    body.offer-mode #offerPanel{
+      width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+      margin:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+    }
+  </style>
 </head>
 <body>
   <div class="app">
@@ -2669,21 +2750,28 @@
       </div>
     </section>
 
-    <section class="panel hidden" id="marketPanel" aria-label="Toutes les annonces HAPPYAD">
+    <section class="panel hidden" id="marketPanel" aria-label="HAPPYAD Marketplace">
       <header class="market-header">
         <div class="market-heading">
-          <div>
-            <span class="market-kicker">HAPPYAD Marketplace</span>
-            <h1>Toutes les annonces</h1>
-          </div>
+          <span class="market-kicker">HAPPYAD Marketplace</span>
           <div class="market-heading-actions">
-            <span class="market-total" id="marketTotal">0 annonce</span>
-            <button class="market-publish-button" id="marketPublishButton" type="button" aria-label="Ajouter une annonce">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              <span>Ajouter</span>
+            <button class="market-search-toggle" id="marketSearchToggle" type="button" aria-label="Rechercher manuellement dans les annonces" aria-controls="marketSearchForm" aria-expanded="false" title="Rechercher">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.9"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
             </button>
           </div>
         </div>
+        <form class="market-search-form hidden" id="marketSearchForm" role="search" autocomplete="off">
+          <div class="market-search-shell">
+            <svg class="market-search-leading" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input id="marketSearchInput" type="search" inputmode="search" enterkeyhint="search" aria-label="Recherche manuelle" placeholder="Titre, ville, catégorie, vendeur…" maxlength="120" />
+            <button class="market-search-clear" id="marketSearchClear" type="button" aria-label="Effacer la recherche" title="Effacer">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button class="market-search-submit" type="submit" aria-label="Lancer la recherche" title="Rechercher">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </form>
         <div class="market-categories" id="marketCategories" aria-label="Catégories d’annonces"></div>
       </header>
       <div class="market-scroll" id="marketScroll">
@@ -3012,6 +3100,7 @@
     const marketCategoryTotals=new Map();
     const marketExpandedCategories=new Set();
     const marketCategoryLoadPromises=new Map();
+    const marketSearchCoveredCategories=new Set();
 
     function marketplaceOfferPriority(a,b){
       const coverA=a?.showOnHome===true||a?.marketplace_show_on_home===true?1:0;
@@ -3247,6 +3336,7 @@
     function applyIntegratedOffers(rows=[],options={}){
       const list=Array.isArray(rows)?rows:[];
       const replace=options?.replace!==false;
+      if(replace)marketSearchCoveredCategories.clear();
       offers=replace?mergeOfferCollections(list,[]):mergeOfferCollections(list,offers);
       offersDataSource=offers.length?'happyad-real':'none';
       marketInitialized=false;
@@ -5686,6 +5776,8 @@
 
     let marketCategory='Toutes';
     let marketInitialized=false;
+    let marketManualSearch='';
+    let marketSearchFormOpen=false;
     const MARKET_CATEGORY_ORDER=['Toutes','Immobilier','Terrain','Véhicule','Électronique','Produit','Service','Emploi','Autre'];
     const MARKET_CATEGORY_LABELS={
       Toutes:'Toutes',Immobilier:'Immobilier',Terrain:'Terrains',Véhicule:'Véhicules',
@@ -5713,17 +5805,65 @@
       return map[category]||'HA';
     }
 
+    function normalizeManualMarketText(value=''){
+      return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+    }
+    const MARKET_MANUAL_SEARCH_FIELDS=[
+      'title','description','category','marketplace_category','listing_category','keywords','search_text','tags',
+      'location','address','place','city','town','ville','country','pays','area','zone','district','neighborhood','quartier',
+      'seller','seller_name','owner_name','author_name','display_name','full_name','username',
+      'brand','marque','model','modele','product_name','service_type','job_title','position','property_type','vehicle_type',
+      'condition','quality','availability','availability_status','transaction','listing_type','offer_type','contract_type',
+      'experience','experience_level','currency','price_currency','priceLabel','formatted_price','quantity','surface','size'
+    ];
+    function marketManualSearchValue(value,depth=0){
+      if(value===null||value===undefined)return '';
+      if(typeof value==='string'||typeof value==='number'||typeof value==='boolean')return String(value);
+      if(depth>=2)return '';
+      if(Array.isArray(value))return value.slice(0,30).map(item=>marketManualSearchValue(item,depth+1)).join(' ');
+      if(typeof value==='object')return Object.entries(value).filter(([key])=>!/media|image|video|audio|avatar|url|src|poster|thumb|blob|file/i.test(key)).slice(0,40).map(([,item])=>marketManualSearchValue(item,depth+1)).join(' ');
+      return '';
+    }
+    function marketManualSearchHaystack(offer={}){
+      const values=MARKET_MANUAL_SEARCH_FIELDS.map(key=>offer?.[key]);
+      values.push(offer?.details,offer?.specifications,offer?.attributes,offer?.features,offer?.metadata,MARKET_CATEGORY_LABELS[offer?.category]||'',offer?.price,offer?.viewsCount);
+      return normalizeManualMarketText(values.map(value=>marketManualSearchValue(value)).join(' ').slice(0,12000));
+    }
+    function marketOfferMatchesManualSearch(offer){
+      const query=normalizeManualMarketText(marketManualSearch);
+      if(!query)return true;
+      const haystack=marketManualSearchHaystack(offer);
+      return query.split(/\s+/).filter(Boolean).every(token=>haystack.includes(token));
+    }
+    function marketLoadedCount(category=marketCategory){
+      if(category==='Toutes')return offers.filter(offer=>MARKET_FETCH_CATEGORIES.includes(offer.category)).length;
+      return offers.filter(offer=>offer.category===category).length;
+    }
+    function marketSearchNeedsRemainder(category=marketCategory){
+      if(!marketManualSearch)return false;
+      if(marketSearchCoveredCategories.has(category)||marketSearchCoveredCategories.has('Toutes'))return false;
+      if(marketExpandedCategories.has(category))return false;
+      if(category!=='Toutes'&&marketExpandedCategories.has('Toutes'))return false;
+      const loaded=marketLoadedCount(category);
+      const known=marketKnownTotal(category);
+      if(known>loaded)return true;
+      const initialLimit=category==='Toutes'?MARKET_INITIAL_PER_CATEGORY*MARKET_FETCH_CATEGORIES.length:MARKET_INITIAL_PER_CATEGORY;
+      return loaded<=initialLimit;
+    }
     function marketVisibleOffers(){
+      const searching=!!normalizeManualMarketText(marketManualSearch);
       if(marketCategory==='Toutes'){
         const expanded=marketExpandedCategories.has('Toutes');
         const visible=[];
         MARKET_FETCH_CATEGORIES.forEach(category=>{
           const group=offers.filter(offer=>offer.category===category).sort(marketplaceOfferPriority);
-          visible.push(...(expanded?group:group.slice(0,MARKET_INITIAL_PER_CATEGORY)));
+          const selected=searching?group.filter(marketOfferMatchesManualSearch):(expanded?group:group.slice(0,MARKET_INITIAL_PER_CATEGORY));
+          visible.push(...selected);
         });
         return visible;
       }
       const group=offers.filter(offer=>offer.category===marketCategory).sort(marketplaceOfferPriority);
+      if(searching)return group.filter(marketOfferMatchesManualSearch);
       return marketExpandedCategories.has(marketCategory)?group:group.slice(0,MARKET_INITIAL_PER_CATEGORY);
     }
     function marketKnownTotal(category=marketCategory){
@@ -5733,11 +5873,13 @@
       return Math.max(Number(marketCategoryTotals.get(category)||0),offers.filter(offer=>offer.category===category).length);
     }
     function marketHasMore(category=marketCategory){
+      if(normalizeManualMarketText(marketManualSearch))return false;
       return marketKnownTotal(category)>marketVisibleOffers().length&&!marketExpandedCategories.has(category);
     }
-    async function loadMarketRemainder(category=marketCategory){
+    async function loadMarketRemainder(category=marketCategory,options={}){
       category=category||'Toutes';
-      if(marketCategoryLoadPromises.has(category))return marketCategoryLoadPromises.get(category);
+      const loadKey=`${category}:${options.expand===false?'search':'expand'}`;
+      if(marketCategoryLoadPromises.has(loadKey))return marketCategoryLoadPromises.get(loadKey);
       const task=(async()=>{
         const button=document.querySelector('#marketLoadMore');
         if(button){button.disabled=true;button.querySelector('span').textContent='Chargement…'}
@@ -5750,15 +5892,16 @@
           if(!rows.length)rows=await readOffersFromSupabase({category,limit:120});
         }
         if(rows.length)applyIntegratedOffers(rows,{replace:false});
-        marketExpandedCategories.add(category);
+        if(options.expand===false)marketSearchCoveredCategories.add(category);
+        else marketExpandedCategories.add(category);
         renderMarketCategories();renderMarketOffers();
         return rows.length;
       })().finally(()=>{
-        marketCategoryLoadPromises.delete(category);
+        marketCategoryLoadPromises.delete(loadKey);
         const button=document.querySelector('#marketLoadMore');
         if(button){button.disabled=false;button.querySelector('span').textContent='Voir plus d’annonces'}
       });
-      marketCategoryLoadPromises.set(category,task);return task;
+      marketCategoryLoadPromises.set(loadKey,task);return task;
     }
 
     function renderMarketCategories(){
@@ -5775,6 +5918,7 @@
           renderMarketCategories();
           renderMarketOffers();
           document.querySelector('#marketScroll')?.scrollTo({top:0,behavior:'smooth'});
+          if(marketSearchNeedsRemainder(marketCategory))loadMarketRemainder(marketCategory,{expand:false}).catch(()=>{});
         };
       });
     }
@@ -5782,14 +5926,18 @@
     function renderMarketOffers(){
       const list=document.querySelector('#marketList');
       const empty=document.querySelector('#marketEmpty');
-      const total=document.querySelector('#marketTotal');
+      const emptyText=empty?.querySelector('span');
+      const emptyPublish=document.querySelector('#marketEmptyPublish');
       const loadMore=document.querySelector('#marketLoadMore');
-      if(!list||!empty||!total)return;
+      if(!list||!empty)return;
       const visible=marketVisibleOffers();
-      const knownTotal=marketKnownTotal();
-      total.textContent=knownTotal>visible.length?`${visible.length} sur ${knownTotal}`:`${visible.length} annonce${visible.length>1?'s':''}`;
+      const activeQuery=String(marketManualSearch||'').trim();
       list.innerHTML='';
       empty.classList.toggle('hidden',visible.length>0);
+      if(emptyText)emptyText.textContent=activeQuery
+        ?`Aucune annonce ne correspond à « ${activeQuery} » dans cette catégorie.`
+        :'Aucune annonce active reçue de HAPPYAD dans cette catégorie.';
+      if(emptyPublish)emptyPublish.classList.toggle('hidden',!!activeQuery);
       if(loadMore){
         const canLoad=marketHasMore();
         loadMore.classList.toggle('hidden',!canLoad||visible.length===0);
@@ -5841,11 +5989,48 @@
       });
     }
 
+    function syncMarketManualSearchUi(){
+      const form=document.querySelector('#marketSearchForm');
+      const input=document.querySelector('#marketSearchInput');
+      const toggle=document.querySelector('#marketSearchToggle');
+      if(input&&input.value!==marketManualSearch)input.value=marketManualSearch;
+      if(form)form.classList.toggle('hidden',!marketSearchFormOpen);
+      if(toggle){
+        toggle.setAttribute('aria-expanded',marketSearchFormOpen?'true':'false');
+        toggle.classList.toggle('has-query',!!String(marketManualSearch||'').trim());
+        toggle.setAttribute('aria-label',marketManualSearch?'Modifier ou effacer la recherche manuelle':'Rechercher manuellement dans les annonces');
+      }
+    }
+    function setMarketSearchFormOpen(open,{focus=false}={}){
+      marketSearchFormOpen=!!open;
+      syncMarketManualSearchUi();
+      if(focus)requestAnimationFrame(()=>{const input=document.querySelector('#marketSearchInput');input?.focus({preventScroll:true});input?.setSelectionRange?.(input.value.length,input.value.length)});
+    }
+    async function applyMarketManualSearch(value=''){
+      marketManualSearch=String(value||'').trim().slice(0,120);
+      setMarketSearchFormOpen(false);
+      renderMarketOffers();
+      document.querySelector('#marketScroll')?.scrollTo({top:0,behavior:'auto'});
+      if(marketSearchNeedsRemainder(marketCategory)){
+        try{await loadMarketRemainder(marketCategory,{expand:false})}catch(_){renderMarketOffers()}
+      }
+      syncMarketManualSearchUi();
+    }
+    function clearMarketManualSearch({keepOpen=true}={}){
+      marketManualSearch='';
+      const input=document.querySelector('#marketSearchInput');if(input)input.value='';
+      marketSearchFormOpen=!!keepOpen;
+      renderMarketOffers();
+      syncMarketManualSearchUi();
+      document.querySelector('#marketScroll')?.scrollTo({top:0,behavior:'auto'});
+      if(keepOpen)requestAnimationFrame(()=>input?.focus({preventScroll:true}));
+    }
     function openMarketCenter(){
       if(!marketInitialized){
         renderMarketCategories();
         marketInitialized=true;
       }
+      syncMarketManualSearchUi();
       renderMarketOffers();
     }
     async function openMarketListingById(id){
@@ -9563,7 +9748,15 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
     }
 
     document.querySelectorAll('.switcher button[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode,'user'));
-    document.querySelector('#marketPublishButton')?.addEventListener('click',openListingPublisher);
+    document.querySelector('#marketSearchToggle')?.addEventListener('click',()=>setMarketSearchFormOpen(!marketSearchFormOpen,{focus:!marketSearchFormOpen}));
+    document.querySelector('#marketSearchForm')?.addEventListener('submit',event=>{
+      event.preventDefault();
+      applyMarketManualSearch(document.querySelector('#marketSearchInput')?.value||'');
+    });
+    document.querySelector('#marketSearchClear')?.addEventListener('click',()=>clearMarketManualSearch({keepOpen:true}));
+    document.querySelector('#marketSearchInput')?.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){event.preventDefault();setMarketSearchFormOpen(false);document.querySelector('#marketSearchToggle')?.focus({preventScroll:true})}
+    });
     document.querySelector('#marketEmptyPublish')?.addEventListener('click',openListingPublisher);
     document.querySelector('#happyadChatBack').onclick=closeHappyadChat;
 
@@ -9914,11 +10107,15 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
     };
 
     let happyadLayoutHeight=Math.max(window.innerHeight,document.documentElement.clientHeight||0);
+    let happyadParentViewportHeightV851R2=0;
+    let happyadParentKeyboardOpenV851R2=false;
 
     function syncHappyadViewport(){
-      const viewport=window.visualViewport;
-      const height=Math.round(viewport?.height||window.innerHeight);
-      const offsetTop=Math.round(viewport?.offsetTop||0);
+      const height=Math.max(320,Math.round(
+        happyadParentViewportHeightV851R2 ||
+        document.documentElement.clientHeight ||
+        window.innerHeight || 0
+      ));
       const editInput=document.querySelector('#editMessageInput');
       const requestFocused=document.activeElement===requestInput;
       const editFocused=Boolean(
@@ -9928,24 +10125,30 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
       );
       const focused=requestFocused||editFocused;
 
-      if(!focused){
-        happyadLayoutHeight=Math.max(
-          happyadLayoutHeight,
-          window.innerHeight,
-          document.documentElement.clientHeight||0,
-          height
-        );
+      if(!focused&&!happyadParentKeyboardOpenV851R2){
+        happyadLayoutHeight=Math.max(happyadLayoutHeight,height);
       }
 
-      const keyboardOpen=focused && height < happyadLayoutHeight-90;
+      const keyboardOpen=happyadParentKeyboardOpenV851R2||(focused&&height<happyadLayoutHeight-90);
       document.documentElement.style.setProperty('--happyad-vvh',`${height}px`);
-      document.documentElement.style.setProperty('--happyad-vv-top',`${offsetTop}px`);
+      document.documentElement.style.setProperty('--happyad-vv-top','0px');
       document.body.classList.toggle('keyboard-open',requestFocused&&keyboardOpen);
       document.body.classList.toggle('edit-message-keyboard-open',editFocused&&keyboardOpen);
     }
 
+    window.addEventListener('message',event=>{
+      const data=event&&event.data||{};
+      if(event.source!==window.parent||data.type!=='HAPPYAD_KEYBOARD_VIEWPORT_V851R2')return;
+      const detail=data.detail||{};
+      const height=Number(detail.height||0);
+      happyadParentViewportHeightV851R2=Number.isFinite(height)&&height>0?Math.round(height):0;
+      happyadParentKeyboardOpenV851R2=detail.keyboardOpen===true;
+      syncHappyadViewport();
+    },true);
+
     function updateAskBodyMode(){
       document.body.classList.toggle('ask-mode',mode==='ask');
+      document.body.classList.toggle('offer-mode',mode==='offer');
       document.body.classList.toggle('market-mode',mode==='market');
       syncHappyadViewport();
     }

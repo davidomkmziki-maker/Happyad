@@ -29,7 +29,7 @@
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
 <script src="../core/return-reset-master-v584.js?v=584"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>HappyAD - Messages V746</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
@@ -3129,6 +3129,35 @@
       transition:none!important;
     }
   </style>
+
+  <style id="happyad-v851r2-keyboard-rows-css">
+    /* V851R2 — trois rangées stables : barre, messages, saisie. */
+    html,body{
+      width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;
+      overflow:hidden!important;overscroll-behavior:none!important;
+    }
+    .app{
+      height:var(--app-height,100%)!important;min-height:0!important;max-height:100%!important;
+      overflow:hidden!important;
+    }
+    #listView,#chatView{
+      position:absolute!important;inset:0!important;min-height:0!important;overflow:hidden!important;
+      display:flex!important;flex-direction:column!important;
+    }
+    #listView > .topbar,#chatView > .chatbar{
+      position:relative!important;inset:auto!important;top:auto!important;bottom:auto!important;
+      flex:0 0 auto!important;transform:none!important;translate:none!important;
+    }
+    #listView > #searchBar{flex:0 0 auto!important;position:relative!important;}
+    #listView > .list-wrap,#chatView > #chatBody{
+      flex:1 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;
+      overflow-y:auto!important;overflow-x:hidden!important;
+    }
+    #chatView > #composerShell{
+      position:relative!important;inset:auto!important;top:auto!important;bottom:auto!important;
+      flex:0 0 auto!important;transform:none!important;translate:none!important;
+    }
+  </style>
 </head>
 <body>
   <main class="app">
@@ -5624,11 +5653,27 @@
         }catch(_e){ messageIdentityBroadcastV775 = null; }
       }
 
+      let happyadParentViewportHeightV851R2 = 0;
+      let happyadParentKeyboardOpenV851R2 = false;
       function syncMessageVisualViewport(){
-        const viewport = window.visualViewport;
-        const height = Math.max(320, Math.round(viewport && viewport.height ? viewport.height : (window.innerHeight || document.documentElement.clientHeight || 0)));
+        const height = Math.max(320, Math.round(
+          happyadParentViewportHeightV851R2 ||
+          document.documentElement.clientHeight ||
+          window.innerHeight || 0
+        ));
         if(height) document.documentElement.style.setProperty('--app-height', height + 'px');
+        document.documentElement.classList.toggle('happyad-keyboard-open-v851r2',happyadParentKeyboardOpenV851R2);
       }
+      window.addEventListener('message',event => {
+        const data = event && event.data || {};
+        if(event.source !== window.parent || data.type !== 'HAPPYAD_KEYBOARD_VIEWPORT_V851R2') return;
+        const detail = data.detail || {};
+        const height = Number(detail.height || 0);
+        happyadParentViewportHeightV851R2 = Number.isFinite(height) && height > 0 ? Math.round(height) : 0;
+        happyadParentKeyboardOpenV851R2 = detail.keyboardOpen === true;
+        syncMessageVisualViewport();
+        scheduleComposerKeyboardSync();
+      },true);
 
       function setChatBottomLocallyV775(bottomGap){
         if(!chatBody || activeMessageView !== 'chat') return false;

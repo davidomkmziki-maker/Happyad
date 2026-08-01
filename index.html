@@ -208,7 +208,7 @@ html.happyadRadarBootUserV599 #happyadGuestRadarStableV599{display:none!importan
 #happyadGuestRadarStableV599 .happyadGuestAuthBtnV599{appearance:none;min-height:46px;border:1.5px solid rgba(255,255,255,.78);border-radius:16px;background:rgba(255,255,255,.035);color:#fff;font:900 15px/1 system-ui,-apple-system,Segoe UI,sans-serif;padding:0 14px;display:flex;align-items:center;justify-content:center;white-space:nowrap;touch-action:manipulation;transition:transform .11s ease,background .11s ease,border-color .11s ease,color .11s ease;}
 #happyadGuestRadarStableV599 .happyadGuestAuthBtnV599:active{background:rgba(190,196,205,.17);border-color:#fff;color:#fff;transform:scale(.97) translateY(1px);}
 </style>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HAPPYAD</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content"><title>HAPPYAD</title>
 <!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
 <link rel="manifest" href="manifest.webmanifest?v=623-direct-surface">
 <meta name="theme-color" content="#000000">
@@ -1407,7 +1407,7 @@ html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 #list .miniMedia{position:relative}
 @keyframes happyadProgressSpinV764{to{transform:rotate(360deg)}}
 </style>
-<link id="happyad-assistance-integration-master-v738-css" rel="stylesheet" href="core/assistance-integration-master-v738.css?v=757-audit-stable">
+<link id="happyad-assistance-integration-master-v738-css" rel="stylesheet" href="core/assistance-integration-master-v738.css?v=851r4-assistance-scroll-stable">
 
 <style id="happyad-home-pagination-stable-v765-css">
 #list .happyadHomeProgressiveSentinelV764{min-height:2px!important;height:2px!important;padding:0!important;margin:0!important;gap:0!important;overflow:hidden!important}
@@ -1418,7 +1418,8 @@ html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 </style>
 
 <link id="happyad-chat-sticker-living-v791-css" rel="stylesheet" href="core/chat-sticker-living-v791.css?v=799-smaller-mouth-only">
-<link id="happyad-chat-integration-master-v795-css" rel="stylesheet" href="core/chat-integration-master-v795.css?v=807-stable-outer-viewport">
+<link id="happyad-chat-integration-master-v795-css" rel="stylesheet" href="core/chat-integration-master-v795.css?v=851r2-keyboard-rows">
+<link id="happyad-keyboard-surface-master-v851r2-css" rel="stylesheet" href="core/keyboard-surface-master-v851r2.css?v=851r2-keyboard-rows">
 </head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="feedGrid"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
@@ -7724,7 +7725,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=850-video-listing-fast-open',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=851r4-assistance-scroll-stable',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -10541,7 +10542,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <link id="happyad-actions-layout-master-v678" rel="stylesheet" href="core/actions-layout-master-v678.css?v=678-actions-counts">
 
 <script id="happyad-analytics-master-v731" src="core/analytics-master-v731.js?v=731-local-time-watch-checkpoints"></script>
-<script id="happyad-assistance-integration-master-v738-js" src="core/assistance-integration-master-v738.js?v=757-audit-stable"></script>
+<script id="happyad-assistance-integration-master-v738-js" src="core/assistance-integration-master-v738.js?v=851r4-assistance-scroll-stable"></script>
 
 <style id="happyad-v772-album-structure-stable-css">
 /* HAPPYAD V772 — la structure complète des albums existe avant leur insertion dans le fil.
@@ -10665,6 +10666,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=809-system-copy-clean"></script>
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
-<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=850-video-listing-fast-open"></script>
+<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=851r2-keyboard-rows"></script>
 <script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=850-video-listing-fast-open"></script>
+<script id="happyad-keyboard-surface-master-v851r2-js" src="core/keyboard-surface-master-v851r2.js?v=851r2-keyboard-rows"></script>
 </body></html>

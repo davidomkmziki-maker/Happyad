@@ -3,10 +3,10 @@
   if(window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757__)return;
   window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757_AUDIT_STABLE';
+  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V851R4_SCROLL_STABLE';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
-  var FRAME_URL='modules/assistance.html?v=757-audit-stable';
+  var FRAME_URL='modules/assistance.html?v=851r4-assistance-scroll-stable';
   var CONTEXT_KEY='happyad_support_user_context_v27';
   var host=null,frame=null;
   var isOpen=false,isReady=false,frameStarted=false,closeTimer=0,openLockUntil=0;

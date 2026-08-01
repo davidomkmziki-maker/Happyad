@@ -1,7 +1,7 @@
-/* HAPPYAD V850 — centrale vidéo: arrêt immédiat et annonce rapide */
+/* HAPPYAD V851R4 — scroll Assistance stable, actions et clavier conservés */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V850-video-listing-fast-open-20260731-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V851R4-assistance-scroll-stable-20260801-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=850-video-listing-fast-open',
+  './index.html?v=851r4-assistance-scroll-stable',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -19,13 +19,17 @@ var HAPPYAD_APP_SHELL = [
   './icons/happyad-chat-sticker-v797-transparent.png',
   './core/chat-sticker-living-v791.css?v=799-smaller-mouth-only',
   './core/chat-sticker-living-v791.js?v=799-smaller-mouth-only',
-  './core/chat-integration-master-v795.css?v=806-outer-viewport-unique',
+  './core/chat-integration-master-v795.css?v=851r2-keyboard-rows',
+  './core/keyboard-surface-master-v851r2.css?v=851r2-keyboard-rows',
+  './core/keyboard-surface-master-v851r2.js?v=851r2-keyboard-rows',
   './core/system-notification-master-v807.js?v=807-system-events',
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
-  './core/chat-integration-master-v795.js?v=850-video-listing-fast-open',
+  './core/chat-integration-master-v795.js?v=851r2-keyboard-rows',
   './core/marketplace-home-master-v828.js?v=850-video-listing-fast-open',
-  './modules/happyad-chat.html?v=850-video-listing-fast-open',
+  './modules/happyad-chat.html?v=851r2-keyboard-rows',
+  './modules/message-center.html?mode=inbox&source=v738-assistance&v=851r2-keyboard-rows',
+  './modules/assistance.html?v=851r4-assistance-scroll-stable',
   './modules/video.html?v=850-video-listing-fast-open',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
@@ -42,8 +46,8 @@ var HAPPYAD_APP_SHELL = [
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
-  './core/assistance-integration-master-v738.css?v=757-audit-stable',
-  './core/assistance-integration-master-v738.js?v=757-audit-stable',
+  './core/assistance-integration-master-v738.css?v=851r4-assistance-scroll-stable',
+  './core/assistance-integration-master-v738.js?v=851r4-assistance-scroll-stable',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
