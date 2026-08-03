@@ -1,4 +1,4 @@
-/* HAPPYAD V851R2 — surface clavier unique depuis la base V851R1.
+/* HAPPYAD V851R7 — surface clavier unique avec jointure Android opaque.
    La page parente ne défile plus pendant Messages, Chat ou Assistance.
    Le module visible suit le viewport utilisable ; son en-tête reste dans la
    première rangée et seule la zone centrale se réduit. */
@@ -6,6 +6,7 @@
   --happyad-keyboard-surface-top-v851r2:0px;
   --happyad-keyboard-surface-height-v851r2:100dvh;
   --happyad-parent-scroll-lock-v851r2:0px;
+  --happyad-keyboard-seam-cover-v851r7:0px;
 }
 html.happyadKeyboardSurfaceOpenV851R2{
   overflow:hidden!important;
@@ -34,7 +35,7 @@ body.happyadKeyboardSurfaceOpenV851R2{
   top:var(--happyad-keyboard-surface-top-v851r2,0px)!important;
   bottom:auto!important;
   width:100vw!important;
-  height:var(--happyad-keyboard-surface-height-v851r2,100dvh)!important;
+  height:calc(var(--happyad-keyboard-surface-height-v851r2,100dvh) + var(--happyad-keyboard-seam-cover-v851r7,0px))!important;
   min-height:0!important;
   max-height:none!important;
   margin:0!important;
@@ -43,13 +44,19 @@ body.happyadKeyboardSurfaceOpenV851R2{
   transform:none!important;
   translate:none!important;
 }
+/* La bande de sécurité appartient au conteneur parent, pas à l'iframe. Elle
+   couvre uniquement le pixel/subpixel éventuellement laissé par Android. */
+#happyadAppShell.happyadKeyboardSurfaceManagedV851R2{background:#000!important}
+#happyadChatHostV795.happyadKeyboardSurfaceManagedV851R2{background:#07090d!important}
+#happyadAssistanceHostV738.happyadKeyboardSurfaceManagedV851R2{background:#020713!important}
 #happyadAppShell.happyadKeyboardSurfaceManagedV851R2 > .happyadAppFrame.on,
 #happyadChatHostV795.happyadKeyboardSurfaceManagedV851R2 > #happyadChatFrameV795,
 #happyadAssistanceHostV738.happyadKeyboardSurfaceManagedV851R2 > .happyadAssistanceFrameV738{
   position:absolute!important;
   inset:0!important;
+  bottom:auto!important;
   width:100%!important;
-  height:100%!important;
+  height:calc(100% - var(--happyad-keyboard-seam-cover-v851r7,0px))!important;
   min-height:0!important;
   max-height:none!important;
   transform:none!important;

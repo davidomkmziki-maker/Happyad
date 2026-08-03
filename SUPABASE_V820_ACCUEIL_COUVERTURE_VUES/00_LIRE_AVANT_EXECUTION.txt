@@ -1,9 +1,0 @@
-HAPPYAD V820 — ACCUEIL, COUVERTURE, BADGES ET VUES
-
-Prérequis : V810 à V813 déjà installées.
-Exécuter strictement dans l’ordre :
-1. 01_V820_COLONNES_ACCUEIL_COUVERTURE.sql
-2. 02_V820_TRIGGER_COUVERTURE_ACCUEIL.sql
-3. 03_V820_COMPTEUR_VUES.sql
-
-Ces fichiers ne suppriment aucune annonce existante.

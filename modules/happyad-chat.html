@@ -2300,7 +2300,26 @@
     .result-feedback-actions{display:flex;gap:6px}
     .feedback-choice{min-height:32px;padding:0 11px;font-size:9px;white-space:nowrap}
     .result-feedback.done{display:block}
-    @media(max-width:380px){.result-feedback{align-items:stretch;flex-direction:column}.result-feedback-actions{display:grid;grid-template-columns:1fr 1fr}}
+    /* V851R7 : quand « Préciser » ouvre le formulaire complet, la carte quitte
+       explicitement la rangée horizontale V817. Le titre et tous les champs
+       utilisent de nouveau toute la largeur disponible, sans compression à droite. */
+    .result-feedback.refinement-open{
+      display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+      align-items:stretch!important;justify-content:stretch!important;gap:9px!important;
+      width:100%;min-width:0;box-sizing:border-box
+    }
+    .result-feedback.refinement-open .result-feedback-title{
+      width:100%;min-width:0;white-space:normal!important;overflow-wrap:anywhere
+    }
+    .result-feedback.refinement-open > .guided-search-card{
+      width:100%;min-width:0;max-width:100%;margin-top:0;box-sizing:border-box
+    }
+    .result-feedback.refinement-open .guided-search-head,
+    .result-feedback.refinement-open .guided-search-copy,
+    .result-feedback.refinement-open .guided-search-form,
+    .result-feedback.refinement-open .guided-search-grid,
+    .result-feedback.refinement-open .guided-field{min-width:0}
+    @media(max-width:380px){.result-feedback:not(.refinement-open){align-items:stretch;flex-direction:column}.result-feedback-actions{display:grid;grid-template-columns:1fr 1fr}}
 
     /* ===== V820 — cycle de publication propre et médias fiables ===== */
     .listing-media-section.preparing{pointer-events:none;opacity:.72}.listing-media-section.preparing .listing-media-count{min-width:82px}
@@ -6111,6 +6130,7 @@
       };
       feedback.querySelector('[data-answer="no"]').onclick=()=>{
         actions.remove();
+        feedback.classList.add('refinement-open');
         feedback.querySelector('.result-feedback-title').textContent=guidedPromptForContext(intent,lang);
         renderGuidedSearchForm({lang,context:{...clonePlain(searchContext),...clonePlain(intent)},source:'feedback',target:feedback,persist:false});
       };

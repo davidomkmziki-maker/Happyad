@@ -7,7 +7,7 @@
   window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__=true;
 
   var VERSION='V851R2_KEYBOARD_ROWS_FROM_V851R1';
-  var CHAT_URL='modules/happyad-chat.html?v=851r2-keyboard-rows';
+  var CHAT_URL='modules/happyad-chat.html?v=851r7-refinement-full-width';
   var HOST_ID='happyadChatHostV795';
   var FRAME_ID='happyadChatFrameV795';
   var host=null,frame=null,frameReady=false,pendingMode='ask',pendingContext=null;

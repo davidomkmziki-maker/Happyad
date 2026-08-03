@@ -1,0 +1,16 @@
+HAPPYAD V851R12 — BASE STABLE AUDITÉE ET PROPRE
+Date : 3 août 2026
+
+Base fonctionnelle : V851R12 Assistance écriture stable, temps réel silencieux.
+Correctifs cumulés confirmés :
+- V851R10 : coordinateur unique du scroll Assistance ;
+- V851R11 : clic fluide sur les choix, même carte DOM conservée ;
+- V851R12 : indicateur d’écriture et réponse dans le même nœud, temps réel silencieux.
+
+Nettoyage :
+- anciens fichiers maîtres non chargés supprimés ;
+- anciens tests, historiques SQL et notes de versions supprimés du ZIP de déploiement ;
+- ancien sticker et ancienne page posts.html non utilisés supprimés ;
+- Service Worker et manifeste PWA alignés sur les ressources actives de V851R12.
+
+Aucun SQL supplémentaire n’est nécessaire pour ce nettoyage.

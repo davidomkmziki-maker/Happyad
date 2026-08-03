@@ -5655,6 +5655,10 @@
 
       let happyadParentViewportHeightV851R2 = 0;
       let happyadParentKeyboardOpenV851R2 = false;
+      let happyadLastViewportHeightV851R5 = 0;
+      let happyadLastKeyboardOpenV851R5 = null;
+      let happyadManualScrollActiveV851R5 = false;
+      let happyadManualScrollUntilV851R5 = 0;
       function syncMessageVisualViewport(){
         const height = Math.max(320, Math.round(
           happyadParentViewportHeightV851R2 ||
@@ -5669,8 +5673,16 @@
         if(event.source !== window.parent || data.type !== 'HAPPYAD_KEYBOARD_VIEWPORT_V851R2') return;
         const detail = data.detail || {};
         const height = Number(detail.height || 0);
-        happyadParentViewportHeightV851R2 = Number.isFinite(height) && height > 0 ? Math.round(height) : 0;
-        happyadParentKeyboardOpenV851R2 = detail.keyboardOpen === true;
+        const nextHeight = Number.isFinite(height) && height > 0 ? Math.round(height) : 0;
+        const nextKeyboardOpen = detail.keyboardOpen === true;
+        const geometryChanged =
+          nextHeight !== happyadLastViewportHeightV851R5 ||
+          nextKeyboardOpen !== happyadLastKeyboardOpenV851R5;
+        happyadParentViewportHeightV851R2 = nextHeight;
+        happyadParentKeyboardOpenV851R2 = nextKeyboardOpen;
+        happyadLastViewportHeightV851R5 = nextHeight;
+        happyadLastKeyboardOpenV851R5 = nextKeyboardOpen;
+        if(!geometryChanged) return;
         syncMessageVisualViewport();
         scheduleComposerKeyboardSync();
       },true);
@@ -5773,24 +5785,60 @@
         [0,50,170,420].forEach(delay => setTimeout(() => repairMessageCenterLayout(reason || 'layout'),delay));
       }
 
+      function cancelComposerKeyboardPinV851R5(){
+        composerViewportTimers.forEach(timer => clearTimeout(timer));
+        composerViewportTimers = [];
+        if(composerViewportFrame){
+          cancelAnimationFrame(composerViewportFrame);
+          composerViewportFrame = 0;
+        }
+        /* Invalide aussi les anciens rappels programmatiques vers le bas. */
+        chatBottomScrollGeneration++;
+      }
+
+      function beginManualMessageScrollV851R5(){
+        happyadManualScrollActiveV851R5 = true;
+        happyadManualScrollUntilV851R5 = Date.now() + 1100;
+        messageChatPinnedV775 = false;
+        cancelComposerKeyboardPinV851R5();
+      }
+
+      function endManualMessageScrollV851R5(){
+        happyadManualScrollActiveV851R5 = false;
+        happyadManualScrollUntilV851R5 = Date.now() + 800;
+        if(chatBody && activeMessageView === 'chat') messageChatPinnedV775 = chatNearBottom(96);
+      }
+
+      function wheelManualMessageScrollV851R5(){
+        beginManualMessageScrollV851R5();
+        window.setTimeout(endManualMessageScrollV851R5,180);
+      }
+
       function ensureComposerAboveKeyboard(){
-        const wasNearBottom = !!(chatBody && activeMessageView === 'chat' && chatNearBottom(180));
         if(composerViewportFrame) cancelAnimationFrame(composerViewportFrame);
         composerViewportFrame = requestAnimationFrame(() => {
           composerViewportFrame = 0;
           syncMessageVisualViewport();
           if(!composerShell || !chatView || chatView.classList.contains('hidden')) return;
+          if(happyadManualScrollActiveV851R5 || Date.now() < happyadManualScrollUntilV851R5) return;
           const composerIsActive = document.activeElement === messageInput || !!editingMessage || !!replyingTo;
-          if(!composerIsActive || !wasNearBottom) return;
-          /* V775 : le clavier redimensionne seulement le scroller interne.
-             Aucun scrollIntoView ne doit déplacer l'iframe ou la page principale. */
-          requestAnimationFrame(() => setChatBottomLocallyV775(0));
+          const stillNearBottom = !!(chatBody && activeMessageView === 'chat' && messageChatPinnedV775 && chatNearBottom(140));
+          if(!composerIsActive || !stillNearBottom) return;
+          /* V851R5 : un seul recalage peut accompagner un vrai changement de
+             géométrie. Dès que l'utilisateur touche le fil, sa position devient
+             prioritaire et le clavier ne peut plus combattre son geste. */
+          requestAnimationFrame(() => {
+            if(!happyadManualScrollActiveV851R5 && Date.now() >= happyadManualScrollUntilV851R5 && messageChatPinnedV775){
+              setChatBottomLocallyV775(0);
+            }
+          });
         });
       }
 
       function scheduleComposerKeyboardSync(){
+        if(happyadManualScrollActiveV851R5 || Date.now() < happyadManualScrollUntilV851R5) return;
         composerViewportTimers.forEach(timer => clearTimeout(timer));
-        composerViewportTimers = [0,70,170,320].map(delay => setTimeout(ensureComposerAboveKeyboard,delay));
+        composerViewportTimers = [0,90,220].map(delay => setTimeout(ensureComposerAboveKeyboard,delay));
       }
 
       function focusComposerNaturally(){
@@ -14759,6 +14807,16 @@
         chatBody.addEventListener('scroll',() => {
           if(!sharedReturnScrollLockedV711()) messageChatPinnedV775 = chatNearBottom(96);
         },{passive:true});
+        if(window.PointerEvent){
+          chatBody.addEventListener('pointerdown',beginManualMessageScrollV851R5,{passive:true});
+          chatBody.addEventListener('pointerup',endManualMessageScrollV851R5,{passive:true});
+          chatBody.addEventListener('pointercancel',endManualMessageScrollV851R5,{passive:true});
+        }else{
+          chatBody.addEventListener('touchstart',beginManualMessageScrollV851R5,{passive:true});
+          chatBody.addEventListener('touchend',endManualMessageScrollV851R5,{passive:true});
+          chatBody.addEventListener('touchcancel',endManualMessageScrollV851R5,{passive:true});
+        }
+        chatBody.addEventListener('wheel',wheelManualMessageScrollV851R5,{passive:true});
       }
       if(window.visualViewport){
         window.visualViewport.addEventListener('resize', ensureComposerAboveKeyboard);

@@ -1,7 +1,7 @@
-/* HAPPYAD V851R4 — scroll Assistance stable, actions et clavier conservés */
+/* HAPPYAD V851R12 - Assistance écriture stable, temps réel silencieux */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V851R4-assistance-scroll-stable-20260801-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-V851R12-assistance-ecriture-stable-20260803-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +10,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=851r4-assistance-scroll-stable',
+  './index.html?v=851r12-ecriture-stable',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -20,38 +20,39 @@ var HAPPYAD_APP_SHELL = [
   './core/chat-sticker-living-v791.css?v=799-smaller-mouth-only',
   './core/chat-sticker-living-v791.js?v=799-smaller-mouth-only',
   './core/chat-integration-master-v795.css?v=851r2-keyboard-rows',
-  './core/keyboard-surface-master-v851r2.css?v=851r2-keyboard-rows',
-  './core/keyboard-surface-master-v851r2.js?v=851r2-keyboard-rows',
-  './core/system-notification-master-v807.js?v=807-system-events',
+  './core/keyboard-surface-master-v851r7.css?v=851r7-chat-refinement-seam',
+  './core/keyboard-surface-master-v851r7.js?v=851r7-chat-refinement-seam',
+  './core/system-notification-master-v807.js?v=809-system-copy-clean',
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
   './core/chat-integration-master-v795.js?v=851r2-keyboard-rows',
   './core/marketplace-home-master-v828.js?v=850-video-listing-fast-open',
-  './modules/happyad-chat.html?v=851r2-keyboard-rows',
-  './modules/message-center.html?mode=inbox&source=v738-assistance&v=851r2-keyboard-rows',
-  './modules/assistance.html?v=851r4-assistance-scroll-stable',
-  './modules/video.html?v=850-video-listing-fast-open',
+  './modules/happyad-chat.html?v=851r7-refinement-full-width',
+  './modules/message-center.html?mode=inbox&source=v738-assistance&v=851r5-message-scroll',
+  './modules/assistance.html?v=851r12-ecriture-stable',
+  './modules/video.html',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=785-push-real-sender-avatar',
+  './core/navigation-master-v668.js?v=851r5-message-scroll',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/auth-session-master-v598.js?v=776-push-clean-signout',
   './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
   './core/profile-avatar-recovery-master-v743.js?v=763-home-stable',
   './core/card-author-avatar-master-v742.js?v=763-home-stable',
-  './core/home-scroll-prepaint-master-v696.js?v=769-stable-style',
+  './core/home-scroll-prepaint-master-v696.js?v=774-near-layout-geometry',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=785-push-real-sender-avatar',
+  './core/main-tabs-master-v615.js?v=784-own-profile-nine-first',
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=714-profile-settings-return',
   './core/overlay-scroll-master-v615.js?v=615',
+  './core/overlay-scroll-master-v662.js?v=662-profile-fullscreen-zoom-isolated',
   './core/assistance-integration-master-v738.css?v=851r4-assistance-scroll-stable',
-  './core/assistance-integration-master-v738.js?v=851r4-assistance-scroll-stable',
+  './core/assistance-integration-master-v738.js?v=851r12-ecriture-stable',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
-  './core/assistance-supabase-realtime-v750.js?v=757-audit-stable',
-  './modules/user.html?v=795-chat-viewport-safe'
+  './core/assistance-supabase-realtime-v750.js?v=851r12-ecriture-stable',
+  './modules/user.html?v=784-own-profile-nine-first'
 ];
 
 function isHappyCache(name){
