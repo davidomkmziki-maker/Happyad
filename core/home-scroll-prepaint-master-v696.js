@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__)return;
   window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__=true;
 
-  var VERSION='V774_HOME_GEOMETRY_NEAR_LAYOUT_STABLE';
+  var VERSION='V855R72_HOME_SCROLL_STABLE';
   var list=null,io=null,nearCards=new Set(),nearRaf=0;
   function cssUrl(value){return 'url("'+String(value||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")'}
   function installCss(){
@@ -25,7 +25,7 @@
     if(!img)return;
     var box=img.closest&&img.closest('.miniMedia,.happyadAlbumSlide');
     var src=String(img.currentSrc||img.getAttribute('src')||'').trim();
-    try{img.loading='eager';img.decoding='async';if(priority)img.fetchPriority='high';else if(!img.fetchPriority)img.fetchPriority='auto'}catch(_e){}
+    try{img.loading=priority?'eager':'lazy';img.decoding='async';img.fetchPriority=priority?'high':'auto'}catch(_e){}
     function ready(){
       var actual=String(img.currentSrc||img.getAttribute('src')||src||'').trim();
       if(box&&actual){box.style.setProperty('--ha-home-paint-v696',cssUrl(actual));box.classList.add('haHomePaintReadyV696')}
@@ -87,13 +87,17 @@
           if(en.isIntersecting){
             nearCards.add(en.target);
             try{en.target.classList.add('haHomeNearLayoutV774')}catch(_c){}
-            prime(en.target,en.intersectionRatio>.01)
+            /* R72 : priorité élevée uniquement pour la carte réellement visible ou
+               immédiatement voisine, pas pour toute la grande zone de prépeinture. */
+            var r=null,vh=window.innerHeight||700,priority=false;
+            try{r=en.target.getBoundingClientRect();priority=!!(r&&r.bottom>-260&&r.top<vh+420)}catch(_r){}
+            prime(en.target,priority)
           }else{
             nearCards.delete(en.target);
             try{en.target.classList.remove('haHomeNearLayoutV774')}catch(_c){}
           }
         });
-      },{root:null,rootMargin:'1800px 0px 2200px 0px',threshold:[0,.01]});
+      },{root:null,rootMargin:'1100px 0px 1500px 0px',threshold:[0,.01]});
     }
     [].slice.call(list.querySelectorAll('.miniCard:not(.happyadSkeletonCard)')).forEach(observeCard);
     try{
@@ -110,6 +114,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
   window.addEventListener('pageshow',queueNearPrime,true);
   window.addEventListener('focus',queueNearPrime,true);
-  window.addEventListener('resize',queueNearPrime,{passive:true});
+  /* R72 : resize Android peut accompagner la disparition de la barre navigateur pendant le scroll. */
+  window.addEventListener('orientationchange',queueNearPrime,{passive:true});
   try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('home-scroll-prepaint',{file:'core/home-scroll-prepaint-master-v696.js',responsibility:'géométrie visible préparée avant écran; prépeinture des seules cartes proches; aucun scan global ni hydratation média',active:true,version:VERSION})}catch(_e){}
 })();

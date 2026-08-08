@@ -2,7 +2,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v855r68-optimisation-finale-20260808-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v855r73-visitor-fast-auth-spacing-20260808-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -27,9 +27,9 @@ var HAPPYAD_APP_SHELL = [
   './core/system-notification-master-v807.js?v=855r56-notification-preferences',
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
-  './core/chat-integration-master-v795.js?v=855r32-avatar-canonique',
+  './core/chat-integration-master-v795.js?v=855r71-chat-writing-smooth',
   './core/marketplace-home-master-v828.js?v=850-video-listing-fast-open',
-  './modules/happyad-chat.html?v=851r7-refinement-full-width',
+  './modules/happyad-chat.html?v=855r71-chat-writing-smooth',
   './modules/message-center.html?mode=inbox&source=v738-assistance&v=855r55-filtering',
   './modules/assistance.html?v=851r12-ecriture-stable',
   './modules/video.html?v=855r68-optimisation-finale',
@@ -37,7 +37,7 @@ var HAPPYAD_APP_SHELL = [
   './modules/map.html?v=855r54-location-privacy',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=855r7-all-video-surfaces',
-  './core/navigation-master-v668.js?v=855r35-anciens-groupes-photos',
+  './core/navigation-master-v668.js?v=855r69-visitor-route-strict-auth',
   './core/profile-avatar-master-v855r32.js?v=855r32-source-unique',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/message-privacy-master-v855r51.js?v=855r53-account-discovery',
@@ -50,11 +50,11 @@ var HAPPYAD_APP_SHELL = [
   './core/share-button-bridge.js?v=855r52-interaction-privacy',
   './core/story-master-v699.js?v=855r52-story-interactions',
   './core/notification-master-v700.js?v=855r57-quiet-mode-real',
-  './core/auth-session-master-v598.js?v=855r61-login-recovery-ui',
+  './core/auth-session-master-v598.js?v=855r73-login-spacing',
   './core/profile-identity-stable-master-v741.js?v=855r32-avatar-canonique',
   './core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection',
   './core/card-author-avatar-master-v742.js?v=855r32-avatar-canonique',
-  './core/home-scroll-prepaint-master-v696.js?v=774-near-layout-geometry',
+  './core/home-scroll-prepaint-master-v696.js?v=855r72-home-scroll-stable',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
   './core/main-tabs-master-v615.js?v=855r35-anciens-groupes-photos',
@@ -73,7 +73,7 @@ var HAPPYAD_APP_SHELL = [
   './modules/settings.html?v=855r59-language-storage-real',
   './core/profile/settings-account-auth-v855r48.js?v=855r48-account-lifecycle-region',
   './core/profile/settings-data-v855r36.js?v=855r48-account-lifecycle',
-  './modules/visitor-profile.html?v=855r55-privacy-complete',
+  './modules/visitor-profile.html?v=855r73-fast-first-paint',
   './modules/profile-stats.html?v=855r62-click-prefetch',
   './core/profile/profile-design-v854r5.css?v=855r31-old-edit-removed',
   './core/profile/profile-stats-host-v855r4.css?v=855r28-skeleton',
@@ -85,7 +85,7 @@ var HAPPYAD_APP_SHELL = [
   './core/profile/profile-edit-host-v855r31.js?v=855r32-transfert-binaire',
   './core/profile/owner-profile-v855r31.js?v=855r32-avatar-canonique',
   './core/profile/profile-privacy-master-v855r50.js?v=855r50-profile-visibility',
-  './core/profile/visitor-profile-v855r7.js?v=855r50-profile-visibility',
+  './core/profile/visitor-profile-v855r7.js?v=855r73-visitor-fast-first-paint',
   './core/profile/profile-story-parent-v854r5.js?v=854r5',
   './core/profile/profile-photo-parent-v854r8.js?v=855r32-avatar-canonique'
 ];

@@ -328,6 +328,7 @@
 #happyadAuthGateV595 .haAuthTextLinkV855R61{min-height:30px!important;height:auto!important;width:auto!important;padding:3px 2px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#dce2eb!important;font-size:13px!important;font-weight:650!important;text-align:left}\
 #happyadAuthGateV595 .haAuthTextLinkV855R61:active{background:transparent!important;border:0!important;transform:none!important;opacity:.72}\
 #happyadAuthGateV595 .haAuthTextLinkV855R61:disabled{background:transparent!important;border:0!important;color:#dce2eb!important;opacity:.55!important}\
+#happyadAuthGateV595 #happyadAuthForgotV595{display:block!important;margin:14px auto 0!important;padding:4px 8px!important;text-align:center!important;justify-self:center!important}\
 #happyadAuthGateV595 .haAuthInlineHelpV855R61{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;color:#9fa7b4;font-size:12px;line-height:1.35}\
 #happyadAuthGateV595 .haAuthInlineHelpV855R61 .haAuthTextLinkV855R61{color:#fff!important;font-weight:800!important}\
 #happyadAuthGateV595 .haAuthGuardListV855R47{display:grid;gap:10px;margin:0 0 12px}\

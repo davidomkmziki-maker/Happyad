@@ -278,21 +278,31 @@
     if(nm==='utilisateur'||nm==='utilisateur happyad'||nm.indexOf('aucun compte')>=0)return false;
     return !!(id||String(u.email||'').trim()||String(u.handle||u.username||'').trim());
   }
+  function strictAuthProfileUidV69(){
+    var id='';
+    /* R69: le routeur ne doit jamais convertir un visiteur en Mon profil à
+       partir d'un ancien cache HAPPYAD_USER / UserStore. Il utilise seulement
+       la session centrale authentifiée, puis le UID auth local si la session
+       est explicitement active. */
+    try{
+      var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV597||window.HappyAuthSessionV596||window.HappyAuthSessionV595;
+      var u=auth&&typeof auth.user==='function'?auth.user():null;
+      id=String(u&&u.id||'').trim();
+      if(id)return id;
+    }catch(_e){}
+    try{
+      if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';
+      return String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim();
+    }catch(_e2){return '';}
+  }
   function currentProfileIds(){
-    var out=[],seen={};
-    function add(v){v=String(v||'').trim();if(!v)return;var k=v.toLowerCase();if(!seen[k]){seen[k]=1;out.push(v);}}
-    function addUser(u){if(!validProfileUser(u))return;add(u.id);add(u.user_id);add(u.uid);add(u.uuid);add(u.auth_id);add(u.auth_user_id);add(u.authUserId);add(u.account_uid);add(u.accountUid);add(u.profile_id);add(u.owner_id);add(u.email);}
-    try{if(typeof window.currentUser==='function')addUser(window.currentUser()||{});}catch(_e){}
-    try{if(window.UserStore) addUser(window.UserStore.data||{});}catch(_e){}
-    ['HAPPYAD_LOGGED_USER','HAPPYAD_CURRENT_USER','HAPPYAD_USER','HAPPYAD_USER_V1','HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL'].forEach(function(k){addUser(readProfileJson(k)||{});});
-    try{add(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){}
-    return out;
+    var id=strictAuthProfileUidV69();
+    return id?[id]:[];
   }
   function isOwnProfileUid(uid){
     uid=String(uid||'').trim().toLowerCase();if(!uid)return false;
-    var ids=currentProfileIds();
-    for(var i=0;i<ids.length;i++){if(String(ids[i]||'').trim().toLowerCase()===uid)return true;}
-    return false;
+    var authUid=String(strictAuthProfileUidV69()||'').trim().toLowerCase();
+    return !!authUid&&authUid===uid;
   }
   function profileUidFromUrl(url){
     return publicUidFromUrl(url);
@@ -1431,7 +1441,7 @@
   }
 
   window.HappyNavigation={
-    version:MASTER_VERSION,rootUrl:rootUrl,pathOf:pathOf,pageOf:pageOf,profileUidFromUrl:profileUidFromUrl,isOwnProfileUid:isOwnProfileUid,open:open,openAppPage:openAppPage,close:close,back:back,restore:restore,
+    version:MASTER_VERSION,rootUrl:rootUrl,pathOf:pathOf,pageOf:pageOf,profileUidFromUrl:profileUidFromUrl,isOwnProfileUid:isOwnProfileUid,strictAuthProfileUidV69:strictAuthProfileUidV69,open:open,openAppPage:openAppPage,close:close,back:back,restore:restore,
     activeFrame:activeFrame,isBusy:navBusy,releaseNavGate:releaseNavGate,pauseFrame:pauseFrame,resumeFrame:resumeFrame,clearVideoRouteMemory:clearVideoRouteMemory,blankVideoFrame:blankVideoFrame,prefetchUrl:prefetchUrl,scheduleSoftPreload:scheduleSoftPreload,prepareOwnerProfile:prepareOwnerProfileOpenV649,
     preloadFrame:preloadFrame,preloadMainTabs:scheduleMainTabsPreloadV594,warmVideo:preloadVideoFrameV624,activateMainTab:activateMainTabV594,openVideoPost:openVideoPostV594,postToFrame:postToFrameV594,deliverVisitorProfile:deliverVisitorTargetV601,restoreProfileAfterPhoto:restoreProfileSurfaceAfterPhotoV656,invalidateOwnerProfile:destroyOwnerFrameV855R23,syncOwnerProfileAuth:syncOwnerProfileAuthV855R23
   };

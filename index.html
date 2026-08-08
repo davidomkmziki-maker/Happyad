@@ -3160,14 +3160,8 @@ function happyadPrepareAlbumShellV772(card,p){
     });
     if(track&&!track.__haAlbumDotsBoundV772){
       track.__haAlbumDotsBoundV772=true;
-      track.addEventListener('scroll',function(){
-        if(!dots)return;
-        var all=[].slice.call(track.querySelectorAll('.haAlbumFullSlide'));
-        if(!all.length)return;
-        var center=track.scrollLeft+(track.clientWidth/2),best=0,bd=1e9;
-        all.forEach(function(sl,i){var c=sl.offsetLeft+(sl.offsetWidth/2),d=Math.abs(c-center);if(d<bd){bd=d;best=i;}});
-        [].slice.call(dots.children).forEach(function(d,i){d.classList.toggle('on',i===best);});
-      },{passive:true});
+      /* R72 : un seul propriétaire du suivi horizontal. L'ancien bloc calculait
+         deux fois la diapositive active sur chaque événement scroll. */
       try{happyadInstallAlbumOneByOneScrollV472(track,dots);}catch(_oneByOne){}
     }
     if(!card.__haAlbumDelegatedClicksV772){
@@ -5238,7 +5232,24 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   window.happyadOpenStoryOptionsMenu=function(e){try{if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation()}}catch(_e){}closeMenu();var c=ctx();isMine(c).then(function(mine){var id=storyId(c);var menu=document.createElement('div');menu.id='hsvMoreMenu';menu.innerHTML='<div class="hsvMenuCard">'+(mine?'<button data-act="edit">Modifier description</button><button class="danger" data-act="delete">Supprimer</button>':'<button data-act="report">Signaler</button><button data-act="hide">Masquer cette story</button>')+'</div>';document.body.appendChild(menu);if(!$('hsvMenuStyleV188')){var st=document.createElement('style');st.id='hsvMenuStyleV188';st.textContent='#hsvMoreMenu{position:fixed;inset:0;z-index:1000001;background:rgba(0,0,0,.28);display:flex;align-items:flex-start;justify-content:flex-end;padding:82px 18px 0 18px;font-family:system-ui,-apple-system,Segoe UI,sans-serif}.hsvMenuCard{min-width:220px;background:#0d1119;border:1px solid rgba(255,255,255,.10);border-radius:18px;overflow:hidden;box-shadow:0 22px 70px rgba(0,0,0,.58)}.hsvMenuCard button{display:block;width:100%;padding:15px 17px;text-align:left;border:0;border-bottom:1px solid rgba(255,255,255,.08);background:transparent;color:#fff;font-size:15px;font-weight:850}.hsvMenuCard button:last-child{border-bottom:0}.hsvMenuCard button.danger{color:#ff6868}';document.head.appendChild(st)}menu.onclick=function(ev){if(ev.target===menu){closeMenu();return}var act=ev.target&&ev.target.getAttribute('data-act');if(!act)return;closeMenu();if(act==='edit')editStory(c);else if(act==='delete')deleteStory(c);else if(act==='report')toast('Story signalée');else if(act==='hide'){try{var h=JSON.parse(localStorage.getItem('HAPPYAD_HIDDEN_STORIES_V1')||'{}');h[id]=Date.now();localStorage.setItem('HAPPYAD_HIDDEN_STORIES_V1',JSON.stringify(h))}catch(e){}var box=$('happyStoryViewer');if(box)box.classList.remove('on');toast('Story masquée')}}});return false};
   document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#hsvClose,#hsvMore'):null;if(!b)return;window.happyadOpenStoryOptionsMenu(e);},true);
   function applyCaptionSeeMore(){var cap=$('hsvCaption');if(!cap)return;var box=$('happyStoryViewer');if(!box)return;var old=box.querySelector('.hsvSeeMore');if(old)old.remove();cap.classList.remove('expanded');var txt=(cap.textContent||'').trim();if(txt.length>85||cap.scrollHeight>cap.clientHeight+4){var btn=document.createElement('button');btn.type='button';btn.className='hsvSeeMore';btn.textContent='Voir plus';btn.onclick=function(e){e.preventDefault();e.stopPropagation();var on=!cap.classList.contains('expanded');cap.classList.toggle('expanded',on);btn.textContent=on?'Voir moins':'Voir plus'};var card=box.querySelector('.hsvCard')||box;card.appendChild(btn)}}
-  var mo=new MutationObserver(function(){setTimeout(applyCaptionSeeMore,30)});function start(){try{mo.observe(document.body,{childList:true,subtree:true,characterData:true});applyCaptionSeeMore()}catch(e){}} if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+  var storyMo=null,storyBootMo=null,storyTimer=0;
+  function queueCaptionCheck(){if(storyTimer)return;storyTimer=setTimeout(function(){storyTimer=0;applyCaptionSeeMore();},30)}
+  function bindStoryObserver(){
+    try{
+      var viewer=$('happyStoryViewer');
+      if(!viewer)return false;
+      if(storyBootMo){try{storyBootMo.disconnect()}catch(_d){}storyBootMo=null;}
+      if(!storyMo){storyMo=new MutationObserver(queueCaptionCheck);storyMo.observe(viewer,{childList:true,subtree:true,characterData:true});}
+      applyCaptionSeeMore();return true;
+    }catch(e){return false;}
+  }
+  function start(){
+    if(bindStoryObserver())return;
+    /* R72 : attendre uniquement la création du viewer Story. Ne plus observer tout
+       document.body pendant l'hydratation et le scroll des cartes Accueil. */
+    try{storyBootMo=new MutationObserver(function(records){for(var i=0;i<records.length;i++){if(bindStoryObserver())break;}});storyBootMo.observe(document.body,{childList:true,subtree:false});}catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
 
@@ -7898,12 +7909,25 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     }catch(_e){}
   }
   function scan(){try{setBlackTheme();cleanMediaSession();Array.prototype.slice.call(document.querySelectorAll('video,audio')).forEach(prepareMedia);}catch(_e){}}
+  function prepareTree(node){
+    try{
+      if(!node||node.nodeType!==1)return;
+      if(node.matches&&node.matches('video,audio'))prepareMedia(node);
+      if(node.querySelectorAll)Array.prototype.slice.call(node.querySelectorAll('video,audio')).forEach(prepareMedia);
+    }catch(_e){}
+  }
   scan();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});
   document.addEventListener('play',function(){setBlackTheme();cleanMediaSession();setTimeout(cleanMediaSession,200);setTimeout(cleanMediaSession,900);},true);
   document.addEventListener('visibilitychange',function(){setBlackTheme();cleanMediaSession();},true);
-  ['pageshow','focus','resize'].forEach(function(ev){try{window.addEventListener(ev,scan,true)}catch(_e){}});
-  try{new MutationObserver(function(){scan();}).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){setInterval(scan,2500);}
+  /* R72 : aucun scan global sur resize. Sur Android la barre Chrome peut modifier le
+     viewport pendant un scroll ; rescanner tout le DOM média à ce moment créait des à-coups. */
+  ['pageshow','focus'].forEach(function(ev){try{window.addEventListener(ev,scan,true)}catch(_e){}});
+  try{
+    new MutationObserver(function(records){
+      records.forEach(function(rec){Array.prototype.slice.call(rec.addedNodes||[]).forEach(prepareTree);});
+    }).observe(document.documentElement,{childList:true,subtree:true});
+  }catch(_e){}
 })();
 </script>
 <style id="happyad-v303-home-compact-magic-final">
@@ -8690,7 +8714,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
   scroll-snap-type:x mandatory!important;
 }
 #list.homeTimeline .haAlbumFullSlide{
-  scroll-snap-stop:always!important;
+  scroll-snap-stop:normal!important;
 }
 #happyadHomeCommentPopup .haCommentPanel{
   will-change:transform,opacity!important;
@@ -9921,8 +9945,8 @@ html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!im
 })();
 </script>
 <script src="core/profile/profile-photo-parent-v854r8.js?v=855r32-avatar-canonique"></script>
-<script src="core/navigation-master-v668.js?v=855r35-anciens-groupes-photos"></script>
-<script src="core/auth-session-master-v598.js?v=855r61-login-recovery-ui"></script>
+<script src="core/navigation-master-v668.js?v=855r69-visitor-route-strict-auth"></script>
+<script src="core/auth-session-master-v598.js?v=855r73-login-spacing"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=855r32-avatar-canonique"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=855r32-avatar-canonique"></script>
@@ -9951,7 +9975,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 
 <!-- HAPPYAD CORE V4: regroupement passif des maîtres par module/catégorie, sans changer le design -->
 <script src="core/photo-master.js?v=core-photo-v14"></script>
-<script src="core/profile-master.js?v=core-profile-v15"></script>
+<script src="core/profile-master.js?v=core-profile-v17-r73-visitor-fast-warm"></script>
 <script src="core/cache-master.js?v=core-grouped-v4"></script>
 <script src="core/auth-master.js?v=core-grouped-v4"></script>
 <script src="core/push-master.js?v=push-v45-voluntary-settings-avatar-v785"></script>
@@ -10494,7 +10518,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script src="core/story-master-v699.js?v=855r52-story-interactions"></script>
 <script src="core/profile/profile-story-parent-v854r5.js?v=854r5"></script>
 
-<script src="core/home-scroll-prepaint-master-v696.js?v=774-near-layout-geometry"></script>
+<script src="core/home-scroll-prepaint-master-v696.js?v=855r72-home-scroll-stable"></script>
 <style id="happyad-v635-story-compact-responsive">
 /* V635 — lecteur Story compact et adaptatif, même rendu depuis Radar et Profil. */
 #happyStoryViewerMasterV629.haStoryV629{
@@ -10712,10 +10736,11 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   align-items:flex-start!important;
   overflow-x:auto!important;
   overflow-y:hidden!important;
-  scroll-snap-type:x mandatory!important;
+  scroll-snap-type:x proximity!important;
   scroll-behavior:auto!important;
-  touch-action:auto!important;
+  touch-action:pan-x pan-y pinch-zoom!important;
   overscroll-behavior-x:contain!important;
+  -webkit-overflow-scrolling:touch!important;
 }
 #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullSlide{
   flex:0 0 100%!important;
@@ -10724,7 +10749,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   height:auto!important;
   min-height:0!important;
   scroll-snap-align:start!important;
-  scroll-snap-stop:always!important;
+  scroll-snap-stop:normal!important;
 }
 #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia{
   display:block!important;
@@ -10756,7 +10781,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=855r56-notification-preferences"></script>
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
-<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=855r32-avatar-canonique"></script>
+<script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=855r71-chat-writing-smooth"></script>
 <script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=850-video-listing-fast-open"></script>
 <script id="happyad-keyboard-surface-master-v851r7-js" src="core/keyboard-surface-master-v851r7.js?v=855r2-stats-close-repair"></script>
 <script id="happyad-language-preference-master-v855r59-js" src="core/language-preference-master-v855r59.js?v=855r59-language-storage-real"></script>

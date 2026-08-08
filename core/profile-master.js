@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  if(window.__HAPPYAD_PROFILE_MASTER_V15__)return;
-  window.__HAPPYAD_PROFILE_MASTER_V15__=true;
+  if(window.__HAPPYAD_PROFILE_MASTER_V16__)return;
+  window.__HAPPYAD_PROFILE_MASTER_V16__=true;
 
-  var MASTER_VERSION='PROFILE_MASTER_V15';
+  var MASTER_VERSION='PROFILE_MASTER_V17_VISITOR_FAST_WARM';
   var legacyOpenFromPost=typeof window.happyadOpenPublicProfileFromPostV417==='function'?window.happyadOpenPublicProfileFromPostV417:null;
   var legacyOpenViewer=typeof window.openViewerProfile==='function'?window.openViewerProfile:null;
   var legacyOpenProfile=typeof window.openProfile==='function'?window.openProfile:null;
@@ -35,11 +35,28 @@
     try{ids.push(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){}
     return uniq(ids);
   }
+  function strictAuthUid(){
+    var id='';
+    /* R69: la décision Mon profil / Profil visiteur ne doit plus dépendre des
+       anciens objets utilisateur mis en cache. Priorité à la session centrale
+       réellement authentifiée, avec HAPPYAD_AUTH_UID comme indice synchrone
+       uniquement tant que la session locale est explicitement active. */
+    try{
+      var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV597||window.HappyAuthSessionV596||window.HappyAuthSessionV595;
+      var u=auth&&typeof auth.user==='function'?auth.user():null;
+      id=clean(u&&u.id);
+      if(id)return id;
+    }catch(_e){}
+    try{
+      if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';
+      id=clean(localStorage.getItem('HAPPYAD_AUTH_UID'));
+      return id;
+    }catch(_e2){return '';}
+  }
   function isOwnUid(uid){
     uid=lower(uid);if(!uid)return false;
-    var ids=currentIds();
-    for(var i=0;i<ids.length;i++){if(lower(ids[i])===uid)return true;}
-    return false;
+    var authUid=lower(strictAuthUid());
+    return !!authUid&&authUid===uid;
   }
   function uidOf(x){
     x=x||{};
@@ -90,6 +107,10 @@
         if(makeActive!==false)localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));
       }
       if(makeActive!==false){localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',n.id);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',n.id);}
+      /* R73 : la carte Accueil possède déjà l'identité minimale du visiteur. On la
+         place aussi dans le cache canonique lu par visitor-profile afin que le
+         premier rendu n'attende aucune requête réseau. */
+      try{localStorage.setItem('HAPPYAD_PROFILE_V854_VISITOR_'+n.id+'_IDENTITY',JSON.stringify(Object.assign({},n,{__cachedAt:Date.now(),__happyadWarmFromCardV855R73:true,__happyadAvatarKnownV855R32:!!n.avatar})));}catch(_warm73){}
     }catch(_e){try{if(makeActive!==false){localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',n.id);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',n.id);}}catch(_x){}}
     if(makeActive!==false){try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',n.id);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL','modules/visitor-profile.html?uid='+esc(n.id));}catch(_s){}}
     return n;
@@ -136,7 +157,7 @@
      - cible = compte connecté => mon profil
      - cible != compte connecté => profil visiteur public
      L'ancien design reste intact; seule la décision de route est centralisée. */
-  window.HappyProfile={version:MASTER_VERSION,openMy:openMy,openVisitor:openVisitor,openFromPost:openFromPost,openViewer:openViewer,openFromUrl:openFromUrl,warm:warm,normalize:normalizeProfile,isOwnUid:isOwnUid,currentUser:currentUser,currentIds:currentIds,legacyOpenFromPost:legacyOpenFromPost,legacyOpenViewer:legacyOpenViewer,legacyOpenProfile:legacyOpenProfile};
+  window.HappyProfile={version:MASTER_VERSION,openMy:openMy,openVisitor:openVisitor,openFromPost:openFromPost,openViewer:openViewer,openFromUrl:openFromUrl,warm:warm,normalize:normalizeProfile,isOwnUid:isOwnUid,strictAuthUid:strictAuthUid,currentUser:currentUser,currentIds:currentIds,legacyOpenFromPost:legacyOpenFromPost,legacyOpenViewer:legacyOpenViewer,legacyOpenProfile:legacyOpenProfile};
   window.happyadOpenPublicProfileFromPostV417=function(p){return openFromPost(p,{source:'legacy-happyadOpenPublicProfileFromPostV417'});};
   window.openViewerProfile=function(p,uid){return openViewer(p,uid);};
   window.happyadOpenProfileMasterV15=openVisitor;

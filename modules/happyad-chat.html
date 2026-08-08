@@ -5139,35 +5139,69 @@
       node.dir=lang==='ar'?'rtl':'auto';
       node.innerHTML='<span class="bubble-label">Assistant</span><span class="typing-dots" aria-label="Réponse en cours"><i></i><i></i><i></i></span>';
       document.querySelector('#chatStream').appendChild(node);
-      scrollToBottom();
+      /* R71 : aucun scroll CSS animé en concurrence avec l'effet d'écriture. */
+      scrollToBottom(false);
       return {token,node};
     }
     function typeAssistant(text,lang='fr',after){
       const state=showTyping(lang);
       const plain=String(text||'');
-      const wait=Math.min(620,260+plain.length*2);
+      /* V855R71 — écriture fluide : progression pilotée par requestAnimationFrame.
+         On ajoute uniquement les nouveaux caractères au Text node au lieu de
+         reconstruire toute la chaîne à chaque tick. */
+      const wait=Math.min(110,45+plain.length*.28);
       setTimeout(()=>{
         if(!state.node.isConnected)return;
         state.node.remove();
         const bubble=addBubble('', 'system', lang, false);
         const target=bubble.querySelector('.typed-copy');
+        const sc=document.querySelector('#chatScroll');
+        if(sc)sc.scrollTop=sc.scrollHeight; // annule un éventuel scroll smooth lancé par addBubble
+        const keepPinned=!sc||(sc.scrollHeight-sc.scrollTop-sc.clientHeight)<170;
+        const textNode=document.createTextNode('');
+        target.textContent='';
+        target.appendChild(textNode);
+
         let index=0;
-        const duration=Math.min(1050,Math.max(340,plain.length*10));
-        const step=Math.max(1,Math.ceil(plain.length/Math.max(1,duration/18)));
-        const timer=setInterval(()=>{
-          if(!bubble.isConnected){
-            clearInterval(timer);
+        let startedAt=0;
+        let lastScrollAt=0;
+        let rafId=0;
+        const duration=Math.min(520,Math.max(220,plain.length*2.35));
+
+        const finish=()=>{
+          if(rafId)cancelAnimationFrame(rafId);
+          if(index<plain.length){
+            textNode.appendData(plain.slice(index));
+            index=plain.length;
+          }
+          if(keepPinned&&sc)sc.scrollTop=sc.scrollHeight;
+          recordConversationEvent({type:'system',text:plain,lang});
+          if(typeof after==='function')after(bubble);
+        };
+
+        const animate=(now)=>{
+          if(!bubble.isConnected)return;
+          if(!startedAt)startedAt=now;
+          const progress=Math.min(1,(now-startedAt)/duration);
+          /* progression linéaire = débit visuel régulier, sans gros blocs */
+          let nextIndex=Math.min(plain.length,Math.floor(plain.length*progress));
+          if(progress>0&&nextIndex<=index&&index<plain.length)nextIndex=index+1;
+          if(nextIndex>index){
+            textNode.appendData(plain.slice(index,nextIndex));
+            index=nextIndex;
+          }
+          /* le suivi du bas est plafonné ~12 fois/s, jamais à chaque frame */
+          if(keepPinned&&sc&&(now-lastScrollAt>=84||progress>=1)){
+            sc.scrollTop=sc.scrollHeight;
+            lastScrollAt=now;
+          }
+          if(progress>=1||index>=plain.length){
+            finish();
             return;
           }
-          index=Math.min(plain.length,index+step);
-          target.textContent=plain.slice(0,index);
-          scrollToBottom(false);
-          if(index>=plain.length){
-            clearInterval(timer);
-            recordConversationEvent({type:'system',text:plain,lang});
-            if(typeof after==='function')after(bubble);
-          }
-        },18);
+          rafId=requestAnimationFrame(animate);
+        };
+        rafId=requestAnimationFrame(animate);
       },wait);
     }
     function mergeFragment(text){
