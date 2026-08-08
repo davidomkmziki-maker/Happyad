@@ -8,11 +8,11 @@
     if(name==='home')return 'index.html';
     if(name==='video')return 'modules/video.html'+(params.postId?('?post='+encodeURIComponent(params.postId)):'');
     if(name==='photo')return 'modules/photo.html'+(params.postId?('?post='+encodeURIComponent(params.postId)):'');
-    if(name==='myProfile')return 'modules/user.html';
+    if(name==='myProfile')return 'modules/my-profile.html';
     if(name==='visitorProfile'){
       var uid=String(params.uid||params.user_id||params.profile_uid||params.auth_user_id||params.authUserId||params.account_uid||params.accountUid||activeVisitorUid()||'').trim();
-      if(!uid)return 'modules/user.html';
-      return 'modules/user.html?public=1&uid='+encodeURIComponent(uid)+(params.postId?('&post='+encodeURIComponent(params.postId)):'');
+      if(!uid)return 'modules/my-profile.html';
+      return 'modules/visitor-profile.html?uid='+encodeURIComponent(uid)+(params.postId?('&post='+encodeURIComponent(params.postId)):'');
     }
     if(name==='publish')return 'modules/publish.html';
     if(name==='map'||name==='localisation')return 'modules/map.html';

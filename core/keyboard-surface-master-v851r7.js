@@ -167,7 +167,7 @@
     }
     window.addEventListener('message',function(event){
       var data=event&&event.data||{};
-      if(data.type==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||data.type==='HAPPYAD_CHAT_READY'||data.type==='HAPPYAD_ASSISTANCE_V757_READY'||data.type==='HAPPYAD_INTERNAL_SCREEN_OPEN_V591'||data.type==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591'){
+      if(data.type==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||data.type==='HAPPYAD_CHAT_READY'||data.type==='HAPPYAD_ASSISTANCE_V757_READY'||data.type==='HAPPYAD_INTERNAL_SCREEN_OPEN_V591'||(data.type==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591'||data.type==='HAPPYAD_INTERNAL_SCREEN_CLOSED_V591')){
         forceFramePost=true;
         schedule();
       }

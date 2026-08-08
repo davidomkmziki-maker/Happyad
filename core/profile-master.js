@@ -91,7 +91,7 @@
       }
       if(makeActive!==false){localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',n.id);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',n.id);}
     }catch(_e){try{if(makeActive!==false){localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(n));localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',n.id);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',n.id);}}catch(_x){}}
-    if(makeActive!==false){try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',n.id);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL','modules/user.html?public=1&uid='+esc(n.id));}catch(_s){}}
+    if(makeActive!==false){try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',n.id);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL','modules/visitor-profile.html?uid='+esc(n.id));}catch(_s){}}
     return n;
   }
   function clearPublicProfileState(){
@@ -105,15 +105,15 @@
     opts=opts||{};
     clearPublicProfileState();
     try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_MODE','my');}catch(_e){}
-    try{if(window.HappyNavigation)return window.HappyNavigation.open('modules/user.html',{source:MASTER_VERSION,profileType:'my',replace:!!opts.replace,fromTarget:opts.fromTarget});}catch(_e){}
-    try{location.href='modules/user.html';return true;}catch(_e3){return false;}
+    try{if(window.HappyNavigation)return window.HappyNavigation.open('modules/my-profile.html',{source:MASTER_VERSION,profileType:'my',replace:!!opts.replace,fromTarget:opts.fromTarget});}catch(_e){}
+    try{location.href='modules/my-profile.html';return true;}catch(_e3){return false;}
   }
   function openVisitor(uid,profile,opts){
     opts=opts||{}; uid=clean(uid||uidOf(profile)); if(!uid)return false;
     if(isOwnUid(uid))return openMy(Object.assign({},opts,{source:'own-profile-from-visitor'}));
     var prof=warm(Object.assign({},profile||{},{id:uid,user_id:uid}),opts.posts||[],true);
     try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_MODE','visitor');}catch(_e){}
-    var url='modules/user.html?public=1&uid='+esc(uid);
+    var url='modules/visitor-profile.html?uid='+esc(uid);
     if(opts.postId)url+='&post='+esc(opts.postId);
     try{if(window.HappyNavigation)return window.HappyNavigation.open(url,{source:MASTER_VERSION,uid:uid,profile:prof,replace:!!opts.replace,fromTarget:opts.fromTarget});}catch(_e){}
     try{location.href=url;return true;}catch(_e3){return false;}

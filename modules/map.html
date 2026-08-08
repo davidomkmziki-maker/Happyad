@@ -27,6 +27,8 @@
 </script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
+<script src="../core/api.js?v=855r54-location-privacy"></script>
+<script src="../core/location-privacy-master-v855r54.js?v=855r54-location-privacy"></script>
 <script src="../core/return-reset-master-v584.js?v=584"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -191,7 +193,7 @@ const LocStore={
 };
 LocStore.load();
 
-let map, userMarker, selectedType="all", selectedTab="discover", markers=[];
+let map, userMarker, selectedType="all", selectedTab="discover", markers=[], marketplaceMarkers=[];
 const defaultPos=[0.3476,32.5825]; // Kampala
 function toast(msg){toastEl.textContent=msg;toastEl.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>toastEl.classList.remove("show"),1700)}
 function initMap(){
@@ -202,6 +204,7 @@ function initMap(){
   }).addTo(map);
   setTimeout(()=>map.invalidateSize(),300);
   renderMarkers();
+  refreshMarketplaceMap().catch(()=>{});
 }
 function iconFor(type){return {home:"🏠",service:"🛠️",event:"🎉",other:"📍"}[type]||"📍"}
 function typeLabel(type){return {home:"Domicile",service:"Service",event:"Événement",other:"Autre"}[type]||"Lieu"}
@@ -230,6 +233,7 @@ function renderPlaces(){
       <div class="placeActions"><button onclick="goPlace('${p.id}')">Voir</button><button onclick="deletePlace('${p.id}')">Sup</button></div>
     </div>`).join("");
   renderMarkers();
+  refreshMarketplaceMap().catch(()=>{});
 }
 function goPlace(id){
   const p=LocStore.data.places.find(x=>x.id===id); if(!p)return;
@@ -244,16 +248,33 @@ function addPlace(p){
   LocStore.data.places.unshift(p);
   LocStore.save();renderPlaces();toast("Localisation enregistrée ✅");
 }
-gpsBtn.onclick=()=>{
-  if(!navigator.geolocation){toast("GPS non disponible");return;}
+async function refreshMarketplaceMap(){
+  marketplaceMarkers.forEach(m=>{try{map.removeLayer(m)}catch(_e){}}); marketplaceMarkers=[];
+  const api=window.HappyLocationPrivacyV855R54; if(!api||!api.marketplacePosts)return;
+  const rows=await api.marketplacePosts(120);
+  rows.forEach(row=>{
+    const lat=Number(row.latitude),lng=Number(row.longitude);
+    if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
+    const title=String(row.title||'Annonce HAPPYAD').replace(/[<>]/g,'');
+    const loc=String(row.location_name||row.city_name||row.region_name||'').replace(/[<>]/g,'');
+    const m=L.marker([lat,lng]).addTo(map).bindPopup(`<b>🛍️ ${title}</b>${loc?`<br>${loc}`:''}`);
+    marketplaceMarkers.push(m);
+  });
+}
+gpsBtn.onclick=async()=>{
+  const api=window.HappyLocationPrivacyV855R54;
+  if(!api||!api.precisePosition){toast("Confidentialité Localisation indisponible");return;}
   toast("Recherche GPS...");
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const lat=pos.coords.latitude,lng=pos.coords.longitude;
+  try{
+    const pos=await api.precisePosition({force:true});
+    const lat=pos.lat,lng=pos.lng;
     map.setView([lat,lng],16);
     if(userMarker)map.removeLayer(userMarker);
-    userMarker=L.marker([lat,lng]).addTo(map).bindPopup("📍 Position actuelle").openPopup();
+    userMarker=L.marker([lat,lng]).addTo(map).bindPopup("📍 Position actuelle · temporaire").openPopup();
     placeLat.value=lat; placeLng.value=lng;
-  },()=>toast("GPS refusé ou indisponible"),{enableHighAccuracy:true,timeout:12000});
+  }catch(error){
+    toast(error&&error.code==='HAPPYAD_PRECISE_LOCATION_DISABLED'?"Activez d’abord la position précise dans Confidentialité":"GPS refusé ou indisponible");
+  }
 };
 openAdd.onclick=()=>{addModal.classList.add("show");const c=map.getCenter();placeLat.value=c.lat.toFixed(6);placeLng.value=c.lng.toFixed(6);}
 closeAdd.onclick=()=>addModal.classList.remove("show");
@@ -295,7 +316,7 @@ initMap();renderPlaces();
       if(p==='index.html'||p==='/index.html'||href==='../index.html'||href==='index.html'||href==='/'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close();return false;
       }
-      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
+      if(p==='user.html'||p==='modules/user.html'||p==='my-profile.html'||p==='modules/my-profile.html'||p==='visitor-profile.html'||p==='modules/visitor-profile.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();send(c);return false;
       }
     }catch(_e){}

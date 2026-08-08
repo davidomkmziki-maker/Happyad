@@ -6,7 +6,7 @@
   if(window.__HAPPYAD_SYSTEM_NOTIFICATION_MASTER_V807__)return;
   window.__HAPPYAD_SYSTEM_NOTIFICATION_MASTER_V807__=true;
 
-  var VERSION='V807_SYSTEM_NOTIFICATION_BRIDGE';
+  var VERSION='V855R56_SYSTEM_NOTIFICATION_PREFERENCES';
   var RPC='happyad_create_system_notification_v807';
   var inflight=Object.create(null);
 
@@ -27,7 +27,14 @@
     var eventKey=clean(payload.eventKey||payload.event_key).slice(0,180);
     var title=clean(payload.title).slice(0,180);
     var body=clean(payload.body).slice(0,1200);
+    var meta=Object.assign({},metadata(payload.metadata),{client_source:VERSION});
     if(!eventKey||!title||!body)return {ok:false,ignored:true};
+    try{
+      var notificationMaster=window.HappyNotificationMaster;
+      if(notificationMaster&&typeof notificationMaster.allows==='function'&&!notificationMaster.allows('system',meta,'category')){
+        return {ok:true,ignored:true,reason:'NOTIFICATION_PREFERENCE_DISABLED'};
+      }
+    }catch(_preferenceError){}
     if(inflight[eventKey])return inflight[eventKey];
     inflight[eventKey]=(async function(){
       var c=client();
@@ -36,7 +43,7 @@
         p_event_key:eventKey,
         p_title:title,
         p_body:body,
-        p_metadata:Object.assign({},metadata(payload.metadata),{client_source:VERSION})
+        p_metadata:meta
       });
       if(result&&result.error)throw result.error;
       refreshNotifications();
@@ -56,19 +63,19 @@
       eventKey:'seller-verification:'+id+':pending',
       title:'Demande de vérification envoyée',
       body:'Votre dossier a bien été transmis à l’équipe HAPPYAD. Vous recevrez une notification dès que son examen sera terminé.',
-      metadata:{seller_verification_request_id:id,seller_verification_status:'pending',system_message:true}
+      metadata:{seller_verification_request_id:id,seller_verification_status:'pending',system_message:true,notification_preference_key:'verificationDecisions'}
     };
     if(status==='under_review')return {
       eventKey:'seller-verification:'+id+':under_review',
       title:'Vérification en cours',
       body:'L’équipe HAPPYAD examine actuellement votre demande de vérification vendeur.',
-      metadata:{seller_verification_request_id:id,seller_verification_status:'under_review',system_message:true}
+      metadata:{seller_verification_request_id:id,seller_verification_status:'under_review',system_message:true,notification_preference_key:'verificationDecisions'}
     };
     if(['approved','verified','validated','active'].indexOf(status)>=0)return {
       eventKey:'seller-verification:'+id+':approved',
       title:'Vérification vendeur approuvée',
       body:'Votre compte vendeur a été approuvé. Vous pouvez maintenant publier vos offres.',
-      metadata:{seller_verification_request_id:id,seller_verification_status:'approved',system_message:true}
+      metadata:{seller_verification_request_id:id,seller_verification_status:'approved',system_message:true,notification_preference_key:'verificationDecisions'}
     };
     if(['rejected','refused'].indexOf(status)>=0){
       var reason=clean(state.adminNote||state.admin_note);
@@ -76,7 +83,7 @@
         eventKey:'seller-verification:'+id+':rejected',
         title:'Vérification vendeur refusée',
         body:'Votre demande de vérification vendeur a été refusée.'+(reason?' Motif : '+reason:''),
-        metadata:{seller_verification_request_id:id,seller_verification_status:'rejected',admin_note:reason,system_message:true}
+        metadata:{seller_verification_request_id:id,seller_verification_status:'rejected',admin_note:reason,system_message:true,notification_preference_key:'verificationDecisions'}
       };
     }
     return null;
@@ -98,7 +105,7 @@
       eventKey:'marketplace-product:'+id+':published',
       title:'Annonce publiée',
       body:'Votre annonce « '+title+' » est maintenant active dans HAPPYAD Annonces.'+(price?' Prix : '+price+'.':''),
-      metadata:{listing_id:id,post_id:id,marketplace_status:'published',system_message:true,title:title,price_label:price}
+      metadata:{listing_id:id,post_id:id,marketplace_status:'published',system_message:true,title:title,price_label:price,notification_preference_key:'listingStatus'}
     };
   }
 

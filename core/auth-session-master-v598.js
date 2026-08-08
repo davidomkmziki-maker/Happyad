@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_AUTH_SESSION_MASTER_V598__)return;
   window.__HAPPYAD_AUTH_SESSION_MASTER_V598__=true;
 
-  var VERSION='AUTH_SESSION_MASTER_V752_AUTH_STORAGE_QUOTA_RECOVERY';
+  var VERSION='AUTH_SESSION_MASTER_V855R61_LOGIN_RECOVERY_UI';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var session=null;
   var ready=false;
@@ -20,8 +20,33 @@
   var lastDirectAt=0;
   var authOpeningTimerV710=0;
   var authUnlockAtV710=0;
+  var recoveryFlowV855R40={email:'',verified:false};
+  var loginGuardV855R47={pending:false,userId:'',email:'',phone:'',policy:null,verified:{},codesSent:{gmail:false,phone:false}};
+  var LOGIN_GUARD_PENDING_KEY_V855R47='HAPPYAD_LOGIN_GUARD_PENDING_V855R47';
+  var LOGIN_GUARD_TTL_MS_V855R47=15*60*1000;
 
   function clean(v){return String(v==null?'':v).trim();}
+  function readLoginGuardPendingV855R47(){
+    try{
+      var raw=JSON.parse(localStorage.getItem(LOGIN_GUARD_PENDING_KEY_V855R47)||'null');
+      if(!raw||!raw.until||Date.now()>=Number(raw.until)){localStorage.removeItem(LOGIN_GUARD_PENDING_KEY_V855R47);return null;}
+      return raw;
+    }catch(_e){return null;}
+  }
+  function isLoginGuardPendingV855R47(){return !!(loginGuardV855R47.pending||readLoginGuardPendingV855R47());}
+  function setLoginGuardPendingV855R47(on,userId){
+    loginGuardV855R47.pending=!!on;
+    if(on){
+      if(userId)loginGuardV855R47.userId=clean(userId);
+      try{localStorage.setItem(LOGIN_GUARD_PENDING_KEY_V855R47,JSON.stringify({uid:clean(userId||loginGuardV855R47.userId),until:Date.now()+LOGIN_GUARD_TTL_MS_V855R47}));localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0');localStorage.removeItem('HAPPYAD_AUTH_UID');}catch(_e){}
+    }else{
+      try{localStorage.removeItem(LOGIN_GUARD_PENDING_KEY_V855R47);}catch(_e){}
+    }
+  }
+  function resetLoginGuardV855R47(){
+    loginGuardV855R47={pending:false,userId:'',email:'',phone:'',policy:null,verified:{},codesSent:{gmail:false,phone:false}};
+    setLoginGuardPendingV855R47(false,'');
+  }
   function happyadHttpOriginV701(value){
     try{
       var u=new URL(String(value||''),location.href);
@@ -74,10 +99,11 @@
       return isUuid(id)?id:'';
     }catch(_e){return '';}
   }
-  function isAuthenticated(){var u=actualUser();if(u&&u.id)return true;return !ready&&!!localHintId();}
+  function isAuthenticated(){if(isLoginGuardPendingV855R47())return false;var u=actualUser();if(u&&u.id)return true;return !ready&&!!localHintId();}
   function sessionDetail(eventName){
     var u=actualUser();
-    return {event:eventName||'',authenticated:!!u,user:u||null,user_id:u&&u.id||'',version:VERSION};
+    var authenticated=!!u&&!isLoginGuardPendingV855R47();
+    return {event:eventName||'',authenticated:authenticated,user:authenticated?(u||null):null,user_id:authenticated&&u&&u.id||'',pending_second_step:!!u&&!authenticated,version:VERSION};
   }
   function forEachFrame(fn){
     try{document.querySelectorAll('#happyadAppShell iframe.happyadAppFrame').forEach(function(fr){try{if(fr.contentWindow)fn(fr.contentWindow,fr);}catch(_e){}});}catch(_e){}
@@ -95,6 +121,7 @@
     }catch(_e){}
   }
   var PROFILE_STABLE_PREFIX_V741='HAPPYAD_PROFILE_IDENTITY_STABLE_V741:';
+  var AVATAR_MASTER_V855R32=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
   function hasOwnV741(o,k){return !!(o&&Object.prototype.hasOwnProperty.call(o,k));}
   function firstV741(){for(var i=0;i<arguments.length;i++){var v=clean(arguments[i]);if(v)return v;}return '';}
   function readJsonV741(k){try{return JSON.parse(localStorage.getItem(k)||'null')||{};}catch(_e){return {};}}
@@ -112,9 +139,10 @@
   function saveStableV741(u){
     try{
       var uid=clean(u&&u.id||u&&u.user_id);if(!uid)return;
+      if(AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.patchRecord)u=AVATAR_MASTER_V855R32.patchRecord(Object.assign({},u||{}),uid);
       var old=readStableV741(uid), next=Object.assign({},old,u||{}, {id:uid,user_id:uid,updated_at_local:new Date().toISOString()});
       if(poorNameV741(next.name||next.full_name||next.display_name))delete next.name;
-      if(!firstV741(next.avatar,next.avatar_url))delete next.avatar;
+      if(!firstV741(next.avatar,next.avatar_url)&&next.__happyadAvatarKnownV855R32!==true)delete next.avatar;
       localStorage.setItem(PROFILE_STABLE_PREFIX_V741+uid,JSON.stringify(next));
     }catch(_e){}
   }
@@ -122,6 +150,7 @@
     user=user||{};profile=profile||{};
     var meta=user.user_metadata||{};
     var uid=clean(user.id||profile.id);
+    if(AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.primeFromProfile&&hasOwnV741(profile,'avatar_url'))AVATAR_MASTER_V855R32.primeFromProfile(profile,{source:'auth-session-profile-v855r32'});
     var current=readCurrentV741(uid), stable=readStableV741(uid);
     var email=firstV741(user.email,current.email,current.contact,stable.email,stable.contact);
     var base=(email?email.split('@')[0]:'happyad')||'happyad';
@@ -133,8 +162,8 @@
     var remoteHandle=firstV741(profile.username,profile.handle).replace(/^@+/,'');
     var keptHandle=firstV741(current.handle,current.username,stable.handle,stable.username,meta.username,meta.handle,base).replace(/^@+/,'');
     var handle=(!poorHandleV741(remoteHandle)?remoteHandle:keptHandle).replace(/\s+/g,'').toLowerCase()||base;
-    var remoteAvatar=profileAvatarV741(profile);
-    var avatar=firstV741(remoteAvatar,meta.avatar_url,meta.picture,meta.avatar,profileAvatarV741(current),profileAvatarV741(stable));
+    var avatarEntry=AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.getEntry&&AVATAR_MASTER_V855R32.getEntry(uid);
+    var avatar=avatarEntry&&avatarEntry.known?(avatarEntry.url||''):'';
     var remoteRole=clean(profile.role).toLowerCase(),keptRole=clean(firstV741(current.role,stable.role,meta.role)).toLowerCase();
     var role=(remoteRole&&!(remoteRole==='user'&&keptRole&&keptRole!=='user'))?remoteRole:(keptRole||remoteRole||'user');
     var remoteBadge=clean(profileBadgeV741(profile)).toLowerCase(),keptBadge=clean(firstV741(current.badge,stable.badge)).toLowerCase();
@@ -152,6 +181,7 @@
       likes:Number(profile.likes!=null?profile.likes:current.likes||stable.likes||0)||0,
       passwordSet:true,contactVerified:!!user.email_confirmed_at
     });
+    if(avatarEntry&&avatarEntry.known&&AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.patchRecord)next=AVATAR_MASTER_V855R32.patchRecord(next,uid);
     try{
       ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','happyad_current_user','HAPPYAD_CURRENT_USER'].forEach(function(k){localStorage.setItem(k,JSON.stringify(next));});
       localStorage.setItem('HAPPYAD_AUTH_UID',next.id);
@@ -201,10 +231,14 @@
     ready=true;
     var user=actualUser();
     if(user){
-      removeLogoutLocks();
-      try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');localStorage.setItem('HAPPYAD_AUTH_UID',user.id);}catch(_e){}
-      saveWarmUser(user,{});
-      fetchOrCreateProfile(user,{}).then(function(p){saveWarmUser(user,p||{});broadcast('PROFILE_READY');}).catch(function(){});
+      if(isLoginGuardPendingV855R47()){
+        setLoginGuardPendingV855R47(true,user.id);
+      }else{
+        removeLogoutLocks();
+        try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');localStorage.setItem('HAPPYAD_AUTH_UID',user.id);}catch(_e){}
+        saveWarmUser(user,{});
+        fetchOrCreateProfile(user,{}).then(function(p){saveWarmUser(user,p||{});broadcast('PROFILE_READY');}).catch(function(){});
+      }
     }else{
       try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0');localStorage.removeItem('HAPPYAD_AUTH_UID');}catch(_e){}
     }
@@ -220,6 +254,12 @@
       try{
         var result=await c.auth.getSession();
         var s=result&&result.data&&result.data.session||null;
+        if(s&&readLoginGuardPendingV855R47()){
+          try{await c.auth.signOut();}catch(_e){}
+          resetLoginGuardV855R47();
+          applySession(null,'PENDING_SECOND_STEP_RESET',{forceBroadcast:true});
+          return null;
+        }
         applySession(s,'SESSION_REFRESH',{forceBroadcast:!!force});
         return actualUser();
       }catch(_e){
@@ -272,7 +312,7 @@
 #happyadAuthGateV595.on .haAuthGatePanel{animation:happyadAuthPanelInV710 .2s cubic-bezier(.2,.8,.2,1) both}\
 @keyframes happyadAuthPanelInV710{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}\
 #happyadAuthGateV595 .haAuthGatePanel{position:relative;width:min(440px,100%);max-height:min(88dvh,760px);overflow:auto;border:1px solid rgba(255,255,255,.28);border-radius:26px;background:linear-gradient(180deg,#12151b,#080a0e);box-shadow:0 30px 90px rgba(0,0,0,.72);padding:22px}\
-#happyadAuthGateV595 .haAuthGateClose{position:absolute;right:14px;top:14px;width:40px;height:40px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(255,255,255,.04);color:#fff;font-size:25px;display:grid;place-items:center}\
+#happyadAuthGateV595 .haAuthGateClose{position:absolute;right:14px;top:14px;width:42px;height:42px;min-height:42px!important;padding:0!important;box-sizing:border-box;border:1px solid rgba(255,255,255,.62);border-radius:50%!important;background:rgba(255,255,255,.04);color:#fff;font-size:25px;line-height:1;display:grid;place-items:center}\
 #happyadAuthGateV595 .haAuthGateClose:active,#happyadAuthGateV595 button:active{background:rgba(190,196,205,.16)!important;border-color:#fff!important;color:#fff!important;transform:scale(.97) translateY(1px)}\
 #happyadAuthGateV595 .haAuthTitle{font-size:27px;font-weight:1000;letter-spacing:-.6px;padding-right:50px}\
 #happyadAuthGateV595 .haAuthHint{color:#bbc1cc;font-size:14px;font-weight:700;line-height:1.35;margin:8px 0 18px}\
@@ -284,6 +324,15 @@
 #happyadAuthGateV595 .haAuthField:focus{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.10)}\
 #happyadAuthGateV595 .haAuthFoot{margin-top:12px;color:#aeb5c1;font-size:12px;line-height:1.4}\
 #happyadAuthGateV595 .haAuthStatus{min-height:20px;margin:10px 0 0;color:#fff;font-size:13px;font-weight:800}\
+#happyadAuthGateV595 .haAuthStatus.haAuthStatusErrorV855R61{color:#ff565f}\
+#happyadAuthGateV595 .haAuthTextLinkV855R61{min-height:30px!important;height:auto!important;width:auto!important;padding:3px 2px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#dce2eb!important;font-size:13px!important;font-weight:650!important;text-align:left}\
+#happyadAuthGateV595 .haAuthTextLinkV855R61:active{background:transparent!important;border:0!important;transform:none!important;opacity:.72}\
+#happyadAuthGateV595 .haAuthTextLinkV855R61:disabled{background:transparent!important;border:0!important;color:#dce2eb!important;opacity:.55!important}\
+#happyadAuthGateV595 .haAuthInlineHelpV855R61{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;color:#9fa7b4;font-size:12px;line-height:1.35}\
+#happyadAuthGateV595 .haAuthInlineHelpV855R61 .haAuthTextLinkV855R61{color:#fff!important;font-weight:800!important}\
+#happyadAuthGateV595 .haAuthGuardListV855R47{display:grid;gap:10px;margin:0 0 12px}\
+#happyadAuthGateV595 .haAuthGuardFieldV855R47 label{display:block;margin:0 0 6px;color:#dfe5ee;font-size:13px;font-weight:900}\
+#happyadAuthGateV595 .haAuthGuardFieldV855R47 .haAuthField{margin-bottom:0}\
 body.happyadAuthGateOpenV595{overflow:hidden!important}\
 body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}\
 ';document.head.appendChild(css);
@@ -296,7 +345,9 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     ['pointerdown','pointerup','click','touchstart','touchend','contextmenu'].forEach(function(type){overlay.addEventListener(type,blockAuthOpeningEventV710,true);});
     return overlay;
   }
-  function setStatus(text){try{var s=document.getElementById('happyadAuthStatusV595');if(s)s.textContent=text||'';}catch(_e){}}
+  function setStatus(text,type){try{var s=document.getElementById('happyadAuthStatusV595');if(s){s.textContent=text||'';s.classList.toggle('haAuthStatusErrorV855R61',type==='error');}}catch(_e){}}
+  function normalizeEmailV855R61(v){return clean(v).toLowerCase();}
+  function invalidCredentialsV855R61(err){var t=(clean(err&&err.code)+' '+clean(err&&err.message||err)).toLowerCase();return /invalid_credentials|invalid login credentials|email or password|wrong password/.test(t);}
   function value(id){var el=document.getElementById(id);return clean(el&&el.value);}
   function setSubmitBusy(id,on,busyText,idleText){
     try{
@@ -322,38 +373,268 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   function renderLogin(prefill){
     ensureOverlay();
     prefill=clean(prefill||'');
-    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthBackV595">Retour</button><div class="haAuthTitle">Se connecter</div><div class="haAuthHint">Entre ton Gmail et ton mot de passe.</div><input class="haAuthField" id="happyadAuthEmailV595" type="email" autocomplete="email" placeholder="Gmail" value="'+esc(prefill)+'"><input class="haAuthField" id="happyadAuthPassV595" type="password" autocomplete="current-password" placeholder="Mot de passe"><div class="haAuthChoices"><button type="button" id="happyadAuthLoginSubmitV595">Se connecter</button><button type="button" id="happyadAuthForgotV595">Mot de passe oublié</button></div><div class="haAuthStatus" id="happyadAuthStatusV595"></div>';
+    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthBackV595">Retour</button><div class="haAuthTitle">Se connecter</div><div class="haAuthHint">Entre ton Gmail et ton mot de passe.</div><input class="haAuthField" id="happyadAuthEmailV595" type="email" autocomplete="email" placeholder="Gmail" value="'+esc(prefill)+'"><input class="haAuthField" id="happyadAuthPassV595" type="password" autocomplete="current-password" placeholder="Mot de passe"><div class="haAuthChoices"><button type="button" id="happyadAuthLoginSubmitV595">Se connecter</button></div><button type="button" class="haAuthTextLinkV855R61" id="happyadAuthForgotV595">Mot de passe oublié</button><div class="haAuthStatus" id="happyadAuthStatusV595"></div>';
     document.getElementById('happyadAuthBackV595').onclick=renderChoice;
     document.getElementById('happyadAuthLoginSubmitV595').onclick=doLogin;
     document.getElementById('happyadAuthForgotV595').onclick=function(e){stop(e);renderForgot(value('happyadAuthEmailV595'));};
     var pass=document.getElementById('happyadAuthPassV595');
     if(pass)pass.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin(e);});
   }
+  function resetRecoveryFlowV855R40(){recoveryFlowV855R40={email:'',verified:false};}
+  async function cancelRecoveryVerifiedSessionV855R40(){
+    if(!recoveryFlowV855R40.verified){resetRecoveryFlowV855R40();return;}
+    try{var c=client();if(c&&c.auth)await c.auth.signOut();}catch(_e){}
+    applySession(null,'PASSWORD_RECOVERY_CANCELLED',{forceBroadcast:true});
+    resetRecoveryFlowV855R40();
+  }
   function renderForgot(prefill){
     ensureOverlay();
-    prefill=clean(prefill||'');
-    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthForgotBackV597">Retour</button><div class="haAuthTitle">Récupérer le compte</div><div class="haAuthHint">Entre ton Gmail. HAPPYAD t’enverra un lien sécurisé pour créer un nouveau mot de passe.</div><input class="haAuthField" id="happyadAuthForgotEmailV597" type="email" autocomplete="email" inputmode="email" placeholder="Gmail" value="'+esc(prefill)+'"><div class="haAuthChoices"><button type="button" id="happyadAuthForgotSubmitV597">Envoyer le lien</button></div><div class="haAuthStatus" id="happyadAuthStatusV595"></div><div class="haAuthFoot">Après réception, ouvre le lien puis choisis ton nouveau mot de passe.</div>';
-    document.getElementById('happyadAuthForgotBackV597').onclick=function(e){stop(e);renderLogin(value('happyadAuthForgotEmailV597'));};
+    prefill=clean(prefill||recoveryFlowV855R40.email||'');
+    recoveryFlowV855R40.email=prefill;
+    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthForgotBackV597">Retour</button><div class="haAuthTitle">Récupérer le compte</div><div class="haAuthHint">Entre ton Gmail. HAPPYAD t’enverra un code de récupération à 6 chiffres.</div><input class="haAuthField" id="happyadAuthForgotEmailV597" type="email" autocomplete="email" inputmode="email" placeholder="Gmail" value="'+esc(prefill)+'"><div class="haAuthChoices"><button type="button" id="happyadAuthForgotSubmitV597">Envoyer le code</button></div><div class="haAuthStatus" id="happyadAuthStatusV595"></div>';
+    document.getElementById('happyadAuthForgotBackV597').onclick=function(e){stop(e);resetRecoveryFlowV855R40();renderLogin(value('happyadAuthForgotEmailV597'));};
     document.getElementById('happyadAuthForgotSubmitV597').onclick=doForgot;
     var email=document.getElementById('happyadAuthForgotEmailV597');
     if(email){email.focus();email.addEventListener('keydown',function(e){if(e.key==='Enter')doForgot(e);});}
   }
+  function renderForgotCodeV855R40(email,message){
+    ensureOverlay();email=clean(email||recoveryFlowV855R40.email||'');recoveryFlowV855R40.email=email;
+    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthForgotCodeBackV855R40">Changer Gmail</button><div class="haAuthTitle">Entre le code</div><div class="haAuthHint">Saisis le code à 6 chiffres envoyé à <b>'+esc(email)+'</b>.</div><input class="haAuthField" id="happyadAuthForgotCodeV855R40" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Code à 6 chiffres"><div class="haAuthStatus" id="happyadAuthStatusV595"></div><div class="haAuthInlineHelpV855R61"><span>Code non reçu ?</span><button type="button" class="haAuthTextLinkV855R61" id="happyadAuthForgotResendV855R40">Renvoyer le code</button></div>';
+    document.getElementById('happyadAuthForgotCodeBackV855R40').onclick=function(e){stop(e);renderForgot(email);};
+    document.getElementById('happyadAuthForgotResendV855R40').onclick=function(e){doForgot(e,{email:email,resend:true});};
+    var code=document.getElementById('happyadAuthForgotCodeV855R40');
+    if(code){
+      code.focus();
+      code.addEventListener('input',function(e){
+        this.value=String(this.value||'').replace(/\D/g,'').slice(0,6);
+        if(this.value.length===6&&!this.dataset.happyadAutoVerifyV855R61){this.dataset.happyadAutoVerifyV855R61='1';setTimeout(function(){doForgotVerifyV855R40(null);},40);}
+        if(this.value.length<6)delete this.dataset.happyadAutoVerifyV855R61;
+      });
+      code.addEventListener('keydown',function(e){if(e.key==='Enter'&&String(this.value||'').replace(/\D/g,'').length===6)doForgotVerifyV855R40(e);});
+    }
+    if(message&&/nouveau code/i.test(message))setStatus('Nouveau code envoyé.');
+  }
+  function renderForgotPasswordV855R40(email){
+    ensureOverlay();email=clean(email||recoveryFlowV855R40.email||'');
+    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthForgotPasswordCancelV855R40">Annuler</button><div class="haAuthTitle">Nouveau mot de passe</div><div class="haAuthHint">Code vérifié. Choisis maintenant ton nouveau mot de passe HAPPYAD.</div><input class="haAuthField" id="happyadAuthForgotPass1V855R40" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe"><input class="haAuthField" id="happyadAuthForgotPass2V855R40" type="password" autocomplete="new-password" placeholder="Confirmer le mot de passe"><div class="haAuthChoices"><button type="button" id="happyadAuthForgotSaveV855R40">Enregistrer le mot de passe</button></div><div class="haAuthStatus" id="happyadAuthStatusV595"></div><div class="haAuthFoot">Après l’enregistrement, reconnecte-toi avec ton nouveau mot de passe.</div>';
+    document.getElementById('happyadAuthForgotPasswordCancelV855R40').onclick=async function(e){stop(e);await cancelRecoveryVerifiedSessionV855R40();renderLogin(email);};
+    document.getElementById('happyadAuthForgotSaveV855R40').onclick=doForgotSavePasswordV855R40;
+    var p1=document.getElementById('happyadAuthForgotPass1V855R40');if(p1)p1.focus();
+    var p2=document.getElementById('happyadAuthForgotPass2V855R40');if(p2)p2.addEventListener('keydown',function(e){if(e.key==='Enter')doForgotSavePasswordV855R40(e);});
+  }
   function renderSignup(){
     ensureOverlay();
     var d=new Date();d.setFullYear(d.getFullYear()-18);var max=d.toISOString().slice(0,10);
-    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthBackV595">Retour</button><div class="haAuthTitle">Créer un compte</div><div class="haAuthHint">Remplis les informations demandées.</div><input class="haAuthField" id="happyadAuthNameV595" placeholder="Nom"><input class="haAuthField" id="happyadAuthHandleV595" placeholder="Nom d’utilisateur"><input class="haAuthField" id="happyadAuthBirthV595" type="date" max="'+esc(max)+'" aria-label="Date de naissance"><input class="haAuthField" id="happyadAuthSignupEmailV595" type="email" autocomplete="email" placeholder="Gmail"><input class="haAuthField" id="happyadAuthSignupPassV595" type="password" autocomplete="new-password" placeholder="Mot de passe"><input class="haAuthField" id="happyadAuthSignupPass2V595" type="password" autocomplete="new-password" placeholder="Confirmer le mot de passe"><div class="haAuthChoices"><button type="button" id="happyadAuthSignupSubmitV595">Créer mon compte</button></div><div class="haAuthStatus" id="happyadAuthStatusV595"></div>';
+    panelRoot.innerHTML='<button type="button" class="haAuthBack" id="happyadAuthBackV595">Retour</button><div class="haAuthTitle">Créer un compte</div><div class="haAuthHint">Remplis les informations demandées.</div><input class="haAuthField" id="happyadAuthNameV595" placeholder="Nom"><input class="haAuthField" id="happyadAuthHandleV595" placeholder="Nom d’utilisateur complet"><input class="haAuthField" id="happyadAuthBirthV595" type="date" max="'+esc(max)+'" aria-label="Date de naissance"><input class="haAuthField" id="happyadAuthSignupEmailV595" type="email" autocomplete="email" placeholder="Gmail"><input class="haAuthField" id="happyadAuthSignupPassV595" type="password" autocomplete="new-password" placeholder="Mot de passe"><input class="haAuthField" id="happyadAuthSignupPass2V595" type="password" autocomplete="new-password" placeholder="Confirmer le mot de passe"><div class="haAuthChoices"><button type="button" id="happyadAuthSignupSubmitV595">Créer mon compte</button></div><div class="haAuthStatus" id="happyadAuthStatusV595"></div>';
     document.getElementById('happyadAuthBackV595').onclick=renderChoice;
     document.getElementById('happyadAuthSignupSubmitV595').onclick=doSignup;
   }
+  function lifecycleMissingV855R48(error){
+    var text=String((error&&error.code)||'')+' '+String((error&&error.message)||error||'');
+    return /PGRST202|42883|happyad_account_lifecycle_status_v855r48|could not find the function/i.test(text);
+  }
+  function lifecycleDateV855R48(value){
+    var d=new Date(value||'');
+    if(!isFinite(d.getTime()))return '';
+    try{return d.toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'});}catch(_e){return d.toLocaleString();}
+  }
+  async function loadAccountLifecycleV855R48(){
+    var c=client();
+    if(!c||!c.rpc)return {setupRequired:true};
+    try{
+      var r=await c.rpc('happyad_account_lifecycle_status_v855r48');
+      if(r&&r.error)throw r.error;
+      var d=r&&r.data||{};if(Array.isArray(d))d=d[0]||{};
+      return {
+        setupRequired:false,
+        disabledUntil:d.disabled_until||null,
+        deletionRequestedAt:d.deletion_requested_at||null,
+        deletionDueAt:d.deletion_due_at||null
+      };
+    }catch(err){
+      if(lifecycleMissingV855R48(err))return {setupRequired:true};
+      throw err;
+    }
+  }
+  async function enforceAccountLifecycleBeforeLoginV855R48(){
+    var state=await loadAccountLifecycleV855R48();
+    if(state.setupRequired)return state;
+    var now=Date.now();
+    var disabled=state.disabledUntil?new Date(state.disabledUntil).getTime():0;
+    if(disabled&&disabled>now){
+      var e=new Error('Ce compte est désactivé jusqu’au '+lifecycleDateV855R48(state.disabledUntil)+'. La connexion reste bloquée jusqu’à la fin de la période choisie.');
+      e.code='ACCOUNT_TEMP_DISABLED';throw e;
+    }
+    var due=state.deletionDueAt?new Date(state.deletionDueAt).getTime():0;
+    if(due&&due<=now){
+      var d=new Error('Le délai de récupération de 30 jours est terminé. Ce compte ne peut plus être récupéré.');
+      d.code='ACCOUNT_DELETION_EXPIRED';throw d;
+    }
+    return state;
+  }
+  async function recoverDeletionAfterSuccessfulLoginV855R48(){
+    var c=client();
+    if(!c||!c.rpc)return {recovered:false};
+    try{
+      var r=await c.rpc('happyad_cancel_deletion_after_login_v855r48');
+      if(r&&r.error)throw r.error;
+      var d=r&&r.data||{};if(Array.isArray(d))d=d[0]||{};
+      return {recovered:!!d.recovered,expired:!!d.expired};
+    }catch(err){
+      if(lifecycleMissingV855R48(err))return {recovered:false};
+      throw err;
+    }
+  }
+
+  function normalizeLoginGuardMethodsV855R47(value){
+    var allowed={authenticator:true,phone:true,gmail:true,secret:true},out=[];
+    (Array.isArray(value)?value:[]).forEach(function(item){item=clean(item).toLowerCase();if(allowed[item]&&out.indexOf(item)<0)out.push(item);});
+    return out;
+  }
+  async function loadLoginGuardPolicyV855R47(user){
+    var c=client();
+    if(!c||!c.from)return {enabled:false,methods:[]};
+    var r=await c.from('happyad_user_settings').select('two_factor_enabled,two_factor_methods,verified_gmail,verified_phone').eq('user_id',user.id).maybeSingle();
+    if(r&&r.error){
+      var msg=String(r.error.message||r.error.code||'');
+      if(/two_factor_enabled|two_factor_methods|PGRST204|42703|schema cache/i.test(msg)){
+        var er=new Error('Exécutez le SQL V855R47 de validation en deux étapes dans Supabase avant de vous connecter.');er.code='TWO_FACTOR_SQL_REQUIRED';throw er;
+      }
+      throw r.error;
+    }
+    var row=r&&r.data||{};
+    return {
+      enabled:!!row.two_factor_enabled,
+      methods:normalizeLoginGuardMethodsV855R47(row.two_factor_methods),
+      verifiedGmail:clean(row.verified_gmail).toLowerCase(),
+      verifiedPhone:clean(row.verified_phone),
+      email:clean(user.email).toLowerCase(),
+      phone:clean(user.phone)
+    };
+  }
+  async function verifiedTotpFactorV855R47(){
+    var c=client(),mfa=c&&c.auth&&c.auth.mfa;
+    if(!mfa||typeof mfa.listFactors!=='function')return null;
+    var r=await mfa.listFactors();if(r&&r.error)throw r.error;
+    var d=r&&r.data||{},list=[];
+    if(Array.isArray(d.totp))list=list.concat(d.totp);
+    if(Array.isArray(d.all))list=list.concat(d.all.filter(function(f){return clean(f&&f.factor_type||f&&f.factorType||f&&f.type).toLowerCase()==='totp';}));
+    var seen={};
+    return list.find(function(f){var id=clean(f&&f.id);if(!id||seen[id])return false;seen[id]=1;return clean(f&&f.status).toLowerCase()==='verified';})||null;
+  }
+  function loginGuardFieldV855R47(id,label,placeholder,type,maxlength){
+    return '<div class="haAuthGuardFieldV855R47"><label for="'+id+'">'+label+'</label><input class="haAuthField" id="'+id+'" type="'+(type||'text')+'" '+(maxlength?'maxlength="'+maxlength+'" ':'')+'autocomplete="one-time-code" inputmode="'+((type||'')==='password'?'text':'numeric')+'" placeholder="'+placeholder+'"></div>';
+  }
+  function renderLoginGuardV855R47(user,policy){
+    ensureOverlay();
+    var methods=normalizeLoginGuardMethodsV855R47(policy.methods),html='';
+    if(methods.indexOf('authenticator')>=0)html+=loginGuardFieldV855R47('happyadAuthGuardAuthenticatorV855R47','Application d’authentification','Code à 6 chiffres','text',6);
+    if(methods.indexOf('phone')>=0)html+=loginGuardFieldV855R47('happyadAuthGuardPhoneV855R47','Code OTP téléphone','Code à 6 chiffres','text',6);
+    if(methods.indexOf('gmail')>=0)html+=loginGuardFieldV855R47('happyadAuthGuardGmailV855R47','Code OTP Gmail','Code à 6 chiffres','text',6);
+    if(methods.indexOf('secret')>=0)html+=loginGuardFieldV855R47('happyadAuthGuardSecretV855R47','Clé secrète','Votre clé secrète','password',12);
+    panelRoot.innerHTML='<div class="haAuthTitle">Connexion protégée</div><div class="haAuthHint">Mot de passe correct. HAPPYAD exige maintenant toutes les protections que vous avez activées avant d’ouvrir la session.</div><div class="haAuthGuardListV855R47">'+html+'</div><div class="haAuthChoices"><button type="button" id="happyadAuthGuardSubmitV855R47">Vérifier et se connecter</button>'+((methods.indexOf('gmail')>=0||methods.indexOf('phone')>=0)?'<button type="button" id="happyadAuthGuardResendV855R47">Renvoyer les codes</button>':'')+'</div><div class="haAuthStatus" id="happyadAuthStatusV595"></div>';
+    var submit=document.getElementById('happyadAuthGuardSubmitV855R47');if(submit)submit.onclick=verifyLoginGuardV855R47;
+    var resend=document.getElementById('happyadAuthGuardResendV855R47');if(resend)resend.onclick=function(e){sendLoginGuardCodesV855R47(e,true);};
+    ['happyadAuthGuardAuthenticatorV855R47','happyadAuthGuardPhoneV855R47','happyadAuthGuardGmailV855R47'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',function(){this.value=String(this.value||'').replace(/\D/g,'').slice(0,6);});});
+    armAuthOpeningV710(220);
+  }
+  async function sendLoginGuardCodesV855R47(e,resend){
+    stop(e);var c=client(),p=loginGuardV855R47.policy||{},methods=normalizeLoginGuardMethodsV855R47(p.methods);
+    var button=document.getElementById('happyadAuthGuardResendV855R47');if(button)setSubmitBusy(button.id,true,'Envoi…','Renvoyer les codes');
+    try{
+      var sent=[];
+      if(methods.indexOf('gmail')>=0&&!loginGuardV855R47.verified.gmail){
+        var email=clean(loginGuardV855R47.email||p.email);if(!email)throw new Error('Gmail vérifié introuvable.');
+        var rg=await c.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});if(rg&&rg.error)throw rg.error;
+        loginGuardV855R47.codesSent.gmail=true;sent.push('Gmail');
+      }
+      if(methods.indexOf('phone')>=0&&!loginGuardV855R47.verified.phone){
+        var phone=clean(loginGuardV855R47.phone||p.phone);if(!phone)throw new Error('Téléphone vérifié introuvable.');
+        var rp=await c.auth.signInWithOtp({phone:phone,options:{shouldCreateUser:false}});if(rp&&rp.error)throw rp.error;
+        loginGuardV855R47.codesSent.phone=true;sent.push('téléphone');
+      }
+      if(sent.length)setStatus((resend?'Nouveaux codes envoyés : ':'Codes envoyés : ')+sent.join(' + ')+'.');
+    }catch(err){setStatus('Envoi impossible : '+clean(err&&err.message||err));}
+    finally{if(button)setSubmitBusy(button.id,false,'Envoi…','Renvoyer les codes');}
+  }
+  function markGuardInputVerifiedV855R47(id){try{var el=document.getElementById(id);if(el){el.disabled=true;el.value='';el.placeholder='Vérifié ✓';}}catch(_e){}}
+  async function verifyLoginGuardV855R47(e){
+    stop(e);if(busy)return;
+    var c=client(),p=loginGuardV855R47.policy||{},methods=normalizeLoginGuardMethodsV855R47(p.methods);
+    if(!methods.length){setStatus('Configuration de sécurité invalide.');return;}
+    var codes={
+      authenticator:value('happyadAuthGuardAuthenticatorV855R47').replace(/\D/g,''),
+      phone:value('happyadAuthGuardPhoneV855R47').replace(/\D/g,''),
+      gmail:value('happyadAuthGuardGmailV855R47').replace(/\D/g,''),
+      secret:value('happyadAuthGuardSecretV855R47')
+    };
+    if(methods.indexOf('authenticator')>=0&&!loginGuardV855R47.verified.authenticator&&!/^\d{6}$/.test(codes.authenticator)){setStatus('Entre les 6 chiffres de l’application d’authentification.');return;}
+    if(methods.indexOf('phone')>=0&&!loginGuardV855R47.verified.phone&&!/^\d{6}$/.test(codes.phone)){setStatus('Entre les 6 chiffres reçus sur le téléphone.');return;}
+    if(methods.indexOf('gmail')>=0&&!loginGuardV855R47.verified.gmail&&!/^\d{6}$/.test(codes.gmail)){setStatus('Entre les 6 chiffres reçus sur Gmail.');return;}
+    if(methods.indexOf('secret')>=0&&!loginGuardV855R47.verified.secret&&!codes.secret){setStatus('Entre votre clé secrète.');return;}
+    busy=true;setStatus('');setSubmitBusy('happyadAuthGuardSubmitV855R47',true,'Vérification…','Vérifier et se connecter');
+    try{
+      // Les OTP email/téléphone sont vérifiés avant le TOTP afin que le TOTP soit la dernière élévation AAL2 lorsqu'il est sélectionné.
+      if(methods.indexOf('gmail')>=0&&!loginGuardV855R47.verified.gmail){
+        var email=clean(loginGuardV855R47.email||p.email);var re=await c.auth.verifyOtp({email:email,token:codes.gmail,type:'email'});if(re&&re.error)throw re.error;
+        var ue=re&&re.data&&re.data.user;if(ue&&clean(ue.id)!==clean(loginGuardV855R47.userId))throw new Error('Le code Gmail ne correspond pas à ce compte.');
+        loginGuardV855R47.verified.gmail=true;markGuardInputVerifiedV855R47('happyadAuthGuardGmailV855R47');
+      }
+      if(methods.indexOf('phone')>=0&&!loginGuardV855R47.verified.phone){
+        var phone=clean(loginGuardV855R47.phone||p.phone);var rp=await c.auth.verifyOtp({phone:phone,token:codes.phone,type:'sms'});if(rp&&rp.error)throw rp.error;
+        var up=rp&&rp.data&&rp.data.user;if(up&&clean(up.id)!==clean(loginGuardV855R47.userId))throw new Error('Le code téléphone ne correspond pas à ce compte.');
+        loginGuardV855R47.verified.phone=true;markGuardInputVerifiedV855R47('happyadAuthGuardPhoneV855R47');
+      }
+      if(methods.indexOf('secret')>=0&&!loginGuardV855R47.verified.secret){
+        if(!c.rpc)throw new Error('Vérification de la clé secrète indisponible.');
+        var rs=await c.rpc('happyad_verify_secret_v855r46',{p_secret:codes.secret});if(rs&&rs.error)throw rs.error;
+        if(rs.data!==true)throw new Error('Clé secrète incorrecte.');
+        loginGuardV855R47.verified.secret=true;markGuardInputVerifiedV855R47('happyadAuthGuardSecretV855R47');
+      }
+      if(methods.indexOf('authenticator')>=0&&!loginGuardV855R47.verified.authenticator){
+        var factor=await verifiedTotpFactorV855R47();if(!factor)throw new Error('Application d’authentification non configurée.');
+        var mfa=c.auth&&c.auth.mfa;if(!mfa||typeof mfa.challengeAndVerify!=='function')throw new Error('Vérification MFA indisponible.');
+        var ra=await mfa.challengeAndVerify({factorId:factor.id,code:codes.authenticator});if(ra&&ra.error)throw ra.error;
+        loginGuardV855R47.verified.authenticator=true;markGuardInputVerifiedV855R47('happyadAuthGuardAuthenticatorV855R47');
+      }
+      var all=methods.every(function(m){return loginGuardV855R47.verified[m]===true;});if(!all)throw new Error('Toutes les protections choisies doivent être validées.');
+      var gs=await c.auth.getSession();var sess=gs&&gs.data&&gs.data.session||null;var user=sess&&sess.user||actualUser();if(!user||clean(user.id)!==clean(loginGuardV855R47.userId))throw new Error('Session utilisateur introuvable après vérification.');
+      resetLoginGuardV855R47();
+      var done=await finishSignedIn(user,{email:clean(user.email)});
+      toast(done&&done.recoveredDeletion?'Compte récupéré ✅ La suppression programmée a été annulée.':'Connecté ✅');
+    }catch(err){setStatus('Vérification impossible : '+clean(err&&err.message||err));}
+    finally{busy=false;setSubmitBusy('happyadAuthGuardSubmitV855R47',false,'Vérification…','Vérifier et se connecter');}
+  }
+  async function beginLoginGuardV855R47(user,email){
+    var policy=await loadLoginGuardPolicyV855R47(user);
+    if(!policy.enabled)return false;
+    var methods=normalizeLoginGuardMethodsV855R47(policy.methods);
+    if(!methods.length)throw new Error('La validation en deux étapes est activée sans méthode configurée.');
+    if(methods.indexOf('gmail')>=0&&(!policy.verifiedGmail||policy.verifiedGmail!==clean(user.email).toLowerCase()))throw new Error('Le Gmail protégé n’est plus vérifié.');
+    if(methods.indexOf('phone')>=0&&(!policy.verifiedPhone||policy.verifiedPhone!==clean(user.phone)))throw new Error('Le téléphone protégé n’est plus vérifié.');
+    if(methods.indexOf('authenticator')>=0&&!await verifiedTotpFactorV855R47())throw new Error('L’application d’authentification n’est plus configurée.');
+    loginGuardV855R47={pending:true,userId:user.id,email:clean(user.email||email),phone:clean(user.phone),policy:policy,verified:{},codesSent:{gmail:false,phone:false}};
+    setLoginGuardPendingV855R47(true,user.id);
+    renderLoginGuardV855R47(user,policy);
+    if(methods.indexOf('gmail')>=0||methods.indexOf('phone')>=0)setTimeout(function(){sendLoginGuardCodesV855R47(null,false);},80);
+    return true;
+  }
+
   async function finishSignedIn(user,seed){
     var c=client();var s=null;
     try{var gs=await c.auth.getSession();s=gs&&gs.data&&gs.data.session||null;}catch(_e){}
     if(!s&&user)s={user:user};
+    var lifecycle=await recoverDeletionAfterSuccessfulLoginV855R48();
+    if(lifecycle&&lifecycle.expired){
+      try{await c.auth.signOut();}catch(_signout){}
+      throw new Error('Le délai de récupération de 30 jours est terminé. Ce compte ne peut plus être récupéré.');
+    }
     applySession(s,'SIGNED_IN',{forceBroadcast:true});
     var p=await fetchOrCreateProfile(user,seed||{}).catch(function(){return null;});
     saveWarmUser(user,p||seed||{});
     broadcast('SIGNED_IN_READY');
     closeOverlay(true);
+    return {recoveredDeletion:!!(lifecycle&&lifecycle.recovered)};
   }
   async function signInWithQuotaRecoveryV752(c,email,pass){
     try{return await c.auth.signInWithPassword({email:email,password:pass});}
@@ -369,26 +650,94 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     if(!email||!pass){setStatus('Entre Gmail et mot de passe.');return;}
     var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
     busy=true;setStatus('');setSubmitBusy('happyadAuthLoginSubmitV595',true,'Connexion…','Se connecter');
+    setLoginGuardPendingV855R47(true,'');
     try{
       var r=await signInWithQuotaRecoveryV752(c,email,pass);if(r&&r.error)throw r.error;
       var user=r&&r.data&&r.data.user;if(!user)throw new Error('Session introuvable.');
-      await finishSignedIn(user,{email:email});toast('Connecté ✅');
-    }catch(err){var q=window.HappyadAuthStorageV752;if(q&&q.isQuota&&q.isQuota(err))setStatus('Espace temporaire saturé. HAPPYAD a libéré le cache de chargement. Appuie encore une fois sur Se connecter.');else setStatus('Connexion impossible : '+clean(err&&err.message||err));}
+      await enforceAccountLifecycleBeforeLoginV855R48();
+      setLoginGuardPendingV855R47(true,user.id);
+      var protectedLogin=await beginLoginGuardV855R47(user,email);
+      if(!protectedLogin){
+        resetLoginGuardV855R47();
+        var done=await finishSignedIn(user,{email:email});
+        toast(done&&done.recoveredDeletion?'Compte récupéré ✅ La suppression programmée a été annulée.':'Connecté ✅');
+      }
+    }catch(err){
+      try{await c.auth.signOut();}catch(_e){}
+      applySession(null,'LOGIN_GUARD_FAILED',{forceBroadcast:true});resetLoginGuardV855R47();
+      var q=window.HappyadAuthStorageV752;
+      if(q&&q.isQuota&&q.isQuota(err))setStatus('Espace temporaire saturé. HAPPYAD a libéré le cache de chargement. Appuie encore une fois sur Se connecter.','error');
+      else if(invalidCredentialsV855R61(err))setStatus('Gmail ou mot de passe incorrect.','error');
+      else setStatus('Connexion impossible : '+clean(err&&err.message||err),'error');
+    }
     finally{busy=false;setSubmitBusy('happyadAuthLoginSubmitV595',false,'Connexion…','Se connecter');}
   }
-  async function doForgot(e){
-    stop(e);if(busy)return;
-    var email=value('happyadAuthForgotEmailV597');
+  async function doForgot(e,opts){
+    stop(e);if(busy)return;opts=opts||{};
+    var email=clean(opts.email||value('happyadAuthForgotEmailV597')||recoveryFlowV855R40.email);
     if(!email){setStatus('Entre ton Gmail.');return;}
     var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
-    busy=true;setStatus('');setSubmitBusy('happyadAuthForgotSubmitV597',true,'Envoi…','Envoyer le lien');
+    recoveryFlowV855R40.email=email;recoveryFlowV855R40.verified=false;
+    busy=true;setStatus('');
+    var btnId=opts.resend?'happyadAuthForgotResendV855R40':'happyadAuthForgotSubmitV597';
+    setSubmitBusy(btnId,true,'Envoi…',opts.resend?'Renvoyer le code':'Envoyer le code');
     try{
       var redirect=happyadPasswordRecoveryRedirectV701();
-      if(!redirect)throw new Error('Adresse actuelle de HAPPYAD introuvable. Ouvre le site en ligne puis réessaie.');
-      var r=await c.auth.resetPasswordForEmail(email,{redirectTo:redirect});if(r&&r.error)throw r.error;
-      setStatus('Lien envoyé. Vérifie ton Gmail.');
+      var options=redirect?{redirectTo:redirect}:{};
+      var r=await c.auth.resetPasswordForEmail(email,options);if(r&&r.error)throw r.error;
+      renderForgotCodeV855R40(email,opts.resend?'Nouveau code envoyé. Vérifie ton Gmail.':'Code envoyé. Vérifie ton Gmail.');
     }catch(err){setStatus('Envoi impossible : '+clean(err&&err.message||err));}
-    finally{busy=false;setSubmitBusy('happyadAuthForgotSubmitV597',false,'Envoi…','Envoyer le lien');}
+    finally{busy=false;setSubmitBusy(btnId,false,'Envoi…',opts.resend?'Renvoyer le code':'Envoyer le code');}
+  }
+  async function doForgotVerifyV855R40(e){
+    stop(e);if(busy)return;
+    var email=clean(recoveryFlowV855R40.email),code=clean(value('happyadAuthForgotCodeV855R40')).replace(/\D/g,'');
+    if(!email){renderForgot('');setStatus('Entre ton Gmail.');return;}
+    if(!/^\d{6}$/.test(code)){setStatus('Entre exactement les 6 chiffres du code reçu.');return;}
+    var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
+    busy=true;setStatus('Vérification…');
+    try{
+      var expectedEmail=normalizeEmailV855R61(email);
+      var r=await c.auth.verifyOtp({email:email,token:code,type:'recovery'});if(r&&r.error)throw r.error;
+      var verifiedUser=r&&r.data&&r.data.user||null;
+      var verifiedSession=r&&r.data&&r.data.session||null;
+      if(!verifiedSession){var gs=await c.auth.getSession();verifiedSession=gs&&gs.data&&gs.data.session||null;}
+      if(!verifiedSession)throw new Error('Session de récupération introuvable après vérification du code.');
+      var sessionUser=verifiedSession.user||verifiedUser||null;
+      if(!sessionUser||normalizeEmailV855R61(sessionUser.email)!==expectedEmail){
+        try{await c.auth.signOut();}catch(_signoutMismatch){}
+        recoveryFlowV855R40.verified=false;
+        throw new Error('Ce code ne correspond pas au Gmail de récupération demandé.');
+      }
+      if(verifiedUser&&normalizeEmailV855R61(verifiedUser.email)!==expectedEmail){
+        try{await c.auth.signOut();}catch(_signoutMismatch2){}
+        recoveryFlowV855R40.verified=false;
+        throw new Error('Ce code appartient à un autre Gmail.');
+      }
+      recoveryFlowV855R40.verified=true;
+      renderForgotPasswordV855R40(email);
+    }catch(err){
+      var input=document.getElementById('happyadAuthForgotCodeV855R40');if(input){delete input.dataset.happyadAutoVerifyV855R61;input.value='';input.focus();}
+      setStatus('Code invalide, expiré ou associé à un autre Gmail.','error');
+    }
+    finally{busy=false;}
+  }
+  async function doForgotSavePasswordV855R40(e){
+    stop(e);if(busy)return;
+    var email=clean(recoveryFlowV855R40.email),pass1=value('happyadAuthForgotPass1V855R40'),pass2=value('happyadAuthForgotPass2V855R40');
+    if(!recoveryFlowV855R40.verified){setStatus('Vérifie d’abord le code reçu.');return;}
+    if(pass1.length<6){setStatus('Utilise au moins 6 caractères pour le mot de passe.');return;}
+    if(pass1!==pass2){setStatus('Les mots de passe ne sont pas identiques.');return;}
+    var c=client();if(!c||!c.auth){setStatus('Connexion non prête.');return;}
+    busy=true;setStatus('');setSubmitBusy('happyadAuthForgotSaveV855R40',true,'Enregistrement…','Enregistrer le mot de passe');
+    try{
+      var r=await c.auth.updateUser({password:pass1});if(r&&r.error)throw r.error;
+      try{await c.auth.signOut();}catch(_e){}
+      applySession(null,'PASSWORD_RECOVERY_COMPLETE',{forceBroadcast:true});
+      resetRecoveryFlowV855R40();
+      renderLogin(email);setStatus('Mot de passe modifié. Connecte-toi avec ton nouveau mot de passe.');toast('Mot de passe modifié ✅');
+    }catch(err){setStatus('Modification impossible : '+clean(err&&err.message||err));}
+    finally{busy=false;setSubmitBusy('happyadAuthForgotSaveV855R40',false,'Enregistrement…','Enregistrer le mot de passe');}
   }
   function ageFromBirth(value){var b=new Date(value+'T00:00:00');if(isNaN(b.getTime()))return -1;var n=new Date();var a=n.getFullYear()-b.getFullYear();var m=n.getMonth()-b.getMonth();if(m<0||(m===0&&n.getDate()<b.getDate()))a--;return a;}
   async function doSignup(e){
@@ -421,6 +770,16 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   function closeOverlay(authSuccess){
     if(!overlay)return;
+    if(isLoginGuardPendingV855R47()&&!authSuccess){
+      try{var gc=client();if(gc&&gc.auth)gc.auth.signOut().catch(function(){});}catch(_e){}
+      applySession(null,'LOGIN_GUARD_CANCELLED',{forceBroadcast:true});
+      resetLoginGuardV855R47();
+    }
+    if(recoveryFlowV855R40.verified&&!authSuccess){
+      try{var rc=client();if(rc&&rc.auth)rc.auth.signOut().catch(function(){});}catch(_e){}
+      applySession(null,'PASSWORD_RECOVERY_CLOSED',{forceBroadcast:true});
+      resetRecoveryFlowV855R40();
+    }
     clearTimeout(authOpeningTimerV710);authOpeningTimerV710=0;authUnlockAtV710=0;
     overlay.classList.remove('on','happyadAuthOpeningV710');overlay.setAttribute('aria-hidden','true');
     document.body.classList.remove('happyadAuthGateOpenV595');
@@ -473,26 +832,15 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   async function logout(options){
     options=options||{};if(busy)return false;busy=true;
-    try{
-      var pushMaster=window.HappyPushMaster;
-      if(pushMaster&&typeof pushMaster.deactivateCurrent==='function'){
-        await Promise.race([
-          Promise.resolve(pushMaster.deactivateCurrent()),
-          new Promise(function(resolve){setTimeout(function(){resolve(false);},2500);})
-        ]);
-      }
-    }catch(_pushError){}
-    try{
-      var c=client();if(c&&c.auth&&c.auth.signOut)await c.auth.signOut({scope:'local'});
-    }catch(_e){}
-    clearPrivateAuthStorage();session=null;ready=true;broadcast('SIGNED_OUT');
-    closeOverlay(false);
-    try{
-      var nav=window.HappyNavigation;
-      if(nav&&typeof nav.postToFrame==='function')nav.postToFrame('profile',{type:'HAPPYAD_AUTH_SIGNED_OUT_V595',detail:sessionDetail('SIGNED_OUT')});
-      if(nav&&typeof nav.close==='function')nav.close('auth-logout-v595');
-    }catch(_e){}
-    toast('Déconnecté ✅');busy=false;return true;
+    var pushTask=null,signOutTask=null;
+    try{var pushMaster=window.HappyPushMaster;if(pushMaster&&typeof pushMaster.deactivateCurrent==='function')pushTask=Promise.resolve(pushMaster.deactivateCurrent()).catch(function(){});}catch(_pushError){}
+    try{var c=client();if(c&&c.auth&&c.auth.signOut)signOutTask=Promise.resolve(c.auth.signOut({scope:'local'})).catch(function(){});}catch(_signOutError){}
+    clearPrivateAuthStorage();session=null;ready=true;broadcast('SIGNED_OUT');closeOverlay(false);
+    try{var nav=window.HappyNavigation;if(nav&&typeof nav.close==='function')nav.close('auth-logout-v855r68',true);if(nav&&typeof nav.invalidateOwnerProfile==='function')nav.invalidateOwnerProfile('auth-logout-v855r68');}catch(_e){}
+    toast('Déconnecté ✅');busy=false;
+    /* V68 : la navigation ne dépend plus du réseau. Push et signOut terminent silencieusement. */
+    try{Promise.allSettled([pushTask,signOutTask].filter(Boolean)).catch(function(){});}catch(_bg){}
+    return true;
   }
   function isAuthOverlayTarget(target){return !!(target&&target.closest&&target.closest('#happyadAuthGateV595'));}
   function isPwaInstallTarget(target){return !!(target&&target.closest&&target.closest('#happyadInstallAppBtn,#happyadPwaGuide'));}

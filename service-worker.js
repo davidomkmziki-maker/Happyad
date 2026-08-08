@@ -1,7 +1,8 @@
-/* HAPPYAD V851R12 - Assistance écriture stable, temps réel silencieux */
+// Regression lineage: happyad-pwa-v855r65-post-options-reactivation-fluid | happyad-pwa-v855r66-post-options-optimistic-bg | happyad-pwa-v855r67-popup-persistant-confirmation-haut
+/* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-V851R12-assistance-ecriture-stable-20260803-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v855r68-optimisation-finale-20260808-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -10,7 +11,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=851r12-ecriture-stable',
+  './index.html?v=855r5-profile-counts-single-rpc',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-icon-v535center1-512.png',
@@ -21,38 +22,72 @@ var HAPPYAD_APP_SHELL = [
   './core/chat-sticker-living-v791.js?v=799-smaller-mouth-only',
   './core/chat-integration-master-v795.css?v=851r2-keyboard-rows',
   './core/keyboard-surface-master-v851r7.css?v=851r7-chat-refinement-seam',
-  './core/keyboard-surface-master-v851r7.js?v=851r7-chat-refinement-seam',
-  './core/system-notification-master-v807.js?v=809-system-copy-clean',
+  './core/keyboard-surface-master-v851r7.js?v=855r2-stats-close-repair',
+  './core/language-preference-master-v855r59.js?v=855r59-language-storage-real',
+  './core/system-notification-master-v807.js?v=855r56-notification-preferences',
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
-  './core/chat-integration-master-v795.js?v=851r2-keyboard-rows',
+  './core/chat-integration-master-v795.js?v=855r32-avatar-canonique',
   './core/marketplace-home-master-v828.js?v=850-video-listing-fast-open',
   './modules/happyad-chat.html?v=851r7-refinement-full-width',
-  './modules/message-center.html?mode=inbox&source=v738-assistance&v=851r5-message-scroll',
+  './modules/message-center.html?mode=inbox&source=v738-assistance&v=855r55-filtering',
   './modules/assistance.html?v=851r12-ecriture-stable',
-  './modules/video.html',
+  './modules/video.html?v=855r68-optimisation-finale',
+  './modules/photo.html?v=855r68-optimisation-finale',
+  './modules/map.html?v=855r54-location-privacy',
   './core/startup-master-v727.js?v=727-startup-unique',
-  './core/analytics-master-v731.js?v=731-local-time-watch-checkpoints',
-  './core/navigation-master-v668.js?v=851r5-message-scroll',
+  './core/analytics-master-v731.js?v=855r7-all-video-surfaces',
+  './core/navigation-master-v668.js?v=855r35-anciens-groupes-photos',
+  './core/profile-avatar-master-v855r32.js?v=855r32-source-unique',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
-  './core/auth-session-master-v598.js?v=776-push-clean-signout',
-  './core/profile-identity-stable-master-v741.js?v=758-visitor-isolation',
-  './core/profile-avatar-recovery-master-v743.js?v=763-home-stable',
-  './core/card-author-avatar-master-v742.js?v=763-home-stable',
+  './core/message-privacy-master-v855r51.js?v=855r53-account-discovery',
+  './core/account-discovery-privacy-v855r53.js?v=855r53-account-discovery',
+  './core/location-privacy-master-v855r54.js?v=855r54-location-privacy',
+  './core/filtering-privacy-master-v855r55.js?v=855r55-filtering',
+  './core/message-presence-app-master-v855r51.js?v=855r51-app-presence',
+  './core/interaction-privacy-master-v855r52.js?v=855r52-interactions',
+  './core/post-options-master-v693.js?v=855r68-optimisation-finale',
+  './core/share-button-bridge.js?v=855r52-interaction-privacy',
+  './core/story-master-v699.js?v=855r52-story-interactions',
+  './core/notification-master-v700.js?v=855r57-quiet-mode-real',
+  './core/auth-session-master-v598.js?v=855r61-login-recovery-ui',
+  './core/profile-identity-stable-master-v741.js?v=855r32-avatar-canonique',
+  './core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection',
+  './core/card-author-avatar-master-v742.js?v=855r32-avatar-canonique',
   './core/home-scroll-prepaint-master-v696.js?v=774-near-layout-geometry',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=742-profile-edit-clear',
-  './core/main-tabs-master-v615.js?v=784-own-profile-nine-first',
+  './core/main-tabs-master-v615.js?v=855r35-anciens-groupes-photos',
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
-  './core/internal-return-master-v694.js?v=714-profile-settings-return',
+  './core/internal-return-master-v694.js?v=855r2-stats-close-repair',
   './core/overlay-scroll-master-v615.js?v=615',
   './core/overlay-scroll-master-v662.js?v=662-profile-fullscreen-zoom-isolated',
-  './core/assistance-integration-master-v738.css?v=851r4-assistance-scroll-stable',
-  './core/assistance-integration-master-v738.js?v=851r12-ecriture-stable',
+  './core/assistance-integration-master-v738.css?v=855r34-squelette-chaque-ouverture',
+  './core/assistance-integration-master-v738.js?v=855r34-squelette-chaque-ouverture',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
   './core/message-assistance-shortcut-v738.js?v=757-audit-stable',
   './core/assistance-supabase-realtime-v750.js?v=851r12-ecriture-stable',
-  './modules/user.html?v=784-own-profile-nine-first'
+  './modules/my-profile.html?v=855r35-anciens-groupes-photos',
+  './modules/profile-edit.html?v=855r32-images-universelles',
+  './core/vendor/heic2any-v0.0.4.min.js?v=855r32-local-heif-decoder',
+  './modules/settings.html?v=855r59-language-storage-real',
+  './core/profile/settings-account-auth-v855r48.js?v=855r48-account-lifecycle-region',
+  './core/profile/settings-data-v855r36.js?v=855r48-account-lifecycle',
+  './modules/visitor-profile.html?v=855r55-privacy-complete',
+  './modules/profile-stats.html?v=855r62-click-prefetch',
+  './core/profile/profile-design-v854r5.css?v=855r31-old-edit-removed',
+  './core/profile/profile-stats-host-v855r4.css?v=855r28-skeleton',
+  './core/profile/profile-settings-host-v855r26.css?v=855r28-skeleton',
+  './core/profile/profile-edit-host-v855r31.css?v=855r31-securite-complete',
+  './core/profile/profile-core-v855r6.js?v=855r35-anciens-groupes-photos',
+  './core/profile/profile-stats-host-v855r4.js?v=855r62-click-prefetch',
+  './core/profile/profile-settings-host-v855r26.js?v=855r58-language-global',
+  './core/profile/profile-edit-host-v855r31.js?v=855r32-transfert-binaire',
+  './core/profile/owner-profile-v855r31.js?v=855r32-avatar-canonique',
+  './core/profile/profile-privacy-master-v855r50.js?v=855r50-profile-visibility',
+  './core/profile/visitor-profile-v855r7.js?v=855r50-profile-visibility',
+  './core/profile/profile-story-parent-v854r5.js?v=854r5',
+  './core/profile/profile-photo-parent-v854r8.js?v=855r32-avatar-canonique'
 ];
 
 function isHappyCache(name){
@@ -145,7 +180,9 @@ self.addEventListener('activate', function(event){
       if(isHappyCache(key) && !isCurrentCache(key))return caches.delete(key);
       return Promise.resolve(false);
     }));
-  }).then(function(){return self.clients.claim();}));
+  }).then(function(){return caches.delete(HAPPYAD_PUSH_AVATAR_CACHE);})
+    .then(function(){return caches.open(HAPPYAD_PUSH_AVATAR_CACHE);})
+    .then(function(){return self.clients.claim();}));
 });
 
 self.addEventListener('message', function(event){
@@ -159,6 +196,23 @@ self.addEventListener('message', function(event){
           return Promise.resolve(false);
         }));
       }));
+    }
+    if(type==='HAPPYAD_CLEAR_USER_CACHES_V855R59'){
+      event.waitUntil(caches.keys().then(function(keys){
+        return Promise.all(keys.map(function(key){
+          if(key===HAPPYAD_RUNTIME_CACHE || key===HAPPYAD_MEDIA_CACHE || key===HAPPYAD_PUSH_AVATAR_CACHE)return caches.delete(key);
+          if(isHappyCache(key) && !isCurrentCache(key))return caches.delete(key);
+          return Promise.resolve(false);
+        }));
+      }).then(function(){return caches.open(HAPPYAD_PUSH_AVATAR_CACHE);}));
+    }
+    if(type==='HAPPYAD_PROFILE_AVATAR_INVALIDATE_V855R32'){
+      event.waitUntil(caches.delete(HAPPYAD_PUSH_AVATAR_CACHE).then(function(){
+        return caches.open(HAPPYAD_PUSH_AVATAR_CACHE);
+      }));
+    }
+    if(type==='HAPPYAD_NOTIFICATION_QUIET_PREFERENCES_V855R57'){
+      event.waitUntil(happyadStoreState('notification-preferences-v855r57',event.data&&event.data.preferences||{}));
     }
   }catch(e){}
 });
@@ -215,7 +269,12 @@ function happyadPushData(data){
     push_id:String(data.push_id||''),
     sent_at:String(data.sent_at||''),
     received_at:Date.now(),
-    delivery_delay_ms:0
+    delivery_delay_ms:0,
+    notification_type:String(data.notification_type||data.type||''),
+    notification_preference_key:String(data.notification_preference_key||''),
+    priority:String(data.priority||data.notification_priority||''),
+    important:data.important===true||data.important_message===true||data.urgent===true||data.critical===true,
+    security_alert:data.security_alert===true||data.security===true||data.critical_security===true
   };
 }
 
@@ -268,6 +327,104 @@ function happyadStoreState(name,data){
       }));
     }).catch(function(){return undefined;});
   }catch(_e){return Promise.resolve();}
+}
+
+function happyadReadState(name){
+  try{
+    return caches.open(HAPPYAD_PUSH_STATE_CACHE).then(function(cache){
+      return cache.match(happyadStateRequest(name)).then(function(response){
+        if(!response)return {};
+        return response.json().catch(function(){return {};});
+      });
+    }).catch(function(){return {};});
+  }catch(_e){return Promise.resolve({});}
+}
+
+function happyadQuietTimeMinutes(value){
+  var match=/^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(value||'').trim());
+  return match?(Number(match[1])*60+Number(match[2])):-1;
+}
+function happyadValidTimeZone(zone){
+  zone=String(zone||'').trim();if(!zone)return false;
+  try{Intl.DateTimeFormat('en-US',{timeZone:zone}).format(new Date());return true;}catch(_e){return false;}
+}
+function happyadZonedMinutes(at,zone){
+  var date=at instanceof Date?at:new Date(at||Date.now());
+  if(!Number.isFinite(date.getTime()))date=new Date();
+  try{
+    var options={hour:'2-digit',minute:'2-digit',hourCycle:'h23'};
+    if(happyadValidTimeZone(zone))options.timeZone=String(zone).trim();
+    var parts=Intl.DateTimeFormat('en-GB',options).formatToParts(date),hour=0,minute=0;
+    parts.forEach(function(part){if(part.type==='hour')hour=Number(part.value)||0;if(part.type==='minute')minute=Number(part.value)||0;});
+    return hour*60+minute;
+  }catch(_e){return date.getHours()*60+date.getMinutes();}
+}
+function happyadQuietActive(preferences,at){
+  preferences=preferences&&typeof preferences==='object'?preferences:{};
+  if(preferences.quietMode!==true)return false;
+  var start=happyadQuietTimeMinutes(preferences.quietStart||'22:00');
+  var end=happyadQuietTimeMinutes(preferences.quietEnd||'07:00');
+  if(start<0||end<0)return false;
+  var current=happyadZonedMinutes(at,preferences.quietTimeZone||'');
+  if(start===end)return true;
+  if(start<end)return current>=start&&current<end;
+  return current>=start||current<end;
+}
+function happyadPushSecurity(data,detail){
+  data=data||{};detail=detail||{};
+  var type=String(data.type||detail.type||'').toLowerCase();
+  return data.security_alert===true||data.security===true||data.critical_security===true||detail.security_alert===true||/^security(?:_|$)/.test(type);
+}
+function happyadPushImportant(data,detail){
+  data=data||{};detail=detail||{};
+  var priority=String(data.priority||data.notification_priority||detail.priority||'').toLowerCase();
+  var type=String(data.type||detail.type||'').toLowerCase();
+  return data.important===true||data.important_message===true||data.urgent===true||data.critical===true||detail.important===true||
+    priority==='high'||priority==='urgent'||priority==='critical'||type==='important_message'||type==='urgent_message';
+}
+function happyadPushPreferenceKey(data,detail){
+  data=data||{};detail=detail||{};
+  var explicit=String(data.notification_preference_key||detail.notification_preference_key||'').trim();
+  if(explicit)return explicit;
+  var type=String(data.notification_type||data.type||detail.notification_type||detail.type||'').toLowerCase();
+  if(type==='like'||type==='story_like'||type==='like_story')return 'likes';
+  if(type==='comment')return 'comments';
+  if(type==='reply'||type==='comment_reply')return 'commentReplies';
+  if(type==='share'||type==='repost')return 'shares';
+  if(type==='mention')return 'mentions';
+  if(type==='tag'||type==='tagged'||type==='identification')return 'tags';
+  if(type==='follow'||type==='follower'||type==='new_follower')return 'newFollowers';
+  if(type==='message'||type==='private_message'||type==='dm'||type==='direct_message'||type==='chat_message'||type==='happyad_message')return 'privateMessages';
+  if(type==='message_request'||type==='chat_request')return 'messageRequests';
+  if(type==='audio_call'||type==='call_audio')return 'audioCalls';
+  if(type==='video_call'||type==='call_video')return 'videoCalls';
+  if(type==='conversation_reply'||type==='message_reply')return 'conversationReplies';
+  if(type==='followed_post'||type==='new_followed_post')return 'followedPosts';
+  if(type==='followed_story'||type==='new_followed_story')return 'followedStories';
+  if(type==='post_activity'||type==='own_post_activity')return 'ownPostActivity';
+  if(type==='profile_visit'||type==='important_profile_visit')return 'profileVisits';
+  if(type==='recommended_post'||type==='post_recommendation')return 'recommendedPosts';
+  if(type==='marketplace_message'||type==='listing_message')return 'marketplaceMessages';
+  if(type==='order'||type==='order_update'||type==='order_status')return 'orders';
+  if(type==='listing_status'||type==='marketplace_status'||type==='listing_published')return 'listingStatus';
+  if(type==='listing_expired'||type==='expired_listing')return 'expiredListing';
+  if(type==='saved_search_result'||type==='saved_search_results')return 'savedSearchResults';
+  if(type==='price_change'||type==='availability_change'||type==='price_availability')return 'priceAvailability';
+  if(type==='verification'||type==='verification_decision'||type==='seller_verification')return 'verificationDecisions';
+  if(type==='system'||type==='announcement'||type==='important'||type==='happyad_info')return 'importantHappyad';
+  return '';
+}
+function happyadPushDeliveryDecision(preferences,data,detail){
+  preferences=preferences&&typeof preferences==='object'?preferences:{};
+  if(preferences.push===false)return {show:false,reason:'push-disabled'};
+  if(!happyadPushSecurity(data,detail)){
+    var key=happyadPushPreferenceKey(data,detail);
+    if(key&&preferences[key]===false)return {show:false,reason:'category-disabled',preference_key:key};
+  }
+  if(!happyadQuietActive(preferences,new Date()))return {show:true,reason:'allowed'};
+  if(happyadPushSecurity(data,detail))return {show:true,reason:'security-during-quiet'};
+  if(preferences.importantDuringQuiet===true&&happyadPushImportant(data,detail))return {show:true,reason:'important-during-quiet'};
+  return {show:false,reason:'quiet-mode'};
 }
 
 function happyadNotificationAsset(value,fallback){
@@ -396,28 +553,40 @@ self.addEventListener('push', function(event){
   detail.delivery_delay_ms=sentAt>0?Math.max(0,Date.now()-sentAt):0;
 
   event.waitUntil(
-    happyadStoreState('last-received',detail).then(function(){
-      return happyadVisibleClientsFast();
-    }).then(function(visible){
-      (visible||[]).forEach(function(client){
-        try{client.postMessage({type:'HAPPYAD_PUSH_FOREGROUND',data:detail});}catch(_e){}
-      });
-
-      /* V780 : chaque nouveau message reçu par Push produit un popup système.
-         Une fenêtre HAPPYAD ouverte reçoit aussi l'événement interne, mais ne
-         peut plus supprimer silencieusement la notification Android. */
-      return happyadShowNotification(data,detail).then(function(){
-        var shown={
-          push_id:detail.push_id,
-          message_id:detail.message_id,
-          conversation_id:detail.conversation_id,
-          sent_at:detail.sent_at,
-          received_at:detail.received_at,
-          shown_at:Date.now(),
-          delivery_delay_ms:detail.delivery_delay_ms
-        };
-        return happyadStoreState('last-shown',shown).then(function(){
-          return happyadPostToClients('HAPPYAD_PUSH_SHOWN',shown);
+    Promise.all([
+      happyadStoreState('last-received',detail),
+      happyadReadState('notification-preferences-v855r57')
+    ]).then(function(results){
+      var preferences=results&&results[1]||{};
+      return happyadVisibleClientsFast().then(function(visible){
+        (visible||[]).forEach(function(client){
+          try{client.postMessage({type:'HAPPYAD_PUSH_FOREGROUND',data:detail});}catch(_e){}
+        });
+        var decision=happyadPushDeliveryDecision(preferences,data,detail);
+        if(!decision.show){
+          var suppressed={
+            push_id:detail.push_id,message_id:detail.message_id,conversation_id:detail.conversation_id,
+            sent_at:detail.sent_at,received_at:detail.received_at,suppressed_at:Date.now(),
+            reason:decision.reason||'quiet-mode',preference_key:decision.preference_key||''
+          };
+          return happyadStoreState('last-suppressed',suppressed).then(function(){
+            return happyadPostToClients('HAPPYAD_PUSH_QUIET_SUPPRESSED',suppressed);
+          });
+        }
+        return happyadShowNotification(data,detail).then(function(){
+          var shown={
+            push_id:detail.push_id,
+            message_id:detail.message_id,
+            conversation_id:detail.conversation_id,
+            sent_at:detail.sent_at,
+            received_at:detail.received_at,
+            shown_at:Date.now(),
+            delivery_delay_ms:detail.delivery_delay_ms,
+            delivery_reason:decision.reason||'allowed'
+          };
+          return happyadStoreState('last-shown',shown).then(function(){
+            return happyadPostToClients('HAPPYAD_PUSH_SHOWN',shown);
+          });
         });
       });
     })

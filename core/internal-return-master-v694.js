@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V712_INTERNAL_RETURN_PROFILE_SETTINGS';
+  var VERSION='V855R25_VISITOR_PHOTO_HOME_DOCK_IMMEDIATE';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
   var NOTIF_URL='modules/notification-center.html?v=700-infinite-scroll';
@@ -38,7 +38,7 @@
     try{var st=history.state||{};page=clean(st.view);url=clean(st.url);}catch(_e){}
     return {page:normalizeDockPage(page),url:url||'index.html'};
   }
-  function dockAllowed(page){page=normalizeDockPage(page);return page==='home'||page==='profile'||page==='profile_public'||page==='video'||page==='message';}
+  function dockAllowed(page){page=normalizeDockPage(page);return page==='home'||page==='profile'||page==='video'||page==='message';}
   function dockElement(){return document.getElementById('happyadMainDockV585')||document.querySelector('.bottom.happyadMainDockV585');}
   function notifyMessageLayout(reason){
     try{var fr=document.getElementById('happyadAppFrame_message');if(fr&&fr.contentWindow)fr.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_LAYOUT_REPAIR',detail:{reason:reason||VERSION,at:now()}},'*');}catch(_e){}
@@ -63,14 +63,18 @@
       }
     }catch(_e){}
   }
-  function applyDock(){
+  function applyDock(pageOverride){
     if(!document.body)return;
     var hidden=hasLayers();
     var route=currentRoute();
-    var visible=!hidden&&dockAllowed(route.page);
+    var rawOverride=clean(pageOverride);
+    var forcedPage=rawOverride?normalizeDockPage(rawOverride):'';
+    if(forcedPage)route.page=forcedPage;
+    var visitor=(route.page==='profile_public');
+    var visible=!hidden&&!visitor&&dockAllowed(route.page);
     document.body.classList.toggle('happyadMainDockVisible',visible);
     document.body.classList.toggle('happyadInternalScreenOpenV591',hidden);
-    forceDockHidden(hidden);
+    forceDockHidden(hidden||visitor);
     setTimeout(function(){notifyMessageLayout(hidden?'internal-open-v591':'internal-closed-v591');},20);
   }
 
@@ -288,6 +292,7 @@
     if(id==='message-chat')return postToFrame('message','HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
     if(id==='profile-settings')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
     if(id==='profile-photo')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
+    if(id==='profile-stats-v855')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
     return false;
   }
 
@@ -299,7 +304,19 @@
       openLayer('photo-central');
     }else{
       closeLayer('photo-central');
+      /* V855R25 : lorsqu'on quitte un Profil visiteur après avoir ouvert une photo,
+         les couches photo pouvaient rester enregistrées pendant quelques instants.
+         Elles forçaient alors le dock inférieur à rester caché alors que l'Accueil
+         était déjà visible. On les ferme dans le même cycle de navigation. */
+      if(page!=='profile'&&page!=='profile_public'){
+        closeLayer('home-photo');
+        closeLayer('profile-photo');
+      }
+      if(page!=='profile')closeLayer('profile-stats-v855');
       if(page!=='publish')lastStableRoute={page:page,url:url};
+      /* Le routeur émet cet événement avant la mise à jour de history.state.
+         Utiliser la page annoncée évite de relire momentanément profile_public. */
+      applyDock(page);
     }
   },true);
   window.addEventListener('message',function(ev){
@@ -315,7 +332,7 @@
         notificationPendingDetail=null;
       }
       else if(type==='HAPPYAD_INTERNAL_SCREEN_OPEN_V591')openLayer(clean(detail.id)||'internal');
-      else if(type==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591')closeLayer(clean(detail.id)||'internal');
+      else if(type==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591'||type==='HAPPYAD_INTERNAL_SCREEN_CLOSED_V591')closeLayer(clean(detail.id)||'internal');
       else if(type==='HAPPYAD_INTERNAL_BACK_REQUEST_V591')back(clean(detail.id));
       else if(type==='HAPPYAD_PROFILE_VIEWER_OPEN_V581'||type==='HAPPYAD_PROFILE_VIEWER_OPEN_V588')openLayer('profile-photo');
       else if(type==='HAPPYAD_PROFILE_VIEWER_CLOSE_V581'||type==='HAPPYAD_PROFILE_VIEWER_CLOSE_V588')closeLayer('profile-photo');

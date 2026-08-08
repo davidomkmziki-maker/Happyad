@@ -32,7 +32,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>HappyAD - Messages V746</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>window.HAPPYAD_SUPABASE_URL='https://txjjyhupbejgjcianrmr.supabase.co';window.HAPPYAD_SUPABASE_KEY='sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';</script>
+  <script src="../core/profile-avatar-master-v855r32.js?v=855r32-source-unique"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
+  <script src="../core/message-privacy-master-v855r51.js?v=855r53-account-discovery"></script>
+  <script src="../core/filtering-privacy-master-v855r55.js?v=855r55-filtering"></script>
   <script>
     (function(){
       try{
@@ -2879,7 +2883,11 @@
       color:#fff;background:rgba(255,255,255,.07);cursor:pointer;-webkit-tap-highlight-color:transparent;
     }
     .person-selector-close:active{background:rgba(255,255,255,.14);transform:scale(.95)}
-    .person-selector-search-wrap{flex:0 0 auto;padding:0 12px 11px}
+    .person-selector-search-wrap{flex:0 0 auto;padding:0 12px 11px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+    .person-selector-contact-btn{height:43px;min-width:43px;padding:0 11px;border:1px solid rgba(255,255,255,.105);border-radius:15px;background:rgba(255,255,255,.065);color:#b8c7da;display:none;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .person-selector-contact-btn.available{display:inline-flex}
+    .person-selector-contact-btn:active{background:rgba(255,255,255,.12);transform:scale(.97)}
+    .person-selector-contact-btn svg{width:18px;height:18px;flex:0 0 auto}
     .person-selector-search{
       height:43px;
       display:flex;
@@ -3116,6 +3124,12 @@
     @keyframes happyadStoryReplySpin{to{transform:rotate(360deg)}}
     .story-reply-text{display:block!important;margin:7px 8px 1px!important;color:#fff!important;font-size:14px!important;line-height:1.3!important}
 
+
+    .message-request-filter{display:flex;gap:8px;padding:8px 14px 6px;background:var(--bg,#050505);flex:0 0 auto}
+    .message-request-filter button{border:1px solid rgba(255,255,255,.12);background:transparent;color:#b9bec7;border-radius:999px;padding:7px 12px;font:inherit;font-size:12px;font-weight:800}
+    .message-request-filter button.on{background:#fff;color:#111;border-color:#fff}
+    .message-request-filter .request-count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ff8a00;color:#111;margin-left:5px;font-size:10px}
+    .message-request-filter .request-count:empty{display:none}
 </style>
 <link id="happyad-message-assistance-shortcut-v738-css" rel="stylesheet" href="../core/message-assistance-shortcut-v738.css?v=738-visible">
   <style id="happyad-v775-message-composer-stable-css">
@@ -3202,6 +3216,10 @@
 
       <div class="searchbar" id="searchBar">
         <input class="searchbox" id="searchInput" placeholder="Rechercher une conversation..." autocomplete="off" />
+      </div>
+      <div class="message-request-filter" id="messageRequestFilter">
+        <button type="button" id="messageNormalMode" class="on">Messages</button>
+        <button type="button" id="messageRequestsMode">Demandes <span class="request-count" id="messageRequestsCount"></span></button>
       </div>
 
       <div class="list-wrap">
@@ -3350,8 +3368,12 @@
               <path d="M10.8 18.1a7.3 7.3 0 1 1 0-14.6 7.3 7.3 0 0 1 0 14.6Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
               <path d="M16.1 16.2 21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
             </svg>
-            <input id="personSelectorSearchInput" type="search" placeholder="Rechercher une personne..." autocomplete="off" spellcheck="false" />
+            <input id="personSelectorSearchInput" type="search" placeholder="Nom, @utilisateur, Gmail ou téléphone…" autocomplete="off" spellcheck="false" />
           </label>
+          <button class="person-selector-contact-btn" id="personSelectorContactsBtn" type="button" aria-label="Choisir dans les contacts">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.6-4 2.5-6 5.5-6s4.9 2 5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 8h4M19 6v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Contacts</span>
+          </button>
         </div>
         <div class="person-selector-content" id="personSelectorContent">
           <div class="person-selector-empty">Chargement des profils récents…</div>
@@ -3421,6 +3443,7 @@
     </div>
   </main>
 
+  <script src="../core/account-discovery-privacy-v855r53.js?v=855r53-account-discovery"></script>
   <script id="happyad-message-master-v38c7f-long-press-all-ordinary">
     (function(){
       'use strict';
@@ -3447,6 +3470,7 @@
       const personSelectorSubtitle = byId('personSelectorSubtitle');
       const personSelectorClose = byId('personSelectorClose');
       const personSelectorSearchInput = byId('personSelectorSearchInput');
+      const personSelectorContactsBtn = byId('personSelectorContactsBtn');
       const personSelectorContent = byId('personSelectorContent');
       const personSelectorForwardFooter = byId('personSelectorForwardFooter');
       const personSelectorSelectedCount = byId('personSelectorSelectedCount');
@@ -3460,6 +3484,9 @@
       const listMenuBtn = byId('listMenuBtn');
       const chatMenuBtn = byId('chatMenuBtn');
       const conversationPanel = byId('conversationPanel');
+      const messageNormalMode = byId('messageNormalMode');
+      const messageRequestsMode = byId('messageRequestsMode');
+      const messageRequestsCount = byId('messageRequestsCount');
       const chatBody = byId('chatBody');
       const chatAvatar = byId('chatAvatar');
       const chatName = byId('chatName');
@@ -3521,6 +3548,9 @@
       let currentConversationId = '';
       let currentTarget = null;
       let conversations = [];
+      let messageRequestModeV855R55 = 'normal';
+      let messageRequestIdsV855R55 = new Set();
+      let messageRequestsRefreshBusyV855R55 = false;
       let messages = [];
       let searchOpen = false;
       let viewOnce = false;
@@ -3539,6 +3569,12 @@
       }
       let currentConversationMeta = null;
       let currentReceipt = {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
+      const messagePrivacyCacheV855R51 = new Map();
+      let currentTargetPrivacyV855R51 = null;
+      let presencePollTimerV855R51 = 0;
+      let presenceHeartbeatTimerV855R51 = 0;
+      let typingTouchTimerV855R51 = 0;
+      let lastTypingStateV855R51 = false;
       let unreadRefreshPromise = null;
       let mediaRecorder = null;
       let mediaStream = null;
@@ -3598,6 +3634,9 @@
       let personSelectorSearchResults = [];
       let personSelectorSearchLoading = false;
       let personSelectorSearchError = '';
+      let personSelectorContactResults = [];
+      let personSelectorContactStatus = '';
+      let personSelectorContactBusy = false;
       let personSelectorSelectedIds = new Set();
       let personSelectorSelectedEntries = new Map();
       let personSelectorForwardSource = null;
@@ -5683,7 +5722,12 @@
         happyadLastViewportHeightV851R5 = nextHeight;
         happyadLastKeyboardOpenV851R5 = nextKeyboardOpen;
         if(!geometryChanged) return;
-        syncMessageVisualViewport();
+        window.addEventListener('beforeunload',() => {
+        try{setTypingPresenceV855R51(false,true);}catch(_e){}
+        clearInterval(presencePollTimerV855R51);
+        clearInterval(presenceHeartbeatTimerV855R51);
+      },{once:true});
+      syncMessageVisualViewport();
         scheduleComposerKeyboardSync();
       },true);
 
@@ -6790,6 +6834,120 @@
         if(seq > 0 && seq <= finiteNumber(readSeq,0)) return 'read';
         if(seq > 0 && seq <= finiteNumber(deliveredSeq,0)) return 'delivered';
         return 'sent';
+      }
+
+      function safeMessagePrivacyV855R51(){
+        return {unknownMessages:false,readReceipts:false,typingIndicator:false,activeStatus:false,calls:false,viewerIsKnown:false,newConversationAllowed:false,available:false};
+      }
+
+      function privacyForTargetV855R51(targetId){
+        const id=clean(targetId);
+        return messagePrivacyCacheV855R51.get(id) || safeMessagePrivacyV855R51();
+      }
+
+      async function loadMessagePrivacyV855R51(targetId,force){
+        const id=clean(targetId);
+        if(!isUuid(id)) return safeMessagePrivacyV855R51();
+        if(!force && messagePrivacyCacheV855R51.has(id)) return messagePrivacyCacheV855R51.get(id);
+        const master=window.HappyMessagePrivacyV855R51;
+        if(!master || typeof master.loadPolicy!=='function') return safeMessagePrivacyV855R51();
+        const policy=await master.loadPolicy(id,!!force).catch(()=>safeMessagePrivacyV855R51());
+        messagePrivacyCacheV855R51.set(id,policy||safeMessagePrivacyV855R51());
+        return messagePrivacyCacheV855R51.get(id);
+      }
+
+      function effectiveDeliveryStateV855R51(serverSeq,deliveredSeq,readSeq,targetId){
+        const policy=privacyForTargetV855R51(targetId);
+        return deliveryState(serverSeq,deliveredSeq,policy.readReceipts ? readSeq : 0);
+      }
+
+      async function warmConversationPrivacyV855R51(items){
+        const ids=Array.from(new Set((items||[]).map(item=>clean(item&&item.targetId)).filter(isUuid)));
+        if(!ids.length)return;
+        const master=window.HappyMessagePrivacyV855R51;
+        if(master&&typeof master.loadPolicies==='function'){
+          await master.loadPolicies(ids).catch(()=>null);
+          ids.forEach(id=>{
+            const cached=master.cache&&master.cache.get(id);
+            if(cached)messagePrivacyCacheV855R51.set(id,cached);
+          });
+        }else{
+          await Promise.all(ids.map(id=>loadMessagePrivacyV855R51(id,false)));
+        }
+        renderConversations(searchInput && searchInput.value);
+      }
+
+      function applyCallPolicyUiV855R51(policy){
+        const allowed=!!(policy&&policy.calls);
+        document.querySelectorAll('[data-happyad-call],.happyad-audio-call,.happyad-video-call').forEach(button=>{
+          try{
+            button.disabled=!allowed;
+            button.setAttribute('aria-disabled',allowed?'false':'true');
+            button.hidden=!allowed;
+          }catch(_e){}
+        });
+      }
+
+      function resetChatStatusFromProfileV855R51(){
+        if(!chatStatus)return;
+        chatStatus.textContent=clean(currentTarget&&currentTarget.status)||'Conversation HAPPYAD';
+      }
+
+      function stopPresencePollingV855R51(){
+        clearInterval(presencePollTimerV855R51);
+        presencePollTimerV855R51=0;
+      }
+
+      async function refreshTargetPresenceV855R51(){
+        if(activeMessageView!=='chat'||!currentTarget||!isUuid(currentTarget.id)||!isUuid(currentConversationId))return;
+        const master=window.HappyMessagePrivacyV855R51;
+        if(!master||typeof master.readPresence!=='function')return resetChatStatusFromProfileV855R51();
+        const targetId=clean(currentTarget.id);
+        const conversationId=clean(currentConversationId);
+        const presence=await master.readPresence(targetId,conversationId).catch(()=>({active:false,typing:false}));
+        if(activeMessageView!=='chat'||!currentTarget||clean(currentTarget.id)!==targetId||clean(currentConversationId)!==conversationId)return;
+        if(presence&&presence.typing) chatStatus.textContent='Écrit…';
+        else if(presence&&presence.active) chatStatus.textContent='Actif maintenant';
+        else resetChatStatusFromProfileV855R51();
+      }
+
+      function startPresencePollingV855R51(){
+        stopPresencePollingV855R51();
+        refreshTargetPresenceV855R51();
+        presencePollTimerV855R51=setInterval(()=>refreshTargetPresenceV855R51(),2500);
+      }
+
+      function touchOwnPresenceV855R51(typing){
+        const master=window.HappyMessagePrivacyV855R51;
+        if(!master||typeof master.touchPresence!=='function'||!authUser||!isUuid(authUser.id))return;
+        master.touchPresence(isUuid(currentConversationId)?currentConversationId:null,!!typing).catch(()=>false);
+      }
+
+      function setTypingPresenceV855R51(active,force){
+        active=!!active;
+        if(active){
+          if(lastTypingStateV855R51 && !force)return;
+          lastTypingStateV855R51=true;
+          clearInterval(typingTouchTimerV855R51);
+          touchOwnPresenceV855R51(true);
+          typingTouchTimerV855R51=setInterval(()=>{
+            if(lastTypingStateV855R51 && messageInput && clean(messageInput.value)) touchOwnPresenceV855R51(true);
+            else setTypingPresenceV855R51(false,true);
+          },2500);
+          return;
+        }
+        lastTypingStateV855R51=false;
+        clearInterval(typingTouchTimerV855R51);
+        typingTouchTimerV855R51=0;
+        touchOwnPresenceV855R51(false);
+      }
+
+      function startPresenceHeartbeatV855R51(){
+        clearInterval(presenceHeartbeatTimerV855R51);
+        touchOwnPresenceV855R51(false);
+        presenceHeartbeatTimerV855R51=setInterval(()=>{
+          if(document.visibilityState==='visible') touchOwnPresenceV855R51(lastTypingStateV855R51 && !!(messageInput&&clean(messageInput.value)));
+        },30000);
       }
 
       function latestServerSeq(items){
@@ -8831,7 +8989,7 @@
 
       function getClient(){
         if(client) return client;
-        client = parentClient();
+        client = window.happyadSupabase || parentClient();
         if(client) return client;
         try{
           if(window.supabase && typeof window.supabase.createClient === 'function'){
@@ -9056,14 +9214,22 @@
 
       function applyAuthoritativeProfileAvatarV759(source,targetId,avatar){
         const clone = clearProfileAvatarFieldsV759(source);
-        const safe = safeAvatar(avatar);
+        const id = clean(targetId);
+        const master = window.HappyProfileAvatarMasterV855R32 || window.HappyProfileAvatarMaster;
+        const entry = master && master.getEntry && master.getEntry(id);
+        const safe = entry && entry.known ? safeAvatar(entry.url) : safeAvatar(avatar);
         if(safe){ clone.avatar = safe; clone.avatar_url = safe; }
-        authoritativeProfileAvatarMapV759.set(clean(targetId),safe);
+        clone.__happyadAvatarKnownV855R32 = true;
+        authoritativeProfileAvatarMapV759.set(id,safe);
         return clone;
       }
 
       function avatarForTargetV759(source,targetId){
         const id = clean(targetId);
+        const master = window.HappyProfileAvatarMasterV855R32 || window.HappyProfileAvatarMaster;
+        const entry = master && master.getEntry && master.getEntry(id);
+        if(entry && entry.known) return safeAvatar(entry.url);
+        if(master && isUuid(id) && master.resolve){ master.resolve(id).catch(() => {}); return ''; }
         if(authoritativeProfileAvatarMapV759.has(id)) return safeAvatar(authoritativeProfileAvatarMapV759.get(id));
         const avatar = profileAvatar(source);
         return avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar;
@@ -9164,6 +9330,11 @@
           throw new Error(clean(result.error.message) || 'Profil introuvable.');
         }
         const remote = result.data && typeof result.data === 'object' ? result.data : {};
+        const avatarMaster = window.HappyProfileAvatarMasterV855R32 || window.HappyProfileAvatarMaster;
+        if(avatarMaster){
+          if(result.data && avatarMaster.primeFromProfile) avatarMaster.primeFromProfile(remote,{source:'messages-profile-v855r32'});
+          else if(avatarMaster.set) avatarMaster.set(id,'',{source:'messages-profile-missing-v855r32'});
+        }
         const remoteAvatar = profileAvatar(remote);
         const badgeState = await fetchProfileBadgesV761([id],remote && Object.keys(remote).length ? [remote] : []);
         let merged = mergeProfileIdentity(remote,local);
@@ -9186,6 +9357,8 @@
             const result = await sb.from('profiles').select('*').in('id', requested);
             if(!result.error){
               const rows = result.data || [];
+              const avatarMaster = window.HappyProfileAvatarMasterV855R32 || window.HappyProfileAvatarMaster;
+              if(avatarMaster && avatarMaster.primeProfiles) avatarMaster.primeProfiles(rows,requested,{source:'messages-profiles-v855r32',markMissing:true});
               const badgeState = await fetchProfileBadgesV761(requested,rows);
               const returned = new Set();
               rows.forEach(profile => {
@@ -9203,6 +9376,7 @@
               requested.forEach(id => {
                 if(returned.has(id)) return;
                 let cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+                cached = applyAuthoritativeProfileAvatarV759(cached,id,'');
                 cached = applyAuthoritativeProfileBadgeV761(cached,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
                 if(Object.keys(cached).length) profileMap.set(id,cached);
               });
@@ -9365,6 +9539,9 @@
         personSelectorSearchValue = '';
         personSelectorSearchLoading = false;
         personSelectorSearchError = '';
+        personSelectorContactResults = [];
+        personSelectorContactStatus = '';
+        personSelectorContactBusy = false;
       }
 
       function personSelectorIsExcluded(userId){
@@ -9398,6 +9575,8 @@
           const result = await sb.from('profiles').select('*').in('id',chunk);
           if(result.error) throw new Error(clean(result.error.message) || 'Profils indisponibles.');
           const rows = result.data || [];
+          const avatarMaster = window.HappyProfileAvatarMasterV855R32 || window.HappyProfileAvatarMaster;
+          if(avatarMaster && avatarMaster.primeProfiles) avatarMaster.primeProfiles(rows,chunk,{source:'messages-directory-v855r32',markMissing:true});
           const badgeState = await fetchProfileBadgesV761(chunk,rows);
           const returned = new Set();
           rows.forEach(profile => {
@@ -9415,6 +9594,7 @@
           chunk.forEach(id => {
             if(returned.has(id)) return;
             let cached = mergeProfileIdentity(sanitizeCachedProfileForTargetV759(profileMap.get(id),id),cachedProfileIdentity(id));
+            cached = applyAuthoritativeProfileAvatarV759(cached,id,'');
             cached = applyAuthoritativeProfileBadgeV761(cached,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
             if(Object.keys(cached).length){ cached.id = id; cached.user_id = id; profileMap.set(id,cached); }
           });
@@ -9717,6 +9897,14 @@
           return;
         }
 
+        if(personSelectorContactResults.length || personSelectorContactStatus){
+          appendPersonSelectorSection('Contacts sélectionnés',personSelectorContactResults,'Aucun compte HAPPYAD correspondant.',{
+            loading:personSelectorContactBusy && !personSelectorContactResults.length,
+            loadingText:'Recherche des contacts autorisés…',
+            status:personSelectorContactStatus,
+            error:false
+          });
+        }
         const recent = recentPersonEntries();
         const subscriptions = subscriptionPersonEntries(recent);
         appendPersonSelectorSection('Récents',recent,'Aucune personne récente.');
@@ -9748,42 +9936,23 @@
         if(!term) return;
         try{
           await loadPersonSelectorDirectory(false).catch(() => {});
-          const sb = getClient();
-          if(!sb || !sb.from) throw new Error('Connexion Supabase indisponible.');
-          const pattern = '%' + term + '%';
-          const [byName,byUsername] = await Promise.all([
-            sb.from('profiles').select('*').ilike('full_name',pattern).limit(80),
-            sb.from('profiles').select('*').ilike('username',pattern).limit(80)
-          ]);
-          if(byName.error && byUsername.error) throw new Error(clean(byName.error.message || byUsername.error.message) || 'Recherche indisponible.');
-          const profiles = [];
-          const seen = new Set();
-          ;[].concat(byName.data || [],byUsername.data || []).forEach(profile => {
-            const id = clean(profile && profile.id);
-            if(!isUuid(id) || personSelectorIsExcluded(id) || seen.has(id)) return;
-            seen.add(id);
-            profileMap.set(id,profile);
-            profiles.push(profile);
+          const discovery = window.HappyAccountDiscoveryV855R53;
+          if(!discovery || typeof discovery.search !== 'function') throw new Error('Moteur de découverte indisponible.');
+          const matches = await discovery.search(rawValue,80);
+          const orderedIds = [];
+          const seenIds = new Set();
+          (matches || []).forEach(row => {
+            const id = clean(row && (row.target_user_id || row.user_id || row.id));
+            if(!isUuid(id) || personSelectorIsExcluded(id) || seenIds.has(id)) return;
+            seenIds.add(id);
+            orderedIds.push(id);
           });
-          const searchIds = profiles.map(profile => clean(profile && profile.id)).filter(isUuid);
-          if(searchIds.length){
-            const badgeState = await fetchProfileBadgesV761(searchIds,profiles);
-            profiles.forEach((profile,index) => {
-              const id = clean(profile && profile.id);
-              const merged = applyAuthoritativeProfileBadgeV761(profile,id,badgeState.badges[id] || '',badgeState.confirmed.has(id));
-              profiles[index] = merged;
-              profileMap.set(id,merged);
-            });
-          }
-          profiles.sort((a,b) => {
-            const rank = personSelectorProfileRank(a,term) - personSelectorProfileRank(b,term);
-            if(rank) return rank;
-            return profileName(a).localeCompare(profileName(b),'fr',{sensitivity:'base'});
-          });
+          const profilesById = orderedIds.length ? await personSelectorFetchProfiles(orderedIds) : Object.create(null);
+          const profiles = orderedIds.map(id => profilesById[id]).filter(Boolean);
           if(token !== personSelectorSearchToken || !personSelectorOpen) return;
           personSelectorSearchResults = profiles.map(profile => {
             const target = targetFromProfile(profile,profile);
-            return target ? {target,conversation:null,source:'search'} : null;
+            return target ? {target,conversation:null,source:'discovery-search-v855r53'} : null;
           }).filter(Boolean);
           personSelectorSearchLoading = false;
           personSelectorSearchError = '';
@@ -9794,6 +9963,65 @@
           personSelectorSearchLoading = false;
           personSelectorSearchError = clean(error && error.message) || 'Recherche HappyAD indisponible.';
           renderPersonSelector(personSelectorSearchInput && personSelectorSearchInput.value);
+        }
+      }
+
+      function personSelectorContactsAvailable(){
+        return !!(navigator.contacts && typeof navigator.contacts.select === 'function' && window.isSecureContext);
+      }
+
+      function updatePersonSelectorContactsButton(){
+        if(!personSelectorContactsBtn) return;
+        const visible = personSelectorOpen && personSelectorMode === 'new_conversation' && personSelectorContactsAvailable();
+        personSelectorContactsBtn.classList.toggle('available',visible);
+        personSelectorContactsBtn.disabled = personSelectorContactBusy;
+      }
+
+      async function choosePersonSelectorContacts(){
+        if(personSelectorContactBusy || !personSelectorContactsAvailable()) return;
+        const discovery = window.HappyAccountDiscoveryV855R53;
+        if(!discovery || typeof discovery.contactMatches !== 'function'){
+          showToast('Moteur de découverte indisponible.');
+          return;
+        }
+        personSelectorContactBusy = true;
+        personSelectorContactStatus = '';
+        updatePersonSelectorContactsButton();
+        renderPersonSelector('');
+        try{
+          const picked = await navigator.contacts.select(['name','email','tel'],{multiple:true});
+          const emails = [], phones = [];
+          (Array.isArray(picked) ? picked : []).forEach(contact => {
+            (Array.isArray(contact && contact.email) ? contact.email : []).forEach(value => { value=clean(value); if(value) emails.push(value); });
+            (Array.isArray(contact && contact.tel) ? contact.tel : []).forEach(value => { value=clean(value); if(value) phones.push(value); });
+          });
+          if(!emails.length && !phones.length){
+            personSelectorContactResults = [];
+            personSelectorContactStatus = 'Aucune coordonnée sélectionnée.';
+          }else{
+            const matches = await discovery.contactMatches(emails,phones,80);
+            const ids = [];
+            const seen = new Set();
+            (matches || []).forEach(row => {
+              const id = clean(row && (row.target_user_id || row.user_id || row.id));
+              if(!isUuid(id) || personSelectorIsExcluded(id) || seen.has(id)) return;
+              seen.add(id);ids.push(id);
+            });
+            const profiles = ids.length ? await personSelectorFetchProfiles(ids) : Object.create(null);
+            personSelectorContactResults = ids.map(id => {
+              const profile = profiles[id];
+              const target = profile && targetFromProfile(profile,profile);
+              return target ? {target,conversation:null,source:'contacts-v855r53'} : null;
+            }).filter(Boolean);
+            personSelectorContactStatus = personSelectorContactResults.length ? '' : 'Aucun contact sélectionné n’autorise les suggestions de compte.';
+          }
+        }catch(error){
+          const name = clean(error && error.name);
+          if(name !== 'AbortError') personSelectorContactStatus = 'Sélection des contacts indisponible sur cet appareil.';
+        }finally{
+          personSelectorContactBusy = false;
+          updatePersonSelectorContactsButton();
+          if(personSelectorOpen) renderPersonSelector('');
         }
       }
 
@@ -9912,8 +10140,11 @@
         if(personSelectorSubtitle) personSelectorSubtitle.textContent = shareMode ? 'Sélectionnez de 1 à 10 personnes' : 'Glissez la poignée pour ajuster la hauteur';
         if(personSelectorSearchInput){
           personSelectorSearchInput.value = '';
-          personSelectorSearchInput.placeholder = shareMode ? 'Rechercher une personne à partager…' : 'Rechercher une personne…';
+          personSelectorSearchInput.placeholder = shareMode ? 'Rechercher une personne à partager…' : 'Nom, @utilisateur, Gmail ou téléphone…';
         }
+        personSelectorContactResults = [];
+        personSelectorContactStatus = '';
+        personSelectorContactBusy = false;
         clearTimeout(personSelectorSearchTimer);
         personSelectorSearchToken += 1;
         personSelectorSearchValue = '';
@@ -9923,6 +10154,7 @@
         restorePersonSelectorHeight();
         renderPersonSelector('');
         updatePersonSelectorForwardUi();
+        updatePersonSelectorContactsButton();
         personSelectorBackdrop.classList.add('active');
         personSelectorBackdrop.setAttribute('aria-hidden','false');
         personSelectorTouchGuard = null;
@@ -9957,6 +10189,7 @@
         personSelectorSelectedIds = new Set();
         personSelectorSelectedEntries = new Map();
         updatePersonSelectorForwardUi();
+        updatePersonSelectorContactsButton();
         updateNewConversationFabVisibility();
         if(previousMode === 'new_conversation' && restoreFocus !== false && newConversationFab && activeMessageView === 'inbox') setTimeout(() => { try{ newConversationFab.focus({preventScroll:true}); }catch(_e){} },30);
         return true;
@@ -10297,7 +10530,7 @@
           const previewLine = row.querySelector('.previewline');
           let checks = row.querySelector('.checks');
           if(ownLast){
-            const state = deliveryState(previewSeq,item.targetDelivered,item.targetRead);
+            const state = effectiveDeliveryStateV855R51(previewSeq,item.targetDelivered,item.targetRead,item.targetId);
             if(!checks && previewLine){
               checks = document.createElement('span');
               checks.className = 'checks';
@@ -10321,10 +10554,25 @@
         });
       }
 
+      function updateMessageRequestModeV855R55(){
+        if(messageNormalMode) messageNormalMode.classList.toggle('on',messageRequestModeV855R55==='normal');
+        if(messageRequestsMode) messageRequestsMode.classList.toggle('on',messageRequestModeV855R55==='requests');
+        if(messageRequestsCount) messageRequestsCount.textContent=messageRequestIdsV855R55.size?String(messageRequestIdsV855R55.size):'';
+      }
+      async function refreshMessageRequestsV855R55(force){
+        if(messageRequestsRefreshBusyV855R55)return;
+        const api=window.HappyFilteringPrivacyV855R55;if(!api||!api.requestIds)return;
+        messageRequestsRefreshBusyV855R55=true;
+        try{messageRequestIdsV855R55=await api.requestIds(!!force);updateMessageRequestModeV855R55();renderConversations(searchInput&&searchInput.value);}catch(_e){}
+        finally{messageRequestsRefreshBusyV855R55=false;}
+      }
+
       function renderConversations(filterText){
         if(!conversationPanel) return;
         const needle = clean(filterText).toLowerCase();
         const filtered = conversations.filter(item => !isConversationDeletedForMe(item)).filter(item => {
+          const isRequest=messageRequestIdsV855R55.has(clean(item&&item.id));
+          if(messageRequestModeV855R55==='requests'?!isRequest:isRequest)return false;
           const rawTarget = item.target || item.fallbackTarget || {};
           const target = targetFromProfile({},rawTarget) || rawTarget;
           return !needle || [target.name, target.status, messagePreview(item)].some(value => clean(value).toLowerCase().includes(needle));
@@ -10337,7 +10585,7 @@
         }
         lastConversationContentSignature = contentSignature;
         if(!filtered.length){
-          setListState(needle ? 'Aucune conversation trouvée.' : 'Aucune conversation.');
+          setListState(needle ? 'Aucune conversation trouvée.' : (messageRequestModeV855R55==='requests'?'Aucune demande.':'Aucune conversation.'));
           queuePersistConversations();
           return;
         }
@@ -10362,7 +10610,7 @@
           const previewSeq = item.previewResolved ? item.previewSeq : item.lastSeq;
           const previewAt = item.previewResolved ? item.previewAt : item.lastAt;
           const ownLast = authUser && previewSenderId === authUser.id;
-          const listReceiptState = ownLast ? deliveryState(previewSeq,item.targetDelivered,item.targetRead) : '';
+          const listReceiptState = ownLast ? effectiveDeliveryStateV855R51(previewSeq,item.targetDelivered,item.targetRead,item.targetId) : '';
           const listReceiptText = listReceiptState === 'read' || listReceiptState === 'delivered' ? '✓✓' : '✓';
           content.innerHTML =
             '<div class="topline"><div class="conversation-name-line"><div class="name">' + escapeHtml(target.name || 'Utilisateur HAPPYAD') + '</div><span class="happyad-badge" aria-hidden="true"></span></div><div class="time">' + escapeHtml(formatConversationTime(previewAt)) + '</div></div>' +
@@ -10846,7 +11094,7 @@
           const receipt = message.receipt || {};
           const targetDelivered = Math.max(currentReceipt.targetDelivered || 0,finiteNumber(receipt.targetDelivered,0));
           const targetRead = Math.max(currentReceipt.targetRead || 0,finiteNumber(receipt.targetRead,0));
-          const state = message.failed ? 'failed' : (message.pending ? 'pending' : deliveryState(message.serverSeq,targetDelivered,targetRead));
+          const state = message.failed ? 'failed' : (message.pending ? 'pending' : effectiveDeliveryStateV855R51(message.serverSeq,targetDelivered,targetRead,currentTarget&&currentTarget.id));
           ticks.className = 'ticks' + (state === 'delivered' || state === 'read' ? ' ' + state : '');
           ticks.textContent = state === 'failed' ? ' !' : (state === 'pending' ? ' …' : (state === 'delivered' || state === 'read' ? ' ✓✓' : ' ✓'));
         });
@@ -11423,7 +11671,7 @@
             const receipt = message.receipt || {};
             const targetDelivered = Math.max(currentReceipt.targetDelivered || 0, finiteNumber(receipt.targetDelivered,0));
             const targetRead = Math.max(currentReceipt.targetRead || 0, finiteNumber(receipt.targetRead,0));
-            const state = message.failed ? 'failed' : (message.pending ? 'pending' : deliveryState(message.serverSeq,targetDelivered,targetRead));
+            const state = message.failed ? 'failed' : (message.pending ? 'pending' : effectiveDeliveryStateV855R51(message.serverSeq,targetDelivered,targetRead,currentTarget&&currentTarget.id));
             ticks.className = 'ticks' + (state === 'delivered' || state === 'read' ? ' ' + state : '');
             ticks.textContent = state === 'failed' ? ' !' : (state === 'pending' ? ' …' : (state === 'delivered' || state === 'read' ? ' ✓✓' : ' ✓'));
             meta.appendChild(ticks);
@@ -11794,6 +12042,7 @@
         if(cached.length){
           conversations = mergeConversationCollections(conversations,cached);
           renderConversations(searchInput && searchInput.value);
+          warmConversationPrivacyV855R51(conversations).catch(()=>{});
           syncInboxDelivered(conversations);
         }else if(!options.silent){
           setListState('Chargement des conversations…');
@@ -11817,6 +12066,7 @@
             item.target = targetFromProfile(profiles[item.targetId], item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
           });
           conversations = mergeConversationCollections([],conversations);
+          await warmConversationPrivacyV855R51(conversations).catch(()=>{});
           syncCurrentReceiptFromConversation();
           renderConversations(searchInput && searchInput.value);
           syncInboxDelivered(conversations);
@@ -11969,12 +12219,11 @@
       }
 
       async function openDirectRpc(targetId){
-        const data = await rpc('happyad_msg_open_direct', [
-          {p_target_user_id:targetId},
-          {target_user_id:targetId}
+        const data = await rpc('happyad_msg_open_direct_privacy_v855r51', [
+          {p_target_user_id:targetId}
         ]);
         const row = firstRow(data) || {};
-        const conversationId = clean(row.conversation_id || row.id || (typeof data === 'string' ? data : ''));
+        const conversationId = clean(row.conversation_id || row.id || row.happyad_msg_open_direct || (typeof data === 'string' ? data : ''));
         if(!isUuid(conversationId)) throw new Error('La conversation n’a pas retourné un UUID valide.');
         return {conversationId, row};
       }
@@ -11990,8 +12239,9 @@
         chatView.classList.remove('hidden');
         chatView.setAttribute('aria-hidden','false');
         chatName.textContent = target.name;
-        chatStatus.textContent = target.status || 'Conversation HAPPYAD';
+        chatStatus.textContent = 'Conversation HAPPYAD';
         setAvatar(chatAvatar, target.name, target.avatar);
+        applyCallPolicyUiV855R51(currentTargetPrivacyV855R51);
         setBadge(chatBadge, target.badge);
         if(blockStateTargetId !== clean(target && target.id)) resetBlockState(target && target.id);
         updateComposerBlockState();
@@ -12004,6 +12254,11 @@
         clearComposerContext(false);
         const token = ++openToken;
         if(!target || !isUuid(target.id)) throw new Error('UUID du profil introuvable.');
+        const privacy=await loadMessagePrivacyV855R51(target.id,true);
+        if(token !== openToken)return;
+        if(!privacy.available) throw new Error('Confidentialité Messages indisponible. Réessayez.');
+        if(!privacy.newConversationAllowed) throw new Error('Cet utilisateur n’autorise pas les messages des inconnus.');
+        currentTargetPrivacyV855R51=privacy;
         displayDirect(target);
         activeConversationViewKey = '';
         activeConversationGeneration += 1;
@@ -12016,6 +12271,7 @@
         if(!verifiedProfile || !isUuid(verifiedProfile.id)) throw new Error('Ce profil n’existe pas dans Supabase.');
         const verifiedTarget = targetFromProfile(verifiedProfile, target);
         currentTarget = verifiedTarget;
+        currentTargetPrivacyV855R51=await loadMessagePrivacyV855R51(verifiedTarget.id,false);
         displayDirect(verifiedTarget);
         const opened = await openDirectRpc(verifiedTarget.id);
         if(token !== openToken) return;
@@ -12026,6 +12282,8 @@
         currentReceipt = {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
         mergeReceiptSnapshot(receiptSnapshot(opened.row || {}));
         activateConversationView(currentConversationId,token);
+        startPresencePollingV855R51();
+        touchOwnPresenceV855R51(false);
         refreshBlockState(verifiedTarget.id).catch(() => {});
         if(token !== openToken) return;
         await loadMessages(currentConversationId, token);
@@ -12042,6 +12300,7 @@
         if(!isUuid(id)) return openTarget(target);
 
         const cachedConversation = conversations.find(item => item && clean(item.id) === id) || null;
+        currentTargetPrivacyV855R51=await loadMessagePrivacyV855R51(target.id,false);
         currentConversationId = id;
         currentConversationMeta = cachedConversation;
         readEligibleConversationId = id;
@@ -12058,6 +12317,8 @@
 
         displayDirect(target);
         activateConversationView(id,token);
+        startPresencePollingV855R51();
+        touchOwnPresenceV855R51(false);
         refreshBlockState(target.id).catch(() => {});
 
         /* Le Push fournit déjà l'UUID canonique de la conversation.
@@ -12076,10 +12337,14 @@
       }
 
       async function openExistingConversation(item){
+        if(messageRequestIdsV855R55.has(clean(item&&item.id))){
+          try{const api=window.HappyFilteringPrivacyV855R55;if(api&&api.acceptRequest)await api.acceptRequest(item.id);messageRequestIdsV855R55.delete(clean(item.id));updateMessageRequestModeV855R55();}catch(_e){}
+        }
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
         const token = ++openToken;
+        currentTargetPrivacyV855R51=await loadMessagePrivacyV855R51(item&&item.targetId,false);
         currentConversationId = item.id;
         currentConversationMeta = item;
         readEligibleConversationId = currentConversationId;
@@ -12094,6 +12359,8 @@
         };
         displayDirect(currentTarget);
         activateConversationView(currentConversationId,token);
+        startPresencePollingV855R51();
+        touchOwnPresenceV855R51(false);
         refreshBlockState(currentTarget && currentTarget.id).catch(() => {});
         /* L'en-tête de la conversation vérifie toujours la photo réelle par UID,
            même lorsque la liste a été peinte depuis IndexedDB hors connexion. */
@@ -12119,6 +12386,8 @@
       }
 
       function showInbox(){
+        setTypingPresenceV855R51(false,true);
+        stopPresencePollingV855R51();
         cancelDeferredChatLoading();
         if(recording) cancelAudioRecording();
         clearActiveMediaDraft();
@@ -12154,6 +12423,7 @@
         }
         currentReceipt = {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
         currentTarget = null;
+        currentTargetPrivacyV855R51 = null;
         blockStateTargetId = '';
         blockState = {known:false,blockedByMe:false,blockedMe:false};
         updateComposerBlockState();
@@ -14149,7 +14419,7 @@
         return {
           id:isUuid(id) ? id : '',
           name:profileName(merged) || 'Messages',
-          avatar:profileAvatar(merged),
+          avatar:avatarForTargetV759(merged,id),
           badge:profileBadge(merged),
           handle:clean(merged && (merged.username || merged.handle))
         };
@@ -14182,7 +14452,7 @@
             if(!current || connectedProfileId(current) !== identity.id) return;
             localStorage.setItem(storageKey,JSON.stringify(Object.assign({},current,{
               id:identity.id,user_id:identity.id,name:identity.name,full_name:identity.name,
-              avatar:identity.avatar || profileAvatar(current),avatar_url:identity.avatar || profileAvatar(current),
+              avatar:identity.avatar,avatar_url:identity.avatar,
               badge:identity.badge || profileBadge(current),user_badge:identity.badge || profileBadge(current)
             })));
           });
@@ -14191,26 +14461,9 @@
       }
 
       async function syncCurrentAvatarToProfiles(identity){
-        if(!identity || !isUuid(identity.id)) return false;
-        const avatar = safeAvatar(identity.avatar);
-        if(!/^https?:\/\//i.test(avatar) || avatar === lastProfileAvatarSynced) return false;
-        const sb = getClient();
-        if(!sb || !sb.from) return false;
-        lastProfileAvatarSynced = avatar;
-        try{
-          const current = await sb.from('profiles').select('id,avatar_url').eq('id',identity.id).maybeSingle();
-          if(current && !current.error && safeAvatar(current.data && current.data.avatar_url) === avatar) return true;
-          const updated = await sb.from('profiles').update({avatar_url:avatar}).eq('id',identity.id);
-          if(updated && updated.error){ lastProfileAvatarSynced = ''; return false; }
-          profileMap.set(identity.id,mergeProfileIdentity({id:identity.id,avatar_url:avatar},profileMap.get(identity.id),cachedConnectedIdentity(identity.id)));
-          try{ localStorage.setItem('HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:' + identity.id,avatar); }catch(_e){}
-          try{
-            const channel = new BroadcastChannel('happyad-profile-identity-v746');
-            channel.postMessage({type:'avatar',user_id:identity.id,avatar_url:avatar});
-            channel.close();
-          }catch(_e){}
-          return true;
-        }catch(_e){ lastProfileAvatarSynced = ''; return false; }
+        /* V855R32 : Messages est un lecteur de profiles.avatar_url. Il ne doit
+           jamais réécrire Supabase depuis metadata, IndexedDB ou un ancien cache. */
+        return false;
       }
 
       function applyConnectedIdentity(profile,user,options){
@@ -14242,7 +14495,6 @@
         setBadge(currentUserBadge,identity.badge);
         connectedIdentitySignature = signature;
         if(options.persist === true) persistConnectedIdentity(identity);
-        if(options.sync !== false && identity.avatar) syncCurrentAvatarToProfiles(identity).catch(() => false);
         return changed;
       }
 
@@ -14308,6 +14560,31 @@
         }catch(_e){ profileRealtimeChannel = null; }
       }
 
+      function applyCanonicalAvatarEventV855R32(detail){
+        detail = detail && typeof detail === 'object' ? detail : {};
+        const id = clean(detail.uid);
+        if(!isUuid(id) || detail.known !== true) return;
+        const avatar = safeAvatar(detail.avatarUrl || detail.avatar_url || detail.avatar);
+        authoritativeProfileAvatarMapV759.set(id,avatar);
+        if(profileMap.has(id)) profileMap.set(id,applyAuthoritativeProfileAvatarV759(profileMap.get(id),id,avatar));
+        let changed = false;
+        conversations.forEach(item => {
+          if(!item || clean(item.targetId) !== id) return;
+          const next = targetFromProfile(profileMap.get(id) || {id:id,user_id:id},item.target || item.fallbackTarget || {});
+          if(next){ item.target = next; changed = true; }
+        });
+        if(currentTarget && clean(currentTarget.id) === id){
+          const next = targetFromProfile(profileMap.get(id) || {id:id,user_id:id},currentTarget);
+          if(next){ currentTarget = next; if(activeMessageView === 'chat') displayDirect(next); changed = true; }
+        }
+        if(authUser && clean(authUser.id) === id){
+          const own = applyAuthoritativeProfileAvatarV759(profileMap.get(id) || {id:id,user_id:id},id,avatar);
+          profileMap.set(id,own);applyConnectedIdentity(own,authUser,{persist:true,sync:false});
+        }
+        if(changed){ renderConversations(searchInput && searchInput.value);queuePersistConversations(); }
+      }
+      window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',event => applyCanonicalAvatarEventV855R32(event && event.detail),true);
+
       async function boot(){
         if(bootPromise) return bootPromise;
         bootPromise = (async function(){
@@ -14353,6 +14630,7 @@
           refreshConnectedIdentitySoon(180);
           setTimeout(() => refreshConnectedIdentitySoon(0),1100);
           subscribeProfileIdentityRealtime();
+          startPresenceHeartbeatV855R51();
           refreshUnreadTotal().catch(() => {});
           return user;
         })().catch(error => {
@@ -14574,6 +14852,7 @@
           openPersonSelector('new_conversation');
         });
       }
+      if(personSelectorContactsBtn) personSelectorContactsBtn.addEventListener('click',choosePersonSelectorContacts);
       if(personSelectorSearchInput) personSelectorSearchInput.addEventListener('input',schedulePersonSelectorSearch);
       if(personSelectorForwardSendBtn) personSelectorForwardSendBtn.addEventListener('click',event => { event.preventDefault(); event.stopPropagation(); shareActiveMessageToSelected(); });
       if(personSelectorClose) personSelectorClose.addEventListener('click',() => closePersonSelector(false));
@@ -14650,6 +14929,10 @@
         if(searchOpen && searchInput) setTimeout(() => searchInput.focus(), 60);
       });
       if(searchInput) searchInput.addEventListener('input', () => renderConversations(searchInput.value));
+      if(messageNormalMode) messageNormalMode.addEventListener('click',()=>{messageRequestModeV855R55='normal';updateMessageRequestModeV855R55();renderConversations(searchInput&&searchInput.value);});
+      if(messageRequestsMode) messageRequestsMode.addEventListener('click',()=>{messageRequestModeV855R55='requests';updateMessageRequestModeV855R55();renderConversations(searchInput&&searchInput.value);});
+      setTimeout(()=>refreshMessageRequestsV855R55(true),900);
+      setInterval(()=>refreshMessageRequestsV855R55(true),15000);
       if(listMenuBtn) listMenuBtn.addEventListener('click', () => showToast('Options Messages disponibles après la stabilisation du noyau.'));
       if(chatMenuBtn) chatMenuBtn.addEventListener('click', openConversationOptionsSheet);
       if(attachBtn) attachBtn.addEventListener('click', () => {
@@ -14732,11 +15015,13 @@
         messageInput.addEventListener('input', () => {
           updateComposerMode();
           updateStickerDeleteButton();
+          setTypingPresenceV855R51(!!clean(messageInput.value),false);
         });
         window.addEventListener('resize', () => {
           if(!recording) updateComposerBlockState();
         }, {passive:true});
-        messageInput.addEventListener('focus', scheduleComposerKeyboardSync);
+        messageInput.addEventListener('focus', () => { scheduleComposerKeyboardSync(); touchOwnPresenceV855R51(!!clean(messageInput.value)); });
+        messageInput.addEventListener('blur', () => setTypingPresenceV855R51(false,true));
         messageInput.addEventListener('click', scheduleComposerKeyboardSync);
         messageInput.addEventListener('keydown', event => {
           if(event.key === 'Enter' && !event.shiftKey){
@@ -14838,8 +15123,13 @@
       }
       window.addEventListener('resize',() => { restoreNewConversationFabPosition(); if(personSelectorOpen) setPersonSelectorHeight(personSelectorSheet && personSelectorSheet.getBoundingClientRect().height,false); scheduleMessageLayoutRepair('resize'); },{passive:true});
       window.addEventListener('orientationchange',() => scheduleMessageLayoutRepair('orientation'),{passive:true});
-      window.addEventListener('pageshow',() => { scheduleMessageLayoutRepair('pageshow'); refreshConnectedIdentitySoon(40); },{passive:true});
+      window.addEventListener('pageshow',() => { scheduleMessageLayoutRepair('pageshow'); refreshConnectedIdentitySoon(40); touchOwnPresenceV855R51(false); },{passive:true});
+      document.addEventListener('visibilitychange',() => {
+        if(document.visibilityState==='visible') touchOwnPresenceV855R51(lastTypingStateV855R51 && !!(messageInput&&clean(messageInput.value)));
+        else setTypingPresenceV855R51(false,true);
+      },true);
       window.addEventListener('online',() => {
+        touchOwnPresenceV855R51(false);
         scheduleTextOutboxFlush(40);
         scheduleSilentReconnectSync(160);
         refreshConnectedIdentitySoon(80);

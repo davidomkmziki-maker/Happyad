@@ -36,7 +36,7 @@
       if(p&&p!=='home')return p;
       var src=String(frame.getAttribute('src')||frame.src||'').toLowerCase();
       if(src.indexOf('modules/video.html')>=0||/\bvideo\.html(?:[?#]|$)/.test(src))return 'video';
-      if(src.indexOf('modules/user.html')>=0||/\buser\.html(?:[?#]|$)/.test(src))return src.indexOf('public=1')>=0?'profile_public':'profile';
+      if(src.indexOf('modules/visitor-profile.html')>=0||/\bvisitor-profile\.html(?:[?#]|$)/.test(src))return 'profile_public';if(src.indexOf('modules/my-profile.html')>=0||/\bmy-profile\.html(?:[?#]|$)/.test(src)||src.indexOf('modules/user.html')>=0)return 'profile';
       return p||'';
     }catch(_e){return '';}
   }

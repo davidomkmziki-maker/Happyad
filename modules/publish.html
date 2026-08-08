@@ -28,6 +28,7 @@
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
 <script src="../core/return-reset-master-v584.js?v=584"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=855r32-source-unique"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -181,6 +182,7 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
+<script src="../core/interaction-privacy-master-v855r52.js?v=855r52-interactions"></script>
 
 <style id="happyad-v589-publish-white-buttons">
 /* V589 — boutons Publication blancs, sans orange ni violet. */
@@ -710,18 +712,18 @@ button:disabled{filter:none;transform:none}
 
   let storyMentionSearchTimer=null,storyMentionSearchToken=0,storyMentionResults=[];
   function mentionEscape(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c;});}
-  function normalizeMentionProfile(p){p=p||{};var id=String(p.id||p.user_id||p.uid||'').trim();if(!id)return null;return {id:id,name:String(p.full_name||p.display_name||p.name||p.username||'Utilisateur HAPPYAD').trim(),username:String(p.username||p.handle||'').replace(/^@+/,''),avatar:String(p.avatar_url||p.avatar||'').trim(),badge:String(p.badge||p.user_badge||'').trim()};}
+  function normalizeMentionProfile(p){p=p||{};var id=String(p.id||p.user_id||p.uid||'').trim();if(!id)return null;return {id:id,name:String(p.full_name||p.display_name||p.name||p.username||'Utilisateur HAPPYAD').trim(),username:String(p.username||p.handle||'').replace(/^@+/,''),avatar:canonicalProfileAvatar(id,p.avatar_url||p.avatar),badge:String(p.badge||p.user_badge||'').trim()};}
   function mentionInitial(name){return String(name||'H').trim().charAt(0).toUpperCase()||'H';}
   function selectedMention(id){return state.mentions.some(function(x){return x.id===id;});}
   function renderMentionChips(){var box=$('storyMentionChips'),count=$('storyMentionCount');if(count)count.textContent=state.mentions.length+'/20';if(!box)return;box.innerHTML=state.mentions.map(function(p){return '<button type="button" class="storyMentionChip" data-remove-mention="'+mentionEscape(p.id)+'">'+(p.avatar?'<img src="'+mentionEscape(p.avatar)+'" alt="">':'<span class="storyMentionInitial">'+mentionEscape(mentionInitial(p.name))+'</span>')+'<b>'+mentionEscape(p.username?'@'+p.username:p.name)+'</b><i>×</i></button>';}).join('');}
   function renderStoryMentionUI(){var block=$('storyMentionBlock'),desc=$('descInput');if(block)block.classList.toggle('show',state.mode==='story');if(desc)desc.placeholder=state.mode==='story'?'Ajouter une description à ta story':'Écris la description ici. Tu peux ajouter directement #hashtags et @mentions.';renderMentionChips();}
   function renderMentionResults(list){storyMentionResults=Array.isArray(list)?list:[];var box=$('storyMentionList');if(!box)return;if(!storyMentionResults.length){box.innerHTML='<div class="storyMentionEmpty">Aucune personne trouvée.</div>';return;}box.innerHTML=storyMentionResults.map(function(p){var on=selectedMention(p.id);return '<button type="button" class="storyMentionPerson'+(on?' selected':'')+'" data-mention-id="'+mentionEscape(p.id)+'"><span class="storyMentionAvatar">'+(p.avatar?'<img src="'+mentionEscape(p.avatar)+'" alt="">':mentionEscape(mentionInitial(p.name)))+'</span><span class="storyMentionPersonCopy"><b>'+mentionEscape(p.name)+'</b><span>'+(p.username?'@'+mentionEscape(p.username):'Utilisateur HAPPYAD')+'</span></span><span class="storyMentionCheck">'+(on?'✓':'')+'</span></button>';}).join('');}
   async function currentMentionUid(){try{var c=happySb(),r=await c.auth.getSession(),u=r&&r.data&&r.data.session&&r.data.session.user;return String(u&&u.id||'').trim();}catch(_e){try{var x=JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}');return String(x.id||x.user_id||'').trim();}catch(_x){return '';}}}
-  async function searchMentionProfiles(query,token){var c=happySb();if(!c)return renderMentionResults([]);var me=await currentMentionUid();var needle=String(query||'').trim().replace(/^@+/,'');try{var rows=[];if(needle){var pattern='%'+needle.replace(/[%_]/g,'')+'%';var res=await Promise.all([c.from('profiles').select('*').ilike('full_name',pattern).limit(60),c.from('profiles').select('*').ilike('username',pattern).limit(60)]);rows=(res[0].data||[]).concat(res[1].data||[]);}else{var base=await c.from('profiles').select('*').order('full_name',{ascending:true}).limit(40);rows=base.data||[];}if(token!==storyMentionSearchToken)return;var map={};rows.forEach(function(row){var p=normalizeMentionProfile(row);if(p&&p.id!==me)map[p.id]=p;});renderMentionResults(Object.keys(map).map(function(id){return map[id]}).slice(0,80));}catch(_e){if(token===storyMentionSearchToken)renderMentionResults([]);}}
+  async function searchMentionProfiles(query,token){var c=happySb();if(!c)return renderMentionResults([]);var me=await currentMentionUid();var needle=String(query||'').trim().replace(/^@+/,'');try{var rows=[];if(needle){var pattern='%'+needle.replace(/[%_]/g,'')+'%';var res=await Promise.all([c.from('profiles').select('*').ilike('full_name',pattern).limit(60),c.from('profiles').select('*').ilike('username',pattern).limit(60)]);rows=(res[0].data||[]).concat(res[1].data||[]);}else{var base=await c.from('profiles').select('*').order('full_name',{ascending:true}).limit(40);rows=base.data||[];}if(token!==storyMentionSearchToken)return;var master=profileAvatarMaster();if(master&&master.primeProfiles)master.primeProfiles(rows,rows.map(function(p){return String(p&&p.id||'').trim()}).filter(Boolean),{source:'publish-mentions-v855r32'});var map={};rows.forEach(function(row){var p=normalizeMentionProfile(row);if(p&&p.id!==me)map[p.id]=p;});var list=Object.keys(map).map(function(id){return map[id]}).slice(0,80),gate=window.HappyInteractionPrivacyV855R52;if(!gate){renderMentionResults([]);return;}await gate.loadPolicies(list.map(function(p){return p.id}),false);if(token!==storyMentionSearchToken)return;list=list.filter(function(p){return gate.allowedByPolicy(gate.policyCache.get(p.id),'mentions')});renderMentionResults(list);}catch(_e){if(token===storyMentionSearchToken)renderMentionResults([]);}}
   function scheduleMentionSearch(){clearTimeout(storyMentionSearchTimer);storyMentionSearchToken++;var token=storyMentionSearchToken,q=$('storyMentionSearch')?$('storyMentionSearch').value:'';var box=$('storyMentionList');if(box)box.innerHTML='<div class="storyMentionEmpty">Recherche…</div>';storyMentionSearchTimer=setTimeout(function(){searchMentionProfiles(q,token)},220);}
   function openMentionSheet(){if(state.mode!=='story')return;var sh=$('storyMentionSheet');if(!sh)return;sh.classList.add('show');sh.setAttribute('aria-hidden','false');var input=$('storyMentionSearch');if(input){input.value='';setTimeout(function(){input.focus()},80)}storyMentionSearchToken++;searchMentionProfiles('',storyMentionSearchToken);}
   function closeMentionSheet(){var sh=$('storyMentionSheet');if(sh){sh.classList.remove('show');sh.setAttribute('aria-hidden','true')}renderMentionChips();}
-  function toggleMention(id){var p=storyMentionResults.find(function(x){return x.id===id})||state.mentions.find(function(x){return x.id===id});if(!p)return;var i=state.mentions.findIndex(function(x){return x.id===id});if(i>=0)state.mentions.splice(i,1);else{if(state.mentions.length>=20){toast('20 personnes maximum dans une story');return;}state.mentions.push(p);}renderMentionResults(storyMentionResults);renderMentionChips();}
+  async function toggleMention(id){var p=storyMentionResults.find(function(x){return x.id===id})||state.mentions.find(function(x){return x.id===id});if(!p)return;var i=state.mentions.findIndex(function(x){return x.id===id});if(i>=0)state.mentions.splice(i,1);else{if(state.mentions.length>=20){toast('20 personnes maximum dans une story');return;}var gate=window.HappyInteractionPrivacyV855R52;if(!gate||!(await gate.canTarget(p.id,'mentions',true))){toast('Cette personne n’autorise pas les mentions.');storyMentionResults=storyMentionResults.filter(function(x){return x.id!==p.id});renderMentionResults(storyMentionResults);return;}state.mentions.push(p);}renderMentionResults(storyMentionResults);renderMentionChips();}
 
   function updateSummary(){
     const count=(state.files&&state.files.length)||0;
@@ -741,6 +743,8 @@ button:disabled{filter:none;transform:none}
     }
     return null;
   }
+  function profileAvatarMaster(){return window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;}
+  function canonicalProfileAvatar(uid,fallback){var m=profileAvatarMaster(),id=String(uid||'').trim();if(m&&id){var e=m.getEntry&&m.getEntry(id);if(e&&e.known)return String(e.url||'').trim();if(m.resolve)m.resolve(id).catch(function(){});return '';}return String(fallback||'').trim();}
   function cleanName(n){return String(n||'media').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-80)}
   async function currentProfile(){
     const c=happySb(); if(!c) return {user:null,profile:null};
@@ -778,6 +782,7 @@ button:disabled{filter:none;transform:none}
     }
     if(user&&user.id){
       try{const r=await withTimeout(c.from('profiles').select('*').eq('id',user.id).maybeSingle(),20000,'Lecture profil'); profile=r.data||null;}catch(e){}
+      try{const m=profileAvatarMaster();if(m&&profile&&m.primeFromProfile)m.primeFromProfile(profile,{source:'publish-profile-v855r32'});else if(m&&m.resolve)await m.resolve(user.id,{force:true});}catch(_avatarError){}
     }
     return {session,user,profile};
   }
@@ -931,7 +936,7 @@ button:disabled{filter:none;transform:none}
       display_name:(profile&&profile.full_name)||localPost.creatorName||'Utilisateur HAPPYAD',
       handle:(profile&&profile.username)||String(localPost.handle||'').replace(/^@+/,''),
       username:(profile&&profile.username)||String(localPost.handle||'').replace(/^@+/,''),
-      avatar_url:(profile&&profile.avatar_url)||localPost.avatar||'',
+      avatar_url:canonicalProfileAvatar(user.id,profile&&profile.avatar_url),
       badge:(profile&&profile.badge)||localPost.badge||'aucun',
       created_at:new Date().toISOString()
     };
@@ -1205,6 +1210,7 @@ return {source:'story',id:storyId};
       // La publication officielle doit passer par Storage + happyad_posts ;
       // le cache média local est écrit plus bas en arrière-plan, sans bloquer l'utilisateur.
       clearHeavyPublicationCaches();
+      if(state.mode==='story'&&state.mentions.length){var mentionGate=window.HappyInteractionPrivacyV855R52;if(!mentionGate)throw new Error('Vérification des mentions indisponible.');var beforeMentions=state.mentions.length,allowedMentionIds=await mentionGate.filterTargets(state.mentions.map(function(p){return p.id}),'mentions'),allowedMentionSet=new Set(allowedMentionIds);state.mentions=state.mentions.filter(function(p){return allowedMentionSet.has(p.id)});if(state.mentions.length!==beforeMentions){renderMentionChips();renderMentionResults(storyMentionResults);toast('Certaines personnes ont désactivé les mentions et ont été retirées.');}}
       let u={};try{u=JSON.parse(localStorage.getItem("HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL")||"{}")}catch(e){u={}}
       let localPost={
         id,mode:state.mode,
@@ -1221,7 +1227,7 @@ return {source:'story',id:storyId};
         creatorId:u.id||"",
         creatorName:u.name||"Utilisateur HAPPYAD",
         handle:u.handle?(String(u.handle).startsWith('@')?u.handle:'@'+u.handle):'',
-        avatar:u.avatar||"",
+        avatar:canonicalProfileAvatar(u.id||u.user_id,u.avatar),
         badge:u.badge||"aucun",
         createdAt:Date.now()
       };
@@ -1245,7 +1251,7 @@ return {source:'story',id:storyId};
     return Object.assign({},p,{
       user_id:p.user_id||p.creatorId||localPost.creatorId||"",
       media_url:p.media_url||p.mediaUrl||"",
-      avatar_url:p.avatar_url||p.avatar||localPost.avatar||"",
+      avatar_url:canonicalProfileAvatar(p.user_id||p.creatorId||localPost.creatorId,p.avatar_url||p.avatar||localPost.avatar),
       description:p.description||p.desc||localPost.desc||"",
       created_at:p.created_at||new Date(p.createdAt||Date.now()).toISOString(),
       batch_id:p.batch_id||p.batchId||batchId,
@@ -1422,6 +1428,7 @@ return {source:'story',id:storyId};
       if(!state.sessionOpen){resetPublishComposer('frame-visible-fresh');state.sessionOpen=true;}
     }catch(_e){}
   });
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(ev){var d=ev&&ev.detail||{},id=String(d.userId||d.uid||d.id||'').trim(),url=String(d.url||d.avatarUrl||d.avatar_url||'').trim();if(!id)return;storyMentionResults.forEach(function(p){if(p&&p.id===id)p.avatar=url;});state.mentions.forEach(function(p){if(p&&p.id===id)p.avatar=url;});renderMentionResults(storyMentionResults);renderMentionChips();});
   ["descInput","locationInput"].forEach(function(id){
     bind(id,'input',updatePublishButtonsState); bind(id,'change',updatePublishButtonsState);
   });
@@ -1456,7 +1463,7 @@ return {source:'story',id:storyId};
       if(p==='index.html'||p==='/index.html'||href==='../index.html'||href==='index.html'||href==='/'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close();return false;
       }
-      if(p==='user.html'||p==='modules/user.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
+      if(p==='user.html'||p==='modules/user.html'||p==='my-profile.html'||p==='modules/my-profile.html'||p==='visitor-profile.html'||p==='modules/visitor-profile.html'||p==='video.html'||p==='modules/video.html'||p==='photo.html'||p==='modules/photo.html'||p==='publish.html'||p==='modules/publish.html'||p==='map.html'||p==='modules/map.html'){
         e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();send(c);return false;
       }
     }catch(_e){}

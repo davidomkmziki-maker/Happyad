@@ -11,6 +11,8 @@
   var host=null,frame=null;
   var isOpen=false,isReady=false,frameStarted=false,closeTimer=0,openLockUntil=0;
   var lastContext=null,prewarmTimer=0,readyPoll=0,readyPollCount=0,returnRegistered=false;
+  var revealTimer=0,openedAt=0;
+  var MIN_SKELETON_MS=120;
 
   function clean(v){return String(v==null?'':v).trim()}
   function localUser(){try{return Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{})}catch(_e){return {}}}
@@ -52,7 +54,7 @@
       host.className='happyadAssistanceHostV738';
       host.setAttribute('aria-hidden','true');
       host.setAttribute('inert','');
-      host.innerHTML='<div class="happyadAssistanceLoadingV738" aria-live="polite"><i></i><span>Ouverture de l’assistance…</span></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe>';
+      host.innerHTML='<div class="happyadAssistanceLoadingV738" role="status" aria-label="Ouverture de l’assistance"><div class="haAssistanceSkeletonV855R34" aria-hidden="true"><header class="haAssistanceSkeletonTopV855R34"><i class="haAssistanceSkeletonBackV855R34"></i><span class="haAssistanceSkeletonHeadingV855R34"><b></b><em></em></span><i class="haAssistanceSkeletonActionV855R34"></i></header><main class="haAssistanceSkeletonBodyV855R34"><section class="haAssistanceSkeletonWelcomeV855R34"><i></i><span><b></b><em></em></span></section><div class="haAssistanceSkeletonChoicesV855R34"><i></i><i></i><i></i></div><section class="haAssistanceSkeletonCardV855R34"><b></b><span></span><span class="short"></span></section><div class="haAssistanceSkeletonRowsV855R34"><article><i></i><span><b></b><em></em></span></article><article><i></i><span><b></b><em></em></span></article><article><i></i><span><b></b><em></em></span></article></div></main><footer class="haAssistanceSkeletonComposerV855R34"><i></i><span></span><b></b></footer></div></div><iframe id="'+FRAME_ID+'" class="happyadAssistanceFrameV738" title="Assistance HAPPYAD" loading="eager" referrerpolicy="same-origin" allow="clipboard-read; clipboard-write" aria-label="Assistance HAPPYAD"></iframe>';
       document.body.appendChild(host);
     }
     frame=document.getElementById(FRAME_ID);
@@ -80,13 +82,23 @@
     if(readyPollCount>=50)return;
     readyPoll=setTimeout(pollReady,80);
   }
+  function stopReveal(){if(revealTimer){clearTimeout(revealTimer);revealTimer=0}}
+  function revealReady(){
+    stopReveal();
+    if(!host||!isOpen||!isReady)return false;
+    var wait=Math.max(0,MIN_SKELETON_MS-(Date.now()-openedAt));
+    if(wait){revealTimer=setTimeout(revealReady,wait);return false}
+    host.classList.add('ready');
+    return true;
+  }
   function markReady(){
-    if(isReady)return;
-    isReady=true;
-    readyPollCount=0;
-    stopPoll();
-    if(host)host.classList.add('ready');
+    if(!isReady){
+      isReady=true;
+      readyPollCount=0;
+      stopPoll();
+    }
     sendContext();
+    revealReady();
   }
   function prepare(){
     ensureHost();
@@ -123,7 +135,9 @@
        de retour au lieu d'empiler une seconde entrée. */
     if(isOpen){sendContext();return true}
     isOpen=true;
-    host.classList.remove('closing','closingDirectV757');
+    openedAt=Date.now();
+    stopReveal();
+    host.classList.remove('ready','closing','closingDirectV757');
     host.classList.add('show');
     host.setAttribute('aria-hidden','false');
     host.removeAttribute('inert');
@@ -132,13 +146,14 @@
     registerReturn();
     if(!frameStarted)prepare();
     sendContext();
-    if(isReady)host.classList.add('ready');
+    if(isReady)revealReady();
     else{readyPollCount=0;pollReady();}
     return true;
   }
   function finishClose(reason){
     if(!host)return false;
-    host.classList.remove('show','closing','closingDirectV757');
+    stopReveal();
+    host.classList.remove('show','ready','closing','closingDirectV757');
     host.setAttribute('aria-hidden','true');
     host.setAttribute('inert','');
     document.documentElement.classList.remove('happyadAssistanceOpenV738');
@@ -150,6 +165,7 @@
   function close(reason){
     if(!isOpen||closeTimer)return false;
     isOpen=false;
+    stopReveal();
     if(host){
       /* V757 : la page précédente redevient visible immédiatement. Le host
          transparent reste néanmoins au-dessus jusqu'à la fin du clic Android,
@@ -181,7 +197,7 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
-  var api=Object.freeze({version:VERSION,open:open,close:close,prepare:prepare,isOpen:function(){return isOpen},isReady:function(){return isReady},context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}});
+  var api=Object.freeze({version:VERSION+'-V855R34-SKELETON-EVERY-OPEN',open:open,close:close,prepare:prepare,isOpen:function(){return isOpen},isReady:function(){return isReady},context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}});
   window.HappyadAssistanceMasterV757=api;
   window.HappyadAssistanceMasterV756=api;
   window.HappyadAssistanceMasterV755=api;

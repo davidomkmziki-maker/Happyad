@@ -4,8 +4,8 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V757_OWNER_PROFILE_PERSISTENT_AUDIT_STABLE';
-  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/user.html?public=1&deferred=1&v=601';
+  var MASTER_VERSION='NAV_MASTER_V855R25_VISITOR_PHOTO_HOME_DOCK_IMMEDIATE';
+  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=854r3';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
@@ -27,11 +27,11 @@
 
   var pages={
     home:'index.html',
-    profile:'modules/user.html?v=784-own-profile-nine-first',
-    profile_public:'modules/user.html?public=1',
+    profile:'modules/my-profile.html?v=855r35-anciens-groupes-photos',
+    profile_public:'modules/visitor-profile.html',
     video:'modules/video.html',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=851r5-message-scroll',
+    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r53-account-discovery',
     publish:'modules/publish.html',
     map:'modules/map.html'
   };
@@ -55,6 +55,16 @@
       '#happyadAppSkeleton .haSkTitle{height:15px!important;width:132px!important;border-radius:999px!important;background:rgba(255,255,255,.075)!important;position:relative!important;overflow:hidden!important;}\n'+
       '#happyadAppSkeleton .haSkLogo{display:none!important;}\n'+
       '#happyadAppSkeleton .haSkProfilePage{padding-top:28px!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"]{padding:18px 0 92px!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkProfileIdentity{padding:0 14px!important;margin-top:18px!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkStats{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;margin:18px 14px 0!important;border:1px solid rgba(255,255,255,.065)!important;border-radius:16px!important;overflow:hidden!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkStat{height:46px!important;border:0!important;border-right:1px solid rgba(255,255,255,.055)!important;border-radius:0!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkStat:last-child{border-right:0!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkBio{display:none!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkActions{display:none!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkProfileGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px!important;margin:92px 0 0!important;}\n'+
+      '#happyadAppSkeleton .haSkProfilePage[data-page="profile_public"] .haSkCard{border-radius:2px!important;aspect-ratio:4/5!important;background:#10141b!important;}\n'+
+      '#happyadAppSkeleton .haSkVisitorBack{position:absolute!important;left:18px!important;top:18px!important;width:54px!important;height:54px!important;border-radius:50%!important;background:rgba(255,138,0,.14)!important;border:1px solid rgba(255,138,0,.45)!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:42px!important;line-height:1!important;color:#fff!important;box-sizing:border-box!important;}\n'+
       '#happyadAppSkeleton .haSkProfileIdentity{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;margin:0 auto 18px!important;text-align:center!important;}\n'+
       '#happyadAppSkeleton .haSkAvatar{width:86px!important;height:86px!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;box-shadow:0 0 0 1px rgba(255,255,255,.055) inset,0 16px 44px rgba(0,0,0,.20)!important;position:relative!important;overflow:hidden!important;flex:0 0 auto!important;}\n'+
       '#happyadAppSkeleton .haSkAvatarCenter{width:96px!important;height:96px!important;margin:0 auto!important;}\n'+
@@ -125,8 +135,11 @@
     if(page==='video'){
       return '<div class="haSkPage haSkVideoPage" data-page="video"><div class="haSkVideoPoster"></div><div class="haSkVideoTop">'+top+'</div><div class="haSkVideoPlay"></div><div class="haSkVideoInfo">'+line+'</div></div>';
     }
-    if(page==='profile'||page==='profile_public'){
-      return '<div class="haSkPage haSkProfilePage" data-page="'+page+'">'+profileTop+'<div class="haSkStats"><div class="haSkStat"></div><div class="haSkStat"></div><div class="haSkStat"></div></div><div class="haSkBio">'+line+'</div><div class="haSkActions"><div class="haSkBtn"></div><div class="haSkBtn"></div></div><div class="haSkGrid haSkProfileGrid">'+cards+'</div></div>';
+    if(page==='profile_public'){
+      return '<div class="haSkPage haSkProfilePage" data-page="profile_public"><div class="haSkBack haSkVisitorBack" aria-label="Retour">‹</div>'+profileTop+'<div class="haSkStats"><div class="haSkStat"></div><div class="haSkStat"></div><div class="haSkStat"></div><div class="haSkStat"></div></div><div class="haSkGrid haSkProfileGrid">'+cards+'</div></div>';
+    }
+    if(page==='profile'){
+      return '<div class="haSkPage haSkProfilePage" data-page="profile">'+profileTop+'<div class="haSkStats"><div class="haSkStat"></div><div class="haSkStat"></div><div class="haSkStat"></div></div><div class="haSkBio">'+line+'</div><div class="haSkActions"><div class="haSkBtn"></div><div class="haSkBtn"></div></div><div class="haSkGrid haSkProfileGrid">'+cards+'</div></div>';
     }
     if(page==='message'){
       var rows='';for(var r=0;r<7;r++)rows+='<div class="haSkRow"><div class="haSkRowAvatar"></div><div class="haSkRowBody"><div class="haSkLine md"></div><div class="haSkLine lg"></div></div><div class="haSkRowTime"></div></div>';
@@ -204,7 +217,9 @@
       var u=new URL(url,location.href);
       var file=(u.pathname||'').replace(/\\/g,'/').split('/').pop()||'index.html';
       var prefix=url;
-      if(file==='user.html')prefix='modules/user.html';
+      if(file==='my-profile.html')prefix='modules/my-profile.html';
+      else if(file==='visitor-profile.html')prefix='modules/visitor-profile.html';
+      else if(file==='user.html')prefix='modules/my-profile.html';
       else if(file==='video.html')prefix='modules/video.html';
       else if(file==='photo.html')prefix='modules/photo.html';
       else if(file==='message-center.html')prefix='modules/message-center.html';
@@ -224,7 +239,7 @@
   function isValidPublicProfileUrl(url){
     try{
       var r=rootUrl(url), p=pathOf(r);
-      if(p!=='modules/user.html')return false;
+      if(p!=='modules/visitor-profile.html')return false;
       return !!publicUidFromUrl(r);
     }catch(_e){return false;}
   }
@@ -232,8 +247,8 @@
     page=String(page||'home');url=rootUrl(url||pages[page]||'index.html');
     if(page==='visitorProfile')page='profile_public';
     if(page==='myProfile')page='profile';
-    if(page==='profile_public'&&!isValidPublicProfileUrl(url))return {view:'profile',url:'modules/user.html',invalidPublic:true};
-    if(pathOf(url)==='modules/user.html'&&/[?&]public=1(?:&|$)/.test(rootUrl(url))&&!isValidPublicProfileUrl(url))return {view:'profile',url:'modules/user.html',invalidPublic:true};
+    if(page==='profile_public'&&!isValidPublicProfileUrl(url))return {view:'profile',url:'modules/my-profile.html',invalidPublic:true};
+    if(pathOf(url)==='modules/visitor-profile.html'&&!isValidPublicProfileUrl(url))return {view:'profile',url:'modules/my-profile.html',invalidPublic:true};
     return {view:page,url:url,invalidPublic:false};
   }
   function pageOf(url,forced){
@@ -244,7 +259,8 @@
       if(pages[forced])return forced;
     }
     var r=rootUrl(url), p=pathOf(r);
-    if(p==='modules/user.html')return isValidPublicProfileUrl(r)?'profile_public':'profile';
+    if(p==='modules/visitor-profile.html')return 'profile_public';
+    if(p==='modules/my-profile.html'||p==='modules/user.html')return 'profile';
     if(p==='modules/video.html')return 'video';
     if(p==='modules/photo.html')return 'photo';
     if(p==='modules/message-center.html')return 'message';
@@ -288,16 +304,16 @@
     return '';
   }
   function ensurePublicProfileUrl(url,extra){
-    url=rootUrl(url||'modules/user.html?public=1');
-    var uid=profileUidFromUrl(url)||String((extra&&extra.uid)||(extra&&extra.profile&&profileUidFromUrl('modules/user.html?uid='+encodeURIComponent(extra.profile.id||extra.profile.user_id||extra.profile.uid||'')))||'').trim()||activePublicProfileUid();
+    url=rootUrl(url||'modules/visitor-profile.html');
+    var uid=profileUidFromUrl(url)||String((extra&&extra.uid)||(extra&&extra.profile&&profileUidFromUrl('modules/visitor-profile.html?uid='+encodeURIComponent(extra.profile.id||extra.profile.user_id||extra.profile.uid||'')))||'').trim()||activePublicProfileUid();
     if(!uid)return '';
     try{
       var u=new URL(url,location.href);
-      u.searchParams.set('public','1');
+      u.searchParams.delete('public');
       u.searchParams.set('uid',uid);
-      return 'modules/user.html'+(u.search||'')+(u.hash||'');
+      return 'modules/visitor-profile.html'+(u.search||'')+(u.hash||'');
     }catch(_e){
-      return 'modules/user.html?public=1&uid='+encodeURIComponent(uid);
+      return 'modules/visitor-profile.html?uid='+encodeURIComponent(uid);
     }
   }
   function isHome(url){return pageOf(url)==='home';}
@@ -341,7 +357,7 @@
   function deliverOwnerTargetV649(fr,url,extra){
     try{
       if(!fr||!fr.contentWindow)return false;
-      var detail={type:'HAPPYAD_PROFILE_SHOW_OWNER_V649',url:rootUrl(url||'modules/user.html'),source:String(extra&&extra.source||MASTER_VERSION),requestId:'own649-'+Date.now()};
+      var detail={type:'HAPPYAD_PROFILE_SHOW_OWNER_V649',url:rootUrl(url||'modules/my-profile.html'),source:String(extra&&extra.source||MASTER_VERSION),requestId:'own649-'+Date.now()};
       fr.__happyadOwnerOpenRequestedV649=true;
       try{
         var api=fr.contentWindow.HappyProfileOwnerV649;
@@ -496,8 +512,8 @@
       if(!key)return null;
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
-      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=851r5-message-scroll',source:'url'};
-      if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/user.html',source:'url'};
+      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=855r53-account-discovery',source:'url'};
+      if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/my-profile.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
     }catch(_e){}
@@ -508,6 +524,36 @@
     rememberReloadRouteV16ZH(activePage,activeUrl);
     try{if(window.HappyState)HappyState.route(activePage,{url:activeUrl},MASTER_VERSION);}catch(_e){}
   }
+  var VISITOR_DOCK_LOCK_CLASS_V854R3='happyadVisitorProfileNoDockV854R3';
+  var visitorDockGuardV854R3=null;
+  function visitorDockElementV854R3(){return document.getElementById('happyadMainDockV585')||document.querySelector('.bottom.happyadMainDockV585');}
+  function applyVisitorDockLockV854R3(on,reason){
+    try{
+      on=!!on;
+      var html=document.documentElement,body=document.body,dock=visitorDockElementV854R3();
+      if(html)html.classList.toggle(VISITOR_DOCK_LOCK_CLASS_V854R3,on);
+      if(body){body.classList.toggle(VISITOR_DOCK_LOCK_CLASS_V854R3,on);body.toggleAttribute('data-happyad-visitor-profile-open-v854r3',on);}
+      if(dock){
+        if(on){
+          dock.hidden=true;dock.setAttribute('aria-hidden','true');dock.setAttribute('data-happyad-visitor-dock-locked-v854r3',String(reason||'visitor'));
+          dock.style.setProperty('display','none','important');dock.style.setProperty('visibility','hidden','important');dock.style.setProperty('opacity','0','important');dock.style.setProperty('pointer-events','none','important');
+        }else{
+          dock.hidden=false;dock.removeAttribute('aria-hidden');dock.removeAttribute('data-happyad-visitor-dock-locked-v854r3');
+          dock.style.removeProperty('display');dock.style.removeProperty('visibility');dock.style.removeProperty('opacity');dock.style.removeProperty('pointer-events');
+        }
+      }
+      if(on&&dock&&!visitorDockGuardV854R3&&window.MutationObserver){
+        visitorDockGuardV854R3=new MutationObserver(function(){
+          try{if(document.documentElement.classList.contains(VISITOR_DOCK_LOCK_CLASS_V854R3)){
+            var d=visitorDockElementV854R3();if(d&&(!d.hidden||d.style.getPropertyValue('display')!=='none'))applyVisitorDockLockV854R3(true,'mutation-guard');
+          }}catch(_e){}
+        });
+        visitorDockGuardV854R3.observe(dock,{attributes:true,attributeFilter:['style','hidden','class','aria-hidden']});
+      }
+      if(!on&&visitorDockGuardV854R3){try{visitorDockGuardV854R3.disconnect();}catch(_e){}visitorDockGuardV854R3=null;}
+    }catch(_e){}
+  }
+  window.HappyVisitorDockLockV854R3={set:applyVisitorDockLockV854R3};
   function clearBottomVideoPressed(){
     try{document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active','happyadTapOrange','happyadBottomPressedV504','happyadVideoOpeningV16R');});}catch(_e){}
   }
@@ -515,7 +561,8 @@
     try{
       page=String(page||'home');
       document.querySelectorAll('.bottom .nav').forEach(function(n){n.classList.remove('active');});
-      var visible=(page==='home'||page==='profile'||page==='profile_public'||page==='video'||page==='message');
+      var visible=(page==='home'||page==='profile'||page==='video'||page==='message');
+      applyVisitorDockLockV854R3(page==='profile_public','set-nav-active-'+page);
       if(document.body){document.body.classList.toggle('happyadMainDockVisible',visible);document.body.classList.toggle('happyadPublishFullscreenV586',page==='publish');document.body.classList.toggle('happyadParentAppLockedV604',visible&&page!=='home');document.body.setAttribute('data-happyad-main-page',page);}try{document.documentElement.classList.toggle('happyadParentAppLockedV604',visible&&page!=='home');}catch(_lock){}
       var key='';
       if(page==='home')key='home';
@@ -556,11 +603,8 @@
   function isNoSkeletonPage(page,url){
     page=String(page||'').trim();
     url=rootUrl(url||pages[page]||'');
-    /* V625 : toutes les surfaces réelles s'ouvrent directement.
-       Le seul squelette conservé est celui du Profil visiteur, car l'UID doit
-       être verrouillé avant d'afficher la frame afin d'éviter un mauvais profil. */
-    if(page==='profile_public')return false;
-    if(pathOf(url)==='modules/user.html'&&isValidPublicProfileUrl(url))return false;
+    /* V854R2 : chaque profil possède son propre squelette interne. Le parent
+       n'ajoute donc aucun second écran de chargement, notamment pour le visiteur. */
     return true;
   }
   function isSoftOpenPage(page,url){return page&&page!=='home'&&!isNoSkeletonPage(page,url);}
@@ -578,16 +622,25 @@
   function persistentMainUrl(page){
     page=String(page||'');
     if(page==='video')return 'modules/video.html';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=851r5-message-scroll';
-    if(page==='profile')return 'modules/user.html?v=784-own-profile-nine-first';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r53-account-discovery';
+    if(page==='profile')return 'modules/my-profile.html?v=855r35-anciens-groupes-photos';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';
     return pages[page]||'index.html';
+  }
+  function ownerAuthUidHintV855R23(){
+    try{
+      if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';
+      return String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim();
+    }catch(_e){return '';}
   }
   function preloadFrame(page,url){
     try{
       page=String(page||'').trim();
       if(!isPersistentMainPage(page)||page==='profile_public')return false;
+      /* V855R23 : ne jamais précharger Mon profil avec une session invitée. Une
+         frame invitée persistante était la cause du profil bloqué après connexion. */
+      if(page==='profile'&&!ownerAuthUidHintV855R23())return false;
       url=rootUrl(url||persistentMainUrl(page));
       var root=ensureShell();if(!root)return false;
       var fr=ensureFrame(page,url);if(!fr)return false;
@@ -847,22 +900,21 @@
         if(!declared){return;}
         var u=declared||url||pages[pg]||'';
         installBridge(fr,pg);
-        if(pg==='profile'&&fr.__happyadOwnerOpenRequestedV649){try{deliverOwnerTargetV649(fr,declared||u||'modules/user.html',{source:'owner-frame-load-v649'});}catch(_ownerLoad){}}
+        if(pg==='profile'&&fr.__happyadOwnerOpenRequestedV649){try{deliverOwnerTargetV649(fr,declared||u||'modules/my-profile.html',{source:'owner-frame-load-v649'});}catch(_ownerLoad){}}
         if(pg==='profile_public'&&fr.__happyadVisitorTargetV601){
+          /* V854R2 : le Profil visiteur possède désormais son propre document et
+             son propre moteur. Le parent ne lui envoie plus un ordre de remplacement
+             d'UID après le chargement : un changement d'UID détruit la frame, tandis
+             que le même UID réutilise directement la frame déjà peinte. */
           if(activePage!=='profile_public'){
-            try{fr.__happyadVisitorOpenRequestedV601=false;fr.removeAttribute('data-happyad-loading');fr.removeAttribute('data-happyad-defer-visible');fr.style.opacity='';fr.style.visibility='';fr.classList.remove('on');fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');pauseFrame(fr,'visitor-load-hidden-owner-active-v649');}catch(_visitorHidden){}
+            try{fr.__happyadVisitorOpenRequestedV601=false;fr.removeAttribute('data-happyad-loading');fr.removeAttribute('data-happyad-defer-visible');fr.style.opacity='';fr.style.visibility='';fr.classList.remove('on');fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');pauseFrame(fr,'visitor-load-hidden-owner-active-v854');}catch(_visitorHidden){}
             return;
           }
           try{
             fr.removeAttribute('data-happyad-preloading-v594');
             fr.removeAttribute('data-happyad-loading');
             fr.setAttribute('data-happyad-ready-v594','1');
-            deliverVisitorTargetV601(fr,fr.__happyadVisitorTargetV601.url,fr.__happyadVisitorTargetV601.extra||{});
-            if(fr.getAttribute('data-happyad-defer-visible')==='1'||fr.__happyadVisitorOpenRequestedV601){
-              setTimeout(function(){revealFrame(fr,'profile_public',fr.getAttribute('data-happyad-route-url-v601')||u,'visitor-load-target-v601');},24);
-            }else{
-              fr.style.opacity='';fr.style.visibility='';pauseFrame(fr,'visitor-preload-ready-v601');
-            }
+            fr.__happyadVisitorOpenRequestedV601=false;
           }catch(_visitorLoad){}
           return;
         }
@@ -923,7 +975,7 @@
       /* V656 : une frame Profil visiteur qui a été naviguée par erreur vers une
          page Vidéo n'est jamais réutilisée comme profil. */
       var path='';try{path=new URL(href,location.href).pathname.replace(/\/+/g,'/');}catch(_u){}
-      if(!/(?:^|\/)modules\/user\.html$/i.test(path)&&!/(?:^|\/)user\.html$/i.test(path))return false;
+      if(!/(?:^|\/)modules\/visitor-profile\.html$/i.test(path)&&!/(?:^|\/)visitor-profile\.html$/i.test(path))return false;
       return true;
     }catch(_e){return false;}
   }
@@ -951,6 +1003,51 @@
       fr.src='about:blank';fr.remove();return true;
     }catch(_e){return false;}
   }
+  function destroyOwnerFrameV855R23(reason){
+    try{
+      var fr=document.getElementById(frameId('profile'));if(!fr)return false;
+      try{pauseFrame(fr,reason||'owner-destroy-v855r23');}catch(_p){}
+      ['__happyadLoadWatch','__happyadRevealWatch','__happyadVideoFrameHoldTimer'].forEach(function(k){try{if(fr[k])clearTimeout(fr[k]);fr[k]=null;}catch(_t){}});
+      try{fr.src='about:blank';}catch(_s){}
+      fr.remove();return true;
+    }catch(_e){return false;}
+  }
+  var ownerAuthSyncTimerV855R23=0;
+  function syncOwnerProfileAuthV855R23(detail){
+    detail=detail&&typeof detail==='object'?detail:{};
+    var authenticated=!!detail.authenticated;
+    var uid=String(detail.user_id||detail.user&&detail.user.id||'').trim();
+    clearTimeout(ownerAuthSyncTimerV855R23);
+    if(!authenticated){
+      /* La déconnexion doit rendre l'Accueil immédiatement, puis supprimer la
+         frame privée afin qu'aucun ancien profil ne puisse réapparaître. */
+      if(activePage!=='home'||document.body.classList.contains('happyadAppOpen'))close('auth-signed-out-v855r23',true);
+      destroyOwnerFrameV855R23('auth-signed-out-v855r23');
+      return true;
+    }
+    var fr=document.getElementById(frameId('profile'));
+    if(fr&&fr.contentWindow){
+      try{fr.contentWindow.postMessage({type:'HAPPYAD_AUTH_SIGNED_IN_V595',detail:{authenticated:true,user_id:uid,user:detail.user||null,event:detail.event||'SIGNED_IN'}},'*');}catch(_m){}
+    }
+    if(activePage==='profile'){
+      if(!fr){
+        loadFrame('profile',persistentMainUrl('profile'),{source:'auth-signed-in-v855r23',force:true,revealOwnerBoot:true});
+      }else{
+        ownerAuthSyncTimerV855R23=setTimeout(function(){
+          try{
+            var current=document.getElementById(frameId('profile'));
+            var painted=String(current&&current.getAttribute('data-happyad-owner-uid-v855r23')||'').trim();
+            if(uid&&painted===uid)return;
+            destroyOwnerFrameV855R23('auth-profile-reload-fallback-v855r23');
+            loadFrame('profile',persistentMainUrl('profile'),{source:'auth-profile-reload-fallback-v855r23',force:true,revealOwnerBoot:true});
+          }catch(_e){}
+        },1800);
+      }
+    }else if(!fr){
+      setTimeout(function(){preloadFrame('profile',persistentMainUrl('profile'));},90);
+    }
+    return true;
+  }
   function resetVisitorFrameForUrl(url){
     try{
       var target=rootUrl(url||''),targetUid=profileUidFromUrl(target),fr=document.getElementById(frameId('profile_public'));
@@ -967,11 +1064,11 @@
     try{
       if(!fr)return false;
       var declared=rootUrl(fr.getAttribute('data-happyad-src')||'');
-      if(pathOf(declared)!=='modules/user.html'||/[?&]public=1(?:&|$)/.test(declared))return false;
+      if(pathOf(declared)!=='modules/my-profile.html')return false;
       var href=String(fr.contentWindow&&fr.contentWindow.location&&fr.contentWindow.location.href||'');
       if(!href||href==='about:blank')return false;
       var u=new URL(href,location.href);
-      if(!/(?:^|\/)modules\/user\.html$/i.test(u.pathname)&&!/(?:^|\/)user\.html$/i.test(u.pathname))return false;
+      if(!/(?:^|\/)modules\/my-profile\.html$/i.test(u.pathname)&&!/(?:^|\/)my-profile\.html$/i.test(u.pathname))return false;
       if(/[?&]public=1(?:&|$)/.test(u.search||''))return false;
       var d=fr.contentDocument;
       if(!d||d.readyState==='loading'||!d.body)return false;
@@ -1000,7 +1097,7 @@
          reconstruction à chaque passage Accueil -> Profil. */
       if(!ownerReusableV756)deliverOwnerTargetV649(fr,url,extra);
       else{
-        fr.setAttribute('data-happyad-src','modules/user.html');
+        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=855r35-anciens-groupes-photos');
         fr.setAttribute('data-happyad-owner-persistent-v756','1');
       }
     }
@@ -1021,8 +1118,13 @@
     /* V756 : au premier chargement seulement, Mon profil reste invisible jusqu'à
        son vrai signal READY; l'Accueil ou la page précédente reste affichée. Une
        fois peinte, la même iframe est réutilisée sans rechargement. */
-    var ownerFirstPendingV756=page==='profile'&&!ownerReusableV756&&!frameLooksReady(fr,'profile');
-    var deferVisible=visitorPersistent?(mustReload||!visitorReady):ownerFirstPendingV756;
+    var ownerFirstPendingV756=page==='profile'&&!ownerReusableV756&&!frameLooksReady(fr,'profile')&&!extra.revealOwnerBoot;
+    /* V855R24 : au premier affichage d'un Profil visiteur, le squelette parent
+       est rendu immédiatement avant de masquer la surface précédente. L'iframe
+       reste invisible jusqu'au signal peint du profil : aucun écran noir ne peut
+       apparaître entre le clic et le squelette interne. */
+    var visitorFirstPendingV855R24=visitorPersistent&&(!visitorReady||mustReload);
+    var deferVisible=visitorFirstPendingV855R24||ownerFirstPendingV756;
     if(visitorPersistent){
       fr.__happyadVisitorOpenRequestedV601=true;
       fr.__happyadVisitorTargetV601={url:rootUrl(url),extra:extra||{}};
@@ -1076,7 +1178,7 @@
         fr.__happyadLoadWatch=setTimeout(function(){
           if(fr.getAttribute('data-happyad-defer-visible')==='1')revealFrame(fr,page,url,'frame-load-timeout');
           else{showLoader(false);try{fr.removeAttribute('data-happyad-loading');fr.style.opacity='';fr.style.visibility='';}catch(_w){}}
-        },(page==='video'?1200:(page==='profile'||page==='profile_public'?1800:4200)));
+        },(page==='video'?1200:(page==='profile_public'?4200:(page==='profile'?1800:4200))));
       }catch(_w){}
     }
 
@@ -1084,15 +1186,17 @@
     if(visitorPersistent){
       fr.setAttribute('data-happyad-route-url-v601',rootUrl(url));
       if(!mustReload&&visitorReady){
+        /* Même UID : aucune reconstruction, aucun masque et aucun deuxième
+           chargement. La frame autonome déjà peinte reprend immédiatement. */
         try{
           hideOtherFrames(root,fr,page);
           root.classList.add('on');root.setAttribute('aria-hidden','false');
           document.body.classList.add('happyadAppOpen');
-          fr.style.opacity='0';fr.style.visibility='hidden';fr.classList.add('on');
-          showSkeleton(page,url,true);
-          deliverVisitorTargetV601(fr,url,extra);
-          if(fr.__happyadVisitorRevealFallbackV601)clearTimeout(fr.__happyadVisitorRevealFallbackV601);
-          fr.__happyadVisitorRevealFallbackV601=setTimeout(function(){revealFrame(fr,page,url,'visitor-switch-fallback-v601');},24);
+          fr.style.opacity='';fr.style.visibility='';fr.classList.add('on');
+          fr.removeAttribute('inert');fr.setAttribute('aria-hidden','false');
+          showSkeleton(page,url,false);
+          resumeFrame(fr,page,url,'visitor-same-uid-reuse-v854');
+          releaseNavGate('visitor-same-uid-reuse-v854');
         }catch(_visitorReuse){}
         return true;
       }
@@ -1200,13 +1304,14 @@
       if(__profileUid&&isOwnProfileUid(__profileUid)){
         try{localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE');}catch(_ap){}
         try{sessionStorage.removeItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID');sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_MODE','my');}catch(_ss){}
-        url='modules/user.html';
+        url='modules/my-profile.html';
         page='profile';
       }else if(__profileUid){
         try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',__profileUid);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL',url);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',__profileUid);localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',__profileUid);}catch(_uid){}
         if(activePage==='profile_public'&&activeUrl&&rootUrl(activeUrl)!==rootUrl(url))extra.replace=true;
       }
     }
+    applyVisitorDockLockV854R3(page==='profile_public','open-'+page);
     if(page==='video'&&hasPost(url)&&!extra.__happyadVideoPersistentV594)return openVideoPostV594(url,extra);
     if(page==='home')return close('open-home',extra.fromPop||extra.replace);
     if(page==='profile'||page==='profile_public'){
@@ -1234,6 +1339,18 @@
   }
   function close(reason,replace){
     reason=String(reason||'close');
+    applyVisitorDockLockV854R3(false,'close-'+reason);
+    /* V855R25 : libérer immédiatement les couches photo avant le retour Accueil.
+       Sans cela, le maître de retour interne pouvait conserver home-photo/profile-photo
+       le temps d'un observer DOM et masquer brièvement le menu inférieur. */
+    try{
+      var ir=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      if(ir&&typeof ir.close==='function'){
+        ir.close('home-photo');
+        ir.close('profile-photo');
+        ir.close('photo-central');
+      }
+    }catch(_photoLayers){}
     var root=shell(),frames=[];
     try{if(root)frames=Array.prototype.slice.call(root.querySelectorAll('.happyadAppFrame'));}catch(_e){frames=[];}
 
@@ -1245,8 +1362,15 @@
       document.body.classList.remove('happyadAppOpen','happyadPublishFullscreenV586','no-scroll','modal-open','story-open','fullscreen-open','happyad-story-fullscreen-lock','happyadShareOpen');
       document.documentElement.classList.remove('no-scroll','modal-open','story-open','fullscreen-open','happyad-story-fullscreen-lock','happyadShareOpen');
       document.body.classList.add('happyadMainDockVisible');
-      setNavActive('home','index.html');updateState('home','index.html');
+      /* Mettre l'état historique Accueil avant l'événement de navigation : les autres
+         maîtres ne peuvent plus relire momentanément l'ancienne route profile_public. */
+      updateState('home','index.html');
       try{if(replace!==false)history.replaceState(state('home','index.html'),'',location.href);}catch(_h){}
+      setNavActive('home','index.html');
+      try{
+        var ir2=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+        if(ir2&&typeof ir2.applyDock==='function')ir2.applyDock('home');
+      }catch(_dockSync){}
       try{destroyVisitorFrameV668(reason+'-home-v668');}catch(_visitorDestroy){}
       try{scheduleMainTabsPreloadV594();}catch(_warm){}
     }catch(_e){}
@@ -1293,12 +1417,12 @@
       var type=String(data&&data.type||'');
       /* V625: le signal générique du début de document ne ferme plus le squelette
          des pages lourdes. On attend leur maître réellement prêt. */
-      if((page==='profile'||page==='profile_public')&&type!=='HAPPYAD_PROFILE_VISUAL_READY_V621C'&&type!=='HAPPYAD_PROFILE_READY')return false;
+      if((page==='profile'||page==='profile_public')&&type!=='HAPPYAD_PROFILE_VISUAL_READY_V621C'&&type!=='HAPPYAD_PROFILE_READY'&&type!=='HAPPYAD_PROFILE_ENGINE_READY_V854')return false;
       if(page==='message'&&type!=='HAPPYAD_MESSAGE_CENTER_READY')return false;
       if(page==='video'&&type!=='HAPPYAD_VIDEO_TAB_READY_V594'&&type!=='HAPPYAD_VIDEO_READY')return false;
       fr.setAttribute('data-happyad-first-render-ready-v623','1');
       fr.setAttribute('data-happyad-first-render-reason-v623',type||'ready');
-      if(page==='profile')fr.setAttribute('data-happyad-owner-persistent-v756','1');
+      if(page==='profile'){fr.setAttribute('data-happyad-owner-persistent-v756','1');var ownerUid=String(data&&data.uid||'').trim();if(ownerUid){fr.setAttribute('data-happyad-owner-uid-v855r23',ownerUid);fr.removeAttribute('data-happyad-owner-guest-v855r23');}else{fr.removeAttribute('data-happyad-owner-uid-v855r23');fr.setAttribute('data-happyad-owner-guest-v855r23','1');}}
       if(fr.getAttribute('data-happyad-defer-visible')==='1'){
         revealFrame(fr,page,fr.getAttribute('data-happyad-route-url-v601')||fr.getAttribute('data-happyad-src')||pages[page]||'',type||'first-render-v625');
       }
@@ -1309,7 +1433,7 @@
   window.HappyNavigation={
     version:MASTER_VERSION,rootUrl:rootUrl,pathOf:pathOf,pageOf:pageOf,profileUidFromUrl:profileUidFromUrl,isOwnProfileUid:isOwnProfileUid,open:open,openAppPage:openAppPage,close:close,back:back,restore:restore,
     activeFrame:activeFrame,isBusy:navBusy,releaseNavGate:releaseNavGate,pauseFrame:pauseFrame,resumeFrame:resumeFrame,clearVideoRouteMemory:clearVideoRouteMemory,blankVideoFrame:blankVideoFrame,prefetchUrl:prefetchUrl,scheduleSoftPreload:scheduleSoftPreload,prepareOwnerProfile:prepareOwnerProfileOpenV649,
-    preloadFrame:preloadFrame,preloadMainTabs:scheduleMainTabsPreloadV594,warmVideo:preloadVideoFrameV624,activateMainTab:activateMainTabV594,openVideoPost:openVideoPostV594,postToFrame:postToFrameV594,deliverVisitorProfile:deliverVisitorTargetV601,restoreProfileAfterPhoto:restoreProfileSurfaceAfterPhotoV656
+    preloadFrame:preloadFrame,preloadMainTabs:scheduleMainTabsPreloadV594,warmVideo:preloadVideoFrameV624,activateMainTab:activateMainTabV594,openVideoPost:openVideoPostV594,postToFrame:postToFrameV594,deliverVisitorProfile:deliverVisitorTargetV601,restoreProfileAfterPhoto:restoreProfileSurfaceAfterPhotoV656,invalidateOwnerProfile:destroyOwnerFrameV855R23,syncOwnerProfileAuth:syncOwnerProfileAuthV855R23
   };
   window.happyadOpenInternalUrlV492=function(url,extra){return window.HappyNavigation.open(url,extra||{});};
   window.happyadOpenAppPage=function(page,url){return window.HappyNavigation.openAppPage(page,url);};
@@ -1323,14 +1447,18 @@
       if(pg==='home'&&(document.body.classList.contains('happyadAppOpen')||activePage!=='home')){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();close('home-link');return false;}
     }catch(_e){}
   },true);}catch(_e){}
+  try{window.addEventListener('HAPPYAD_AUTH_STATE_V595',function(ev){
+    try{syncOwnerProfileAuthV855R23(ev&&ev.detail||{});}catch(_e){}
+  },true);}catch(_e){}
   try{window.addEventListener('message',function(ev){
     try{
       var d=ev&&ev.data;if(!d)return;
       var readyType=String(d&&d.type||'');
+      if(activePage==='profile_public'&&(readyType==='HAPPYAD_VISITOR_PROFILE_NO_DOCK_V854R3'||((readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_PROFILE_READY')&&String(d.mode||'')==='visitor')))applyVisitorDockLockV854R3(true,readyType||'visitor-ready');
       if(readyType==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591'&&d.detail&&String(d.detail.id||'')==='profile-photo'){
         restoreProfileSurfaceAfterPhotoV656(ev.source,d.detail||{});
       }
-      if(readyType==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V622'||readyType==='HAPPYAD_MESSAGE_CENTER_READY'||readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_VIDEO_TAB_READY_V594'||readyType==='HAPPYAD_VIDEO_READY'||readyType==='HAPPYAD_PROFILE_READY'){
+      if(readyType==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V622'||readyType==='HAPPYAD_MESSAGE_CENTER_READY'||readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_VIDEO_TAB_READY_V594'||readyType==='HAPPYAD_VIDEO_READY'||readyType==='HAPPYAD_PROFILE_READY'||readyType==='HAPPYAD_PROFILE_ENGINE_READY_V854'){
         acceptFirstRenderV623(ev,d);
       }
       if(d==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_NAV_BACK_REQUEST'){
@@ -1397,7 +1525,7 @@
       bootHomeSafety();
       scheduleMainTabsPreloadV594();
     }
-    try{window.__HAPPYAD_LAZY_MODULE_BOOT_V614__={at:Date.now(),preloadedFrames:4,directMainPages:true,visitorSkeletonOnly:true};}catch(_e){}
+    try{window.__HAPPYAD_LAZY_MODULE_BOOT_V614__={at:Date.now(),preloadedFrames:4,directMainPages:true,visitorSkeletonOnly:true,visitorPostsPreload:false,profileBatchSize:12};}catch(_e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV16ZJ,{once:true});else bootV16ZJ();
   try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('navigation',{file:'core/navigation-master-v656.js',responsibility:'navigation unique, iframe, retour interne, bouton téléphone, ouverture modules',legacy:['happyadOpenInternalUrlV492','happyadOpenAppPage','happyadCloseAppPage','V492 router','V520 history'],active:true,version:MASTER_VERSION});}catch(_e){}

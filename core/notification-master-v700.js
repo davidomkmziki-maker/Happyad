@@ -3,13 +3,14 @@
   if(window.__HAPPYAD_NOTIFICATION_MASTER_V1__) return;
   window.__HAPPYAD_NOTIFICATION_MASTER_V1__ = true;
 
-  var VERSION='V700_NOTIFICATION_INFINITE_SCROLL_DATA';
+  var VERSION='V855R57_NOTIFICATION_QUIET_MODE_REAL';
   var TABLE='happyad_notifications';
   var CACHE_PREFIX='happyad-notifications-cache-v1:';
   var INITIAL_LIMIT=100;
   var PAGE_LIMIT=60;
   var MAX_ROWS=500;
   var rows=[];
+  var suggestions=[];
   var unreadTotal=0;
   var currentUserId='';
   var channel=null;
@@ -20,8 +21,15 @@
   var authBound=false;
   var minuteTimer=0;
   var generation=0;
+  var SETTINGS_TABLE='happyad_user_settings';
+  var SETTINGS_CACHE_PREFIX='HAPPYAD_USER_SETTINGS_V1_';
+  var notificationPreferences={};
+  var notificationPreferencesUpdatedAt='';
+  var notificationPreferencesReady=false;
 
   function clean(value){return String(value==null?'':value).trim();}
+  function avatarMaster(){return window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;}
+  function canonicalAvatar(uid,fallback){var m=avatarMaster(),id=clean(uid);if(m&&id){var e=m.getEntry&&m.getEntry(id);if(e&&e.known)return clean(e.url);if(m.resolve)m.resolve(id).catch(function(){});return '';}return clean(fallback);}
   function normalizeProfileBadge(value){
     var raw=clean(value);
     var low=raw.toLowerCase();
@@ -31,6 +39,208 @@
   function isUuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(value));}
   function finite(value){var n=Number(value);return Number.isFinite(n)?n:0;}
   function clone(value){try{return JSON.parse(JSON.stringify(value));}catch(_e){return value;}}
+  function notificationDefaults(){return {
+    privateMessages:true,messageRequests:true,audioCalls:true,videoCalls:true,conversationReplies:true,
+    likes:true,comments:true,commentReplies:true,shares:true,mentions:true,tags:true,newFollowers:true,
+    followedPosts:false,followedStories:false,ownPostActivity:true,profileVisits:false,recommendedPosts:false,
+    marketplaceMessages:true,orders:true,listingStatus:true,expiredListing:true,savedSearchResults:false,priceAvailability:true,
+    securityLogin:true,securityCredentials:true,securityRecovery:true,verificationDecisions:true,importantHappyad:true,
+    inApp:true,push:true,gmailDelivery:false,criticalSms:false,quietMode:false,importantDuringQuiet:true,securityDuringQuiet:true,
+    quietStart:'22:00',quietEnd:'07:00',quietTimeZone:''
+  };}
+  function normalizeNotificationPreferences(value){
+    var out=notificationDefaults();
+    value=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+    Object.keys(out).forEach(function(key){
+      if(!Object.prototype.hasOwnProperty.call(value,key))return;
+      if(key==='quietStart'||key==='quietEnd'){
+        var time=clean(value[key]);if(/^([01]\d|2[0-3]):[0-5]\d$/.test(time))out[key]=time;
+      }else if(key==='quietTimeZone'){
+        var zone=clean(value[key]);if(zone&&validTimeZone(zone))out[key]=zone;
+      }else out[key]=value[key]===true;
+    });
+    out.securityLogin=true;out.securityCredentials=true;out.securityRecovery=true;out.securityDuringQuiet=true;
+    if(!out.quietTimeZone)out.quietTimeZone=detectedTimeZone();
+    return out;
+  }
+  function detectedTimeZone(){
+    try{return clean(Intl.DateTimeFormat().resolvedOptions().timeZone)||'UTC';}catch(_e){return 'UTC';}
+  }
+  function validTimeZone(zone){
+    zone=clean(zone);if(!zone)return false;
+    try{Intl.DateTimeFormat('en-US',{timeZone:zone}).format(new Date());return true;}catch(_e){return false;}
+  }
+  function timeMinutes(value){
+    var match=/^([01]\d|2[0-3]):([0-5]\d)$/.exec(clean(value));
+    return match?(Number(match[1])*60+Number(match[2])):-1;
+  }
+  function zonedMinutes(at,zone){
+    var date=at instanceof Date?at:new Date(at||Date.now());
+    if(!Number.isFinite(date.getTime()))date=new Date();
+    zone=validTimeZone(zone)?zone:detectedTimeZone();
+    try{
+      var parts=Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date);
+      var hour=0,minute=0;
+      parts.forEach(function(part){if(part.type==='hour')hour=Number(part.value)||0;if(part.type==='minute')minute=Number(part.value)||0;});
+      return hour*60+minute;
+    }catch(_e){return date.getHours()*60+date.getMinutes();}
+  }
+  function quietState(at){
+    var start=timeMinutes(notificationPreferences.quietStart),end=timeMinutes(notificationPreferences.quietEnd);
+    var nowMinutes=zonedMinutes(at,notificationPreferences.quietTimeZone);
+    var enabled=notificationPreferences.quietMode===true;
+    var active=false;
+    if(enabled&&start>=0&&end>=0){
+      if(start===end)active=true;
+      else if(start<end)active=nowMinutes>=start&&nowMinutes<end;
+      else active=nowMinutes>=start||nowMinutes<end;
+    }
+    return {enabled:enabled,active:active,start:notificationPreferences.quietStart,end:notificationPreferences.quietEnd,timeZone:notificationPreferences.quietTimeZone||detectedTimeZone(),minute:nowMinutes};
+  }
+  function isImportantDuringQuiet(row){
+    row=row&&typeof row==='object'?row:{};var meta=metadata(row);
+    var priority=clean(meta.priority||meta.notification_priority||row.priority).toLowerCase();
+    var type=clean(row.notification_type||row.type).toLowerCase();
+    return meta.important===true||meta.important_message===true||meta.urgent===true||meta.critical===true||
+      priority==='high'||priority==='urgent'||priority==='critical'||type==='important_message'||type==='urgent_message';
+  }
+  function quietAllows(row,channel){
+    channel=clean(channel||'inApp');
+    if(channel==='inApp'||channel==='category')return true;
+    var state=quietState();if(!state.active)return true;
+    if(isSecurityNotification(row))return true;
+    return notificationPreferences.importantDuringQuiet===true&&isImportantDuringQuiet(row);
+  }
+  function syncQuietPreferencesToServiceWorker(){
+    if(!('serviceWorker' in navigator))return;
+    var payload={
+      type:'HAPPYAD_NOTIFICATION_QUIET_PREFERENCES_V855R57',
+      preferences:{
+        push:notificationPreferences.push!==false,
+        privateMessages:notificationPreferences.privateMessages!==false,
+        messageRequests:notificationPreferences.messageRequests!==false,
+        audioCalls:notificationPreferences.audioCalls!==false,
+        videoCalls:notificationPreferences.videoCalls!==false,
+        conversationReplies:notificationPreferences.conversationReplies!==false,
+        likes:notificationPreferences.likes!==false,
+        comments:notificationPreferences.comments!==false,
+        commentReplies:notificationPreferences.commentReplies!==false,
+        shares:notificationPreferences.shares!==false,
+        mentions:notificationPreferences.mentions!==false,
+        tags:notificationPreferences.tags!==false,
+        newFollowers:notificationPreferences.newFollowers!==false,
+        followedPosts:notificationPreferences.followedPosts!==false,
+        followedStories:notificationPreferences.followedStories!==false,
+        ownPostActivity:notificationPreferences.ownPostActivity!==false,
+        profileVisits:notificationPreferences.profileVisits!==false,
+        recommendedPosts:notificationPreferences.recommendedPosts!==false,
+        marketplaceMessages:notificationPreferences.marketplaceMessages!==false,
+        orders:notificationPreferences.orders!==false,
+        listingStatus:notificationPreferences.listingStatus!==false,
+        expiredListing:notificationPreferences.expiredListing!==false,
+        savedSearchResults:notificationPreferences.savedSearchResults!==false,
+        priceAvailability:notificationPreferences.priceAvailability!==false,
+        verificationDecisions:notificationPreferences.verificationDecisions!==false,
+        importantHappyad:notificationPreferences.importantHappyad!==false,
+        quietMode:notificationPreferences.quietMode===true,
+        importantDuringQuiet:notificationPreferences.importantDuringQuiet===true,
+        securityDuringQuiet:true,
+        quietStart:notificationPreferences.quietStart,
+        quietEnd:notificationPreferences.quietEnd,
+        quietTimeZone:notificationPreferences.quietTimeZone||detectedTimeZone(),
+        updatedAt:Date.now()
+      }
+    };
+    try{
+      if(navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage(payload);
+      navigator.serviceWorker.ready.then(function(reg){
+        var worker=reg&&(reg.active||reg.waiting||reg.installing);if(worker)worker.postMessage(payload);
+      }).catch(function(){});
+    }catch(_e){}
+  }
+  notificationPreferences=notificationDefaults();
+  function explicitPreferenceKey(row){
+    var meta=metadata(row),key=clean(meta.notification_preference_key||meta.notificationPreferenceKey);
+    return Object.prototype.hasOwnProperty.call(notificationDefaults(),key)?key:'';
+  }
+  function notificationPreferenceKey(row){
+    row=row&&typeof row==='object'?row:{};
+    var explicit=explicitPreferenceKey(row);if(explicit)return explicit;
+    var type=clean(row.notification_type||row.type||row.action||row.category).toLowerCase();
+    var meta=metadata(row);
+    if(meta.security_alert===true||meta.security===true||meta.critical_security===true||/^security(?:_|$)/.test(type))return 'securityLogin';
+    if(meta.seller_verification_request_id||meta.verification_request_id||type==='verification'||type==='verification_decision'||type==='seller_verification')return 'verificationDecisions';
+    if(meta.marketplace_status||type==='listing_status'||type==='marketplace_status'||type==='listing_published')return 'listingStatus';
+    if(type==='like'||type==='story_like'||type==='like_story')return 'likes';
+    if(type==='comment')return 'comments';
+    if(type==='reply'||type==='comment_reply')return 'commentReplies';
+    if(type==='share'||type==='repost')return 'shares';
+    if(type==='mention')return 'mentions';
+    if(type==='tag'||type==='tagged'||type==='identification')return 'tags';
+    if(type==='follow'||type==='follower'||type==='new_follower')return 'newFollowers';
+    if(type==='message'||type==='private_message'||type==='dm'||type==='direct_message'||type==='chat_message')return 'privateMessages';
+    if(type==='message_request'||type==='chat_request')return 'messageRequests';
+    if(type==='audio_call'||type==='call_audio')return 'audioCalls';
+    if(type==='video_call'||type==='call_video')return 'videoCalls';
+    if(type==='conversation_reply'||type==='message_reply')return 'conversationReplies';
+    if(type==='followed_post'||type==='new_followed_post')return 'followedPosts';
+    if(type==='followed_story'||type==='new_followed_story')return 'followedStories';
+    if(type==='post_activity'||type==='own_post_activity')return 'ownPostActivity';
+    if(type==='profile_visit'||type==='important_profile_visit')return 'profileVisits';
+    if(type==='recommended_post'||type==='post_recommendation')return 'recommendedPosts';
+    if(type==='marketplace_message'||type==='listing_message')return 'marketplaceMessages';
+    if(type==='order'||type==='order_update'||type==='order_status')return 'orders';
+    if(type==='listing_expired'||type==='expired_listing')return 'expiredListing';
+    if(type==='saved_search_result'||type==='saved_search_results')return 'savedSearchResults';
+    if(type==='price_change'||type==='availability_change'||type==='price_availability')return 'priceAvailability';
+    if(type==='system'||type==='announcement'||type==='important'||type==='happyad_info')return 'importantHappyad';
+    return '';
+  }
+  function isSecurityNotification(row){
+    row=row&&typeof row==='object'?row:{};var meta=metadata(row),type=clean(row.notification_type||row.type).toLowerCase();
+    return meta.security_alert===true||meta.security===true||meta.critical_security===true||/^security(?:_|$)/.test(type);
+  }
+  function categoryAllowed(row){
+    if(isSecurityNotification(row))return true;
+    var key=notificationPreferenceKey(row);if(!key)return true;
+    return notificationPreferences[key]!==false;
+  }
+  function notificationAllowed(row,channel){
+    if(!categoryAllowed(row))return false;
+    channel=clean(channel||'inApp');
+    if(channel==='category')return true;
+    if(channel==='inApp')return notificationPreferences.inApp!==false;
+    if(channel==='push')return notificationPreferences.push!==false&&quietAllows(row,'push');
+    if(channel==='gmail')return notificationPreferences.gmailDelivery===true&&quietAllows(row,'gmail');
+    if(channel==='sms')return notificationPreferences.criticalSms===true&&quietAllows(row,'sms');
+    return true;
+  }
+  function applyPreferences(value,updatedAt){
+    notificationPreferences=normalizeNotificationPreferences(value);
+    notificationPreferencesUpdatedAt=clean(updatedAt);
+    notificationPreferencesReady=true;
+    syncQuietPreferencesToServiceWorker();
+    return notificationPreferences;
+  }
+  function loadCachedNotificationPreferences(uid){
+    if(!isUuid(uid))return notificationPreferences;
+    try{
+      var cached=JSON.parse(localStorage.getItem(SETTINGS_CACHE_PREFIX+uid)||'null');
+      if(cached&&cached.uid===uid&&cached.data&&cached.data.notifications)applyPreferences(cached.data.notifications,cached.updatedAt||'');
+    }catch(_e){}
+    return notificationPreferences;
+  }
+  async function fetchNotificationPreferences(c,uid){
+    uid=clean(uid);loadCachedNotificationPreferences(uid);
+    if(!c||typeof c.from!=='function'||!isUuid(uid))return notificationPreferences;
+    try{
+      var result=await c.from(SETTINGS_TABLE).select('notifications,updated_at').eq('user_id',uid).maybeSingle();
+      if(result&&result.error&&clean(result.error.code)!=='PGRST116')throw result.error;
+      if(result&&result.data)applyPreferences(result.data.notifications,result.data.updated_at);
+      else if(!notificationPreferencesReady)applyPreferences({},'');
+    }catch(_e){if(!notificationPreferencesReady)applyPreferences({},'');}
+    return notificationPreferences;
+  }
   function escapeHtml(value){
     return String(value==null?'':value)
       .replace(/&/g,'&amp;')
@@ -80,8 +290,12 @@
   }
   function clearLocalState(){
     rows=[];
+    suggestions=[];
     unreadTotal=0;
     hasMore=true;
+    notificationPreferences=notificationDefaults();
+    notificationPreferencesUpdatedAt='';
+    notificationPreferencesReady=false;
     renderBadge(0);
     publish();
   }
@@ -135,7 +349,7 @@
     var actorId=clean(row.actor_id||snap.id);
     var name=clean(snap.full_name||snap.display_name||snap.name||snap.username)||'Un utilisateur';
     var username=clean(snap.username||snap.handle).replace(/^@+/, '');
-    var avatar=clean(snap.avatar_url||snap.avatar||snap.photo_url);
+    var avatar=canonicalAvatar(actorId,snap.avatar_url||snap.avatar||snap.photo_url);
     var badge=normalizeProfileBadge(snap.badge||snap.badge_url||snap.verified_badge);
     var type=clean(row.notification_type).toLowerCase()||'activity';
     var entityType=clean(row.entity_type).toLowerCase();
@@ -245,7 +459,7 @@
   function publish(){
     var payload={
       notifications:mappedRows(),
-      suggestions:[],
+      suggestions:suggestions.slice(),
       unreadTotal:unreadTotal,
       userId:currentUserId,
       source:'happyad-notification-master',
@@ -264,6 +478,7 @@
       var id=clean(row&&row.id);
       if(!id||seen[id])return false;
       if(currentUserId&&clean(row.recipient_id)&&clean(row.recipient_id)!==currentUserId)return false;
+      if(!notificationAllowed(row,'inApp'))return false;
       seen[id]=true;
       return true;
     }).sort(function(a,b){
@@ -338,33 +553,64 @@
     return null;
   }
   async function fetchUnread(c,fallbackRows){
-    var localCount=unreadFromRows(fallbackRows);
+    var visibleFallback=normalizeRows(fallbackRows);
+    var localCount=unreadFromRows(visibleFallback);
+    if(notificationPreferences.inApp===false)return 0;
 
-    /*
-     * V680 : la table est la source finale du badge. Certaines anciennes
-     * versions du RPC happyad_notifications_unread_count peuvent encore
-     * compter une ancienne colonne et retourner 0 alors que les lignes
-     * non lues existent réellement. Le count direct évite ce conflit.
-     */
+    /* V855R56 : le RPC compte uniquement les catégories autorisées. */
+    try{
+      var preferred=await c.rpc('happyad_notifications_unread_count_v855r56',{});
+      if(preferred&&preferred.error)throw preferred.error;
+      var preferredCount=rpcCountValue(preferred&&preferred.data);
+      if(preferredCount!=null)return Math.max(localCount,preferredCount);
+    }catch(_preferredError){}
+
+    /* Secours client : filtrer les lignes non lues par les mêmes préférences. */
     try{
       var direct=await c.from(TABLE)
-        .select('id',{count:'exact',head:true})
+        .select('id,recipient_id,notification_type,metadata,is_read,created_at')
         .eq('recipient_id',currentUserId)
-        .eq('is_read',false);
+        .eq('is_read',false)
+        .order('created_at',{ascending:false})
+        .limit(1000);
       if(direct&&direct.error)throw direct.error;
-      if(direct&&Number.isFinite(Number(direct.count))){
-        return Math.max(localCount,Math.max(0,Number(direct.count)));
-      }
+      if(direct&&Array.isArray(direct.data))return Math.max(localCount,unreadFromRows(normalizeRows(direct.data)));
     }catch(_directError){}
-
-    /* RPC conservé seulement comme secours pour les anciennes bases. */
-    try{
-      var result=await c.rpc('happyad_notifications_unread_count',{});
-      if(result&&result.error)throw result.error;
-      var rpcCount=rpcCountValue(result&&result.data);
-      if(rpcCount!=null)return Math.max(localCount,rpcCount);
-    }catch(_rpcError){}
     return localCount;
+  }
+  function profileSuggestion(row){
+    row=row&&typeof row==='object'?row:{};
+    var id=clean(row.id||row.user_id);
+    if(!isUuid(id))return null;
+    var name=clean(row.full_name||row.display_name||row.name||row.username||row.handle)||'Utilisateur HAPPYAD';
+    var avatar=canonicalAvatar(id,row.avatar_url||row.avatar||row.photo_url||row.photo||'');
+    var username=clean(row.username||row.handle).replace(/^@+/, '');
+    return {
+      id:id,
+      profileId:id,
+      profile_id:id,
+      name:name,
+      full_name:name,
+      username:username,
+      handle:username?('@'+username):'',
+      avatar:avatar,
+      avatar_url:avatar,
+      badge:normalizeProfileBadge(row.badge||row.verification_badge||row.verified_badge||''),
+      source:'account-recommendations-v855r54'
+    };
+  }
+  async function fetchSuggestions(c){
+    if(!c||typeof c.rpc!=='function'||!currentUserId)return [];
+    var result=await c.rpc('happyad_account_recommendations_v855r54',{p_limit:12});
+    if(result&&result.error){result=await c.rpc('happyad_account_recommendations_v855r53',{p_limit:12});}
+    if(result&&result.error)throw result.error;
+    var ids=(Array.isArray(result&&result.data)?result.data:[]).map(function(row){return clean(row&&row.target_user_id);}).filter(isUuid);
+    if(!ids.length)return [];
+    var profiles=await c.from('profiles').select('*').in('id',ids);
+    if(profiles&&profiles.error)throw profiles.error;
+    var map=Object.create(null);
+    (profiles&&Array.isArray(profiles.data)?profiles.data:[]).forEach(function(row){var id=clean(row&&row.id);if(isUuid(id))map[id]=row;});
+    return ids.map(function(id){return profileSuggestion(map[id]);}).filter(Boolean);
   }
   function scheduleRefresh(delay){
     clearTimeout(retryTimer);
@@ -387,12 +633,18 @@
       }
       if(uid!==currentUserId){
         currentUserId=uid;
+        notificationPreferences=notificationDefaults();
+        notificationPreferencesUpdatedAt='';
+        notificationPreferencesReady=false;
+        loadCachedNotificationPreferences(uid);
         var cached=readCache(uid);
         if(cached){hasMore=cached.has_more!==false;applyRows(cached.rows,cached.unread_total,{hasMore:hasMore});}
         else clearLocalState();
         await startRealtime(uid);
       }
+      await fetchNotificationPreferences(c,uid);
       var next=await fetchRows(c,null,INITIAL_LIMIT);
+      try{suggestions=await fetchSuggestions(c);}catch(_suggestionsError){suggestions=suggestions||[];}
       var preserveOlder=rows.length>INITIAL_LIMIT;
       var firstPageHasMore=next.length>=INITIAL_LIMIT;
       if(!preserveOlder)hasMore=firstPageHasMore;
@@ -456,6 +708,7 @@
         var next=payload&&payload.new;
         var old=payload&&payload.old;
         if(eventType==='INSERT'&&next&&clean(next.id)){
+          if(!notificationAllowed(next,'inApp')){scheduleRefresh(120);return;}
           rows=[next].concat(rows.filter(function(row){return clean(row.id)!==clean(next.id);})).slice(0,MAX_ROWS);
           if(next.is_read!==true)renderBadge(unreadTotal+1);
           writeCache();publish();
@@ -554,16 +807,20 @@
       scheduleRefresh(20);
     }else if(data.type==='HAPPYAD_NOTIFICATIONS_LOAD_MORE'){
       loadMore();
+    }else if(data.type==='HAPPYAD_NOTIFICATION_PREFERENCES_UPDATED_V855R56'||data.type==='HAPPYAD_NOTIFICATION_PREFERENCES_UPDATED_V855R57'){
+      notificationPreferencesReady=false;
+      refresh({force:true,reason:'preferences-updated'}).catch(function(){});
     }
   }
   function restoreWarmBadge(){
     var uid='';
     try{uid=clean(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){}
     if(!isUuid(uid))return false;
+    loadCachedNotificationPreferences(uid);
     var cached=readCache(uid);
     if(!cached)return false;
-    var cachedRows=Array.isArray(cached.rows)?cached.rows:[];
-    var cachedCount=Math.max(unreadFromRows(cachedRows),Math.max(0,finite(cached.unread_total)));
+    var cachedRows=normalizeRows(Array.isArray(cached.rows)?cached.rows:[]);
+    var cachedCount=notificationPreferences.inApp===false?0:unreadFromRows(cachedRows);
     renderBadge(cachedCount);
     return true;
   }
@@ -588,6 +845,10 @@
   window.addEventListener('focus',function(){scheduleRefresh(30);},true);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)scheduleRefresh(30);},true);
   window.addEventListener('online',function(){scheduleRefresh(30);},true);
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(){publish();},true);
+  window.addEventListener('happyad:settings-data-change',function(event){
+    var detail=event&&event.detail;if(detail&&detail.section==='notifications'){notificationPreferencesReady=false;refresh({force:true,reason:'settings-event'}).catch(function(){});}
+  },true);
 
   window.HappyNotificationMaster={
     version:VERSION,
@@ -598,7 +859,13 @@
     rows:function(){return clone(rows);},
     unread:function(){return unreadTotal;},
     userId:function(){return currentUserId;},
-    hasMore:function(){return hasMore===true;}
+    hasMore:function(){return hasMore===true;},
+    preferences:function(){return clone(notificationPreferences);},
+    preferencesReady:function(){return notificationPreferencesReady===true;},
+    preferenceKey:function(type,meta){return notificationPreferenceKey({notification_type:type,metadata:meta||{}});},
+    quietActive:function(){return quietState().active===true;},
+    quietState:function(){return clone(quietState());},
+    allows:function(type,meta,channel){return notificationAllowed({notification_type:type,metadata:meta||{}},channel||'inApp');}
   };
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});

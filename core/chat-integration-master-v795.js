@@ -43,6 +43,8 @@
     try{if(window.supabaseClient&&typeof window.supabaseClient.from==='function')return window.supabaseClient;}catch(_e){}
     return null;
   }
+  function avatarMaster(){return window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;}
+  function canonicalAvatar(uid,fallback){var m=avatarMaster(),id=clean(uid);if(m&&id){var e=m.getEntry&&m.getEntry(id);if(e&&e.known)return clean(e.url);if(m.resolve)m.resolve(id).catch(function(){});return '';}return clean(fallback);}
   function readCurrentUserLocal(){
     var keys=['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_LOGGED_USER','HAPPYAD_CURRENT_USER','HAPPYAD_USER'];
     var out={};
@@ -51,13 +53,14 @@
       if(item&&typeof item==='object')out=Object.assign(out,item);
     }
     var uid=clean(first(out,['id','user_id','uid','auth_id','auth_user_id','account_uid'],localStorage.getItem('HAPPYAD_AUTH_UID')||''));
+    var localAvatar=canonicalAvatar(uid,first(out,['avatar_url','avatar','profile_photo_url','profile_photo','photo_url','image_url'],''));
     return {
       id:uid,user_id:uid,uid:uid,
       name:clean(first(out,['name','full_name','display_name','username'],'Utilisateur HAPPYAD')),
       full_name:clean(first(out,['full_name','name','display_name'],'Utilisateur HAPPYAD')),
       username:clean(first(out,['username','handle'],'' )).replace(/^@+/,''),
-      avatar:clean(first(out,['avatar','avatar_url','profile_photo_url','profile_photo','photo_url','image_url'],'')),
-      avatar_url:clean(first(out,['avatar_url','avatar','profile_photo_url','profile_photo','photo_url','image_url'],'')),
+      avatar:localAvatar,
+      avatar_url:localAvatar,
       badge:clean(first(out,['badge','user_badge','profile_badge'],'')),
       account_type:clean(first(out,['account_type','type_compte','profile_type','role'],'user')),
       city:clean(first(out,['city','ville','town'],'')),
@@ -78,10 +81,11 @@
           var profile=await client.from('profiles').select('*').eq('id',authUser.id).maybeSingle();
           if(profile&&!profile.error&&profile.data){
             var p=profile.data;
+            var master=avatarMaster();if(master&&master.primeFromProfile)master.primeFromProfile(p,{source:'chat-current-profile-v855r32'});
             local.name=clean(first(p,['full_name','display_name','name'],local.name));
             local.full_name=local.name;
             local.username=clean(first(p,['username','handle'],local.username)).replace(/^@+/, '');
-            local.avatar=local.avatar_url=clean(first(p,['avatar_url','avatar','profile_photo_url','photo_url','image_url'],local.avatar));
+            local.avatar=local.avatar_url=canonicalAvatar(authUser.id,p.avatar_url);
             local.badge=clean(first(p,['badge','user_badge','profile_badge'],local.badge));
             local.account_type=clean(first(p,['account_type','profile_type','role'],local.account_type));
             local.city=clean(first(p,['city','ville','town'],local.city));
@@ -409,7 +413,7 @@
     var target={
       id:uid,user_id:uid,
       name:clean(payload.recipientName||first(source,['seller_name','owner_name','author_name','creatorName','user_name','display_name','full_name','username'],'Utilisateur HAPPYAD')),
-      avatar:clean(payload.recipientAvatar||first(source,['seller_avatar','owner_avatar','author_avatar','creatorAvatar','user_avatar','avatar_url','avatar'],'')),
+      avatar:canonicalAvatar(uid,payload.recipientAvatar||first(source,['seller_avatar','owner_avatar','author_avatar','creatorAvatar','user_avatar','avatar_url','avatar'],'')),
       badge:clean(payload.recipientBadge||first(source,['seller_badge','owner_badge','author_badge','badge','user_badge'],'')),
       status:''
     };
@@ -419,8 +423,9 @@
         var response=await client.from('profiles').select('id,full_name,display_name,name,username,avatar_url,avatar,badge,user_badge').eq('id',uid).maybeSingle();
         if(response&&!response.error&&response.data){
           var p=response.data;
+          var master=avatarMaster();if(master&&master.primeFromProfile)master.primeFromProfile(p,{source:'chat-message-target-v855r32'});
           target.name=clean(first(p,['full_name','display_name','name','username'],target.name));
-          target.avatar=clean(first(p,['avatar_url','avatar'],target.avatar));
+          target.avatar=canonicalAvatar(uid,p.avatar_url);
           target.badge=clean(first(p,['badge','user_badge'],target.badge));
           target.status=clean(first(p,['username'],''));
         }
@@ -533,6 +538,7 @@
   }
   document.addEventListener('happyad:marketplace-product-published',refreshPublishedListings);
   document.addEventListener('happyad:marketplace-listing-published',refreshPublishedListings);
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(event){var d=event&&event.detail||{},uid=clean(d.userId||d.uid||d.id);if(!uid||!(frame&&frameReady))return;resolveCurrentUser().then(function(user){if(user&&user.id===uid)try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_USER',payload:{user:user},source:'happyad-host',version:VERSION},'*');}catch(_e){}});});
   document.addEventListener('keydown',function(event){if(event.key==='Escape'&&host&&host.classList.contains('happyadChatHostOpenV795'))closeChat({reason:'escape'});},true);
 
   window.HappyadChatIntegrationV795={

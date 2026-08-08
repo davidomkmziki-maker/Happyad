@@ -18,6 +18,8 @@
   function payload(target){var id=postIdFrom(target);var p=findPost(id)||{};var d=domPreview(target);return Object.assign({},p,d,{id:id,post_id:id,media_type:mediaType(target,p),source:location.pathname.split('/').pop()||'index.html'});}
   function openShare(detail){try{if(window.parent&&window.parent!==window&&window.parent.HappyadShareMaster)return window.parent.HappyadShareMaster.open(detail,window);}catch(_e){}try{if(window.HappyadShareMaster)return window.HappyadShareMaster.open(detail,window);}catch(_e){}try{(window.parent||window).postMessage({type:'HAPPYAD_SHARE_OPEN',detail:detail},'*');}catch(_e){}return true;}
   function client(){try{if(typeof window.happyadSb==='function')return window.happyadSb();if(window.happyadSupabase)return window.happyadSupabase;if(window.supabaseClient)return window.supabaseClient;}catch(_e){}return null;}
+  function feedback(msg){try{if(typeof window.toast==='function'){window.toast(msg);return;}}catch(_e){}try{if(window.parent&&window.parent!==window&&typeof window.parent.toast==='function'){window.parent.toast(msg);return;}}catch(_e){}try{window.alert(msg);}catch(_e){}}
+  async function sharingAllowed(id,detail){var gate=window.HappyInteractionPrivacyV855R52;if(!gate&&window.parent&&window.parent!==window)try{gate=window.parent.HappyInteractionPrivacyV855R52;}catch(_e){}if(!gate)return false;var d=detail||{},kind=clean(d.content_type||d.source_type||d.mode).toLowerCase();if(kind==='story'&&typeof gate.canStory==='function')return !!(await gate.canStory(clean(id),'reposts',true));if(typeof gate.canPost!=='function')return false;return !!(await gate.canPost(clean(id),'reposts',true));}
   function uuid(){try{if(crypto&&typeof crypto.randomUUID==='function')return crypto.randomUUID();}catch(_e){}return '00000000-0000-4000-8000-'+(String(Date.now()).slice(-8)+String(Math.random()).replace(/\D/g,'').slice(0,4)).padEnd(12,'0').slice(0,12);}
   function first(data){if(Array.isArray(data))return data[0]||{};if(data&&Array.isArray(data.data))return data.data[0]||{};return data&&typeof data==='object'?data:{};}
   function refreshUi(id,count){
@@ -29,6 +31,8 @@
     detail=detail&&typeof detail==='object'?detail:{};var p=detail.post||detail||{};var id=clean(p.post_id||p.id);if(!id)return false;
     var type=/video/.test(clean(p.media_type).toLowerCase())?'video':'photo';var channel=clean(detail.channel)||'unknown';var units=Math.min(20,Math.max(1,Number(detail.share_units||detail.units||1)||1));var eventId=clean(detail.client_event_id)||uuid();
     try{
+      if(!(await sharingAllowed(id,p)))throw new Error('Le propriétaire n’autorise pas ce partage.');
+      if(clean(p.content_type||p.source_type||p.mode).toLowerCase()==='story')return true;
       var c=client();if(!c||!c.rpc)throw new Error('Connexion Supabase indisponible.');
       var r=await c.rpc('happyad_share_commit',{p_post_id:id,p_content_type:type,p_channel:channel,p_share_units:units,p_client_event_id:eventId,p_metadata:{source:clean(p.source),link:clean(p.link),recipient_count:units}});
       if(r&&r.error)throw r.error;
@@ -42,6 +46,6 @@
       return true;
     }catch(err){console.warn('HAPPYAD share commit',err);return false;}
   }
-  document.addEventListener('click',function(e){var share=isShareTarget(e.target);if(!share)return;if(share.closest&&share.closest('#hsvShare,.storyViewer'))return;var d=payload(share);if(!d.id)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();openShare(d);return false;},true);
+  document.addEventListener('click',async function(e){var share=isShareTarget(e.target);if(!share)return;if(share.closest&&share.closest('#hsvShare,.storyViewer'))return;var d=payload(share);if(!d.id)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();try{if(!(await sharingAllowed(d.id,d))){feedback('Le propriétaire n’autorise pas le partage de cette publication.');return false;}openShare(d);}catch(_e){feedback('Partage indisponible pour cette publication.');}return false;},true);
   window.addEventListener('message',function(e){var d=e&&e.data;if(d&&d.type==='HAPPYAD_SHARE_RECORD_ACTION')recordShare(d.detail||{});},true);
 })();

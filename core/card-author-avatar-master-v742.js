@@ -6,6 +6,7 @@
   var VERSION='CARD_AUTHOR_AVATAR_MASTER_V742_V763_HOME_STABLE';
   var AUTHOR_KEY='HAPPYAD_AUTHOR_PROFILE_CACHE_V1';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
+  var AVATAR_MASTER=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
   var CACHE_KEYS=[
     'HAPPYAD_HOME_BOOT_SNAPSHOT_V1','HAPPYAD_HOME_CONFIRMED_ORDER_V643','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_HOME_POSTS_CACHE_V1',
     'HAPPYAD_POSTS_CACHE_V1','HAPPYAD_CACHED_POSTS_V1','HAPPYAD_FEED_CACHE_V1','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1',
@@ -42,18 +43,19 @@
     p=p||{};
     var id=clean(p.id||p.user_id||p.uid||p.uuid||p.auth_user_id||p.account_uid||uidOf(p));
     if(!id)return null;
-    var n=nameOf(p)||'Utilisateur HAPPYAD',h=handleOf(p),av=publicAvatar(avatarOf(p));
-    return {id:id,user_id:id,name:n,full_name:n,handle:h,username:h,avatar:av,avatar_url:av,badge:badgeOf(p),role:clean(p.role)};
+    var n=nameOf(p)||'Utilisateur HAPPYAD',h=handleOf(p),ae=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(id),known=!!(ae&&ae.known),av=known?(ae.url||''):'';
+    return {id:id,user_id:id,name:n,full_name:n,handle:h,username:h,avatar:av,avatar_url:av,badge:badgeOf(p),role:clean(p.role),__happyadAvatarKnownV855R32:known,__happyadAvatarRevisionV855R32:known?(ae.revision||''):''};
   }
   function better(old,next){
     old=old||{};next=next||{};
     var nn=nameOf(next),on=nameOf(old);
     var name=(nn&&!/^(utilisateur happyad|happyad)$/i.test(nn))?nn:(on||'Utilisateur HAPPYAD');
-    var av=publicAvatar(avatarOf(next))||publicAvatar(avatarOf(old));
+    var id=clean(next.id||next.user_id||old.id||old.user_id),ae=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(id),known=!!(ae&&ae.known);
+    var av=known?(ae.url||''):'';
     var h=handleOf(next)||handleOf(old);
-    return {id:next.id||old.id,user_id:next.user_id||old.user_id,name:name,full_name:name,handle:h,username:h,avatar:av,avatar_url:av,badge:badgeOf(next)||badgeOf(old),role:clean(next.role)||clean(old.role)};
+    return {id:next.id||old.id,user_id:next.user_id||old.user_id,name:name,full_name:name,handle:h,username:h,avatar:av,avatar_url:av,badge:badgeOf(next)||badgeOf(old),role:clean(next.role)||clean(old.role),__happyadAvatarKnownV855R32:known,__happyadAvatarRevisionV855R32:known?(ae.revision||''):''};
   }
-  function sig(p){p=p||{};return [clean(p.id||p.user_id),nameOf(p),handleOf(p),publicAvatar(avatarOf(p)),badgeOf(p),clean(p.role)].join('|');}
+  function sig(p){p=p||{};return [clean(p.id||p.user_id),nameOf(p),handleOf(p),publicAvatar(avatarOf(p)),p.__happyadAvatarKnownV855R32===true?'known':'unknown',clean(p.__happyadAvatarRevisionV855R32),badgeOf(p),clean(p.role)].join('|');}
   function authorMap(){
     var raw='';try{raw=localStorage.getItem(AUTHOR_KEY)||'';}catch(_e){}
     if(mapMemo&&raw===mapMemoRaw)return mapMemo;
@@ -103,7 +105,7 @@
     set('creatorId',uid);set('creator_id',uid);set('user_id',uid);
     if(n.name){set('creatorName',n.name);set('creator_name',n.name);set('display_name',n.name);set('full_name',n.name);set('user_name',n.name);}
     if(n.handle){set('handle','@'+n.handle);set('username',n.handle);}
-    if(n.avatar){set('avatar',n.avatar);set('avatar_url',n.avatar);set('creator_avatar',n.avatar);set('author_avatar',n.avatar);set('user_avatar',n.avatar);}
+    if(n.__happyadAvatarKnownV855R32===true||n.avatar){set('avatar',n.avatar||'');set('avatar_url',n.avatar||'');set('creator_avatar',n.avatar||'');set('author_avatar',n.avatar||'');set('user_avatar',n.avatar||'');set('__happyadAvatarKnownV855R32',n.__happyadAvatarKnownV855R32===true);set('__happyadAvatarRevisionV855R32',n.__happyadAvatarRevisionV855R32||'');}
     if(n.badge){set('badge',n.badge);set('user_badge',n.badge);set('userBadge',n.badge);}
     return q;
   }
@@ -156,7 +158,7 @@
           if(!card.__happyadAvatarRetryV763){card.__happyadAvatarRetryV763=1;setTimeout(function(){hydrate(false,[card]);},1200);}
         };
         box.replaceChildren(next);delete box.dataset.avatarFailed;
-      }else if(!av&&!img){var ini=initials(profile.name);if(box.textContent!==ini)box.textContent=ini;}
+      }else if(!av){if(img)img.remove();var ini=initials(profile.name);if(box.textContent!==ini)box.textContent=ini;delete box.dataset.avatarFailed;}
     }
     if(title&&profile.name){var desired=esc(profile.name)+badgeHtml(profile.badge);if(title.innerHTML!==desired)title.innerHTML=desired;}
   }
@@ -176,18 +178,19 @@
   function collectProfilesFromPosts(){var rows=[];allPosts().forEach(function(p){var uid=uidOf(p);if(uid)rows.push(Object.assign({},p,{id:uid,user_id:uid}));});return rows;}
   function idsNeeding(map){
     var ids={};
-    allPosts().forEach(function(p){var uid=uidOf(p);if(!uid)return;var pr=map[uid]||localIdentity(uid);if(!pr||!publicAvatar(pr.avatar)||!nameOf(pr)||/^(utilisateur happyad|happyad)$/i.test(nameOf(pr)))ids[uid]=1;});
+    allPosts().forEach(function(p){var uid=uidOf(p);if(!uid)return;var pr=map[uid]||localIdentity(uid),ae=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(uid);if(!ae||!ae.known||Date.now()-Number(ae.at||0)>60000||!pr||!nameOf(pr)||/^(utilisateur happyad|happyad)$/i.test(nameOf(pr)))ids[uid]=1;});
     return Object.keys(ids).slice(0,120);
   }
   async function fetchProfiles(ids){
     var c=client();if(!c||!c.from||!ids.length)return [];
-    var rows=[];
+    var rows=[],primaryOk=false;
     for(var i=0;i<ids.length;i+=40){
       var part=ids.slice(i,i+40);
-      try{var r=await c.from('profiles').select('*').in('id',part);if(r&&!r.error&&Array.isArray(r.data))rows=rows.concat(r.data);}catch(_e){}
+      try{var r=await c.from('profiles').select('*').in('id',part);if(r&&!r.error&&Array.isArray(r.data)){primaryOk=true;rows=rows.concat(r.data);}}catch(_e){}
       var missing=part.filter(function(id){return !rows.some(function(x){return clean(x&&x.id)===id||clean(x&&x.user_id)===id;});});
       if(missing.length){try{var r2=await c.from('profiles').select('*').in('user_id',missing);if(r2&&!r2.error&&Array.isArray(r2.data))rows=rows.concat(r2.data);}catch(_e2){}}
     }
+    if(AVATAR_MASTER&&primaryOk&&AVATAR_MASTER.primeProfiles)AVATAR_MASTER.primeProfiles(rows,ids,{source:'card-author-profile-fetch',markMissing:true,broadcast:true});
     return rows;
   }
   async function hydrate(force,cards){
@@ -241,6 +244,7 @@
   window.HappyadCardAuthorAvatarV742={version:VERSION,hydrate:hydrate,paint:function(){paintCards(allLoadedCards(),authorMap());}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){paintCards(allLoadedCards(),authorMap());setTimeout(function(){hydrate(false);},320);});
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(){mapMemo=null;mapMemoRaw='';paintCards(allLoadedCards(),authorMap());setTimeout(function(){hydrate(false);},60);});
   window.addEventListener('focus',function(){hydrate(false);});
   window.addEventListener('online',function(){hydrate(true);});
   window.addEventListener('pageshow',function(e){if(e&&e.persisted)hydrate(false);});

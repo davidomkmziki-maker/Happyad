@@ -28,6 +28,7 @@
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
 <script src="../core/return-reset-master-v584.js?v=584"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=855r32-source-unique"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#03070d">
@@ -1763,14 +1764,7 @@ button.notification-leading {
       item && item.username,
       item && item.handle
     ));
-    const avatar = cleanValue(firstDefined(
-      item && item.avatar,
-      item && item.avatar_url,
-      item && item.profileAvatar,
-      item && item.profile_avatar,
-      item && item.actorAvatar,
-      item && item.actor_avatar
-    ));
+    const avatar = getAvatarSource(item || {});
     const badge = firstDefined(
       item && item.profileBadge,
       item && item.profile_badge,
@@ -1862,7 +1856,7 @@ button.notification-leading {
       sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID', profile.id);
       sessionStorage.setItem(
         'HAPPYAD_PROFILE_MASTER_ACTIVE_URL',
-        'modules/user.html?public=1&uid=' + encodeURIComponent(profile.id)
+        'modules/visitor-profile.html?uid=' + encodeURIComponent(profile.id)
       );
     } catch {}
   }
@@ -1922,7 +1916,7 @@ button.notification-leading {
 
     if (own) {
       clearVisitorProfileState();
-      openInternalUrl('modules/user.html', {
+      openInternalUrl('modules/my-profile.html', {
         profileType: 'my',
         profileId,
         notificationId: resolvedNotificationId
@@ -1930,7 +1924,7 @@ button.notification-leading {
     } else {
       saveActiveVisitorProfile(profile);
       openInternalUrl(
-        'modules/user.html?public=1&uid=' + encodeURIComponent(profileId),
+        'modules/visitor-profile.html?uid=' + encodeURIComponent(profileId),
         {
           profileType: 'visitor',
           profileId,
@@ -2507,6 +2501,11 @@ function openDetails(item) {
   }
 
   function getAvatarSource(item) {
+    const uid = profileIdFrom(item);
+    const master = window.HappyProfileAvatarMasterV855R32 || window.HappyProfileAvatarMaster;
+    const entry = master && uid && master.getEntry && master.getEntry(uid);
+    if (entry && entry.known) return firstMediaUrl([entry.url]);
+    if (master && uid && master.resolve) { master.resolve(uid).catch(() => {}); return ''; }
     return firstMediaUrl([
       item.avatar,
       item.profileAvatar,
@@ -2717,7 +2716,6 @@ function openDetails(item) {
       || !(state.activeFilter === 'all' || state.activeFilter === 'follow')
       || state.unreadOnly;
     els.suggestionList.innerHTML = visible.map(item => {
-      const following = !!state.following[`suggestion-${item.id}`];
       const profileId = escapeAttr(item.profileId || item.id);
       const name = escapeAttr(item.name);
       const avatarSource = getAvatarSource(item);
@@ -2729,7 +2727,7 @@ function openDetails(item) {
         <button class="suggestion-name-trigger suggestion-copy" type="button" data-suggestion-profile="${profileId}" data-profile-name="${name}">
           <span class="suggestion-name-row"><strong>${name}</strong>${badge}</span><span>Suggestions</span>
         </button>
-        <button class="suggestion-follow${following ? ' is-following' : ''}" type="button" data-suggestion-follow="${escapeAttr(item.id)}">${following ? 'Abonné' : 'Suivre'}</button>
+        <button class="suggestion-follow" type="button" data-suggestion-open-profile="${profileId}">Voir</button>
         <button class="suggestion-dismiss" type="button" data-suggestion-dismiss="${escapeAttr(item.id)}" aria-label="Retirer ${name}">×</button>
       </article>`;
     }).join('');
@@ -2742,14 +2740,9 @@ function openDetails(item) {
       });
     });
 
-    els.suggestionList.querySelectorAll('[data-suggestion-follow]').forEach(button => {
+    els.suggestionList.querySelectorAll('[data-suggestion-open-profile]').forEach(button => {
       button.addEventListener('click', () => {
-        const id = button.dataset.suggestionFollow;
-        const key = `suggestion-${id}`;
-        state.following[key] = !state.following[key];
-        persist();
-        renderSuggestions();
-        showToast(state.following[key] ? 'Profil suivi.' : 'Abonnement annulé.');
+        openProfile(button.dataset.suggestionOpenProfile);
       });
     });
 
@@ -2880,6 +2873,25 @@ function openDetails(item) {
       return openHomePost({ publicationId, publicationType, publicationAction, id: '' });
     },
   };
+
+  function applyCanonicalNotificationAvatarV855R32(detail) {
+    detail = detail && typeof detail === 'object' ? detail : {};
+    const uid = cleanValue(detail.uid);
+    if (!uid || detail.known !== true) return;
+    const avatar = cleanValue(detail.avatarUrl || detail.avatar_url || detail.avatar);
+    const fields = ['avatar','avatar_url','avatarUrl','profileAvatar','profile_avatar','actorAvatar','actor_avatar','profilePhoto','profile_photo','photoUrl','photo_url'];
+    const patch = (item, suggestion) => {
+      if (!item || typeof item !== 'object') return;
+      const itemUid = profileIdFrom(item) || (suggestion ? cleanValue(item.profileId || item.id) : '');
+      if (itemUid !== uid) return;
+      fields.forEach(field => { if (Object.prototype.hasOwnProperty.call(item,field)) item[field] = avatar; });
+      item.avatar = avatar;item.avatar_url = avatar;item.__happyadAvatarKnownV855R32 = true;
+    };
+    notifications.forEach(item => patch(item,false));
+    suggestions.forEach(item => patch(item,true));
+    renderNotifications();renderSuggestions();
+  }
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',event => applyCanonicalNotificationAvatarV855R32(event && event.detail),true);
 
   window.addEventListener('message', event => {
     const data = event.data;

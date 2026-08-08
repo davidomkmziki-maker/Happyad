@@ -6,6 +6,7 @@
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var USER_KEYS=[USER_KEY,'HAPPYAD_USER','HAPPYAD_CURRENT_USER','happyad_current_user'];
   var STABLE_PREFIX='HAPPYAD_PROFILE_IDENTITY_STABLE_V741:';
+  var AVATAR_MASTER=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
   var busy=false,lastRun=0,channel=null;
   /* V758 — séparation stricte entre Mon profil et Profil visiteur.
      Ce maître répare uniquement l'identité du compte connecté. Dans une iframe
@@ -52,15 +53,18 @@
   }
   function merge(uid,remote){
     var cur=local(uid),st=stable(uid),post=ownPostIdentity(uid),r=remote||{};
+    if(AVATAR_MASTER&&AVATAR_MASTER.primeFromProfile&&Object.prototype.hasOwnProperty.call(r,'avatar_url'))AVATAR_MASTER.primeFromProfile(r,{source:'identity-v741-remote'});
     var rn=nameOf(r), cn=nameOf(cur), sn=nameOf(st), pn=nameOf(post);
     var name=!poorName(rn)?rn:(!poorName(cn)?cn:(!poorName(sn)?sn:(!poorName(pn)?pn:'Utilisateur HAPPYAD')));
-    var avatar=first(avatarOf(r),avatarOf(cur),avatarOf(st),avatarOf(post));
+    var avatarEntry=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(uid);
+    var avatar=avatarEntry&&avatarEntry.known?(avatarEntry.url||''):'';
     var handle=first(handleOf(r),handleOf(cur),handleOf(st),handleOf(post));
     var remoteBadge=clean(badgeOf(r)).toLowerCase(),oldBadge=clean(first(badgeOf(cur),badgeOf(st),badgeOf(post))).toLowerCase();
     var badge=(remoteBadge&&remoteBadge!=='aucun'&&remoteBadge!=='none'&&remoteBadge!=='null'&&remoteBadge!=='undefined')?remoteBadge:(oldBadge||'aucun');
     var remoteRole=clean(r&&r.role).toLowerCase(),oldRole=clean(first(cur.role,st.role)).toLowerCase();
     var role=(remoteRole&&!(remoteRole==='user'&&oldRole&&oldRole!=='user'))?remoteRole:(oldRole||remoteRole||'user');
     var next=Object.assign({},st,cur,r,{id:uid,user_id:uid,name:name,full_name:name,display_name:name,handle:handle,username:handle,avatar:avatar,avatar_url:avatar,badge:badge,role:role});
+    if(avatarEntry&&avatarEntry.known){next.__happyadAvatarKnownV855R32=true;next.__happyadAvatarRevisionV855R32=avatarEntry.revision||'';if(AVATAR_MASTER&&AVATAR_MASTER.patchRecord)next=AVATAR_MASTER.patchRecord(next,uid);}
     return next;
   }
   function identitySig(p){p=p||{};return [uidOf(p),nameOf(p),handleOf(p),avatarOf(p),badgeOf(p),clean(p.role),clean(p.type),clean(p.bio),clean(p.country)].join('|');}
@@ -82,7 +86,7 @@
   }
   function repairPosts(next){
     var uid=uidOf(next);if(!uid)return;
-    function patch(p){if(!p||uidOf(p)!==uid)return p;return Object.assign({},p,{creatorName:next.name,creator_name:next.name,display_name:next.name,full_name:next.name,handle:next.handle?('@'+next.handle):p.handle,username:next.handle||p.username,avatar:next.avatar||p.avatar,avatar_url:next.avatar||p.avatar_url,creator_avatar:next.avatar||p.creator_avatar,author_avatar:next.avatar||p.author_avatar,badge:next.badge||p.badge,user_badge:next.badge||p.user_badge});}
+    function patch(p){if(!p||uidOf(p)!==uid)return p;var ae=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(uid),avatarKnown=!!(ae&&ae.known),avatar=avatarKnown?(ae.url||''):next.avatar;return Object.assign({},p,{creatorName:next.name,creator_name:next.name,display_name:next.name,full_name:next.name,handle:next.handle?('@'+next.handle):p.handle,username:next.handle||p.username,avatar:avatarKnown?avatar:(avatar||p.avatar),avatar_url:avatarKnown?avatar:(avatar||p.avatar_url),creator_avatar:avatarKnown?avatar:(avatar||p.creator_avatar),author_avatar:avatarKnown?avatar:(avatar||p.author_avatar),user_avatar:avatarKnown?avatar:(avatar||p.user_avatar),__happyadAvatarKnownV855R32:avatarKnown||p.__happyadAvatarKnownV855R32===true,badge:next.badge||p.badge,user_badge:next.badge||p.user_badge});}
     try{if(Array.isArray(window.ALL_POSTS))window.ALL_POSTS=window.ALL_POSTS.map(patch);}catch(_e){}
     ['HAPPYAD_HOME_BOOT_SNAPSHOT_V1','HAPPYAD_HOME_CONFIRMED_ORDER_V643','HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_POSTS_CACHE_V1','HAPPYAD_CACHED_POSTS_V1','HAPPYAD_FEED_CACHE_V1','HAPPYAD_SEARCH_POSTS_FAST_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_PROFILE_POSTS_CACHE_V1','HAPPYAD_PROFILE_OWN_POSTS_STABLE_CACHE_V1','HAPPYAD_USER_POSTS_CACHE_V1','HAPPYAD_STORIES_CACHE_V1'].forEach(function(k){try{var raw=json(k,null),shape='array',a=raw;if(raw&&Array.isArray(raw.posts)){a=raw.posts;shape='posts';}else if(raw&&Array.isArray(raw.data)){a=raw.data;shape='data';}if(!Array.isArray(a))return;var changed=false;var b=a.map(function(p){var n=patch(p);if(n!==p)changed=true;return n;});if(changed){if(shape==='posts'){raw.posts=b;localStorage.setItem(k,JSON.stringify(raw));}else if(shape==='data'){raw.data=b;localStorage.setItem(k,JSON.stringify(raw));}else localStorage.setItem(k,JSON.stringify(b));}}catch(_e){}});
   }
@@ -91,7 +95,7 @@
     try{
       var n=document.getElementById('profileName');if(n&&!poorName(next.name))n.textContent=next.name;
       var h=document.getElementById('profileHandle');if(h&&next.handle)h.textContent='@'+next.handle.replace(/^@+/,'');
-      var av=document.getElementById('avatarPreview');if(av&&next.avatar){av.style.backgroundImage="url('"+String(next.avatar).replace(/'/g,'%27')+"')";av.dataset.stableAvatar=next.avatar;av.dataset.stableAvatarUid=next.id;av.classList.remove('happyadAvatarPending');var f=av.firstChild;if(f&&f.nodeType===3)f.textContent='';}
+      var av=document.getElementById('avatarPreview'),ae=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(next.id);if(av&&ae&&ae.known){if(ae.url){av.style.backgroundImage="url('"+String(ae.url).replace(/'/g,'%27')+"')";av.dataset.stableAvatar=ae.url;av.dataset.stableAvatarUid=next.id;av.classList.remove('happyadAvatarPending');var f=av.firstChild;if(f&&f.nodeType===3)f.textContent='';}else{av.style.removeProperty('background-image');delete av.dataset.stableAvatar;av.dataset.stableAvatarUid=next.id;}}
       if(allowRender&&typeof window.render==='function'&&document.getElementById('profileName'))setTimeout(function(){try{window.render();}catch(_e){}},0);
     }catch(_e){}
   }
@@ -105,7 +109,7 @@
       var c=client();if(!c||!c.from)return;
       var q=await c.from('profiles').select('*').eq('id',uid).maybeSingle();
       if(q&&q.error){console.warn('HAPPYAD V741 profile refresh kept local identity',q.error);return;}
-      if(q&&q.data){var next=merge(uid,q.data);persist(next,'supabase-profile-v741');}
+      if(q&&q.data){if(AVATAR_MASTER&&AVATAR_MASTER.primeFromProfile)AVATAR_MASTER.primeFromProfile(q.data,{source:'identity-v741-refresh'});var next=merge(uid,q.data);persist(next,'supabase-profile-v741');}
     }catch(e){console.warn('HAPPYAD V741 profile identity refresh',e);}finally{busy=false;}
   }
   function subscribe(){
@@ -117,6 +121,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('HAPPYAD_AUTH_STATE_V595',function(){setTimeout(function(){refresh(true);subscribe();},40);});
   window.addEventListener('HAPPYAD_PROFILE_IDENTITY_V741',function(e){try{var p=e&&e.detail&&e.detail.profile;if(p&&uuid(uidOf(p)))persist(merge(uidOf(p),p),'auth-event-v741');}catch(_e){}});
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(e){try{var d=e&&e.detail||{},uid=clean(d.uid);if(uid&&uid===currentUid())persist(merge(uid,{}),'avatar-master-v855r32');}catch(_e){}});
   window.addEventListener('message',function(e){try{if(e.origin!==location.origin)return;var d=e.data||{};if(d.type==='HAPPYAD_PROFILE_IDENTITY_V741'&&d.profile&&uuid(uidOf(d.profile)))persist(merge(uidOf(d.profile),d.profile),'frame-message-v741');}catch(_e){}},true);
   window.addEventListener('focus',function(){refresh(false);});
   window.addEventListener('online',function(){refresh(true);});
