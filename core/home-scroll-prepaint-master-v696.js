@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__)return;
   window.__HAPPYAD_HOME_SCROLL_PREPAINT_V696__=true;
 
-  var VERSION='V855R72_HOME_SCROLL_STABLE';
+  var VERSION='V855R97_HOME_VERTICAL_SCROLL_BUDGET';
   var list=null,io=null,nearCards=new Set(),nearRaf=0;
   function cssUrl(value){return 'url("'+String(value||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")'}
   function installCss(){
@@ -12,7 +12,6 @@
 #list.homeTimeline .miniCard{content-visibility:auto!important;contain-intrinsic-size:auto 680px!important;will-change:auto!important;transform:none!important;backface-visibility:visible!important;}
 #list.homeTimeline .miniCard.videoCard{contain-intrinsic-size:auto 620px!important;}
 #list.homeTimeline .miniCard.haAlbumFullPagerCard{contain-intrinsic-size:auto 760px!important;}
-#list.homeTimeline .miniCard.haHomeNearLayoutV774{content-visibility:visible!important;}
 #list.homeTimeline .miniCardFrame{will-change:auto!important;transform:none!important;backface-visibility:visible!important;background:#0a0d13!important;}
 #list.homeTimeline .miniMedia,#list.homeTimeline .happyadAlbumSlide{background-color:#111722!important;background-image:linear-gradient(145deg,#171d28,#0a0e15)!important;background-size:cover!important;background-position:center!important;}
 #list.homeTimeline .miniMedia.haHomePaintReadyV696,#list.homeTimeline .happyadAlbumSlide.haHomePaintReadyV696{background-image:var(--ha-home-paint-v696),linear-gradient(145deg,#171d28,#0a0e15)!important;background-size:cover!important;background-position:center!important;}
@@ -29,7 +28,8 @@
     function ready(){
       var actual=String(img.currentSrc||img.getAttribute('src')||src||'').trim();
       if(box&&actual){box.style.setProperty('--ha-home-paint-v696',cssUrl(actual));box.classList.add('haHomePaintReadyV696')}
-      try{if(img.decode)img.decode().catch(function(){})}catch(_e){}
+      /* R97 : ne pas déclencher un décodage explicite des images hors écran. */
+      if(priority){try{if(img.decode)img.decode().catch(function(){})}catch(_e){}}
     }
     if(img.complete&&img.naturalWidth>0)ready();
     else if(!img.__happyadPaintBoundV696){img.__happyadPaintBoundV696=true;img.addEventListener('load',ready,{once:true});}
@@ -55,14 +55,14 @@
   function queueNearPrime(){if(nearRaf)return;nearRaf=requestAnimationFrame(primeNearCards)}
   function observeCard(card){
     if(!card||!card.matches||!card.matches('.miniCard:not(.happyadSkeletonCard)'))return;
-    if(io)io.observe(card);else{card.classList.add('haHomeNearLayoutV774');prime(card,false);}
+    if(io)io.observe(card);else{nearCards.add(card);prime(card,false);}
   }
   function unobserveTree(node){
     if(!node||node.nodeType!==1)return;
     var cards=[];
     if(node.matches&&node.matches('.miniCard'))cards.push(node);
     if(node.querySelectorAll)cards=cards.concat([].slice.call(node.querySelectorAll('.miniCard')));
-    cards.forEach(function(card){nearCards.delete(card);try{card.classList.remove('haHomeNearLayoutV774')}catch(_c){}try{if(io)io.unobserve(card)}catch(_e){}});
+    cards.forEach(function(card){nearCards.delete(card);try{if(io)io.unobserve(card)}catch(_e){}});
   }
   function observeAddedTree(node){
     if(!node||node.nodeType!==1)return;
@@ -76,9 +76,9 @@
     var owner=node.closest&&node.closest('.miniCard:not(.happyadSkeletonCard)');
     if(owner&&nearCards.has(owner))prime(owner,true);
   }
-  /* V769 : aucun mode visuel global n'est activé pendant le scroll.
-     Les ombres, transitions et pseudo-éléments restent stables afin d'éviter
-     un repaint de toutes les cartes à chaque accélération ou ralentissement. */
+  /* R93 : aucune classe de carte n'est ajoutée/retirée pendant le scroll.
+     L'IntersectionObserver sert uniquement à précharger les médias proches.
+     content-visibility:auto reste le seul arbitre de peinture du navigateur. */
   function observe(){
     list=document.getElementById('list');if(!list)return;
     if('IntersectionObserver' in window){
@@ -86,7 +86,6 @@
         entries.forEach(function(en){
           if(en.isIntersecting){
             nearCards.add(en.target);
-            try{en.target.classList.add('haHomeNearLayoutV774')}catch(_c){}
             /* R72 : priorité élevée uniquement pour la carte réellement visible ou
                immédiatement voisine, pas pour toute la grande zone de prépeinture. */
             var r=null,vh=window.innerHeight||700,priority=false;
@@ -94,10 +93,9 @@
             prime(en.target,priority)
           }else{
             nearCards.delete(en.target);
-            try{en.target.classList.remove('haHomeNearLayoutV774')}catch(_c){}
           }
         });
-      },{root:null,rootMargin:'1100px 0px 1500px 0px',threshold:[0,.01]});
+      },{root:null,rootMargin:'700px 0px 900px 0px',threshold:[0,.01]});
     }
     [].slice.call(list.querySelectorAll('.miniCard:not(.happyadSkeletonCard)')).forEach(observeCard);
     try{

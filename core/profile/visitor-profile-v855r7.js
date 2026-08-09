@@ -56,7 +56,50 @@ function setupObserver(){if(state.observer)state.observer.disconnect();if(!state
 function paintFollow(){var b=$('followBtn');if(privateBlocked()&&!state.following){b.classList.remove('following');b.textContent='Compte privé';b.disabled=true;return;}b.disabled=false;b.classList.toggle('following',state.following);b.textContent=state.following?'✓ Abonné':'S’abonner';}
 async function initFollow(){var seq=state.seq;if(!state.viewerUid||state.viewerUid===state.uid){$('followBtn').disabled=true;$('followBtn').textContent=state.viewerUid===state.uid?'Votre profil':'Connexion requise';return;}if(state.privacyKnown&&privacy().available){state.following=!!privacy().viewerIsFollower;if(alive(seq))paintFollow();return;}state.following=await C.isFollowing(state.viewerUid,state.uid);if(alive(seq))paintFollow();}
 async function toggleFollow(){var b=$('followBtn');if(!state.viewerUid){toast('Connecte-toi pour t’abonner');return;}if(state.viewerUid===state.uid)return;if(privateBlocked()&&!state.following){toast('Ce compte est privé. Les nouvelles demandes d’abonnement seront reliées à l’étape dédiée.');return;}b.disabled=true;try{var next=!state.following;await C.setFollowing(state.viewerUid,state.uid,next);state.following=next;paintFollow();await refreshPrivacy(true);await loadCounts(true);toast(next?'Abonnement enregistré':'Abonnement retiré');}catch(e){toast('Échec : '+(e.message||e));}finally{paintFollow();}}
-function openMessage(){if(!state.uid)return;var p=state.profile||{},v=state.view||{},payload={id:state.uid,user_id:state.uid,name:v.name,full_name:v.name,username:v.handle,handle:v.handle,avatar:v.avatar,avatar_url:v.avatar,badge:v.badge,source:'visitor-profile-v855r50'};try{localStorage.setItem('HAPPYAD_MESSAGE_TARGET_PROFILE',JSON.stringify(payload));sessionStorage.setItem('HAPPYAD_MESSAGE_TARGET_PROFILE',JSON.stringify(payload));}catch(_e){}var url='modules/message-center.html?mode=chat&uid='+encodeURIComponent(state.uid)+'&name='+encodeURIComponent(v.name||'')+'&v=855r53-account-discovery';try{window.parent&&window.parent!==window?window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:url,extra:{page:'message',recipient:payload,source:'visitor-profile-v855r50'}},'*'):location.href='message-center.html?mode=chat&uid='+encodeURIComponent(state.uid);}catch(_e2){}}
+function openMessage(){
+  if(!state.uid)return;
+  var v=state.view||{},payload={
+    id:state.uid,user_id:state.uid,
+    name:v.name,full_name:v.name,
+    username:v.handle,handle:v.handle,
+    avatar:v.avatar,avatar_url:v.avatar,
+    badge:v.badge,
+    source:'visitor-profile-v855r77-direct-chat-shared'
+  };
+  try{
+    localStorage.setItem('HAPPYAD_MESSAGE_TARGET_PROFILE',JSON.stringify(payload));
+    sessionStorage.setItem('HAPPYAD_MESSAGE_TARGET_PROFILE',JSON.stringify(payload));
+  }catch(_e){}
+
+  /* V855R77 : ne plus naviguer directement l'iframe Profil visiteur vers une URL
+     de conversation. Le maître Messages possède déjà son canal officiel
+     HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST : il ouvre la surface Messages existante,
+     attend sa frame prête puis lui livre le contexte direct par postMessage. */
+  var detail={
+    context_id:'visitor-message:'+state.uid+':'+Date.now(),
+    source:'visitor-profile-v855r77-direct-chat-shared',
+    mode:'direct',
+    return_to:'visitor-profile',
+    surface:'visitor-direct-chat',
+    target:payload
+  };
+  try{
+    if(window.parent&&window.parent!==window){
+      window.parent.postMessage({type:'HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST',detail:detail},'*');
+      return;
+    }
+  }catch(_e2){}
+
+  /* Secours uniquement si le module est ouvert hors de la coque HAPPYAD.
+     L'URL reste courte : l'avatar n'est jamais injecté dans la query string. */
+  var q='mode=direct&target_id='+encodeURIComponent(state.uid)+
+    '&target_name='+encodeURIComponent(v.name||'')+
+    '&source=visitor-profile-v855r77-standalone'+
+    '&return_to=visitor-profile'+
+    '&context_id='+encodeURIComponent('visitor-message:'+state.uid)+
+    '&v=855r77-direct-chat-shared';
+  try{location.href='message-center.html?'+q;}catch(_e3){}
+}
 function clearStory(){state.stories=[];state.story=null;state.storySeen=false;paintStoryRing();}
 function paintStoryRing(){var w=$('profileAvatarWrap');if(!w)return;var has=storiesAllowed()&&!!(state.story&&state.stories.length);w.classList.toggle('has-story',has);w.classList.toggle('story-seen',has&&state.storySeen);$('profileAvatar').setAttribute('aria-label',has?(state.storySeen?'Ouvrir la story vue':'Ouvrir la nouvelle story'):'Photo de profil');}
 async function setupStory(){if(!storiesAllowed()){clearStory();return;}var seq=state.seq,viewer=state.viewerUid,info=await C.profileStoryState(state.uid,viewer);if(!alive(seq)||!storiesAllowed())return;state.stories=info.rows||[];state.story=info.story||null;state.storySeen=!!info.seen;paintStoryRing();if(!state.storyBound){state.storyBound=true;$('profileAvatar').addEventListener('click',openStory);window.addEventListener('storage',function(e){if(e&&e.key==='HAPPYAD_HOME_RADAR_SEEN_V1'&&state.stories.length){state.storySeen=state.stories.every(function(x){return C.storySeenLocal(x);});paintStoryRing();}});}}

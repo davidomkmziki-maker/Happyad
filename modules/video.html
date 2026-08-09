@@ -1,5 +1,5 @@
 <!-- V68 server guard compatibility: canPost(String(postId),'comments',true) is enforced by Supabase RLS, not awaited on the UI hot path. -->
-<!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut -->
+<!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r80-video-options-visible | 855r81-video-popup-gap -->
 <!DOCTYPE html>
 <html lang="fr">
 <head><script id="happyad-frame-first-paint-v623">
@@ -309,6 +309,29 @@
 .haSharePlaneSvg path{fill:none!important;stroke:currentColor!important;stroke-width:2.35!important;stroke-linecap:round!important;stroke-linejoin:round!important}
 </style>
 
+<style id="happyad-v855r80-video-options-visible">
+/* R80 — le bouton Options existe déjà; son texte était rendu invisible par font-size:0.
+   Icône SVG dédiée pour rester visible sans modifier le moteur d’options partagé. */
+.side .haPostMoreActV613F{display:grid!important;place-items:center!important;min-height:32px!important}
+.side .haPostMoreV613E{display:grid!important;place-items:center!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:0!important;margin:0!important;color:#fff!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+.side .haPostMoreV613E .haPostMoreIconV80{display:block!important;width:25px!important;height:25px!important;overflow:visible!important;fill:currentColor!important;stroke:none!important}
+.side .haPostMoreV613E .haPostMoreIconV80 circle{fill:currentColor!important;stroke:none!important}
+@media(max-height:720px){.side .haPostMoreV613E{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}.side .haPostMoreV613E .haPostMoreIconV80{width:23px!important;height:23px!important}}
+</style>
+
+<style id="happyad-v855r83-video-popup-gap">
+/* R83 — le popup Vidéo reste clairement au-dessus du dock principal.
+   Ajustement visuel uniquement : aucun changement du moteur d’options. */
+html.happyadVideoEmbeddedV613E #happyadPostOptionsSheetV613F{
+  padding-bottom:82px!important;
+}
+html.happyadVideoEmbeddedV613E #happyadPostOptionsSheetV613F .haPostSheetV613E{
+  border-bottom:1px solid rgba(255,255,255,.07)!important;
+  border-radius:28px!important;
+  max-height:calc(min(86dvh,820px) - 82px)!important;
+}
+</style>
+
 <style id="happyad-v613e-video-compact-safe-layout">
 :root{--happyad-video-dock-reserve:0px}
 html.happyadVideoEmbeddedV613E{--happyad-video-dock-reserve:calc(58px + env(safe-area-inset-bottom,0px))}
@@ -427,8 +450,11 @@ function happyadVideoSaveCaches(arr){
 function happyadVideoReorderStart(arr){
   arr=happyadVideoUniq(arr||[]).filter(isVideo);
   let startId='';
-  try{startId=String(window.__HAPPYAD_VIDEO_TARGET_POST_V594||sessionStorage.getItem('HAPPYAD_VIDEO_TARGET_POST_V594')||new URLSearchParams(location.search).get('post')||'').trim();}catch(_e){try{startId=String(new URLSearchParams(location.search).get('post')||'').trim();}catch(_x){}}
-  if(startId){const i=arr.findIndex(x=>String(x&&x.id)===String(startId));if(i>0){const first=arr.splice(i,1)[0];arr.unshift(first)}}
+  /* HAPPYAD V855R79 — une vidéo ouverte depuis une carte devient l'ancre n°1
+     de cette session de Centrale Vidéo. Les rafraîchissements Supabase/cache ne
+     doivent pas la repousser plus bas pendant que l'utilisateur scrolle depuis elle. */
+  try{startId=String(window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79||sessionStorage.getItem('HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79')||window.__HAPPYAD_VIDEO_TARGET_POST_V594||sessionStorage.getItem('HAPPYAD_VIDEO_TARGET_POST_V594')||new URLSearchParams(location.search).get('post')||'').trim();}catch(_e){try{startId=String(new URLSearchParams(location.search).get('post')||'').trim();}catch(_x){}}
+  if(startId){const i=arr.findIndex(x=>String(x&&x.id||x&&x.post_id||'')===String(startId));if(i>0){const first=arr.splice(i,1)[0];arr.unshift(first)}}
   return arr;
 }
 function happyadVideoTimeout(promise,ms,label){
@@ -1079,7 +1105,7 @@ function happyadApplyVideoPosterLoader(reel,p){
     if(poster&&ld){ld.classList.add('hasPoster');ld.style.backgroundImage='url("'+String(poster).replace(/"/g,'\\"')+'")';}
   }catch(e){}
 }
-function makeReel(p){const reel=document.createElement('section');reel.className='reel';reel.dataset.id=p.id;reel.__happyadPostV613E=p;reel.dataset.search=(creatorName(p)+' '+creatorHandle(p)+' '+(p.title||'')+' '+(p.desc||p.description||'')).toLowerCase();const name=creatorName(p), handle=creatorHandle(p), title=p.title||'Vidéo HAPPYAD', desc=p.desc||p.description||'Aucune description.', av=creatorAvatar(p), badge=creatorBadge(p);reel.innerHTML='<div class="loader" aria-label="Vidéo en préparation"></div><div class="shade"></div><div class="creatorPill"><div class="avatar">'+(av?'<img src="'+esc(av)+'" alt="">':esc(initials(name)))+'</div><div class="who"><b>'+esc(name)+badgeHtml(badge)+'</b></div></div><div class="side"><div class="act" data-act="like"><button type="button" aria-label="J’aime"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="comment"><button type="button" aria-label="Commentaire"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="share"><button type="button" aria-label="Partager"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="repost"><button type="button" aria-label="Republier"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="fav"><button type="button" aria-label="Favoris"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span></button><span class="actCount">0</span></div><div class="act haPostMoreActV613F"><button class="haPostMoreV613E" type="button" aria-label="Options de publication">⋯</button></div></div><div class="info"><div class="title">'+esc(title)+'</div><div class="desc">'+esc(desc)+'</div><span class="more">Voir plus</span>'+'</div><div class="pauseMark">▶</div><button class="tapSound" type="button">Toucher pour activer le son</button><div class="timeHot"></div><div class="timeControls"><span class="timeText cur">0:00</span><input class="seek" type="range" min="0" max="1000" value="0"><span class="timeText dur">0:00</span></div>';
+function makeReel(p){const reel=document.createElement('section');reel.className='reel';reel.dataset.id=p.id;reel.__happyadPostV613E=p;reel.dataset.search=(creatorName(p)+' '+creatorHandle(p)+' '+(p.title||'')+' '+(p.desc||p.description||'')).toLowerCase();const name=creatorName(p), handle=creatorHandle(p), title=p.title||'Vidéo HAPPYAD', desc=p.desc||p.description||'Aucune description.', av=creatorAvatar(p), badge=creatorBadge(p);reel.innerHTML='<div class="loader" aria-label="Vidéo en préparation"></div><div class="shade"></div><div class="creatorPill"><div class="avatar">'+(av?'<img src="'+esc(av)+'" alt="">':esc(initials(name)))+'</div><div class="who"><b>'+esc(name)+badgeHtml(badge)+'</b></div></div><div class="side"><div class="act" data-act="like"><button type="button" aria-label="J’aime"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="comment"><button type="button" aria-label="Commentaire"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="share"><button type="button" aria-label="Partager"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="repost"><button type="button" aria-label="Republier"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></button><span class="actCount">0</span></div><div class="act" data-act="fav"><button type="button" aria-label="Favoris"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span></button><span class="actCount">0</span></div><div class="act haPostMoreActV613F"><button class="haPostMoreV613E" type="button" aria-label="Options de publication"><svg class="haPostMoreIconV80" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.9"></circle><circle cx="12" cy="12" r="1.9"></circle><circle cx="19" cy="12" r="1.9"></circle></svg></button></div></div><div class="info"><div class="title">'+esc(title)+'</div><div class="desc">'+esc(desc)+'</div><span class="more">Voir plus</span>'+'</div><div class="pauseMark">▶</div><button class="tapSound" type="button">Toucher pour activer le son</button><div class="timeHot"></div><div class="timeControls"><span class="timeText cur">0:00</span><input class="seek" type="range" min="0" max="1000" value="0"><span class="timeText dur">0:00</span></div>';
 
 if(happyadVideoIsMarketplaceV820(p)){const listingButton=document.createElement('button');listingButton.type='button';listingButton.className='happyadVideoListingCtaV820';listingButton.innerHTML='<span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';listingButton.onclick=e=>{e.preventDefault();e.stopPropagation();if(listingButton.dataset.opening==='1')return;listingButton.dataset.opening='1';listingButton.disabled=true;listingButton.querySelector('span').textContent='Ouverture…';happyadStopVideoForListingV850();const opened=happyadOpenVideoListingV850(p);const resetButton=()=>{listingButton.disabled=false;listingButton.dataset.opening='0';const label=listingButton.querySelector('span');if(label)label.textContent='Voir l’annonce'};setTimeout(resetButton,opened===false?500:2200)};reel.appendChild(listingButton);}
 happyadApplyVideoPosterLoader(reel,p);
@@ -1367,7 +1393,11 @@ async function renderVideoFeed(posts,keepWhenEmpty){
       this.ensure(index,true).then(function(v){
         if(!v)return;
         self.reels().forEach(function(r){const ov=r.querySelector('video');if(ov&&ov!==v)happyadPauseVideo(ov);});
-        if(v.dataset.happyadManualPause!=='1'){
+        if(window.__HAPPYAD_VIDEO_DIRECT_PREPARING_V855R79===true){
+          /* Préparation cachée d'une carte Accueil/profil : monter le bon lecteur
+             sans lancer une ancienne vidéo ni produire de son avant la révélation. */
+          happyadPauseVideo(v);
+        }else if(v.dataset.happyadManualPause!=='1'){
           if(fromStart!==false)happyadPlayFromBeginning(v);else tryPlay(v);
         }
         self.warmNeighbors(index);
@@ -1508,7 +1538,19 @@ function happyadVideoFeedNeedsMediaRefresh(){
 }
 
 async function loadVideos(){
-  const cached=readCachedVideoPosts();
+  let cached=readCachedVideoPosts();
+  var exactTarget='';
+  try{exactTarget=String(window.__HAPPYAD_VIDEO_TARGET_POST_V594||sessionStorage.getItem('HAPPYAD_VIDEO_TARGET_POST_V594')||new URLSearchParams(location.search).get('post')||'').trim();}catch(_target){}
+  /* HAPPYAD V855R78 — lorsqu'une carte Accueil demande une vidéo précise,
+     ne jamais peindre l'index 0 par défaut pendant que la cible manque du cache.
+     On récupère uniquement cette publication puis on l'injecte devant la liste. */
+  if(exactTarget&&!cached.some(function(p){return String(p&&p.id||p&&p.post_id||'')===exactTarget;})){
+    feed.innerHTML='<div class="empty"><div><b>Chargement vidéo...</b><div>Ouverture de la publication sélectionnée.</div></div></div>';
+    try{
+      var exactPost=await happyadVideoFetchFreshPostById(exactTarget);
+      if(exactPost&&isVideo(exactPost))cached=happyadVideoReorderStart(happyadVideoUniq([exactPost].concat(cached)));
+    }catch(_exactLoad){}
+  }
   if(cached.length){
     await renderVideoFeed(cached,true);
   }else{
@@ -1530,7 +1572,12 @@ async function loadVideos(){
         sessionStorage.setItem('HAPPYAD_VIDEO_LAST_PAINT_V273',String(Date.now()));
         await renderVideoFeed(vids,true);
       }else if((currentKey!==remoteKey && (delayed || Date.now()-lastPaint>45000)) || happyadVideoFeedNeedsMediaRefresh()){
-        if(activeVideo && !activeVideo.paused && !happyadVideoFeedNeedsMediaRefresh()){return;}
+        var wanted='';try{wanted=String(window.__HAPPYAD_VIDEO_TARGET_POST_V594||sessionStorage.getItem('HAPPYAD_VIDEO_TARGET_POST_V594')||'').trim();}catch(_wanted){}
+        var wantedInList=!!(wanted&&vids.some(function(p){return String(p&&p.id||p&&p.post_id||'')===wanted;}));
+        var wantedAlreadyVisible=!!(wanted&&feed.querySelector('.reel[data-id="'+(window.CSS&&CSS.escape?CSS.escape(wanted):wanted.replace(/[^a-zA-Z0-9_-]/g,'\\$&'))+'"]'));
+        /* Une vidéo déjà en lecture protège normalement le buffer contre les repaint.
+           Exception stricte : une nouvelle cible explicite venant de l'Accueil doit gagner. */
+        if(activeVideo && !activeVideo.paused && !happyadVideoFeedNeedsMediaRefresh() && !(wantedInList&&!wantedAlreadyVisible)){return;}
         appliedKey=remoteKey;
         sessionStorage.setItem('HAPPYAD_VIDEO_LAST_PAINT_V273',String(Date.now()));
         await renderVideoFeed(vids,true);
@@ -2081,6 +2128,19 @@ function pauseOne(v,manual){
     if(!reel&&typeof f.__happyadVideoFocusPost==='function'){
       if(f.__happyadVideoFocusPost(id))reel=f.querySelector('.reel[data-id="'+esc(id)+'"]');
     }
+    /* HAPPYAD V855R78 — le frame Vidéos peut être préchargé avec une ancienne liste.
+       La carte Accueil écrit déjà la publication exacte dans FAST_OPEN. On relit ce
+       cache ici et on remplace immédiatement la fenêtre virtualisée, sans attendre
+       le refresh général qui protège normalement la vidéo déjà en lecture. */
+    if(!reel&&typeof f.__happyadVideoReplacePosts==='function'){
+      try{
+        var cached=(typeof readCachedVideoPosts==='function')?readCachedVideoPosts():[];
+        if(cached.some(function(p){return String(p&&p.id||p&&p.post_id||'')===id;})){
+          f.__happyadVideoReplacePosts(cached,id);
+          reel=f.querySelector('.reel[data-id="'+esc(id)+'"]');
+        }
+      }catch(_cache){}
+    }
     if(!reel)return false;
     try{
       pauseOthers(reel);
@@ -2095,15 +2155,43 @@ function pauseOne(v,manual){
       });
       setTimeout(function(){try{if(typeof f.__happyadVideoPickAndPlay==='function')f.__happyadVideoPickAndPlay();startTargetVideo(reel);}catch(_e){}},100);
       try{sessionStorage.removeItem(KEY);}catch(_s){}
+      try{delete window.__HAPPYAD_VIDEO_TARGET_POST_V594;}catch(_w){window.__HAPPYAD_VIDEO_TARGET_POST_V594='';}
       pending='';tries=0;
       return true;
     }catch(_e){return false;}
+  }
+  var resolvingId='';
+  function injectExact(id,post){
+    try{
+      if(!post||!id)return false;
+      var f=feed();if(!f)return false;
+      var base=(typeof readCachedVideoPosts==='function')?readCachedVideoPosts():[];
+      var list=(typeof happyadVideoUniq==='function')?happyadVideoUniq([post].concat(base)):[post].concat(base);
+      if(typeof happyadVideoReorderStart==='function')list=happyadVideoReorderStart(list);
+      if(typeof f.__happyadVideoReplacePosts==='function')f.__happyadVideoReplacePosts(list,id);
+      return focusNow(id);
+    }catch(_e){return false;}
+  }
+  function resolveExact(id){
+    id=clean(id);if(!id||resolvingId===id)return;
+    resolvingId=id;
+    try{
+      if(typeof happyadVideoFetchFreshPostById==='function'){
+        Promise.resolve(happyadVideoFetchFreshPostById(id)).then(function(post){
+          if(clean(pending)!==id)return;
+          if(post&&typeof isVideo==='function'&&isVideo(post)){injectExact(id,post);}
+        }).catch(function(){}).finally(function(){if(resolvingId===id)resolvingId='';});
+      }else resolvingId='';
+    }catch(_e){resolvingId='';}
   }
   function retry(id){
     remember(id||pending);clearTimeout(timer);
     if(focusNow(pending))return true;
     tries++;
-    if(tries===1){try{if(typeof loadVideos==='function')Promise.resolve(loadVideos()).then(function(){setTimeout(function(){focusNow(pending);},20);});}catch(_l){}}
+    if(tries===1){
+      resolveExact(pending);
+      try{if(typeof loadVideos==='function')Promise.resolve(loadVideos()).then(function(){setTimeout(function(){focusNow(pending);},20);});}catch(_l){}
+    }
     if(tries<18)timer=setTimeout(function(){retry(pending);},Math.min(420,70+tries*24));
     return false;
   }
@@ -2113,6 +2201,73 @@ function pauseOne(v,manual){
     if(!id)return false;
     tries=0;return retry(id);
   }
+
+  /* HAPPYAD V855R79 — ouverture directe partagée, sur le même moteur Vidéos.
+     La publication demandée est montée en position 0 pendant que l'iframe reste
+     cachée. Le parent ne révèle ensuite que cette vue déjà prête. */
+  var DIRECT_KEY_V855R79='HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79';
+  var directSeqV855R79=0;
+  function forceTargetFirstV855R79(list,id){
+    list=(typeof happyadVideoUniq==='function'?happyadVideoUniq(list||[]):(list||[]).slice()).filter(function(p){return typeof isVideo==='function'?isVideo(p):true;});
+    var i=list.findIndex(function(p){return clean(p&&p.id||p&&p.post_id)===id;});
+    if(i>0){var target=list.splice(i,1)[0];list.unshift(target);}
+    return list;
+  }
+  async function prepareTargetFirstV855R79(id){
+    id=clean(id);if(!id)return false;
+    var seq=++directSeqV855R79;
+    remember(id);
+    try{sessionStorage.setItem(DIRECT_KEY_V855R79,id);}catch(_s){}
+    try{window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79=id;window.__HAPPYAD_VIDEO_DIRECT_PREPARING_V855R79=true;}catch(_w){}
+    var base=[];try{base=(typeof readCachedVideoPosts==='function')?readCachedVideoPosts():[];}catch(_b){}
+    var target=base.find(function(p){return clean(p&&p.id||p&&p.post_id)===id;})||null;
+    if(!target){
+      try{if(typeof happyadVideoFetchFreshPostById==='function')target=await happyadVideoFetchFreshPostById(id);}catch(_fetch){}
+    }
+    if(seq!==directSeqV855R79)return false;
+    if(!target||((typeof isVideo==='function')&&!isVideo(target))){try{window.__HAPPYAD_VIDEO_DIRECT_PREPARING_V855R79=false;}catch(_p){}return false;}
+    var list=forceTargetFirstV855R79([target].concat(base),id);
+    var f=feed();if(!f)return false;
+    try{
+      if(typeof f.__happyadVideoReplacePosts==='function')f.__happyadVideoReplacePosts(list,id);
+      else if(typeof renderVideoFeed==='function')await renderVideoFeed(list,false);
+    }catch(_paint){return false;}
+    if(seq!==directSeqV855R79)return false;
+    try{
+      var reel=f.querySelector('.reel[data-id="'+esc(id)+'"]');
+      if(!reel&&typeof f.__happyadVideoFocusPost==='function'){
+        f.__happyadVideoFocusPost(id);
+        reel=f.querySelector('.reel[data-id="'+esc(id)+'"]');
+      }
+      f.scrollTop=0;
+      pauseOthers(reel||null);
+      if(reel){var v=reel.querySelector('video');if(v){try{v.pause();v.currentTime=0;}catch(_vp){}}}
+      await new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});
+      reel=f.querySelector('.reel[data-id="'+esc(id)+'"]');
+      return !!(reel&&Number(reel.dataset.logicalIndex||0)===0);
+    }catch(_e){return false;}
+  }
+  function commitTargetFirstV855R79(id){
+    id=clean(id||sessionStorage.getItem(DIRECT_KEY_V855R79));
+    try{window.__HAPPYAD_VIDEO_DIRECT_PREPARING_V855R79=false;}catch(_w){}
+    var f=feed();if(!f)return false;
+    try{f.scrollTop=0;}catch(_s){}
+    requestAnimationFrame(function(){
+      try{
+        var reel=id?f.querySelector('.reel[data-id="'+esc(id)+'"]'):null;
+        if(reel){var v=reel.querySelector('video');if(v)v.dataset.happyadManualPause='0';}
+        if(typeof f.__happyadVideoPickAndPlay==='function')f.__happyadVideoPickAndPlay();
+      }catch(_e){}
+    });
+    return true;
+  }
+  window.HappyVideoDirectV855R79={
+    version:'V855R79_TARGET_FIRST_SHARED_ENGINE',
+    prepareTargetFirst:prepareTargetFirstV855R79,
+    commitTargetFirst:commitTargetFirstV855R79,
+    activeAnchor:function(){try{return clean(sessionStorage.getItem(DIRECT_KEY_V855R79));}catch(_e){return '';}}
+  };
+
   window.addEventListener('message',function(ev){
     try{
       var d=ev&&ev.data;if(!d)return;

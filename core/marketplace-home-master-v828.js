@@ -5,7 +5,7 @@
   if(window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__)return;
   window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__=true;
 
-  var VERSION='V828_HOME_CONFIRMED_SINGLE_SOURCE';
+  var VERSION='V855R93_MARKETPLACE_HOME_SCROLL_LIGHT';
   var observed=new WeakSet();
   var pending=new Map();
   var refreshTimer=0;
@@ -172,6 +172,11 @@
     if(observer)observer.observe(card);
   }
   function scanCards(){document.querySelectorAll('#list .miniCard[data-post-id],.homeTimeline .miniCard[data-post-id]').forEach(decorateCard);}
+  function scanAddedTree(node){
+    if(!node||node.nodeType!==1)return;
+    if(node.matches&&node.matches('.miniCard[data-post-id]'))decorateCard(node);
+    if(node.querySelectorAll)node.querySelectorAll('.miniCard[data-post-id]').forEach(decorateCard);
+  }
   function fullscreenPost(box){return box&&box.__happyadCurrentPostV613E||window.__HAPPYAD_ACTIVE_FULLSCREEN_POST_V613E||null;}
   function syncFullscreen(){
     var box=document.getElementById('happyadHomePhotoFullscreen');if(!box)return;
@@ -189,8 +194,29 @@
   }
   function install(){
     scanCards();syncFullscreen();refresh('boot');bindRealtime();
-    try{new MutationObserver(function(){scanCards();syncFullscreen();}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-post-id']});}catch(_e){}
-    setInterval(syncFullscreen,500);
+    /* R93 : ne jamais rescanner toutes les cartes sur les changements de classe
+       produits par le scroll, le prépeint ou le chargement des images. */
+    try{
+      var list=document.getElementById('list');
+      if(list){
+        new MutationObserver(function(records){
+          records.forEach(function(rec){
+            if(rec.type==='attributes'){decorateCard(rec.target);return;}
+            [].slice.call(rec.addedNodes||[]).forEach(scanAddedTree);
+          });
+        }).observe(list,{childList:true,subtree:true,attributes:true,attributeFilter:['data-post-id']});
+      }
+    }catch(_e){}
+    /* Le bouton Voir l’annonce du fullscreen est synchronisé uniquement quand
+       ce fullscreen change, au lieu d'un polling permanent toutes les 500 ms. */
+    try{
+      var fs=document.getElementById('happyadHomePhotoFullscreen');
+      if(fs){
+        var fsRaf=0;
+        var queueFs=function(){if(fsRaf)return;fsRaf=requestAnimationFrame(function(){fsRaf=0;syncFullscreen();});};
+        new MutationObserver(queueFs).observe(fs,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
+      }
+    }catch(_e){}
     document.addEventListener('happyad:marketplace-listing-published',function(){refresh('published');});
     window.addEventListener('HAPPYAD_VIDEO_POSTER_UPDATED_V693',function(){refresh('poster-updated');});
     setInterval(function(){if(!document.hidden)refresh('stability');},60000);

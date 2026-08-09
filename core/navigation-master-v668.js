@@ -4,8 +4,8 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V855R25_VISITOR_PHOTO_HOME_DOCK_IMMEDIATE';
-  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=854r3';
+  var MASTER_VERSION='NAV_MASTER_V855R79_VIDEO_TARGET_FIRST_DIRECT_OPEN';
+  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=855r77-direct-chat-shared';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
@@ -29,9 +29,9 @@
     home:'index.html',
     profile:'modules/my-profile.html?v=855r35-anciens-groupes-photos',
     profile_public:'modules/visitor-profile.html',
-    video:'modules/video.html',
+    video:'modules/video.html?v=855r79-target-first-direct',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r53-account-discovery',
+    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',
     publish:'modules/publish.html',
     map:'modules/map.html'
   };
@@ -522,7 +522,7 @@
       if(!key)return null;
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
-      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=855r53-account-discovery',source:'url'};
+      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=855r77-direct-chat-shared',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/my-profile.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
@@ -631,8 +631,8 @@
   }
   function persistentMainUrl(page){
     page=String(page||'');
-    if(page==='video')return 'modules/video.html';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r53-account-discovery';
+    if(page==='video')return 'modules/video.html?v=855r79-target-first-direct';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared';
     if(page==='profile')return 'modules/my-profile.html?v=855r35-anciens-groupes-photos';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';
@@ -878,6 +878,8 @@
   function clearVideoRouteMemory(reason){
     try{sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_e){}
     try{sessionStorage.removeItem('HAPPYAD_PENDING_APP_URL_V493');}catch(_e){}
+    try{sessionStorage.removeItem('HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79');}catch(_e){}
+    try{delete window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79;}catch(_e){window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79='';}
     try{delete window.__happyadVideoPostOpenV532;}catch(_e){window.__happyadVideoPostOpenV532=null;}
     try{window.__HAPPYAD_LAST_VIDEO_NAV_CLEAR__={reason:String(reason||''),t:Date.now()};}catch(_e){}
   }
@@ -1270,7 +1272,12 @@
   function deliverVideoTargetV594(postId,extra){
     postId=String(postId||'').trim();if(!postId)return false;
     var msg={type:'HAPPYAD_VIDEO_OPEN_POST_V594',postId:postId,id:postId,detail:{postId:postId,id:postId,source:String(extra&&extra.source||'video-target-v594')}};
-    var delays=[0,70,190,480,900];
+    /* HAPPYAD V855R78 — cible vidéo avant affichage.
+       Le frame Vidéos est persistant et peut encore contenir la dernière vidéo vue.
+       Un envoi synchrone lui donne la cible exacte pendant qu'il est encore caché,
+       puis quelques répétitions couvrent uniquement le cas où le frame finit son boot. */
+    postToFrameV594('video',msg);
+    var delays=[55,150,360,760];
     delays.forEach(function(delay){setTimeout(function(){postToFrameV594('video',msg);},delay);});
     return true;
   }
@@ -1278,10 +1285,20 @@
     extra=extra||{};
     var postId=videoPostIdFromUrl(url||'');
     if(!postId)return activateMainTabV594('video',{source:extra.source||'video-central-v594'});
+    /* HAPPYAD V855R79 — toutes les cartes vidéo utilisent la même ouverture directe
+       que le Chat direct : préparation cachée, cible en position 0, puis révélation. */
+    if(!extra.__happyadVideoDirectBypassV855R79){
+      try{
+        var tabs=window.HappyMainTabsV598||window.HappyMainTabsV596||window.HappyMainTabsV595||window.HappyMainTabsV594;
+        if(tabs&&typeof tabs.openVideoDirect==='function')return tabs.openVideoDirect({postId:postId,id:postId,source:extra.source||'video-card-v855r79-target-first'});
+      }catch(_direct){}
+    }
     try{sessionStorage.setItem(VIDEO_TARGET_KEY_V594,postId);}catch(_s){}
     try{window.__HAPPYAD_VIDEO_TARGET_POST_V594=postId;}catch(_w){}
-    var ok=activateMainTabV594('video',{source:extra.source||'video-card-v594'});
+    /* Préparer la publication exacte avant de révéler l'onglet Vidéos.
+       Ainsi aucune ancienne/dernière vidéo n'a le temps de devenir la vue active. */
     deliverVideoTargetV594(postId,extra);
+    var ok=activateMainTabV594('video',{source:extra.source||'video-card-v855r78-exact'});
     return ok;
   }
   function installBridge(fr,page){

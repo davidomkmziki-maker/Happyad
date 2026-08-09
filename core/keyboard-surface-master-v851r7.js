@@ -4,7 +4,7 @@
   if(window.__HAPPYAD_KEYBOARD_SURFACE_MASTER_V851R7__)return;
   window.__HAPPYAD_KEYBOARD_SURFACE_MASTER_V851R7__=true;
 
-  var VERSION='HAPPYAD_V851R7_KEYBOARD_SURFACE_SEAM_SAFE_MASTER';
+  var VERSION='HAPPYAD_V855R93_KEYBOARD_HOME_SCROLL_SILENT';
   var ROOT_CLASS='happyadKeyboardSurfaceOpenV851R2';
   var MANAGED_CLASS='happyadKeyboardSurfaceManagedV851R2';
   var lockY=0;
@@ -155,7 +155,15 @@
     schedule();
     try{
       new MutationObserver(function(mutations){
-        if((mutations||[]).some(function(mutation){return mutation&&mutation.attributeName==='src';}))forceFramePost=true;
+        var relevant=false,frameSrc=false;
+        (mutations||[]).forEach(function(mutation){
+          var target=mutation&&mutation.target;
+          try{if(target&&target.nodeType===1&&target.closest&&target.closest('#list'))return;}catch(_home){}
+          relevant=true;
+          if(mutation&&mutation.attributeName==='src'&&target&&String(target.tagName||'').toUpperCase()==='IFRAME')frameSrc=true;
+        });
+        if(!relevant)return;
+        if(frameSrc)forceFramePost=true;
         schedule();
       }).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','src']});
     }catch(_e){}

@@ -59,7 +59,16 @@
     if(b){resetStalePhotoState();setTimeout(forcePanel,0);setTimeout(forcePanel,100);setTimeout(forcePanel,400);}
   },true);
   document.addEventListener('change',function(e){if(e.target&&e.target.matches&&e.target.matches('input[type="file"]'))setTimeout(function(){document.body.classList.toggle('haPhotoAdjustReallyOpenV742',!!realAdjust());},120);},true);
-  var mo=new MutationObserver(function(){setTimeout(forcePanel,0);});
+  var mo=new MutationObserver(function(records){
+    /* R93 : aucun élément du fil Accueil n'appartient à l'éditeur de profil.
+       Ignorer ces mutations évite querySelectorAll/getBoundingClientRect pendant le scroll. */
+    var relevant=(records||[]).some(function(rec){
+      var t=rec&&rec.target;
+      try{if(t&&t.nodeType===1&&t.closest&&t.closest('#list'))return false;}catch(_home){}
+      return true;
+    });
+    if(relevant)setTimeout(forcePanel,0);
+  });
   try{mo.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','aria-hidden']});}catch(_e){}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){resetStalePhotoState();setTimeout(forcePanel,100);},{once:true});else{resetStalePhotoState();setTimeout(forcePanel,100);}
   window.addEventListener('pageshow',function(){resetStalePhotoState();setTimeout(forcePanel,60);});

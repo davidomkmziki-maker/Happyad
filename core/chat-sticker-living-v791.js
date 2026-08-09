@@ -26,7 +26,7 @@
       +'<button type="button" class="radarItem happyadChatStickerButtonV791" aria-label="Chat HAPPYAD" data-happyad-chat-sticker-button="v791">'
       +  '<div class="radarAvatar happyadChatStickerAvatarV791">'
       +    '<span class="happyadChatStickerSceneV791" aria-hidden="true">'
-      +      '<img class="happyadChatStickerImageV791" src="icons/happyad-chat-sticker-v797-transparent.png" alt="" draggable="false" decoding="async">'
+      +      '<img class="happyadChatStickerImageV791" src="icons/happyad-chat-sticker-v797-transparent.png" alt="" draggable="false" loading="eager" fetchpriority="high" decoding="async">'
       +      '<span class="happyadChatEyeV791 happyadChatEyeLeftV791"><i class="happyadChatPupilV791"></i></span>'
       +      '<span class="happyadChatEyeV791 happyadChatEyeRightV791"><i class="happyadChatPupilV791"></i></span>'
       +      '<span class="happyadChatMouthV791"></span>'
@@ -124,10 +124,17 @@
     try{target.click();}catch(_e){}
   },true);
 
-  try{new MutationObserver(schedulePatch).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){}
+  var observerInstalled=false;
+  function installObserver(){
+    if(observerInstalled)return;observerInstalled=true;
+    try{new MutationObserver(schedulePatch).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){}
+  }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedulePatch,{once:true});
-  else schedulePatch();
+  /* R89 : le sticker existe au même premier rendu que RADAR. L'observateur global
+     n'est installé qu'après le parsing pour ne pas alourdir l'ouverture. */
+  try{patchAll();}catch(_e){}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){installObserver();schedulePatch();},{once:true});
+  else{installObserver();schedulePatch();}
   window.addEventListener('pageshow',schedulePatch);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)schedulePatch();});
 })();

@@ -1,5 +1,5 @@
 <!-- V68 server guard compatibility: canPost(String(p.id),'comments',true) is enforced by Supabase RLS, not awaited on the UI hot path. -->
-<!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut -->
+<!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r90-home-card-single-design | 855r91-radar-add-persistent -->
 <!DOCTYPE html><html lang="fr"><head>
 <style id="happyad-v631-story-radar-first-paint">
 /* V631 — taille ronde finale dès le premier rendu et clic réarmé après fermeture. */
@@ -19,6 +19,13 @@
   width:74px!important;height:74px!important;min-width:74px!important;max-width:74px!important;border-width:3px!important;margin:0 auto!important;box-sizing:border-box!important;
 }
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarAvatar img{width:100%!important;height:100%!important;object-fit:cover!important;}
+/* R91 — le bouton Ajouter reste peint par le premier style critique : aucune phase noire entre deux synchronisations. */
+#homeRadarStoryMasterV629 .haStoryAddOnlyV629 .radarAvatar.add{
+  opacity:1!important;visibility:visible!important;filter:none!important;
+  background:linear-gradient(145deg,#7b2c00,#ff8a00)!important;border-color:#ff9c24!important;color:#fff!important;
+  contain:paint!important;backface-visibility:hidden!important;
+}
+#homeRadarStoryMasterV629 .haStoryAddOnlyV629 .radarAvatar.add span{color:#ff8a00!important;opacity:1!important;visibility:visible!important;}
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName{max-width:92px!important;margin-top:7px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:13px!important;}
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarMeta{max-width:92px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:11px!important;}
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629>.radarItem:hover,
@@ -56,7 +63,7 @@
 <script src="core/startup-master-v727.js?v=727-startup-unique"></script>
 <script src="core/story-legacy-lock-v629.js?v=629"></script>
 <script src="core/return-reset-master-v633-story-safe.js?v=633"></script>
-<script src="core/overlay-scroll-master-v662.js?v=662-profile-fullscreen-zoom-isolated"></script>
+<script src="core/overlay-scroll-master-v662.js?v=855r93-home-silent"></script>
 <script id="happyad-v274-logout-landing-guard">
 (function(){
   try{
@@ -351,6 +358,11 @@ html.happyadRadarBootUserV599 #happyadGuestRadarStableV599{display:none!importan
 .happyadAlbumSlide img{width:100%;height:auto;min-height:340px;object-fit:cover;display:block}
 .happyadAlbumCounter{position:absolute;right:10px;top:10px;z-index:5;background:rgba(0,0,0,.58);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 9px;font-size:11px;font-weight:1000;backdrop-filter:blur(8px)}
 .happyadAlbumHint{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(0,0,0,.45);color:#fff;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900;opacity:.86}
+</style>
+<style id="happyad-v855r90-home-card-single-boot-style">
+/* R90 — l’Accueil démarre directement avec sa timeline finale : aucun passage par l’ancien feedGrid. */
+html body #list.homeTimeline{display:flex!important;flex-direction:column!important;}
+html body #list.homeTimeline .miniMedia:not(.haPhotoUserCropV613D)>img{transform:none!important;}
 </style>
 <script id="happyad-no-demo-posts-cleaner-v63">
 (function(){
@@ -1427,6 +1439,15 @@ html body.happyadVideoCoverEditorOpenV693{overflow:hidden!important}
 #list .happyadHomeProgressiveSentinelV764.is-done,#list .happyadHomeProgressiveSentinelV764[hidden]{display:none!important;min-height:0!important;height:0!important}
 </style>
 
+<link rel="preload" as="image" href="icons/happyad-chat-sticker-v797-transparent.png" fetchpriority="high">
+<style id="happyad-v855r89-opening-stability-critical">
+/* R89 — aucun cadre publicitaire noir ne doit être peint avant qu’un vrai média soit prêt. */
+.sponsorStrip.happyadSponsorBootHiddenV855R89{
+  height:0!important;min-height:0!important;max-height:0!important;margin:0!important;padding:0!important;
+  border-width:0!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;overflow:hidden!important;box-shadow:none!important;
+}
+.sponsorStrip.happyadSponsorMediaReadyV855R89{opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
+</style>
 <link id="happyad-chat-sticker-living-v791-css" rel="stylesheet" href="core/chat-sticker-living-v791.css?v=799-smaller-mouth-only">
 <link id="happyad-chat-integration-master-v795-css" rel="stylesheet" href="core/chat-integration-master-v795.css?v=851r2-keyboard-rows">
 <link id="happyad-keyboard-surface-master-v851r7-css" rel="stylesheet" href="core/keyboard-surface-master-v851r7.css?v=851r7-chat-refinement-seam">
@@ -1440,13 +1461,61 @@ body[data-happyad-main-page="profile_public"] #happyadAppShell{inset:0!important
 html.happyadVisitorProfileNoDockV854R3 body #happyadAppShell .happyadAppFrame,
 body[data-happyad-main-page="profile_public"] #happyadAppShell .happyadAppFrame{inset:0!important;bottom:0!important;height:100%!important;max-height:none!important}
 </style>
-</head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="feedGrid"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
+</head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip happyadSponsorBootHiddenV855R89" data-happyad-sponsor-boot="pending"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="homeTimeline"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
 <button class="nav" type="button" data-happyad-main-nav="publish" aria-label="Publier"><span class="ico mainDockIcon mainDockPublishIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></span><span class="mainDockLabel">Publier</span></button>
 <button class="nav messageNav" type="button" data-happyad-main-nav="message" data-happyad-message-ready="1" aria-label="Messages"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v7A3.5 3.5 0 0 1 16.5 16H10l-5.2 4.2c-.3.24-.8.03-.8-.36z"></path><path d="M8 7h8M8 10.5h5.8"></path></svg></span><span class="mainDockLabel">Messages</span></button>
 <button class="nav" type="button" data-happyad-main-nav="profile" aria-label="Mon profil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.7-4.2 3.2-6.4 7.5-6.4s6.8 2.2 7.5 6.4"></path></svg></span><span class="mainDockLabel">Profil</span></button>
-</nav></div><script>
+</nav></div>
+<!-- R89 : Story + Chat sont montés avant les gros traitements Accueil. -->
+<script src="core/story-master-v699.js?v=855r91-radar-add-persistent"></script>
+<script>try{if(window.HappyStoryV629&&typeof window.HappyStoryV629.renderRadar==='function')window.HappyStoryV629.renderRadar();}catch(_e){}</script>
+<script id="happyad-chat-sticker-living-v791-js" src="core/chat-sticker-living-v791.js?v=855r89-opening-stable"></script>
+<script id="happyad-v855r89-sponsor-first-paint">
+(function(){
+  'use strict';
+  var strip=document.querySelector('.sponsorStrip'),track=document.getElementById('sponsorTrack');
+  if(!strip||!track)return;
+  var ready=false,mo=null;
+  function reveal(){
+    if(ready)return;ready=true;
+    strip.classList.remove('happyadSponsorBootHiddenV855R89');
+    strip.classList.add('happyadSponsorMediaReadyV855R89');
+    strip.setAttribute('data-happyad-sponsor-boot','ready');
+    try{if(mo)mo.disconnect()}catch(_e){}
+  }
+  function usableMedia(el){
+    if(!el)return false;
+    var tag=String(el.tagName||'').toLowerCase();
+    if(tag==='img')return !!(el.complete&&Number(el.naturalWidth||0)>1&&Number(el.naturalHeight||0)>1);
+    if(tag==='video')return Number(el.readyState||0)>=2&&Number(el.videoWidth||0)>1&&Number(el.videoHeight||0)>1;
+    return false;
+  }
+  function bindMedia(el){
+    if(!el||el.__happyadSponsorReadyV855R89)return;
+    el.__happyadSponsorReadyV855R89=true;
+    if(usableMedia(el)){reveal();return;}
+    var tag=String(el.tagName||'').toLowerCase();
+    if(tag==='img')el.addEventListener('load',function(){if(usableMedia(el))reveal()},{once:true});
+    else if(tag==='video'){
+      var onReady=function(){if(usableMedia(el))reveal()};
+      el.addEventListener('loadeddata',onReady,{once:true});
+      el.addEventListener('canplay',onReady,{once:true});
+    }
+  }
+  function scan(){
+    if(ready)return;
+    var media=track.querySelectorAll('img,video');
+    for(var i=0;i<media.length;i++){bindMedia(media[i]);if(usableMedia(media[i])){reveal();return;}}
+  }
+  scan();
+  try{mo=new MutationObserver(scan);mo.observe(track,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});}catch(_e){}
+  window.addEventListener('pageshow',scan,true);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)scan()},true);
+})();
+</script>
+<script>
 let ALL_POSTS=[],HAPPYAD_STORIES_ITEMS=[],currentFilter='all',happyadPostsLoading=true;
 /* HAPPYAD V493 — Accueil complet: affichage rapide, puis synchronisation de toutes les publications en arrière-plan. */
 let HAPPYAD_HOME_RENDER_LIMIT=10;
@@ -1525,16 +1594,41 @@ const HAPPYAD_HOME_CONFIRMED_CACHE_V643='HAPPYAD_HOME_CONFIRMED_ORDER_V643';
 function happyadPostSortMsV407(p){var v=p&&(p.createdAt||p.created_at||p.timestamp||p.time||p.date);var n=Number(v);if(isFinite(n)&&n>0)return n>100000000000?n:n*1000;var t=Date.parse(String(v||''));return isNaN(t)?0:t;}
 function happyadLocalCropV613D(id){
   try{
-    var map=JSON.parse(localStorage.getItem('HAPPYAD_POST_CROP_MAP_V1')||'{}')||{};
-    return map[String(id||'')]||{};
+    var key='HAPPYAD_POST_CROP_MAP_V1';
+    var map=JSON.parse(localStorage.getItem(key)||'{}')||{};
+    var item=map[String(id||'')]||{};
+    /* R90 : le cadrage local n'est qu'un relais juste après Publication.
+       Une vieille valeur locale ne doit jamais réappliquer un zoom sur une carte revenue de Supabase. */
+    var ts=Number(item&&item.ts||0)||0;
+    if(ts&&Date.now()-ts>15*60*1000){
+      try{delete map[String(id||'')];localStorage.setItem(key,JSON.stringify(map));}catch(_clean){}
+      return {};
+    }
+    return item;
   }catch(_e){return {};}
 }
-function happyadHasCardCropV613D(p){
-  var c=p&&(p.imageCrop||p.image_crop||happyadLocalCropV613D(p.id).crop);
-  if(typeof c==='string'){try{c=JSON.parse(c)}catch(_e){c=null;}}
-  return !!(c&&Number(c.scale||1)>=1);
+function happyadResolveCardCropV855R90(p){
+  try{
+    if(!p)return null;
+    var c=p.imageCrop||p.image_crop||null;
+    /* Une ligne Supabase sans image_crop est autoritaire : ne pas ressusciter un ancien crop local. */
+    if(!c && !p.supabase){c=(happyadLocalCropV613D(p.id)||{}).crop||null;}
+    if(!c && p.__fromPublishSuccess){c=(happyadLocalCropV613D(p.id)||{}).crop||null;}
+    if(typeof c==='string'){try{c=JSON.parse(c)}catch(_e){c=null;}}
+    if(!c||typeof c!=='object')return null;
+    var scale=Math.max(1,Math.min(4,Number(c.scale||1)));
+    var x,y;
+    if(Number(c.v||0)>=2){x=Number(c.x);y=Number(c.y);}else{x=50-Number(c.x||0);y=50-Number(c.y||0);}
+    if(!Number.isFinite(x))x=50;if(!Number.isFinite(y))y=50;
+    x=Math.max(0,Math.min(100,x));y=Math.max(0,Math.min(100,y));
+    /* Le crop par défaut {scale:1,x:50,y:50} n'est pas un zoom utilisateur.
+       Il doit conserver le ratio naturel V765 au lieu de forcer une carte carrée. */
+    if(scale<=1.01&&Math.abs(x-50)<=0.75&&Math.abs(y-50)<=0.75)return null;
+    return {v:2,scale:scale,x:x,y:y};
+  }catch(_e){return null;}
 }
-function happyadSlimHomePostV407(p){p=p||{};return {id:p.id,mode:p.mode||'publish',title:p.title||'Publication HAPPYAD',desc:p.desc||p.description||'',description:p.description||p.desc||'',category:p.category||'',location:p.location||'',kind:p.marketplace_cover_type||p.kind||p.media_type||p.mediaType||'photo',mediaType:p.marketplace_cover_type||p.mediaType||p.media_type||p.kind||'photo',mediaUrl:p.marketplace_cover_url||p.mediaUrl||p.media_url||'',media_url:p.marketplace_cover_url||p.media_url||p.mediaUrl||'',mediaPath:p.marketplace_cover_path||p.mediaPath||p.media_path||'',creatorId:p.creatorId||p.creator_id||p.user_id||p.userId||p.owner_id||p.ownerId||p.author_id||p.authorId||p.profile_id||p.profileId||'',user_id:p.user_id||p.creatorId||p.creator_id||p.userId||p.owner_id||p.ownerId||p.author_id||p.authorId||p.profile_id||p.profileId||'',creatorName:p.creatorName||p.display_name||p.creator_name||p.full_name||'Utilisateur HAPPYAD',handle:p.handle||p.username||'',avatar:p.avatar||p.avatar_url||p.avatarUrl||p.user_avatar||p.creator_avatar||p.author_avatar||p.profile_photo_url||p.profile_photo||p.profile_picture_url||p.profile_picture||p.photo_url||p.image_url||p.picture||'',avatar_url:p.avatar_url||p.avatar||p.profile_photo_url||p.profile_photo||p.profile_picture_url||p.profile_picture||p.photo_url||p.image_url||p.picture||'',badge:p.badge||p.user_badge||'aucun',createdAt:happyadPostSortMsV407(p)||0,created_at:p.created_at||'',supabase:!!p.supabase,likes_count:Number(p.likes_count||0),comments_count:Number(p.comments_count||0),shares_count:Number(p.shares_count||0),saves_count:Number(p.saves_count||0),views_count:Number(p.views_count||p.view_count||p.video_views_count||0),thumbnailUrl:p.thumbnailUrl||p.thumbnail_url||p.posterUrl||p.poster_url||p.coverUrl||p.cover_url||'',thumbnail_url:p.thumbnail_url||p.thumbnailUrl||'',posterUrl:p.posterUrl||p.poster_url||p.thumbnailUrl||p.thumbnail_url||'',poster_url:p.poster_url||p.posterUrl||'',batchId:p.batchId||p.batch_id||'',batch_id:p.batch_id||p.batchId||'',groupIndex:p.groupIndex||p.group_index||0,group_index:p.group_index||p.groupIndex||0,photoIndex:p.photoIndex||p.photo_index||p.groupIndex||p.group_index||0,photo_index:p.photo_index||p.photoIndex||p.group_index||p.groupIndex||0,happyadMarketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),happyad_marketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),marketplaceShowOnHome:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplace_show_on_home:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplaceCategory:p.marketplaceCategory||p.marketplace_category||p.category||'',marketplace_category:p.marketplace_category||p.marketplaceCategory||p.category||'',marketplaceCoverIndex:Number(p.marketplaceCoverIndex||p.marketplace_cover_index||p.coverIndex||0),marketplace_cover_index:Number(p.marketplace_cover_index||p.marketplaceCoverIndex||p.coverIndex||0),marketplaceMedia:p.marketplaceMedia||p.marketplace_media||p.media||[],marketplace_media:p.marketplace_media||p.marketplaceMedia||p.media||[],listingViewsCount:Number(p.listingViewsCount||p.listing_views_count||p.viewsCount||0),listing_views_count:Number(p.listing_views_count||p.listingViewsCount||p.viewsCount||0),imageCrop:p.imageCrop||p.image_crop||happyadLocalCropV613D(p.id).crop||null,deleted_at:p.deleted_at||'',postType:p.postType||p.post_type||'',post_type:p.post_type||p.postType||'',boutique_product_id:p.boutique_product_id||p.boutiqueProductId||'',boutiqueProductId:p.boutiqueProductId||p.boutique_product_id||'',button_label:p.button_label||p.buttonLabel||'',action:p.action||'',happyadMarketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),happyad_marketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),marketplaceShowOnHome:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplace_show_on_home:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplaceCategory:p.marketplaceCategory||p.marketplace_category||p.category||'',marketplace_category:p.marketplace_category||p.marketplaceCategory||p.category||'',marketplaceCoverIndex:Number(p.marketplaceCoverIndex||p.marketplace_cover_index||0)||0,marketplace_cover_index:Number(p.marketplace_cover_index||p.marketplaceCoverIndex||0)||0,marketplaceCoverUrl:p.marketplaceCoverUrl||p.marketplace_cover_url||p.mediaUrl||p.media_url||'',marketplace_cover_url:p.marketplace_cover_url||p.marketplaceCoverUrl||p.media_url||p.mediaUrl||'',marketplaceCoverPath:p.marketplaceCoverPath||p.marketplace_cover_path||p.mediaPath||p.media_path||'',marketplace_cover_path:p.marketplace_cover_path||p.marketplaceCoverPath||p.media_path||p.mediaPath||'',marketplaceCoverType:p.marketplaceCoverType||p.marketplace_cover_type||p.mediaType||p.media_type||p.kind||'',marketplace_cover_type:p.marketplace_cover_type||p.marketplaceCoverType||p.media_type||p.mediaType||p.kind||'',listingViewsCount:Number(p.listingViewsCount||p.listing_views_count||0)||0,listing_views_count:Number(p.listing_views_count||p.listingViewsCount||0)||0,sellerBadge:p.sellerBadge||p.seller_badge||p.badge||p.user_badge||'',seller_badge:p.seller_badge||p.sellerBadge||p.badge||p.user_badge||'',__homeServerConfirmedV643:!!p.__homeServerConfirmedV643,__fromPublishSuccess:!!p.__fromPublishSuccess};}
+function happyadHasCardCropV613D(p){return !!happyadResolveCardCropV855R90(p);}
+function happyadSlimHomePostV407(p){p=p||{};return {id:p.id,mode:p.mode||'publish',title:p.title||'Publication HAPPYAD',desc:p.desc||p.description||'',description:p.description||p.desc||'',category:p.category||'',location:p.location||'',kind:p.marketplace_cover_type||p.kind||p.media_type||p.mediaType||'photo',mediaType:p.marketplace_cover_type||p.mediaType||p.media_type||p.kind||'photo',mediaUrl:p.marketplace_cover_url||p.mediaUrl||p.media_url||'',media_url:p.marketplace_cover_url||p.media_url||p.mediaUrl||'',mediaPath:p.marketplace_cover_path||p.mediaPath||p.media_path||'',creatorId:p.creatorId||p.creator_id||p.user_id||p.userId||p.owner_id||p.ownerId||p.author_id||p.authorId||p.profile_id||p.profileId||'',user_id:p.user_id||p.creatorId||p.creator_id||p.userId||p.owner_id||p.ownerId||p.author_id||p.authorId||p.profile_id||p.profileId||'',creatorName:p.creatorName||p.display_name||p.creator_name||p.full_name||'Utilisateur HAPPYAD',handle:p.handle||p.username||'',avatar:p.avatar||p.avatar_url||p.avatarUrl||p.user_avatar||p.creator_avatar||p.author_avatar||p.profile_photo_url||p.profile_photo||p.profile_picture_url||p.profile_picture||p.photo_url||p.image_url||p.picture||'',avatar_url:p.avatar_url||p.avatar||p.profile_photo_url||p.profile_photo||p.profile_picture_url||p.profile_picture||p.photo_url||p.image_url||p.picture||'',badge:p.badge||p.user_badge||'aucun',createdAt:happyadPostSortMsV407(p)||0,created_at:p.created_at||'',supabase:!!p.supabase,likes_count:Number(p.likes_count||0),comments_count:Number(p.comments_count||0),shares_count:Number(p.shares_count||0),saves_count:Number(p.saves_count||0),views_count:Number(p.views_count||p.view_count||p.video_views_count||0),thumbnailUrl:p.thumbnailUrl||p.thumbnail_url||p.posterUrl||p.poster_url||p.coverUrl||p.cover_url||'',thumbnail_url:p.thumbnail_url||p.thumbnailUrl||'',posterUrl:p.posterUrl||p.poster_url||p.thumbnailUrl||p.thumbnail_url||'',poster_url:p.poster_url||p.posterUrl||'',batchId:p.batchId||p.batch_id||'',batch_id:p.batch_id||p.batchId||'',groupIndex:p.groupIndex||p.group_index||0,group_index:p.group_index||p.groupIndex||0,photoIndex:p.photoIndex||p.photo_index||p.groupIndex||p.group_index||0,photo_index:p.photo_index||p.photoIndex||p.group_index||p.groupIndex||0,happyadMarketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),happyad_marketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),marketplaceShowOnHome:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplace_show_on_home:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplaceCategory:p.marketplaceCategory||p.marketplace_category||p.category||'',marketplace_category:p.marketplace_category||p.marketplaceCategory||p.category||'',marketplaceCoverIndex:Number(p.marketplaceCoverIndex||p.marketplace_cover_index||p.coverIndex||0),marketplace_cover_index:Number(p.marketplace_cover_index||p.marketplaceCoverIndex||p.coverIndex||0),marketplaceMedia:p.marketplaceMedia||p.marketplace_media||p.media||[],marketplace_media:p.marketplace_media||p.marketplaceMedia||p.media||[],listingViewsCount:Number(p.listingViewsCount||p.listing_views_count||p.viewsCount||0),listing_views_count:Number(p.listing_views_count||p.listingViewsCount||p.viewsCount||0),imageCrop:p.imageCrop||p.image_crop||((!p.supabase||p.__fromPublishSuccess)?((happyadLocalCropV613D(p.id)||{}).crop||null):null),deleted_at:p.deleted_at||'',postType:p.postType||p.post_type||'',post_type:p.post_type||p.postType||'',boutique_product_id:p.boutique_product_id||p.boutiqueProductId||'',boutiqueProductId:p.boutiqueProductId||p.boutique_product_id||'',button_label:p.button_label||p.buttonLabel||'',action:p.action||'',happyadMarketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),happyad_marketplace:(p.happyadMarketplace===true||p.happyad_marketplace===true||p.is_marketplace===true||String(p.mode||'').toLowerCase()==='marketplace'),marketplaceShowOnHome:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplace_show_on_home:(p.marketplaceShowOnHome===true||p.marketplace_show_on_home===true||p.showOnHome===true),marketplaceCategory:p.marketplaceCategory||p.marketplace_category||p.category||'',marketplace_category:p.marketplace_category||p.marketplaceCategory||p.category||'',marketplaceCoverIndex:Number(p.marketplaceCoverIndex||p.marketplace_cover_index||0)||0,marketplace_cover_index:Number(p.marketplace_cover_index||p.marketplaceCoverIndex||0)||0,marketplaceCoverUrl:p.marketplaceCoverUrl||p.marketplace_cover_url||p.mediaUrl||p.media_url||'',marketplace_cover_url:p.marketplace_cover_url||p.marketplaceCoverUrl||p.media_url||p.mediaUrl||'',marketplaceCoverPath:p.marketplaceCoverPath||p.marketplace_cover_path||p.mediaPath||p.media_path||'',marketplace_cover_path:p.marketplace_cover_path||p.marketplaceCoverPath||p.media_path||p.mediaPath||'',marketplaceCoverType:p.marketplaceCoverType||p.marketplace_cover_type||p.mediaType||p.media_type||p.kind||'',marketplace_cover_type:p.marketplace_cover_type||p.marketplaceCoverType||p.media_type||p.mediaType||p.kind||'',listingViewsCount:Number(p.listingViewsCount||p.listing_views_count||0)||0,listing_views_count:Number(p.listing_views_count||p.listingViewsCount||0)||0,sellerBadge:p.sellerBadge||p.seller_badge||p.badge||p.user_badge||'',seller_badge:p.seller_badge||p.sellerBadge||p.badge||p.user_badge||'',__homeServerConfirmedV643:!!p.__homeServerConfirmedV643,__fromPublishSuccess:!!p.__fromPublishSuccess};}
 function happyadUniqHomeBootV407(arr){var seen={},del=[];try{del=JSON.parse(localStorage.getItem('HAPPYAD_DELETED_POST_IDS_V1')||'[]').map(String)}catch(e){}return (arr||[]).filter(function(p){var id=String(p&&p.id||'');if(!id||seen[id]||del.indexOf(id)>=0||String(p&&p.deleted_at||'')!=='')return false;seen[id]=1;return true;}).sort(function(a,b){return happyadPostSortMsV407(b)-happyadPostSortMsV407(a)});}
 /* HAPPYAD V643 — Une ligne du cache ne devient jamais « récente » sans date réelle.
    Le snapshot confirmé V643 est écrit uniquement après une vraie réponse Supabase. */
@@ -1630,7 +1724,7 @@ function happyadPublicMediaUrlV34(src){
   var base=String(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
   return base+'/storage/v1/object/public/happyad-media/'+encodeURI(src);
 }
-function mapHappyPost(r){const mapped={id:r.id,mode:r.mode||'publish',title:r.title||'Publication HAPPYAD',desc:r.description||'',category:r.category||'',location:r.location||'',kind:r.marketplace_cover_type||r.media_type||r.home_media_type||r.kind||'photo',mediaUrl:r.marketplace_cover_url||r.media_url||r.mediaUrl||r.home_media_url||r.thumbnail_url||r.cover_url||'',mediaPath:r.marketplace_cover_path||r.media_path||'',creatorId:r.user_id||r.creator_id||r.owner_id||r.author_id||r.profile_id||'',creatorName:r.display_name||r.creator_name||r.full_name||r.user_name||'Utilisateur HAPPYAD',handle:(r.username?('@'+String(r.username).replace(/^@+/,'')):(r.handle?('@'+String(r.handle).replace(/^@+/,'')):'')),avatar:r.avatar_url||r.avatar||r.user_avatar||r.creator_avatar||r.author_avatar||r.profile_photo_url||r.profile_photo||r.profile_picture_url||r.profile_picture||r.photo_url||r.image_url||r.picture||'',badge:r.badge||r.user_badge||'aucun',createdAt:r.created_at?new Date(r.created_at).getTime():0,supabase:true,likes_count:Number(r.likes_count||0),comments_count:Number(r.comments_count||0),shares_count:Number(r.shares_count||0),saves_count:Number(r.saves_count||0),views_count:Number(r.views_count||r.view_count||r.video_views_count||0),happyadMarketplace:(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace'),happyad_marketplace:(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace'),marketplaceShowOnHome:(r.marketplace_show_on_home===true||r.showOnHome===true),marketplace_show_on_home:(r.marketplace_show_on_home===true||r.showOnHome===true),marketplaceCategory:r.marketplace_category||r.category||'',marketplace_category:r.marketplace_category||r.category||'',marketplaceCoverIndex:Number(r.marketplace_cover_index||r.coverIndex||0),marketplace_cover_index:Number(r.marketplace_cover_index||r.coverIndex||0),marketplaceMedia:r.marketplace_media||r.media||[],marketplace_media:r.marketplace_media||r.media||[],listingViewsCount:Number(r.listing_views_count||r.viewsCount||0),listing_views_count:Number(r.listing_views_count||r.viewsCount||0),imageCrop:r.image_crop||r.imageCrop||happyadLocalCropV613D(r.id).crop||null,thumbnailUrl:r.thumbnail_url||r.thumbnailUrl||r.poster_url||r.posterUrl||r.cover_url||r.coverUrl||'',posterUrl:r.poster_url||r.posterUrl||r.thumbnail_url||r.thumbnailUrl||'',batchId:r.batch_id||r.batchId||'',batch_id:r.batch_id||r.batchId||'',groupIndex:r.group_index||r.groupIndex||0,group_index:r.group_index||r.groupIndex||0,photoIndex:r.photo_index||r.photoIndex||r.group_index||r.groupIndex||0,photo_index:r.photo_index||r.photoIndex||r.group_index||r.groupIndex||0,postType:r.postType||r.post_type||'',post_type:r.post_type||r.postType||'',boutique_product_id:r.boutique_product_id||r.boutiqueProductId||'',boutiqueProductId:r.boutiqueProductId||r.boutique_product_id||'',button_label:r.button_label||r.buttonLabel||'',action:r.action||'',visibility:r.visibility||r.privacy||r.audience||r.status||'',privacy:r.privacy||'',audience:r.audience||'',status:r.status||'',is_private:(r.is_private===true||r.private===true||String(r.visibility||r.privacy||r.audience||r.status||'').toLowerCase()==='private'),private:(r.private===true),private_at:r.private_at||r.privated_at||'',comments_disabled:(r.comments_disabled===true),hide_like_count:(r.hide_like_count===true),mentioned_user_ids:Array.isArray(r.mentioned_user_ids)?r.mentioned_user_ids:[],mention_handles:Array.isArray(r.mention_handles)?r.mention_handles:[]};
+function mapHappyPost(r){const mapped={id:r.id,mode:r.mode||'publish',title:r.title||'Publication HAPPYAD',desc:r.description||'',category:r.category||'',location:r.location||'',kind:r.marketplace_cover_type||r.media_type||r.home_media_type||r.kind||'photo',mediaUrl:r.marketplace_cover_url||r.media_url||r.mediaUrl||r.home_media_url||r.thumbnail_url||r.cover_url||'',mediaPath:r.marketplace_cover_path||r.media_path||'',creatorId:r.user_id||r.creator_id||r.owner_id||r.author_id||r.profile_id||'',creatorName:r.display_name||r.creator_name||r.full_name||r.user_name||'Utilisateur HAPPYAD',handle:(r.username?('@'+String(r.username).replace(/^@+/,'')):(r.handle?('@'+String(r.handle).replace(/^@+/,'')):'')),avatar:r.avatar_url||r.avatar||r.user_avatar||r.creator_avatar||r.author_avatar||r.profile_photo_url||r.profile_photo||r.profile_picture_url||r.profile_picture||r.photo_url||r.image_url||r.picture||'',badge:r.badge||r.user_badge||'aucun',createdAt:r.created_at?new Date(r.created_at).getTime():0,supabase:true,likes_count:Number(r.likes_count||0),comments_count:Number(r.comments_count||0),shares_count:Number(r.shares_count||0),saves_count:Number(r.saves_count||0),views_count:Number(r.views_count||r.view_count||r.video_views_count||0),happyadMarketplace:(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace'),happyad_marketplace:(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace'),marketplaceShowOnHome:(r.marketplace_show_on_home===true||r.showOnHome===true),marketplace_show_on_home:(r.marketplace_show_on_home===true||r.showOnHome===true),marketplaceCategory:r.marketplace_category||r.category||'',marketplace_category:r.marketplace_category||r.category||'',marketplaceCoverIndex:Number(r.marketplace_cover_index||r.coverIndex||0),marketplace_cover_index:Number(r.marketplace_cover_index||r.coverIndex||0),marketplaceMedia:r.marketplace_media||r.media||[],marketplace_media:r.marketplace_media||r.media||[],listingViewsCount:Number(r.listing_views_count||r.viewsCount||0),listing_views_count:Number(r.listing_views_count||r.viewsCount||0),imageCrop:r.image_crop||r.imageCrop||null,thumbnailUrl:r.thumbnail_url||r.thumbnailUrl||r.poster_url||r.posterUrl||r.cover_url||r.coverUrl||'',posterUrl:r.poster_url||r.posterUrl||r.thumbnail_url||r.thumbnailUrl||'',batchId:r.batch_id||r.batchId||'',batch_id:r.batch_id||r.batchId||'',groupIndex:r.group_index||r.groupIndex||0,group_index:r.group_index||r.groupIndex||0,photoIndex:r.photo_index||r.photoIndex||r.group_index||r.groupIndex||0,photo_index:r.photo_index||r.photoIndex||r.group_index||r.groupIndex||0,postType:r.postType||r.post_type||'',post_type:r.post_type||r.postType||'',boutique_product_id:r.boutique_product_id||r.boutiqueProductId||'',boutiqueProductId:r.boutiqueProductId||r.boutique_product_id||'',button_label:r.button_label||r.buttonLabel||'',action:r.action||'',visibility:r.visibility||r.privacy||r.audience||r.status||'',privacy:r.privacy||'',audience:r.audience||'',status:r.status||'',is_private:(r.is_private===true||r.private===true||String(r.visibility||r.privacy||r.audience||r.status||'').toLowerCase()==='private'),private:(r.private===true),private_at:r.private_at||r.privated_at||'',comments_disabled:(r.comments_disabled===true),hide_like_count:(r.hide_like_count===true),mentioned_user_ids:Array.isArray(r.mentioned_user_ids)?r.mentioned_user_ids:[],mention_handles:Array.isArray(r.mention_handles)?r.mention_handles:[]};
 /* HAPPYAD V821 — conserver les champs Marketplace jusque dans le rendu Accueil. */
 mapped.happyadMarketplace=(r.happyad_marketplace===true||r.is_marketplace===true||String(r.mode||'').toLowerCase()==='marketplace');
 mapped.happyad_marketplace=mapped.happyadMarketplace;mapped.is_marketplace=mapped.happyadMarketplace;
@@ -2804,14 +2898,9 @@ function openLongPhoto(id){
   location.href='modules/photo.html?post='+encodeURIComponent(id)
 }
 function happyadCropStyle(p){
-  var local=happyadLocalCropV613D(p&&p.id),c=p&&(p.imageCrop||p.image_crop||local.crop);
-  if(typeof c==='string'){try{c=JSON.parse(c)}catch(e){c=null}}
+  var c=happyadResolveCardCropV855R90(p);
   if(!c||String(p&&p.kind||'').toLowerCase().indexOf('video')>=0)return '';
-  var scale=Math.max(1,Math.min(4,Number(c.scale||1))),x,y;
-  if(Number(c.v||0)>=2){x=Number(c.x);y=Number(c.y);}else{x=50-Number(c.x||0);y=50-Number(c.y||0);}
-  if(!Number.isFinite(x))x=50;if(!Number.isFinite(y))y=50;
-  x=Math.max(0,Math.min(100,x));y=Math.max(0,Math.min(100,y));
-  return ' class="happyadCropImg" style="--ha-crop-focus-x:'+x+'%;--ha-crop-focus-y:'+y+'%;--ha-crop-scale:'+scale+'"';
+  return ' class="happyadCropImg" style="--ha-crop-focus-x:'+c.x+'%;--ha-crop-focus-y:'+c.y+'%;--ha-crop-scale:'+c.scale+'"';
 }
 function happyadVideoThumbCacheKey(p,url){return 'HAPPYAD_VIDEO_THUMB_V1_'+String((p&&p.id)||url||'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,120)}
 function happyadGetCachedVideoThumb(p,url){try{return localStorage.getItem(happyadVideoThumbCacheKey(p,url))||''}catch(_e){return ''}}
@@ -2843,12 +2932,12 @@ function happyadHomeMediaAttrsV616(card){
   try{
     var idx=Number(card&&card.dataset&&card.dataset.virtualIndex);
     var near=!!(card&&card.dataset&&card.dataset.happyadNearViewportV763==='1');
-    var priority=near||(Number.isFinite(idx)&&idx>=0&&idx<6&&Number(window.__happyadHomeWindowStartV616||0)===0);
-    /* V764 : seules les cartes déjà ajoutées progressivement existent dans le DOM.
-       Leur média démarre donc immédiatement; le niveau de priorité reste élevé
-       uniquement pour les cartes proches afin de ne pas saturer le réseau. */
-    return priority?' loading="eager" fetchpriority="high" decoding="async"':' loading="eager" fetchpriority="auto" decoding="async"';
-  }catch(_e){return ' loading="eager" fetchpriority="auto" decoding="async"';}
+    var priority=near||(Number.isFinite(idx)&&idx>=0&&idx<3&&Number(window.__happyadHomeWindowStartV616||0)===0);
+    /* R97 : le scroll vertical reste propriétaire du thread principal.
+       Seules les cartes réellement proches sont eager/high. Les autres images
+       restent lazy afin d’éviter des rafales de téléchargement + décodage pendant le geste. */
+    return priority?' loading="eager" fetchpriority="high" decoding="async"':' loading="lazy" fetchpriority="auto" decoding="async"';
+  }catch(_e){return ' loading="lazy" fetchpriority="auto" decoding="async"';}
 }
 function happyadRenderVideoFallbackV643(box){
   if(!box)return;box.innerHTML='<div class="happyadVideoFallbackV643"><span>▶</span><small>Vidéo</small></div>';
@@ -3333,7 +3422,7 @@ function observeHomeCard(card,p,video){
           if(vv)stopHomeCardVideo(c);/* ne pas vider mediaReady: la carte reste hydratée et stable */
         }
       });
-    },{root:null,rootMargin:'1800px 0px 1400px 0px',threshold:0});
+    },{root:null,rootMargin:'900px 0px 900px 0px',threshold:0});
   }
   card.__happyadPost=p;card.__happyadVideo=video;HAPPYAD_HOME_CARD_IO.observe(card);
 }
@@ -7796,7 +7885,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=855r57-quiet-mode-real',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=855r95-album-native-snap',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9655,8 +9744,8 @@ html,body{overflow-y:auto!important;overscroll-behavior-y:auto!important;touch-a
   border-radius:0!important;
   background:rgba(7,9,13,.985)!important;
   box-shadow:0 -10px 28px rgba(0,0,0,.34)!important;
-  backdrop-filter:blur(18px)!important;
-  -webkit-backdrop-filter:blur(18px)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
   isolation:isolate!important;
   pointer-events:auto!important;
   touch-action:manipulation!important;
@@ -9945,12 +10034,17 @@ html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!im
 })();
 </script>
 <script src="core/profile/profile-photo-parent-v854r8.js?v=855r32-avatar-canonique"></script>
-<script src="core/navigation-master-v668.js?v=855r69-visitor-route-strict-auth"></script>
+<script src="core/navigation-master-v668.js?v=855r79-video-target-first-direct"></script>
 <script src="core/auth-session-master-v598.js?v=855r73-login-spacing"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=855r32-avatar-canonique"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection"></script>
 <script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=855r32-avatar-canonique"></script>
-<script src="core/main-tabs-master-v615.js?v=855r35-anciens-groupes-photos"></script>
+<script src="core/main-tabs-master-v615.js?v=855r79-video-target-first-direct"></script>
+<style id="happyad-v855r77-visitor-direct-chat-overlay">
+body.happyadVisitorDirectChatOpenV855R77 .bottom.happyadMainDockV585{display:none!important;visibility:hidden!important;pointer-events:none!important}
+body.happyadVisitorDirectChatOpenV855R77 #happyadAppShell{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important}
+#happyadAppFrame_message.happyadVisitorDirectChatFrameV855R77{display:block!important;inset:0!important;width:100%!important;height:100%!important;z-index:120!important;background:#020711!important;pointer-events:auto!important}
+</style>
 <script src="core/guest-radar-auth-v599.js?v=guest-radar-no-flash-v599"></script>
 <script src="core/publish-master-v589.js?v=publish-functional-white-v589"></script>
 <style id="happyad-v591-home-photo-fullscreen-css">
@@ -10503,7 +10597,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <link rel="stylesheet" href="core/dock-master-v618.css?v=618">
 <script src="core/dock-auto-hide-master-v653.js?v=854r3-visitor-no-dock"></script>
 <link id="happyad-comment-overlay-dock-v681-css" rel="stylesheet" href="core/comment-overlay-dock-master-v681.css?v=681-comment-dock">
-<script id="happyad-comment-overlay-dock-v681-js" src="core/comment-overlay-dock-master-v681.js?v=681-comment-dock"></script>
+<script id="happyad-comment-overlay-dock-v681-js" src="core/comment-overlay-dock-master-v681.js?v=855r93-home-silent"></script>
 
 <style id="happyad-v613d-exact-card-crop">
 /* V613D : la carte d'accueil respecte exactement le cadrage carré choisi dans Publication. */
@@ -10515,10 +10609,10 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   object-position:var(--ha-crop-focus-x,50%) var(--ha-crop-focus-y,50%)!important;transform:scale(var(--ha-crop-scale,1))!important;transform-origin:var(--ha-crop-focus-x,50%) var(--ha-crop-focus-y,50%)!important;will-change:transform!important;display:block!important;
 }
 </style>
-<script src="core/story-master-v699.js?v=855r52-story-interactions"></script>
+<!-- R89 story-master chargé au premier écran -->
 <script src="core/profile/profile-story-parent-v854r5.js?v=854r5"></script>
 
-<script src="core/home-scroll-prepaint-master-v696.js?v=855r72-home-scroll-stable"></script>
+<script src="core/home-scroll-prepaint-master-v696.js?v=855r97-vertical-scroll-budget"></script>
 <style id="happyad-v635-story-compact-responsive">
 /* V635 — lecteur Story compact et adaptatif, même rendu depuis Radar et Profil. */
 #happyStoryViewerMasterV629.haStoryV629{
@@ -10720,7 +10814,9 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   max-height:none!important;
   aspect-ratio:1/1!important;
 }
-/* Album V772 : une seule définition finale pour le rail, les diapositives et leurs médias. */
+/* HAPPYAD V855R95 — album Accueil : snap natif unique, sans contrôleur tactile JS.
+   Même principe que le fullscreen : le navigateur garde l'inertie puis verrouille
+   chaque média sur un point de snap stable. */
 #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullScroller{
   width:100%!important;
   height:auto!important;
@@ -10736,7 +10832,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   align-items:flex-start!important;
   overflow-x:auto!important;
   overflow-y:hidden!important;
-  scroll-snap-type:x proximity!important;
+  scroll-snap-type:x mandatory!important;
   scroll-behavior:auto!important;
   touch-action:pan-x pan-y pinch-zoom!important;
   overscroll-behavior-x:contain!important;
@@ -10748,8 +10844,8 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   min-width:100%!important;
   height:auto!important;
   min-height:0!important;
-  scroll-snap-align:start!important;
-  scroll-snap-stop:normal!important;
+  scroll-snap-align:center!important;
+  scroll-snap-stop:always!important;
 }
 #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumSingleMedia{
   display:block!important;
@@ -10775,14 +10871,40 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
   display:block!important;
   margin:0!important;
 }
+/* R97 — aucune couche de flou fixe au-dessus d’un contenu qui défile.
+   Le dock est déjà pratiquement opaque (.985), donc son aspect reste identique
+   sans forcer Android à recalculer un backdrop-filter à chaque frame. */
+.bottom.happyadMainDockV585{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
 </style>
 
-<script id="happyad-chat-sticker-living-v791-js" src="core/chat-sticker-living-v791.js?v=799-smaller-mouth-only"></script>
+<!-- R92 : arbitre final Story. Les anciens modules de compatibilité restent dans le ZIP,
+     mais aucun d'eux ne peut plus remplacer le cache Story par [] pendant la connexion. -->
+<script id="happyad-v855r92-story-final-arbiter">
+(function(){
+  if(window.__HAPPYAD_STORY_FINAL_ARBITER_V792__)return;
+  window.__HAPPYAD_STORY_FINAL_ARBITER_V792__=true;
+  function master(){return window.HappyStoryV629||window.HappyStoryV699||null}
+  function bind(){
+    var m=master();if(!m||typeof m.renderRadar!=='function'||typeof m.refreshRadarData!=='function')return false;
+    window.fetchRadarItems=function(){return Promise.resolve(m.refreshRadarData())};
+    window.renderRadarHome=function(){return m.renderRadar()};
+    try{if(typeof m.routeRadar==='function')window.openRadarPost=function(p){return m.routeRadar(p)}}catch(_e){}
+    Promise.resolve(m.refreshRadarData()).then(function(){try{m.renderRadar()}catch(_e){}}).catch(function(){});
+    return true;
+  }
+  if(!bind())setTimeout(bind,0);
+  setTimeout(bind,650);
+  window.addEventListener('pageshow',function(){bind()},{passive:true});
+  window.addEventListener('online',function(){bind()},{passive:true});
+})();
+</script>
+
+<!-- R89 chat-sticker chargé avec RADAR au premier écran -->
 <script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=855r56-notification-preferences"></script>
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
 <script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=855r71-chat-writing-smooth"></script>
-<script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=850-video-listing-fast-open"></script>
-<script id="happyad-keyboard-surface-master-v851r7-js" src="core/keyboard-surface-master-v851r7.js?v=855r2-stats-close-repair"></script>
+<script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=855r93-scroll-light"></script>
+<script id="happyad-keyboard-surface-master-v851r7-js" src="core/keyboard-surface-master-v851r7.js?v=855r93-home-silent"></script>
 <script id="happyad-language-preference-master-v855r59-js" src="core/language-preference-master-v855r59.js?v=855r59-language-storage-real"></script>
 </body></html>

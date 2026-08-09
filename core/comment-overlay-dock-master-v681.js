@@ -102,6 +102,16 @@
       for(var i=0;i<records.length;i++){
         var r=records[i],t=r&&r.target;
         if(!t)continue;
+        try{
+          if(t.nodeType===1&&t.closest&&t.closest('#list')){
+            var special=false;
+            [].slice.call(r.addedNodes||[]).forEach(function(n){
+              if(special||!n||n.nodeType!==1)return;
+              if((n.id==='happyadHomeCommentPopup')||(n.matches&&n.matches('iframe.happyadAppFrame,iframe[data-happyad-page]'))||(n.querySelector&&n.querySelector('#happyadHomeCommentPopup,iframe.happyadAppFrame,iframe[data-happyad-page]')))special=true;
+            });
+            if(!special)continue;
+          }
+        }catch(_home){}
         if((t.id==='happyadHomeCommentPopup')||(t.id==='happyadAppShell')||(t.matches&&t.matches('iframe.happyadAppFrame,iframe[data-happyad-page]'))){
           reconcile('comment-dom-change-v681');return;
         }

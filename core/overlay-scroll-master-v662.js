@@ -4,7 +4,7 @@
   if(window.__HAPPYAD_OVERLAY_SCROLL_MASTER_V615__)return;
   window.__HAPPYAD_OVERLAY_SCROLL_MASTER_V615__=true;
 
-  var VERSION='V615_OVERLAY_SCROLL_SINGLE_MASTER';
+  var VERSION='V855R93_OVERLAY_SCROLL_HOME_SILENT';
   var TAP_SHIELD_ID='happyadAppTapShield';
   var scheduled=false;
   var observer=null;
@@ -153,6 +153,10 @@
         var relevant=false;
         for(var i=0;i<list.length;i++){
           var m=list[i],target=m&&m.target;
+          /* R93 : les cartes Accueil ne sont jamais des overlays. Les mutations
+             de classe/style et l'insertion progressive des médias dans #list
+             ne doivent pas relancer une analyse globale des overlays. */
+          try{if(target&&target.nodeType===1&&target.closest&&target.closest('#list'))continue;}catch(_home){}
           /* V651 : les transformations tactiles de l'image active du fullscreen Profil
              ne doivent pas relancer une analyse globale des overlays à chaque frame. */
           if(m&&m.type==='attributes'&&m.attributeName==='style'&&target&&target.nodeType===1&&target.matches&&target.matches('#happyadProfilePostFeedV581 .ha581Slide img,#happyadHomePhotoFullscreen .haHomeFsAlbumSlide img'))continue;

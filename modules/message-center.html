@@ -40,9 +40,15 @@
   <script>
     (function(){
       try{
-        if(new URLSearchParams(location.search || '').get('mode') === 'direct'){
-          document.documentElement.classList.add('message-direct-boot');
+        var direct=new URLSearchParams(location.search || '').get('mode') === 'direct';
+        if(!direct){
+          var raw=sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_BOOT_V855R76')||'';
+          if(raw){
+            var boot=JSON.parse(raw),target=boot&&boot.target||{};
+            direct=boot&&boot.mode==='direct'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(target.id||target.user_id||''));
+          }
         }
+        if(direct)document.documentElement.classList.add('message-direct-boot');
       }catch(_e){}
     })();
   </script>
@@ -10196,12 +10202,31 @@
       }
 
       function contextFromUrl(){
+        /* V855R76 : lors d'un clic Message depuis Profil visiteur, le parent peut
+           préparer un contexte direct avant même que cette frame ait terminé son
+           bootstrap. On le consomme une seule fois : l'inbox n'est jamais peinte
+           avant la discussion ciblée. */
+        if(clean(query.get('mode')) !== 'direct'){
+          try{
+            const raw=sessionStorage.getItem('HAPPYAD_MESSAGE_DIRECT_BOOT_V855R76')||'';
+            if(raw){
+              const saved=normalizeContext(JSON.parse(raw));
+              if(saved && saved.mode === 'direct' && saved.target && isUuid(saved.target.id)){
+                sessionStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_BOOT_V855R76');
+                return saved;
+              }
+              sessionStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_BOOT_V855R76');
+            }
+          }catch(_e){try{sessionStorage.removeItem('HAPPYAD_MESSAGE_DIRECT_BOOT_V855R76');}catch(_x){}}
+        }
         return {
           context_id:clean(query.get('context_id')),
           source:clean(query.get('source')) || 'message-center',
           mode:clean(query.get('mode')) || 'inbox',
           conversation_id:isUuid(query.get('conversation_id')) ? clean(query.get('conversation_id')) : '',
           message_id:clean(query.get('message_id')),
+          return_to:clean(query.get('return_to')),
+          surface:clean(query.get('surface')),
           target:normalizeTarget({
             id:query.get('target_id'),
             name:query.get('target_name'),
@@ -10221,6 +10246,8 @@
           mode:clean(detail.mode) || (target ? 'direct' : 'inbox'),
           conversation_id:isUuid(detail.conversation_id || detail.conversationId) ? clean(detail.conversation_id || detail.conversationId) : '',
           message_id:clean(detail.message_id || detail.messageId),
+          return_to:clean(detail.return_to || detail.returnTo),
+          surface:clean(detail.surface),
           target
         };
       }
@@ -12273,6 +12300,11 @@
         currentTarget = verifiedTarget;
         currentTargetPrivacyV855R51=await loadMessagePrivacyV855R51(verifiedTarget.id,false);
         displayDirect(verifiedTarget);
+        /* V855R77 : si la paire existe déjà dans le cache canonique des
+           conversations, réutiliser son UUID au lieu de redemander une ouverture.
+           Le RPC reste le secours canonique lorsque la paire n'est pas encore connue. */
+        const existingDirect = conversations.find(item => item && isUuid(item.id) && clean(item.targetId) === verifiedTarget.id);
+        if(existingDirect) return openKnownConversation(verifiedTarget,existingDirect.id);
         const opened = await openDirectRpc(verifiedTarget.id);
         if(token !== openToken) return;
         currentConversationId = opened.conversationId;
@@ -14682,6 +14714,23 @@
         return context;
       }
 
+      function visitorDirectReturnV855R77(){
+        return !!(context && clean(context.return_to) === 'visitor-profile' && clean(context.mode) === 'direct');
+      }
+      function requestVisitorDirectCloseV855R77(reason){
+        if(!visitorDirectReturnV855R77()) return false;
+        try{
+          if(window.parent && window.parent !== window){
+            window.parent.postMessage({
+              type:'HAPPYAD_VISITOR_DIRECT_CHAT_CLOSE_V855R77',
+              detail:{reason:clean(reason)||'back',target_id:clean(currentTarget&&currentTarget.id||context&&context.target&&context.target.id),conversation_id:clean(currentConversationId)}
+            },'*');
+            return true;
+          }
+        }catch(_e){}
+        return false;
+      }
+
       function requestClose(reason){
         if(personSelectorOpen){ closePersonSelector(false); return; }
         if(activeViewOncePhoto) closeViewOncePhoto();
@@ -15070,6 +15119,7 @@
       });
       if(backBtn) backBtn.addEventListener('click', event => {
         event.preventDefault(); event.stopPropagation(); if(event.stopImmediatePropagation) event.stopImmediatePropagation();
+        if(requestVisitorDirectCloseV855R77('chat-back-button')) return;
         try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_INTERNAL_BACK_REQUEST_V591',detail:{id:'message-chat',source:'message-center-v591'}},'*');return;}}catch(_e){}
         showInbox();
       });
@@ -15077,7 +15127,10 @@
         window.__HAPPYAD_MESSAGE_INTERNAL_RETURN_V591_BOUND__=true;
         window.addEventListener('message',event=>{
           const data=event&&event.data;
-          if(data&&data.type==='HAPPYAD_INTERNAL_BACK_EXECUTE_V591'&&data.detail&&data.detail.id==='message-chat')showInbox();
+          if(data&&data.type==='HAPPYAD_INTERNAL_BACK_EXECUTE_V591'&&data.detail&&data.detail.id==='message-chat'){
+            if(requestVisitorDirectCloseV855R77('internal-back')) return;
+            showInbox();
+          }
         });
       }
       if(viewerClose) viewerClose.addEventListener('click', closeOverlays);
