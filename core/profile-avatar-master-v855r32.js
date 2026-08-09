@@ -20,6 +20,8 @@
   var domObserver=null;
   var domTimer=0;
   var domRoots=[];
+  var deferredEffects={changes:{},events:{},source:'',broadcast:false};
+  function scrollPriority(){try{return window.HappyadHomeScrollPriorityV863||window.HappyProfileScrollPriorityV866||window.HappyProfileScrollPriorityV865||null;}catch(_e){return null;}}
 
   function clean(v){return String(v==null?'':v).trim();}
   function own(o,k){return !!(o&&Object.prototype.hasOwnProperty.call(o,k));}
@@ -185,6 +187,27 @@
     try{localStorage.setItem(SYNC_KEY,JSON.stringify(Object.assign({nonce:Date.now()+'-'+Math.random()},message)));localStorage.removeItem(SYNC_KEY);}catch(_e2){}
     postEverywhere(message);
   }
+  function flushDeferredEffects(){
+    var changes=deferredEffects.changes,eventsMap=deferredEffects.events,source=deferredEffects.source,broadcast=deferredEffects.broadcast;
+    deferredEffects={changes:{},events:{},source:'',broadcast:false};
+    var events=Object.keys(eventsMap).map(function(uid){return eventsMap[uid];}).filter(Boolean);
+    if(!events.length)return;
+    persistEntries();
+    invalidateCaches(changes);
+    paintKnownNodes(document,changes);
+    events.forEach(function(e){emit(e,source);});
+    if(broadcast)broadcastEntries(events,source);
+  }
+  function queueBatchEffects(changed,events,options){
+    options=options||{};
+    Object.keys(changed||{}).forEach(function(uid){deferredEffects.changes[uid]=changed[uid];});
+    (events||[]).forEach(function(e){if(e&&e.uid)deferredEffects.events[e.uid]=e;});
+    deferredEffects.source=clean(options.source||deferredEffects.source||VERSION);
+    if(options.broadcast!==false)deferredEffects.broadcast=true;
+    var p=scrollPriority();
+    if(p&&p.run)p.run('avatar-heavy-effects',flushDeferredEffects,90);
+    else flushDeferredEffects();
+  }
   function applyBatch(nextByUid,options){
     options=options||{};var changed={},events=[];
     Object.keys(nextByUid||{}).forEach(function(uid){
@@ -194,9 +217,10 @@
       if(!same(old,next)){changed[uid]=next;events.push(next);}
     });
     if(!events.length)return [];
-    persistEntries();invalidateCaches(changed);paintKnownNodes(document,changed);
-    events.forEach(function(e){emit(e,options.source);});
-    if(options.broadcast!==false)broadcastEntries(events,options.source);
+    /* V863 : getEntry() voit immédiatement la nouvelle valeur en mémoire. Les
+       parcours localStorage/sessionStorage, les repaint DOM et les broadcasts
+       sont coalescés et exécutés seulement après le scroll de l'Accueil. */
+    queueBatchEffects(changed,events,options);
     return events;
   }
   function set(uid,url,options){
@@ -283,7 +307,8 @@
       function flushDom(){
         domTimer=0;
         var roots=domRoots.splice(0,domRoots.length);
-        roots.forEach(function(root){if(root&&root.isConnected)paintKnownNodes(root);});
+        var work=function(){roots.forEach(function(root){if(root&&root.isConnected)paintKnownNodes(root);});};
+        var p=scrollPriority();if(p&&p.run)p.run('avatar-dom-new-roots',work,60);else work();
       }
       domObserver=new MutationObserver(function(records){
         records.forEach(function(record){

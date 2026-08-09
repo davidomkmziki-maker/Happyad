@@ -1,4 +1,4 @@
-/* HAPPYAD V653 — retour fiable du menu inférieur après le scroll.
+/* HAPPYAD V654 — dock stable pendant les changements de page et retour immédiat.
    - un seul événement scroll passif par document
    - masquage uniquement pendant le mouvement vers le bas
    - retour automatique après l'arrêt du scroll
@@ -9,7 +9,7 @@
   if(window.__HAPPYAD_DOCK_AUTO_HIDE_MASTER_V653__)return;
   window.__HAPPYAD_DOCK_AUTO_HIDE_MASTER_V653__=true;
 
-  var VERSION='V653';
+  var VERSION='V654';
   /* La classe visuelle V618 est conservée pour ne pas modifier le CSS validé. */
   var HIDDEN_CLASS='happyadDockAutoHiddenV618';
   var OLD_HIDDEN_CLASSES=['happyadDockAutoHiddenV605','happyadDockAutoHiddenV607','happyadDockAutoHiddenV608'];
@@ -17,6 +17,9 @@
   var SHOW_DISTANCE=12;
   var TOP_LIMIT=12;
   var IDLE_SHOW_DELAY=460;
+  var NAV_STABLE_MS=900;
+  var USER_SCROLL_INTENT_MS=1000;
+  var navStableUntil=0;
   var activePage='home';
   var contexts=new WeakMap();
   var contextList=[];
@@ -53,6 +56,27 @@
   function videoCentralFixed(){return activeVisualPage()==='video'||currentBodyPage()==='video';}
   function clearOldClasses(){var b=body();if(!b)return;OLD_HIDDEN_CLASSES.forEach(function(c){b.classList.remove(c);});}
   function clearIdleShow(){clearTimeout(idleShowTimer);idleShowTimer=0;}
+  function dockPageVisible(page){
+    page=normalizedPage(page||currentBodyPage());
+    return page==='home'||page==='profile'||page==='video'||page==='message';
+  }
+  function navigationStable(){return Date.now()<navStableUntil;}
+  function markUserScrollIntent(ctx){if(ctx)ctx.userIntentUntil=Date.now()+USER_SCROLL_INTENT_MS;}
+  function userScrollIntentActive(ctx){return !!(ctx&&Date.now()<Number(ctx.userIntentUntil||0));}
+  function armNavigationStable(page,reason){
+    page=normalizedPage(page||currentBodyPage());
+    if(!dockPageVisible(page)){navStableUntil=0;return;}
+    navStableUntil=Date.now()+NAV_STABLE_MS;
+    clearIdleShow();
+    var b=body();
+    if(b){
+      b.classList.remove(HIDDEN_CLASS,'happyadDockScrollActiveV618');
+      clearOldClasses();
+      try{b.dataset.happyadDockNavigationStable=String(reason||page);}
+      catch(_e){}
+    }
+    show(reason||'navigation-stable');
+  }
   function markScrolling(){
     var b=body();if(!b)return;
     b.classList.add('happyadDockScrollActiveV618');
@@ -125,6 +149,22 @@
     if(!allowed())return;
     y=num(y);
     var key=(target&&typeof target==='object')?target:ctx.doc;
+    /* V654 : un changement de page peut produire plusieurs scrolls programmatiques
+       (restauration de position, squelette, médias qui prennent leur hauteur). Ces
+       scrolls ne doivent jamais faire disparaître le dock pendant l'ouverture. */
+    if(navigationStable()){
+      ctx.states.set(key,{last:y,trend:0});
+      show('navigation-stable-'+ctx.label);
+      return;
+    }
+    /* Le masquage automatique répond uniquement à un vrai geste de défilement.
+       Un scroll généré par le code ou par un reflow met seulement à jour la référence. */
+    if(!userScrollIntentActive(ctx)){
+      var passiveState=ctx.states.get(key);
+      if(passiveState){passiveState.last=y;passiveState.trend=0;}
+      else ctx.states.set(key,{last:y,trend:0});
+      return;
+    }
     var state=ctx.states.get(key);
     if(!state){ctx.states.set(key,{last:y,trend:0});if(y<=TOP_LIMIT)show('top-first-'+ctx.label);armIdleShow(ctx,'scroll-idle-first-'+ctx.label);return;}
     var delta=y-state.last;
@@ -151,8 +191,20 @@
   function bindContext(win,doc,label,kind,frame){
     if(!win||!doc)return null;
     var found=contexts.get(doc);if(found)return found;
-    var ctx={win:win,doc:doc,label:String(label||kind||'context'),kind:kind||'frame',frame:frame||null,states:new WeakMap(),raf:0,pendingTarget:null};
+    var ctx={win:win,doc:doc,label:String(label||kind||'context'),kind:kind||'frame',frame:frame||null,states:new WeakMap(),raf:0,pendingTarget:null,userIntentUntil:0,gestureY:null,gesturePointer:null};
     contexts.set(doc,ctx);contextList.push(ctx);
+    function gestureStart(y,id){ctx.gestureY=num(y);ctx.gesturePointer=id==null?'':String(id);}
+    function gestureMove(y,id){
+      if(ctx.gestureY==null)return;
+      if(ctx.gesturePointer&&id!=null&&String(id)!==ctx.gesturePointer)return;
+      if(Math.abs(num(y)-num(ctx.gestureY))>=7)markUserScrollIntent(ctx);
+    }
+    try{doc.addEventListener('touchstart',function(ev){var t=ev.touches&&ev.touches[0];if(t)gestureStart(t.clientY,'touch');},{capture:true,passive:true});}catch(_ts){}
+    try{doc.addEventListener('touchmove',function(ev){var t=ev.touches&&ev.touches[0];if(t)gestureMove(t.clientY,'touch');},{capture:true,passive:true});}catch(_tm){}
+    try{doc.addEventListener('pointerdown',function(ev){if(!ev||ev.pointerType==='mouse'&&ev.button!==0)return;gestureStart(ev.clientY,ev.pointerId);},{capture:true,passive:true});}catch(_pd){}
+    try{doc.addEventListener('pointermove',function(ev){if(!ev)return;gestureMove(ev.clientY,ev.pointerId);},{capture:true,passive:true});}catch(_pm){}
+    try{doc.addEventListener('wheel',function(){markUserScrollIntent(ctx);},{capture:true,passive:true});}catch(_wh){}
+    try{doc.addEventListener('keydown',function(ev){var k=String(ev&&ev.key||'');if(k==='ArrowDown'||k==='ArrowUp'||k==='PageDown'||k==='PageUp'||k==='Home'||k==='End'||k===' ')markUserScrollIntent(ctx);},true);}catch(_kd){}
     function onScroll(ev){
       var target=ev&&ev.target;
       if(target===doc||target===win||!target)target=rootScroller(doc);
@@ -224,8 +276,9 @@
       try{if(ev.target&&ev.target.closest&&ev.target.closest('#happyadMainDockV585'))show('dock-touch');}catch(_e){}
     },{capture:true,passive:true});
     window.addEventListener('HAPPYAD_NAV_CHANGED_V586',function(ev){
-      try{setActivePage(ev&&ev.detail&&ev.detail.page||'home');}catch(_e){setActivePage('home');}
-      show(videoCentralFixed()?'video-central-navigation':'navigation');
+      var page='home';
+      try{page=ev&&ev.detail&&ev.detail.page||'home';setActivePage(page);}catch(_e){page='home';setActivePage('home');}
+      armNavigationStable(page,videoCentralFixed()?'video-central-navigation':'navigation');
       scanFrames();
     },true);
     window.addEventListener('message',function(ev){
@@ -250,9 +303,9 @@
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-  var api={version:VERSION,show:show,hide:hide,scan:scanFrames,reset:reset,setActivePage:setActivePage,isVideoFixed:videoCentralFixed};
+  var api={version:VERSION,show:show,hide:hide,scan:scanFrames,reset:reset,setActivePage:setActivePage,stabilize:armNavigationStable,isVideoFixed:videoCentralFixed};
   window.HappyDockAutoHideV653=api;
   window.HappyDockAutoHideV618=api;
   window.HappyDockAutoHideV608=api;
-  try{if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('dock-auto-hide',{file:'core/dock-auto-hide-master-v653.js',responsibility:'gestion unique du scroll; retour automatique du dock; dock toujours visible dans la centrale vidéo',active:true,version:VERSION});}catch(_e){}
+  try{if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('dock-auto-hide',{file:'core/dock-auto-hide-master-v653.js',responsibility:'scroll utilisateur uniquement; dock stable pendant navigation; retour automatique immédiat; dock toujours visible dans la centrale vidéo',active:true,version:VERSION});}catch(_e){}
 })();

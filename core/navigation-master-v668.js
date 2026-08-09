@@ -4,8 +4,8 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V855R79_VIDEO_TARGET_FIRST_DIRECT_OPEN';
-  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=855r77-direct-chat-shared';
+  var MASTER_VERSION='NAV_MASTER_V864_OWNER_PROFILE_LIGHT_WARMUP';
+  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=866-profile-scroll-hard';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
@@ -27,7 +27,7 @@
 
   var pages={
     home:'index.html',
-    profile:'modules/my-profile.html?v=855r35-anciens-groupes-photos',
+    profile:'modules/my-profile.html?v=866-profile-scroll-hard',
     profile_public:'modules/visitor-profile.html',
     video:'modules/video.html?v=855r79-target-first-direct',
     photo:'modules/photo.html',
@@ -633,7 +633,7 @@
     page=String(page||'');
     if(page==='video')return 'modules/video.html?v=855r79-target-first-direct';
     if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared';
-    if(page==='profile')return 'modules/my-profile.html?v=855r35-anciens-groupes-photos';
+    if(page==='profile')return 'modules/my-profile.html?v=866-profile-scroll-hard';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';
     return pages[page]||'index.html';
@@ -656,6 +656,7 @@
       var fr=ensureFrame(page,url);if(!fr)return false;
       if(String(fr.getAttribute('data-happyad-src')||'').trim())return true;
       fr.setAttribute('data-happyad-preloading-v594','1');
+      if(page==='profile')fr.setAttribute('data-happyad-owner-light-warmup-v864','1');
       fr.setAttribute('data-happyad-src',url);
       fr.setAttribute('data-happyad-loading','1');
       fr.setAttribute('loading','eager');
@@ -663,7 +664,34 @@
       fr.style.opacity='';fr.style.visibility='';
       fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');
       fr.src=url;
-      try{window.__HAPPYAD_MAIN_PAGE_PRELOAD_V625__=window.__HAPPYAD_MAIN_PAGE_PRELOAD_V625__||{};window.__HAPPYAD_MAIN_PAGE_PRELOAD_V625__[page]={started:true,at:Date.now(),url:url};}catch(_w){}
+      try{window.__HAPPYAD_MAIN_PAGE_PRELOAD_V625__=window.__HAPPYAD_MAIN_PAGE_PRELOAD_V625__||{};window.__HAPPYAD_MAIN_PAGE_PRELOAD_V625__[page]={started:true,at:Date.now(),url:url,lightWarmup:page==='profile'};}catch(_w){}
+      return true;
+    }catch(_e){return false;}
+  }
+  var ownerProfileWarmupTimerV864=0;
+  function scheduleOwnerProfileWarmupV864(delay){
+    try{
+      clearTimeout(ownerProfileWarmupTimerV864);
+      var earliest=Date.now()+Math.max(450,Number(delay)||650);
+      function check(){
+        ownerProfileWarmupTimerV864=0;
+        try{
+          if(document.hidden){ownerProfileWarmupTimerV864=setTimeout(check,700);return;}
+          if(activePage!=='home')return;
+          if(!ownerAuthUidHintV855R23())return;
+          var existing=document.getElementById(frameId('profile'));if(existing&&String(existing.getAttribute('data-happyad-src')||'').trim())return;
+          var priority=window.HappyadHomeScrollPriorityV863;
+          if(Date.now()<earliest||(priority&&typeof priority.isActive==='function'&&priority.isActive())){
+            ownerProfileWarmupTimerV864=setTimeout(check,140);return;
+          }
+          /* V864 : Mon profil est préparé seulement quand l'Accueil est calme.
+             Le document Profil charge l'identité + les 12 premières publications,
+             mais garde Realtime, pagination et compteurs lourds éteints tant qu'il
+             reste caché. */
+          preloadFrame('profile',persistentMainUrl('profile'));
+        }catch(_e){ownerProfileWarmupTimerV864=setTimeout(check,260);}
+      }
+      ownerProfileWarmupTimerV864=setTimeout(check,Math.max(120,Number(delay)||650));
       return true;
     }catch(_e){return false;}
   }
@@ -707,11 +735,15 @@
       window.__HAPPYAD_MAIN_TABS_DIRECT_V625__=true;
       var queue=[
         {page:'video',delay:80},
-        {page:'profile',delay:110},
+        {page:'profile',delay:650,lightWarmup:true},
         {page:'message',delay:820},
         {page:'publish',delay:1320}
       ];
       queue.forEach(function(item){
+        if(item.page==='profile'){
+          scheduleOwnerProfileWarmupV864(item.delay);
+          return;
+        }
         setTimeout(function(){
           try{
             if(item.page==='video')preloadVideoFrameV624();
@@ -858,6 +890,7 @@
       fr.style.opacity='';
       fr.style.visibility='';
       fr.classList.add('on');
+      if(page==='profile')fr.removeAttribute('data-happyad-owner-light-warmup-v864');
       fr.removeAttribute('inert');
       fr.setAttribute('aria-hidden','false');
     }catch(_e){}
@@ -1056,7 +1089,7 @@
         },1800);
       }
     }else if(!fr){
-      setTimeout(function(){preloadFrame('profile',persistentMainUrl('profile'));},90);
+      scheduleOwnerProfileWarmupV864(650);
     }
     return true;
   }
@@ -1109,7 +1142,7 @@
          reconstruction à chaque passage Accueil -> Profil. */
       if(!ownerReusableV756)deliverOwnerTargetV649(fr,url,extra);
       else{
-        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=855r35-anciens-groupes-photos');
+        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=866-profile-scroll-hard');
         fr.setAttribute('data-happyad-owner-persistent-v756','1');
       }
     }

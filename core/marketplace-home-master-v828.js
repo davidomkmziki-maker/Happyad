@@ -5,7 +5,7 @@
   if(window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__)return;
   window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__=true;
 
-  var VERSION='V855R93_MARKETPLACE_HOME_FEED_V1';
+  var VERSION='V857_POINT1_MARKETPLACE_SHARE_ONLY';
   var observed=new WeakSet();
   var pending=new Map();
   var refreshTimer=0;
@@ -166,8 +166,14 @@
   function decorateCard(card){
     if(!card||observed.has(card))return;
     var post=postById(card.dataset.postId);if(!post||!isMarketplace(post)||!showOnHome(post))return;
-    observed.add(card);card.classList.add('happyadMarketplaceHomeCardV828');card.dataset.happyadMarketplace='1';
-    var top=card.querySelector('.miniTop');if(top&&!top.querySelector('.happyadMarketplaceHomeTagV828')){var tag=document.createElement('span');tag.className='happyadMarketplaceHomeTagV828';tag.textContent='ANNONCE';top.appendChild(tag);}
+    observed.add(card);card.classList.add('happyadMarketplaceHomeCardV828');card.dataset.happyadMarketplace='1';card.__happyadPost=post;
+    var top=card.querySelector('.miniTop');if(top&&!top.querySelector('.happyadMarketplaceHomeTagV828,.happyadMarketplaceHomeTagV856')){var tag=document.createElement('span');tag.className='happyadMarketplaceHomeTagV828';tag.textContent='ANNONCE';top.appendChild(tag);}
+    /* V857 : même une ancienne carte déjà présente dans le DOM perd physiquement
+       J'aime / commentaire / republication / favori. Le seul geste social conservé
+       pour une annonce est Partager, sans compteur. */
+    var legacyActions=card.querySelector('.miniActions');if(legacyActions)legacyActions.remove();
+    var row=card.querySelector('.happyadMarketplaceCtaRowV856');
+    if(!row){row=document.createElement('div');row.className='happyadMarketplaceCtaRowV856';row.innerHTML='<button class="happyadMarketplaceShareOnlyV857" type="button" data-card-act="share" aria-label="Partager l’annonce"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button><button class="happyadMarketplaceCardCtaV856" type="button"><span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';card.appendChild(row);var listingBtn=row.querySelector('.happyadMarketplaceCardCtaV856');if(listingBtn){listingBtn.__happyadListingBoundV857=true;listingBtn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openListing(idOf(post),'home-card',post);},true);}}
     if(observer)observer.observe(card);
   }
   function scanCards(){document.querySelectorAll('#list .miniCard[data-post-id],.homeTimeline .miniCard[data-post-id]').forEach(decorateCard);}
@@ -180,19 +186,37 @@
   function syncFullscreen(){
     var box=document.getElementById('happyadHomePhotoFullscreen');if(!box)return;
     var card=box.querySelector('.haHomeFsCard');if(!card)return;
-    var post=fullscreenPost(box),id=idOf(post),existing=card.querySelector('.happyadOpenListingFromHomeV828');
-    var visible=box.classList.contains('on')&&post&&isMarketplace(post)&&showOnHome(post)&&id&&mediaType(post)!=='video';
-    if(!visible){if(existing)existing.remove();lastFullscreenId='';return;}
+    var post=fullscreenPost(box),id=idOf(post),existing=card.querySelector('.happyadOpenListingFromHomeV828'),shareBtn=card.querySelector('.happyadMarketplaceFsShareV857');
+    var visible=box.classList.contains('on')&&post&&isMarketplace(post)&&id&&mediaType(post)!=='video';
+    box.classList.toggle('happyadMarketplacePhotoFullscreenV856',!!visible);
+    if(!visible){if(existing)existing.remove();if(shareBtn)shareBtn.remove();lastFullscreenId='';return;}
     if(!existing){existing=document.createElement('button');existing.type='button';existing.className='happyadOpenListingFromHomeV828';existing.innerHTML='<span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';card.appendChild(existing);}
-    existing.dataset.listingId=id;existing.onclick=function(event){event.preventDefault();event.stopPropagation();openListing(id,'home-photo-fullscreen');};
+    if(!shareBtn){shareBtn=document.createElement('button');shareBtn.type='button';shareBtn.className='happyadMarketplaceFsShareV857';shareBtn.setAttribute('data-card-act','share');shareBtn.setAttribute('aria-label','Partager l’annonce');shareBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>';card.appendChild(shareBtn);}
+    existing.dataset.listingId=id;existing.onclick=function(event){event.preventDefault();event.stopPropagation();openListing(id,'photo-fullscreen',post);};
+    shareBtn.dataset.postId=id;shareBtn.__happyadPost=post;
     if(lastFullscreenId!==id){lastFullscreenId=id;recordView(post,'detail');}
+  }
+  function patchFullscreenOpenV856(){
+    try{
+      var old=window.happyadOpenHomePhotoFullscreen;
+      if(typeof old!=='function'||old.__happyadMarketplacePoint1V856)return;
+      var wrapped=async function(){
+        var result=await old.apply(this,arguments);
+        try{syncFullscreen();}catch(_e){}
+        requestAnimationFrame(function(){try{syncFullscreen();}catch(_e){}});
+        return result;
+      };
+      wrapped.__happyadMarketplacePoint1V856=true;
+      wrapped.__happyadMarketplaceOriginalV856=old;
+      window.happyadOpenHomePhotoFullscreen=wrapped;
+    }catch(_e){}
   }
   function bindRealtime(){
     var c=client();if(!c||typeof c.channel!=='function'||realtimeChannel)return;
     try{realtimeChannel=c.channel('happyad-marketplace-home-v828').on('postgres_changes',{event:'*',schema:'public',table:'happyad_posts'},function(payload){var row=(payload&&payload.new)||payload.old||{};if(isMarketplace(row)||truth(row.marketplace_show_on_home))refresh('realtime');}).subscribe();}catch(_e){}
   }
   function install(){
-    scanCards();syncFullscreen();refresh('boot');bindRealtime();
+    patchFullscreenOpenV856();scanCards();syncFullscreen();refresh('boot');bindRealtime();
     /* R93 : ne jamais rescanner toutes les cartes sur les changements de classe
        produits par le scroll, le prépeint ou le chargement des images. */
     try{
@@ -216,17 +240,22 @@
         new MutationObserver(queueFs).observe(fs,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
       }
     }catch(_e){}
+    window.addEventListener('message',function(event){var d=event&&event.data||{};if(d.type!=='HAPPYAD_OPEN_MARKETPLACE_LISTING_V856')return;var id=clean(d.listingId||(d.listing&&idOf(d.listing)));if(id)openListing(id,d.source||'profile-card',d.listing||null);},true);
     document.addEventListener('happyad:marketplace-listing-published',function(){refresh('published');});
     window.addEventListener('HAPPYAD_VIDEO_POSTER_UPDATED_V693',function(){refresh('poster-updated');});
     setInterval(function(){if(!document.hidden)refresh('stability');},60000);
-    window.addEventListener('focus',function(){refresh('focus');});
+    window.addEventListener('focus',function(){patchFullscreenOpenV856();refresh('focus');});
     document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh('visible');});
   }
   var style=document.createElement('style');style.id='happyad-marketplace-home-master-v821-css';style.textContent='\
-    .happyadMarketplaceHomeCardV828 .miniTop{position:relative!important}.happyadMarketplaceHomeTagV828{margin-left:auto;margin-right:6px;padding:5px 8px;border-radius:999px;background:rgba(255,119,26,.14);border:1px solid rgba(255,119,26,.38);color:#ff9b50;font-size:9px;font-weight:1000;letter-spacing:.08em}\
-    #happyadHomePhotoFullscreen .happyadOpenListingFromHomeV828{position:absolute;left:18px;right:18px;bottom:22px;z-index:60;min-height:52px;border:0;border-radius:17px;background:linear-gradient(135deg,#ff731c,#ff9d31);color:#111;display:flex;align-items:center;justify-content:center;gap:9px;font-size:16px;font-weight:1000;box-shadow:0 15px 34px rgba(255,112,20,.28);touch-action:manipulation}\
-    #happyadHomePhotoFullscreen .happyadOpenListingFromHomeV828 svg{width:21px;height:21px}\
-    #happyadHomePhotoFullscreen .haHomeFsCaption{padding-bottom:96px!important}\
+    .happyadMarketplaceHomeCardV828 .miniTop,.happyadMarketplaceDedicatedCardV856 .miniTop{position:relative!important}.happyadMarketplaceHomeTagV828,.happyadMarketplaceHomeTagV856{margin-left:auto;margin-right:6px;padding:5px 8px;border-radius:999px;background:rgba(255,119,26,.12);border:1px solid rgba(255,119,26,.40);color:#ff9b50;font-size:9px;font-weight:1000;letter-spacing:.08em;white-space:nowrap}\
+    .happyadMarketplaceDedicatedCardV856 .miniActions,.happyadMarketplaceHomeCardV828 .miniActions{display:none!important}.happyadMarketplaceDedicatedCardV856 .happyadMarketplaceCtaRowV856,.happyadMarketplaceHomeCardV828 .happyadMarketplaceCtaRowV856{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 12px 10px}.happyadMarketplaceDedicatedCardV856 .happyadMarketplaceCardCtaV856,.happyadMarketplaceHomeCardV828 .happyadMarketplaceCardCtaV856{min-height:36px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,143,66,.48);background:rgba(255,119,26,.10);color:#ff9b50;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:950;touch-action:manipulation}.happyadMarketplaceDedicatedCardV856 .happyadMarketplaceCardCtaV856 svg,.happyadMarketplaceHomeCardV828 .happyadMarketplaceCardCtaV856 svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.happyadMarketplaceDedicatedCardV856 .happyadMarketplaceShareOnlyV857,.happyadMarketplaceHomeCardV828 .happyadMarketplaceShareOnlyV857{width:36px;height:36px;min-width:36px;padding:0;border-radius:11px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.035);color:#eef2f7;display:grid;place-items:center;touch-action:manipulation}.happyadMarketplaceDedicatedCardV856 .happyadMarketplaceShareOnlyV857 svg,.happyadMarketplaceHomeCardV828 .happyadMarketplaceShareOnlyV857 svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.happyadMarketplaceDedicatedCardV856 .happyadMarketplaceDescV856{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}\
+    #happyadHomePhotoFullscreen .happyadOpenListingFromHomeV828{position:absolute;left:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:100;min-height:42px;width:auto;max-width:calc(100vw - 98px);padding:0 14px;border:1px solid rgba(255,147,76,.58);border-radius:12px;background:rgba(20,14,10,.86);color:#ff9b50;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:950;box-shadow:0 8px 24px rgba(0,0,0,.30);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);touch-action:manipulation}\
+    #happyadHomePhotoFullscreen .happyadOpenListingFromHomeV828 svg{width:17px;height:17px}\
+    #happyadHomePhotoFullscreen .happyadMarketplaceFsShareV857{position:absolute;right:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:101;width:42px;height:42px;padding:0;border-radius:12px;border:1px solid rgba(255,255,255,.30);background:rgba(15,18,23,.88);color:#fff;display:grid;place-items:center;box-shadow:0 8px 24px rgba(0,0,0,.30);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);touch-action:manipulation}\
+    #happyadHomePhotoFullscreen .happyadMarketplaceFsShareV857 svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}\
+    #happyadHomePhotoFullscreen.happyadMarketplacePhotoFullscreenV856 .haHomeFsActions,#happyadHomePhotoFullscreen.happyadMarketplacePhotoFullscreenV856 .haPostMoreV613E{display:none!important}\
+    #happyadHomePhotoFullscreen.happyadMarketplacePhotoFullscreenV856 .haHomeFsCaption{padding-bottom:82px!important}\
   ';document.head.appendChild(style);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   try{if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('marketplace-home-v828',{file:'core/marketplace-home-master-v828.js',responsibility:'couvertures Marketplace Accueil, photo/vidéo et ouverture exacte',active:true,version:VERSION});}catch(_e){}

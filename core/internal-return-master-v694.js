@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V855R25_VISITOR_PHOTO_HOME_DOCK_IMMEDIATE';
+  var VERSION='V862_DOCK_RESTORE_IMMEDIATE';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
   var NOTIF_URL='modules/notification-center.html?v=700-infinite-scroll';
@@ -75,6 +75,18 @@
     document.body.classList.toggle('happyadMainDockVisible',visible);
     document.body.classList.toggle('happyadInternalScreenOpenV591',hidden);
     forceDockHidden(hidden||visitor);
+    /* V862 : une couche interne pouvait être ouverte alors que le dock était déjà
+       auto-masqué par un ancien scroll. À la fermeture, happyadMainDockVisible revenait
+       mais la classe auto-hidden survivait jusqu'au prochain timer/scroll. On nettoie
+       toutes ces classes dans le même cycle que la restauration de la page. */
+    if(visible){
+      ['happyadDockAutoHiddenV618','happyadDockAutoHiddenV605','happyadDockAutoHiddenV607','happyadDockAutoHiddenV608','happyadDockScrollActiveV618'].forEach(function(c){document.body.classList.remove(c);});
+      try{
+        var dockApi=window.HappyDockAutoHideV653||window.HappyDockAutoHideV618||window.HappyDockAutoHideV608;
+        if(dockApi&&typeof dockApi.stabilize==='function')dockApi.stabilize(route.page,'internal-return-v862');
+        else if(dockApi&&typeof dockApi.show==='function')dockApi.show('internal-return-v862');
+      }catch(_dock){}
+    }
     setTimeout(function(){notifyMessageLayout(hidden?'internal-open-v591':'internal-closed-v591');},20);
   }
 

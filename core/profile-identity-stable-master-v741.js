@@ -8,6 +8,10 @@
   var STABLE_PREFIX='HAPPYAD_PROFILE_IDENTITY_STABLE_V741:';
   var AVATAR_MASTER=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
   var busy=false,lastRun=0,channel=null;
+  function scrollPriority(){try{return window.HappyadHomeScrollPriorityV863||null;}catch(_e){return null;}}
+  function runAfterHomeScroll(key,fn,delay){var p=scrollPriority();if(p&&p.run)return p.run(key,fn,delay);setTimeout(fn,Math.max(0,Number(delay)||0));return true;}
+  function homeScrollActive(){var p=scrollPriority();return !!(p&&p.isActive&&p.isActive());}
+  function waitHomeIdle(){var p=scrollPriority();return p&&p.whenIdle?p.whenIdle():Promise.resolve(true);}
   /* V758 — séparation stricte entre Mon profil et Profil visiteur.
      Ce maître répare uniquement l'identité du compte connecté. Dans une iframe
      ouverte avec public=1, il ne doit jamais peindre le DOM visiteur ni écrire
@@ -76,12 +80,17 @@
     try{localStorage.setItem(STABLE_PREFIX+uid,JSON.stringify(Object.assign({},stable(uid),next,{identity_source_v741:source||'',identity_saved_at_v741:new Date().toISOString()})));}catch(_e){}
     try{localStorage.setItem('HAPPYAD_AUTH_UID',uid);localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');}catch(_e){}
     try{if(window.UserStore){window.UserStore.data=Object.assign({},window.UserStore.data||{},next);if(window.UserStore.save)window.UserStore.save();}}catch(_e){}
-    if(changed)repairPosts(next);
-    paint(next,changed);
     if(changed){
-      try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_IDENTITY_READY_V741',{detail:{profile:next,source:source||VERSION}}));}catch(_e){}
-      try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'HAPPYAD_PROFILE_IDENTITY_V741',profile:next,source:source||VERSION},location.origin);}catch(_e){}
-    }
+      /* V863 : l'identité canonique est sauvegardée tout de suite, mais les
+         réparations de gros caches, le repaint global et les événements qui
+         déclenchent d'autres hydrations attendent la fin du geste Accueil. */
+      runAfterHomeScroll('identity-heavy-'+uid,function(){
+        repairPosts(next);
+        paint(next,true);
+        try{window.dispatchEvent(new CustomEvent('HAPPYAD_PROFILE_IDENTITY_READY_V741',{detail:{profile:next,source:source||VERSION}}));}catch(_e){}
+        try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'HAPPYAD_PROFILE_IDENTITY_V741',profile:next,source:source||VERSION},location.origin);}catch(_e){}
+      },90);
+    }else paint(next,false);
     return next;
   }
   function repairPosts(next){
@@ -102,6 +111,9 @@
   function client(){try{return window.happyadSupabase||(typeof window.happyadSb==='function'&&window.happyadSb())||null;}catch(_e){return null;}}
   async function refresh(force){
     if(visitorSurfaceV758())return;
+    /* V863 : merge() relit plusieurs caches de publications. Même cette phase de
+       lecture est secondaire face au geste de l'Accueil. */
+    if(homeScrollActive()){runAfterHomeScroll('identity-refresh',function(){refresh(force);},100);return;}
     var now=Date.now();if(busy||(!force&&now-lastRun<1200))return;busy=true;lastRun=now;
     try{
       var uid=currentUid();if(!uid)return;
@@ -109,8 +121,13 @@
       var c=client();if(!c||!c.from)return;
       var q=await c.from('profiles').select('*').eq('id',uid).maybeSingle();
       if(q&&q.error){console.warn('HAPPYAD V741 profile refresh kept local identity',q.error);return;}
-      if(q&&q.data){if(AVATAR_MASTER&&AVATAR_MASTER.primeFromProfile)AVATAR_MASTER.primeFromProfile(q.data,{source:'identity-v741-refresh'});var next=merge(uid,q.data);persist(next,'supabase-profile-v741');}
-    }catch(e){console.warn('HAPPYAD V741 profile identity refresh',e);}finally{busy=false;}
+      if(q&&q.data){
+        /* La réponse réseau peut tomber au milieu d'un nouveau scroll. */
+        await waitHomeIdle();
+        if(AVATAR_MASTER&&AVATAR_MASTER.primeFromProfile)AVATAR_MASTER.primeFromProfile(q.data,{source:'identity-v741-refresh'});
+        var next=merge(uid,q.data);persist(next,'supabase-profile-v741');
+      }
+    }catch(e){console.warn('HAPPYAD V863 profile identity refresh',e);}finally{busy=false;}
   }
   function subscribe(){
     if(visitorSurfaceV758())return;
@@ -120,9 +137,9 @@
   function boot(){refresh(true);setTimeout(function(){refresh(true);subscribe();},500);setTimeout(function(){refresh(false);},2200);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('HAPPYAD_AUTH_STATE_V595',function(){setTimeout(function(){refresh(true);subscribe();},40);});
-  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_V741',function(e){try{var p=e&&e.detail&&e.detail.profile;if(p&&uuid(uidOf(p)))persist(merge(uidOf(p),p),'auth-event-v741');}catch(_e){}});
-  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(e){try{var d=e&&e.detail||{},uid=clean(d.uid);if(uid&&uid===currentUid())persist(merge(uid,{}),'avatar-master-v855r32');}catch(_e){}});
-  window.addEventListener('message',function(e){try{if(e.origin!==location.origin)return;var d=e.data||{};if(d.type==='HAPPYAD_PROFILE_IDENTITY_V741'&&d.profile&&uuid(uidOf(d.profile)))persist(merge(uidOf(d.profile),d.profile),'frame-message-v741');}catch(_e){}},true);
+  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_V741',function(e){try{var p=e&&e.detail&&e.detail.profile;if(p&&uuid(uidOf(p)))runAfterHomeScroll('identity-auth-event',function(){persist(merge(uidOf(p),p),'auth-event-v741');},70);}catch(_e){}});
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(e){try{var d=e&&e.detail||{},uid=clean(d.uid);if(uid&&uid===currentUid())runAfterHomeScroll('identity-avatar-event',function(){persist(merge(uid,{}),'avatar-master-v855r32');},70);}catch(_e){}});
+  window.addEventListener('message',function(e){try{if(e.origin!==location.origin)return;var d=e.data||{};if(d.type==='HAPPYAD_PROFILE_IDENTITY_V741'&&d.profile&&uuid(uidOf(d.profile))){var profile=d.profile;runAfterHomeScroll('identity-frame-message',function(){persist(merge(uidOf(profile),profile),'frame-message-v741');},70);}}catch(_e){}},true);
   window.addEventListener('focus',function(){refresh(false);});
   window.addEventListener('online',function(){refresh(true);});
   window.addEventListener('pageshow',function(){refresh(false);});

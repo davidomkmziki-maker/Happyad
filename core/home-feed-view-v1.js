@@ -7,7 +7,7 @@
   'use strict';
   if(window.HappyHomeFeedViewV1)return;
 
-  var VERSION='V2_ATOMIC_CARD_PAYLOAD';
+  var VERSION='V3_MARKETPLACE_CARD_SIGNATURE_V856';
   var bridge=null;
   var mode='';
   var items=[];
@@ -22,6 +22,8 @@
   }
   function b(name){return bridge&&typeof bridge[name]==='function'?bridge[name]:null;}
   function call(name){var fn=b(name);if(!fn)return undefined;return fn.apply(bridge,[].slice.call(arguments,1));}
+  function truth(v){return v===true||v===1||/^(true|1|yes|oui|on)$/i.test(String(v==null?'':v).trim());}
+  function isMarketplace(p){p=p||{};return truth(p.happyadMarketplace)||truth(p.happyad_marketplace)||truth(p.is_marketplace)||String(p.mode||'').trim().toLowerCase()==='marketplace';}
   function keyOf(p,i){
     var k=p&&(p.__feedCardKey||p.id);
     return String(k||('home-index-'+Number(i||0)));
@@ -29,7 +31,7 @@
   function postSignature(p){
     try{
       p=p||{};var rows=(p.__albumItems&&p.__albumItems.length)?p.__albumItems:[p];
-      return rows.map(function(x){return [String(x&&x.id||''),String(x&&(x.mediaUrl||x.media_url||x.homeMediaUrl||x.home_media_url)||''),String(x&&(x.batchId||x.batch_id)||'')].join('~');}).join('||');
+      return rows.map(function(x){x=x||{};var market=isMarketplace(x)?'market':'post';return [String(x.id||''),market,String(x.marketplace_cover_url||x.marketplaceCoverUrl||x.mediaUrl||x.media_url||x.homeMediaUrl||x.home_media_url||''),String(x.batchId||x.batch_id||'')].join('~');}).join('||');
     }catch(_e){return String(p&&p.id||'');}
   }
   function bindPayload(card,p,i){
@@ -193,7 +195,10 @@
       }
 
       if(newPosts.length){
-        Promise.resolve().then(function(){return call('primeActions',newPosts);}).catch(function(e){console.warn('home view actions batch',e);});
+        /* V856 POINT 1 — les cartes Annonce n'ont pas d'actions sociales : elles ne
+           déclenchent donc aucune lecture/amorçage du moteur J'aime/Commentaire/etc. */
+        var socialPosts=newPosts.filter(function(x){x=x||{};return !isMarketplace(x);});
+        if(socialPosts.length)Promise.resolve().then(function(){return call('primeActions',socialPosts);}).catch(function(e){console.warn('home view actions batch',e);});
       }
       return {appendOnly:appendOnly,loaded:loaded,newCards:newPosts.length,mode:mode};
     }finally{busy=false;}

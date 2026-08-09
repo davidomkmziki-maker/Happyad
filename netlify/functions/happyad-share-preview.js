@@ -31,6 +31,14 @@ function originOf(event){
   return proto+'://'+host;
 }
 function safeVersion(value){return clean(value).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,48)||'1';}
+function isPreviewCrawler(event){
+  const headers=event&&event.headers||{};
+  const ua=clean(headers['user-agent']||headers['User-Agent']).toLowerCase();
+  return /(facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|linkedinbot|slackbot|discordbot|pinterest|skypeuripreview|googlebot|bingbot|crawler|spider|bot\b)/i.test(ua);
+}
+function directTarget(origin,postId,type){
+  return origin+'/?happyad_post='+encodeURIComponent(postId)+'&happyad_type='+encodeURIComponent(type||'photo')+'&happyad_direct=1&source=shared_link';
+}
 
 exports.handler = async function(event){
   const pathParts=clean(event.path).split('/').filter(Boolean);
@@ -39,6 +47,15 @@ exports.handler = async function(event){
   const postId=rawPost.includes('/')?rawPost.split('/')[0]:rawPost;
   const version=safeVersion(query.v || pathParts[pathParts.length-1]);
   const origin=originOf(event);
+  const previewCrawler=isPreviewCrawler(event);
+  const hintedType=/video|reel|clip/i.test(clean(query.type))?'video':(clean(query.type)?'photo':'');
+  /* V714 — un clic humain ne rend plus la page de prévisualisation.
+     Les robots sociaux gardent les balises OG; un navigateur reçoit un vrai 302
+     vers HAPPYAD avant tout HTML intermédiaire. */
+  if(postId&&!previewCrawler&&hintedType){
+    const target=directTarget(origin,postId,hintedType);
+    return {statusCode:302,headers:{Location:target,'Cache-Control':'no-store, max-age=0','X-Robots-Tag':'noindex'},body:''};
+  }
   let row=null;
   if(postId){
     try{
@@ -57,10 +74,12 @@ exports.handler = async function(event){
   const image=type==='video'
     ? origin+'/share-image/'+encodeURIComponent(postId)+'/'+encodeURIComponent(version)+'?image='+encodeURIComponent(sourceImage)+'&type=video'
     : sourceImage;
-  const target=origin+'/?happyad_post='+encodeURIComponent(postId)+'&happyad_type='+encodeURIComponent(type)+'&source=shared_link';
+  const target=directTarget(origin,postId,type);
+  if(postId&&!previewCrawler){
+    return {statusCode:302,headers:{Location:target,'Cache-Control':'no-store, max-age=0','X-Robots-Tag':'noindex'},body:''};
+  }
   const canonical=origin+'/s/'+encodeURIComponent(postId)+'/'+encodeURIComponent(version)+'?type='+encodeURIComponent(type);
   const imageTypeMeta=type==='video'?'<meta property="og:image:type" content="image/png">':'';
-  const play=type==='video'?'<span style="position:absolute;left:50%;top:50%;width:76px;height:76px;border-radius:50%;background:rgba(0,0,0,.68);border:2px solid rgba(255,255,255,.92);transform:translate(-50%,-50%);display:grid;place-items:center"><i style="display:block;margin-left:7px;width:0;height:0;border-top:17px solid transparent;border-bottom:17px solid transparent;border-left:27px solid #fff"></i></span>':'';
   const html='<!doctype html><html lang="fr"><head><meta charset="utf-8">'+
     '<meta name="viewport" content="width=device-width,initial-scale=1">'+
     '<title>'+esc(title)+'</title><meta name="description" content="'+esc(description)+'">'+
@@ -71,9 +90,7 @@ exports.handler = async function(event){
     imageTypeMeta+'<meta property="og:image:width" content="1200"><meta property="og:image:height" content="1200">'+
     '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+esc(title)+'">'+
     '<meta name="twitter:description" content="'+esc(description)+'"><meta name="twitter:image" content="'+esc(image)+'">'+
-    '<meta http-equiv="refresh" content="0;url='+esc(target)+'"><meta name="robots" content="noindex,nofollow">'+
-    '</head><body style="margin:0;background:#03070d;color:#fff;font-family:Arial,sans-serif">'+
-    '<main style="min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px"><div><div style="position:relative;width:min(86vw,520px);margin:auto"><img src="'+esc(sourceImage)+'" alt="" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:20px;display:block">'+play+'</div><h1>'+esc(title)+'</h1><p>Ouverture dans HAPPYAD…</p><p><a style="color:#ff8a00" href="'+esc(target)+'">Ouvrir la publication</a></p></div></main>'+ 
-    '<script>location.replace('+JSON.stringify(target)+');<\/script></body></html>';
+    '<meta name="robots" content="noindex,nofollow">'+
+    '</head><body style="margin:0;background:#03070d"><script>location.replace('+JSON.stringify(target)+');<\/script></body></html>';
   return {statusCode:200,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=0, s-maxage=90, must-revalidate','X-Robots-Tag':'noindex'},body:html};
 };

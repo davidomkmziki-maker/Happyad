@@ -3,11 +3,16 @@
   if(window.__HAPPYAD_AUTH_SESSION_MASTER_V598__)return;
   window.__HAPPYAD_AUTH_SESSION_MASTER_V598__=true;
 
-  var VERSION='AUTH_SESSION_MASTER_V855R61_LOGIN_RECOVERY_UI';
+  var VERSION='AUTH_SESSION_MASTER_V865_CANONICAL_PROFILE_SYNC';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var session=null;
   var ready=false;
   var refreshPromise=null;
+  var profileSyncPromiseV865=null;
+  var profileSyncUidV865='';
+  var profileSyncLastAtV865=0;
+  var profileSyncResultV865=null;
+  var PROFILE_SYNC_DEDUPE_MS_V865=2500;
   var pendingIntent=null;
   var overlay=null;
   var panelRoot=null;
@@ -224,6 +229,26 @@
     }catch(_e){console.warn('HAPPYAD V741 profile create failed safely',_e);}
     return null;
   }
+  function syncWarmProfileV865(user,seed,options){
+    options=options||{};seed=seed||{};
+    var uid=clean(user&&user.id);if(!uid||!isUuid(uid))return Promise.resolve(null);
+    var now=Date.now();
+    if(profileSyncPromiseV865&&profileSyncUidV865===uid)return profileSyncPromiseV865;
+    if(profileSyncUidV865===uid&&profileSyncLastAtV865&&now-profileSyncLastAtV865<PROFILE_SYNC_DEDUPE_MS_V865){return Promise.resolve(profileSyncResultV865);}
+    profileSyncUidV865=uid;
+    var run=(async function(){
+      var p=await fetchOrCreateProfile(user,seed).catch(function(){return null;});
+      var current=actualUser();
+      if(!current||clean(current.id)!==uid||isLoginGuardPendingV855R47())return p;
+      var effective=p||seed||{};
+      saveWarmUser(user,effective);
+      profileSyncResultV865=effective;profileSyncLastAtV865=Date.now();
+      if(options.broadcastReady!==false)broadcast('PROFILE_READY');
+      return p;
+    })();
+    profileSyncPromiseV865=run;
+    return run.finally(function(){if(profileSyncPromiseV865===run)profileSyncPromiseV865=null;});
+  }
   function applySession(next,eventName,options){
     options=options||{};
     var oldId=actualUser()&&actualUser().id||'';
@@ -236,14 +261,17 @@
       }else{
         removeLogoutLocks();
         try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');localStorage.setItem('HAPPYAD_AUTH_UID',user.id);}catch(_e){}
-        saveWarmUser(user,{});
-        fetchOrCreateProfile(user,{}).then(function(p){saveWarmUser(user,p||{});broadcast('PROFILE_READY');}).catch(function(){});
+        if(!options.skipProfileSync)syncWarmProfileV865(user,options.seed||{},{broadcastReady:true}).catch(function(){});
       }
     }else{
       try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0');localStorage.removeItem('HAPPYAD_AUTH_UID');}catch(_e){}
+      profileSyncUidV865='';profileSyncLastAtV865=0;profileSyncResultV865=null;
     }
     var newId=user&&user.id||'';
-    if(options.forceBroadcast||oldId!==newId||eventName)broadcast(eventName||'SESSION');
+    /* Les événements Supabase répétés (INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED)
+       ne rediffusent plus toute l'application si l'UID n'a pas réellement changé.
+       Les parcours qui exigent une diffusion explicite utilisent forceBroadcast. */
+    if(options.forceBroadcast||oldId!==newId)broadcast(eventName||'SESSION');
     return user;
   }
   async function refresh(force){
@@ -630,9 +658,8 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
       try{await c.auth.signOut();}catch(_signout){}
       throw new Error('Le délai de récupération de 30 jours est terminé. Ce compte ne peut plus être récupéré.');
     }
-    applySession(s,'SIGNED_IN',{forceBroadcast:true});
-    var p=await fetchOrCreateProfile(user,seed||{}).catch(function(){return null;});
-    saveWarmUser(user,p||seed||{});
+    applySession(s,'SIGNED_IN',{forceBroadcast:false,skipProfileSync:true});
+    await syncWarmProfileV865(user,seed||{},{broadcastReady:false});
     broadcast('SIGNED_IN_READY');
     closeOverlay(true);
     return {recoveredDeletion:!!(lifecycle&&lifecycle.recovered)};
@@ -918,7 +945,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
 
   function bindAuthState(){
     var c=client();if(!c||!c.auth||typeof c.auth.onAuthStateChange!=='function')return;
-    try{c.auth.onAuthStateChange(function(event,nextSession){applySession(nextSession,event||'AUTH_CHANGE',{forceBroadcast:true});});}catch(_e){}
+    try{c.auth.onAuthStateChange(function(event,nextSession){applySession(nextSession,event||'AUTH_CHANGE',{forceBroadcast:false});});}catch(_e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){ensureOverlay();refresh(false);bindAuthState();},{once:true});
   else{ensureOverlay();refresh(false);bindAuthState();}

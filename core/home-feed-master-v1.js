@@ -169,6 +169,10 @@
     var groups=Object.create(null),slots=[];
     (items||[]).forEach(function(p){
       if(!p||!marketplaceHomeVisible(p))return;
+      /* V856 POINT 1 — une annonce est un type de carte autonome. Elle ne doit
+         jamais être fusionnée dans un album social, même si une ancienne ligne
+         contient encore batch_id/group_id/album_id. */
+      if(isMarketplace(p)){p.__feedCardKey='post:'+idOf(p);slots.push({type:'single',post:p});return;}
       if(isVideoPost(p)||isStoryPost(p)||isLivePost(p)){
         p.__feedCardKey=cardKey(p);slots.push({type:'single',post:p});return;
       }

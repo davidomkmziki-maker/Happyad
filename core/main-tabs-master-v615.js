@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_MAIN_TABS_MASTER_V615__)return;
   window.__HAPPYAD_MAIN_TABS_MASTER_V615__=true;
 
-  var VERSION='MAIN_TABS_V855R79_VIDEO_TARGET_FIRST_DIRECT_OPEN';
+  var VERSION='MAIN_TABS_V864_OWNER_PROFILE_LIGHT_WARMUP';
   var lastAction='';
   var lastAt=0;
   var pendingMessageContext=null;
@@ -75,7 +75,7 @@
     try{
       if(n&&typeof n.activateMainTab==='function')return n.activateMainTab(page,extra);
       if(n&&typeof n.open==='function'){
-        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',profile:'modules/my-profile.html?v=855r35-anciens-groupes-photos',publish:'modules/publish.html'};
+        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',profile:'modules/my-profile.html?v=866-profile-scroll-hard',publish:'modules/publish.html'};
         return n.open(urls[page]||'index.html',{page:page,source:extra.source||VERSION,force:true});
       }
     }catch(_e){}
@@ -351,7 +351,7 @@
     if(name==='message'){setPublishFullscreen(false);return openMessage(Object.assign({mode:'inbox',source:'main-tabs-message-v595'},resumeDetail));}
     if(name==='profile'){
       setPublishFullscreen(false);
-      activate('profile',{source:'main-tabs-profile-v595',url:'modules/my-profile.html?v=855r35-anciens-groupes-photos'});return false;
+      activate('profile',{source:'main-tabs-profile-v595',url:'modules/my-profile.html?v=866-profile-scroll-hard'});return false;
     }
     if(name==='publish'){setPublishFullscreen(true);activate('publish',{source:'main-tabs-publish-v595'});return false;}
     return false;

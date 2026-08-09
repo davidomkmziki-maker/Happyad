@@ -3,10 +3,15 @@
 if(window.HappyVisitorProfileV855R50)return;
 var C=window.HappyProfileCoreV855R6||window.HappyProfileCoreV855R5||window.HappyProfileCoreV855R4||window.HappyProfileCoreV855R3||window.HappyProfileCoreV855R2||window.HappyProfileCoreV855||window.HappyProfileCoreV854;if(!C)return;
 var P=window.HappyProfilePrivacyV855R50||null;
-var state={uid:'',profile:null,view:null,viewerUid:'',seq:0,pager:null,items:[],rendered:new Set(),observer:null,channel:null,tab:'posts',story:null,stories:[],storySeen:false,storyBound:false,destroyed:false,following:false,refreshTimer:0,countTimer:0,visibleLimit:12,pageStep:12,pageLoading:false,scrollIntent:0,lastScrollY:0,scrollBound:false,privacy:null,privacyKnown:false,privacyRefreshTimer:0,readySent:false};
+var S=window.HappyProfileScrollPriorityV866||window.HappyProfileScrollPriorityV865||null;
+var state={uid:'',profile:null,view:null,viewerUid:'',seq:0,pager:null,items:[],rendered:new Set(),observer:null,channel:null,tab:'posts',story:null,stories:[],storySeen:false,storyBound:false,destroyed:false,following:false,refreshTimer:0,countTimer:0,visibleLimit:12,pageStep:12,pageLoading:false,scrollIntent:0,lastScrollY:0,scrollBound:false,privacy:null,privacyKnown:false,privacyRefreshTimer:0,readySent:false,secondaryPostsPromise:null};
 function $(id){return document.getElementById(id);}
 function alive(seq){return !state.destroyed&&seq===state.seq;}
 function toast(msg){var t=$('profileToast');if(!t)return;clearTimeout(t.__timer);t.textContent=String(msg||'');t.classList.add('on');t.__timer=setTimeout(function(){t.classList.remove('on');},2400);}
+function nonPriority(key,fn,delay){if(typeof fn!=='function')return false;var k='visitor-'+String(key||'job');if(S&&typeof S.run==='function')return S.run(k,fn,delay==null?60:delay);setTimeout(fn,Math.max(0,Number(delay)||0));return true;}
+async function waitSecondaryIdle(){if(S&&typeof S.whenIdle==='function')try{await S.whenIdle();}catch(_e){}}
+function commitSecondary(key,fn,delay){if(typeof fn!=='function')return false;var k='visitor-'+String(key||'commit');if(S&&typeof S.commit==='function')return S.commit(k,fn,delay==null?70:delay);return nonPriority(key,fn,delay);}
+function cancelNonPriority(){if(!S||typeof S.cancel!=='function')return;['count','post-refresh','story','privacy','identity','avatar','initial-secondary'].forEach(function(k){S.cancel('visitor-'+k);});}
 function compactVisitorBio(value){return String(value==null?'':value).replace(/\r/g,'').split('\n').map(function(line){return line.trim();}).filter(Boolean).join('\n');}
 function cityOf(p){p=p||{};return C.clean(C.first(p.city,p.city_name,p.cityName,p.ville,p.profile_city,p.profileCity,p.location_city,p.locationCity,p.locality,p.town));}
 function privacyFallback(){return {privateAccount:false,publicPosts:true,publicStories:true,showCity:false,showFollowers:true,showFollowing:true,viewerIsFollower:false,postsAllowed:false,storiesAllowed:false,available:false,error:'PRIVACY_NOT_READY'};}
@@ -43,18 +48,68 @@ function privacyGridMessage(){
   if(privateBlocked())return ['Compte privé','Les publications et Stories de ce compte ne sont visibles que par les abonnés déjà autorisés.'];
   return ['Publications masquées','Ce compte a choisi de ne pas afficher ses publications aux visiteurs.'];
 }
-function renderItems(reset){var g=$('profileGrid');if(reset){g.innerHTML='';state.rendered.clear();}var grouped=C.groupPosts(state.items).slice(0,Math.max(0,state.visibleLimit));for(var i=0;i<grouped.length;i++){var p=grouped[i],id=C.clean(C.first(p.id,p.post_id));if(!id||state.rendered.has(id))continue;var tile=C.createTile(p);tile.addEventListener('click',function(){if(!postsAllowed())return;C.openPost(this.__happyadPost,C.groupPosts(state.items),'visitor-profile-v855r50',{mode:'visitor',uid:state.uid,profile:state.profile,view:state.view});});g.appendChild(tile);state.rendered.add(id);}if(!state.rendered.size&&!state.pager?.loading)setGridEmpty('Aucune publication','Ce profil ne contient aucune publication publique.');}
-async function loadPosts(reset){
+function renderItems(reset){var g=$('profileGrid');if(reset){g.innerHTML='';state.rendered.clear();}var grouped=C.groupPosts(state.items).slice(0,Math.max(0,state.visibleLimit)),frag=document.createDocumentFragment(),added=0;for(var i=0;i<grouped.length;i++){var p=grouped[i],id=C.clean(C.first(p.id,p.post_id));if(!id||state.rendered.has(id))continue;var tile=C.createTile(p);tile.addEventListener('click',function(){if(!postsAllowed())return;C.openPost(this.__happyadPost,C.groupPosts(state.items),'visitor-profile-v855r50',{mode:'visitor',uid:state.uid,profile:state.profile,view:state.view});});frag.appendChild(tile);state.rendered.add(id);added++;}if(added)g.appendChild(frag);if(!state.rendered.size&&!state.pager?.loading)setGridEmpty('Aucune publication','Ce profil ne contient aucune publication publique.');}
+async function loadPosts(reset,options){
+  options=options||{};
   if(!postsAllowed()){state.items=[];state.pager=null;state.rendered.clear();var m=privacyGridMessage();setGridEmpty(m[0],m[1]);return [];}
-  if(state.pageLoading)return [];var seq=state.seq;state.pageLoading=true;try{if(reset){state.visibleLimit=state.pageStep;state.pager=new C.PostPager({uid:state.uid,mode:'visitor',filter:'posts',pageSize:12,requestAlive:function(){return alive(seq)&&postsAllowed();}});state.items=[];state.rendered.clear();var cache=state.pager.readCache();state.pager.seed(cache);state.items=state.pager.raw.slice();if(state.items.length)renderItems(true);else showGridSkeleton();}else state.visibleLimit+=state.pageStep;var added=await state.pager.ensureGroupedCount(state.visibleLimit,!!reset);if(!alive(seq)||!postsAllowed())return [];state.items=state.pager.raw.slice();var available=C.groupPosts(state.items).length;if(!state.pager.hasMore()&&state.visibleLimit>available)state.visibleLimit=available;renderItems(!!reset);paintPostCount();if(!added.length&&!state.items.length)setGridEmpty('Aucune publication','Ce profil ne contient aucune publication publique.');return added;}finally{state.pageLoading=false;}}
+  if(state.pageLoading)return [];
+  var seq=state.seq;state.pageLoading=true;
+  try{
+    var cachedEnough=false;
+    if(reset){
+      state.visibleLimit=state.pageStep;
+      state.pager=new C.PostPager({uid:state.uid,mode:'visitor',filter:'posts',pageSize:12,requestAlive:function(){return alive(seq)&&postsAllowed();}});
+      state.items=[];state.rendered.clear();
+      var cache=state.pager.readCache();state.pager.seed(cache);state.items=state.pager.raw.slice();
+      cachedEnough=C.groupPosts(state.items).length>=state.visibleLimit;
+      if(state.items.length)renderItems(true);else showGridSkeleton();
+      if(cachedEnough&&options.forceNetwork!==true){paintPostCount();nonPriority('initial-post-refresh',refreshFirstPageSecondary,140);return [];}
+    }else state.visibleLimit+=state.pageStep;
+    var added=await state.pager.ensureGroupedCount(state.visibleLimit,!!reset);
+    if(!alive(seq)||!postsAllowed())return [];
+    if(options.secondary===true){await waitSecondaryIdle();if(!alive(seq)||!postsAllowed())return [];}
+    state.items=state.pager.raw.slice();
+    var available=C.groupPosts(state.items).length;
+    if(!state.pager.hasMore()&&state.visibleLimit>available)state.visibleLimit=available;
+    renderItems(!!reset);paintPostCount();
+    if(!added.length&&!state.items.length)setGridEmpty('Aucune publication','Ce profil ne contient aucune publication publique.');
+    return added;
+  }finally{state.pageLoading=false;}
+}
+async function refreshFirstPageSecondary(){
+  if(state.secondaryPostsPromise)return state.secondaryPostsPromise;
+  if(!state.uid||state.tab!=='posts'||!postsAllowed())return [];
+  var task=(async function(){
+    var seq=state.seq,tab=state.tab;
+    var temp=new C.PostPager({uid:state.uid,mode:'visitor',filter:'posts',pageSize:12,cacheWrites:false,requestAlive:function(){return alive(seq)&&state.tab===tab&&postsAllowed();}});
+    var fresh=await temp.fetchMore();
+    if(!alive(seq)||state.tab!==tab||!postsAllowed())return [];
+    await waitSecondaryIdle();
+    if(!alive(seq)||state.tab!==tab||!postsAllowed()||!state.pager)return [];
+    var by={};
+    (fresh||[]).forEach(function(row){var id=C.clean(C.first(row&&row.id,row&&row.post_id));if(id)by[id]=row;});
+    var merged=(state.pager.raw||[]).map(function(row){var id=C.clean(C.first(row&&row.id,row&&row.post_id));if(id&&by[id]){var next=by[id];delete by[id];return next;}return row;});
+    Object.keys(by).forEach(function(id){merged.push(by[id]);});
+    merged.sort(function(a,b){return (Date.parse(C.first(b.created_at,b.createdAt,0))||0)-(Date.parse(C.first(a.created_at,a.createdAt,0))||0);});
+    state.pager.raw=merged;state.pager.seen={};
+    merged.forEach(function(row){var id=C.clean(C.first(row&&row.id,row&&row.post_id));if(id)state.pager.seen[id]=1;});
+    Object.keys(temp.offsets||{}).forEach(function(col){state.pager.offsets[col]=Math.max(Number(state.pager.offsets[col]||0),Number(temp.offsets[col]||0));});
+    if(temp.supported&&temp.supported.length)state.pager.supported=temp.supported.slice();
+    Object.keys(temp.done||{}).forEach(function(col){if(temp.done[col])state.pager.done[col]=true;});
+    state.items=merged.slice();state.pager.writeCache();renderItems(true);paintPostCount();
+    return fresh||[];
+  })();
+  state.secondaryPostsPromise=task;
+  try{return await task;}finally{if(state.secondaryPostsPromise===task)state.secondaryPostsPromise=null;}
+}
 async function loadReposts(){if(!postsAllowed()){var m=privacyGridMessage();setGridEmpty(m[0],m[1]);return;}var seq=state.seq;showGridSkeleton();var rows=await C.actionPosts(state.uid,'reposts');if(!alive(seq)||state.tab!=='reposts'||!postsAllowed())return;state.items=rows.filter(C.publicAllowed);renderItems(true);if(!state.items.length)setGridEmpty('Aucune republication','Les republications publiques apparaîtront ici.');}
 async function switchTab(tab){tab=tab==='reposts'?'reposts':'posts';if(state.tab===tab&&state.items.length)return;state.tab=tab;document.querySelectorAll('.haProfileTab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab);});if(tab==='posts')await loadPosts(true);else await loadReposts();}
 function bindTabs(){document.querySelectorAll('.haProfileTab').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});}
-async function loadCounts(force){var seq=state.seq,counts=await C.profileCounts(state.uid,true,!!force);if(!alive(seq)||!counts)return;state.postsTotal=Math.max(0,Number(counts.posts)||0);state.view.posts=state.postsTotal;state.view.followers=Math.max(0,Number(counts.followers)||0);state.view.following=Math.max(0,Number(counts.following)||0);state.view.likes=Math.max(0,Number(counts.likes)||0);paintPostCount();$('profileFollowers').textContent=privacy().showFollowers?C.compact(state.view.followers):'';$('profileFollowing').textContent=privacy().showFollowing?C.compact(state.view.following):'';$('profileLikes').textContent=C.compact(state.view.likes);applyPrivacyUi();}
+async function loadCounts(force){var seq=state.seq,counts=await C.profileCounts(state.uid,true,!!force);if(!alive(seq)||!counts)return;await waitSecondaryIdle();if(!alive(seq))return;state.postsTotal=Math.max(0,Number(counts.posts)||0);state.view.posts=state.postsTotal;state.view.followers=Math.max(0,Number(counts.followers)||0);state.view.following=Math.max(0,Number(counts.following)||0);state.view.likes=Math.max(0,Number(counts.likes)||0);paintPostCount();$('profileFollowers').textContent=privacy().showFollowers?C.compact(state.view.followers):'';$('profileFollowing').textContent=privacy().showFollowing?C.compact(state.view.following):'';$('profileLikes').textContent=C.compact(state.view.likes);applyPrivacyUi();}
 function markScrollIntent(){var y=Math.max(0,window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0);if(y>state.lastScrollY+3)state.scrollIntent=Date.now();state.lastScrollY=y;}
 function setupObserver(){if(state.observer)state.observer.disconnect();if(!state.scrollBound){state.scrollBound=true;window.addEventListener('scroll',markScrollIntent,{passive:true});}state.observer=new IntersectionObserver(async function(entries){if(!entries.some(function(e){return e.isIntersecting;}))return;if(Date.now()-state.scrollIntent>1800)return;if(state.tab==='posts'&&postsAllowed()&&state.pager&&(state.pager.groupedCount()>state.visibleLimit||state.pager.hasMore())&&!state.pageLoading){state.scrollIntent=0;await loadPosts(false);}},{root:null,rootMargin:'120px 0px',threshold:.01});state.observer.observe($('profileSentinel'));}
 function paintFollow(){var b=$('followBtn');if(privateBlocked()&&!state.following){b.classList.remove('following');b.textContent='Compte privé';b.disabled=true;return;}b.disabled=false;b.classList.toggle('following',state.following);b.textContent=state.following?'✓ Abonné':'S’abonner';}
-async function initFollow(){var seq=state.seq;if(!state.viewerUid||state.viewerUid===state.uid){$('followBtn').disabled=true;$('followBtn').textContent=state.viewerUid===state.uid?'Votre profil':'Connexion requise';return;}if(state.privacyKnown&&privacy().available){state.following=!!privacy().viewerIsFollower;if(alive(seq))paintFollow();return;}state.following=await C.isFollowing(state.viewerUid,state.uid);if(alive(seq))paintFollow();}
+async function initFollow(){var seq=state.seq;if(!state.viewerUid||state.viewerUid===state.uid){$('followBtn').disabled=true;$('followBtn').textContent=state.viewerUid===state.uid?'Votre profil':'Connexion requise';return;}if(state.privacyKnown&&privacy().available){state.following=!!privacy().viewerIsFollower;if(alive(seq))paintFollow();return;}state.following=await C.isFollowing(state.viewerUid,state.uid);await waitSecondaryIdle();if(alive(seq))paintFollow();}
 async function toggleFollow(){var b=$('followBtn');if(!state.viewerUid){toast('Connecte-toi pour t’abonner');return;}if(state.viewerUid===state.uid)return;if(privateBlocked()&&!state.following){toast('Ce compte est privé. Les nouvelles demandes d’abonnement seront reliées à l’étape dédiée.');return;}b.disabled=true;try{var next=!state.following;await C.setFollowing(state.viewerUid,state.uid,next);state.following=next;paintFollow();await refreshPrivacy(true);await loadCounts(true);toast(next?'Abonnement enregistré':'Abonnement retiré');}catch(e){toast('Échec : '+(e.message||e));}finally{paintFollow();}}
 function openMessage(){
   if(!state.uid)return;
@@ -102,11 +157,11 @@ function openMessage(){
 }
 function clearStory(){state.stories=[];state.story=null;state.storySeen=false;paintStoryRing();}
 function paintStoryRing(){var w=$('profileAvatarWrap');if(!w)return;var has=storiesAllowed()&&!!(state.story&&state.stories.length);w.classList.toggle('has-story',has);w.classList.toggle('story-seen',has&&state.storySeen);$('profileAvatar').setAttribute('aria-label',has?(state.storySeen?'Ouvrir la story vue':'Ouvrir la nouvelle story'):'Photo de profil');}
-async function setupStory(){if(!storiesAllowed()){clearStory();return;}var seq=state.seq,viewer=state.viewerUid,info=await C.profileStoryState(state.uid,viewer);if(!alive(seq)||!storiesAllowed())return;state.stories=info.rows||[];state.story=info.story||null;state.storySeen=!!info.seen;paintStoryRing();if(!state.storyBound){state.storyBound=true;$('profileAvatar').addEventListener('click',openStory);window.addEventListener('storage',function(e){if(e&&e.key==='HAPPYAD_HOME_RADAR_SEEN_V1'&&state.stories.length){state.storySeen=state.stories.every(function(x){return C.storySeenLocal(x);});paintStoryRing();}});}}
+async function setupStory(){if(!storiesAllowed()){clearStory();return;}var seq=state.seq,viewer=state.viewerUid,info=await C.profileStoryState(state.uid,viewer);if(!alive(seq)||!storiesAllowed())return;await waitSecondaryIdle();if(!alive(seq)||!storiesAllowed())return;state.stories=info.rows||[];state.story=info.story||null;state.storySeen=!!info.seen;paintStoryRing();if(!state.storyBound){state.storyBound=true;$('profileAvatar').addEventListener('click',openStory);window.addEventListener('storage',function(e){if(e&&e.key==='HAPPYAD_HOME_RADAR_SEEN_V1'&&state.stories.length){var apply=function(){state.storySeen=state.stories.every(function(x){return C.storySeenLocal(x);});paintStoryRing();};commitSecondary('story-storage',apply,60);}});}}
 function openStory(){if(!storiesAllowed()||!state.story)return;C.markStorySeenLocal(C.storyId(state.story));state.storySeen=state.stories.length>0&&state.stories.every(function(x){return C.storySeenLocal(x);});paintStoryRing();if(!C.openProfileStory(state.uid,state.story,state.profile))toast('Story indisponible');}
 async function refreshPrivacy(forceContent){
   if(!P||!state.uid)return privacy();
-  var seq=state.seq,old=privacy(),next=await P.load(state.uid);if(!alive(seq))return old;state.privacy=next;state.privacyKnown=true;state.following=!!next.viewerIsFollower;applyPrivacyUi();paintFollow();
+  var seq=state.seq,old=privacy(),next=await P.load(state.uid);if(!alive(seq))return old;await waitSecondaryIdle();if(!alive(seq))return old;state.privacy=next;state.privacyKnown=true;state.following=!!next.viewerIsFollower;applyPrivacyUi();paintFollow();
   var postsChanged=!!old.postsAllowed!==!!next.postsAllowed||!!old.available!==!!next.available;
   var storyChanged=!!old.storiesAllowed!==!!next.storiesAllowed||!!old.available!==!!next.available;
   if(forceContent||postsChanged){if(next.postsAllowed){if(state.tab==='posts')loadPosts(true);else loadReposts();}else{state.items=[];state.pager=null;var m=privacyGridMessage();setGridEmpty(m[0],m[1]);}}
@@ -115,19 +170,19 @@ async function refreshPrivacy(forceContent){
 }
 function setupRealtime(){var c=C.client();if(!c||!c.channel)return;try{var ch=c.channel('profile-visitor-v855r50-'+state.uid);if(postsAllowed())ch=ch.on('postgres_changes',{event:'*',schema:'public',table:'happyad_posts'},function(payload){var row=payload&&((payload.new&&Object.keys(payload.new).length&&payload.new)||payload.old)||{};if(!C.belongsTo(row,state.uid))return;scheduleRefresh();});ch=ch.on('postgres_changes',{event:'*',schema:'public',table:'happyad_follows'},function(payload){var row=payload&&((payload.new&&Object.keys(payload.new).length&&payload.new)||payload.old)||{};if(C.clean(row.creator_id)!==state.uid&&C.clean(row.follower_id)!==state.uid)return;schedulePrivacyRefresh();scheduleCountRefresh();}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_actions'},function(){scheduleCountRefresh();}).on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'id=eq.'+state.uid},function(){scheduleIdentityRefresh();});if(storiesAllowed())ch=ch.on('postgres_changes',{event:'*',schema:'public',table:'happyad_stories',filter:'user_id=eq.'+state.uid},function(){scheduleStoryRefresh();});state.channel=ch.subscribe();}catch(_e){}
 }
-function scheduleCountRefresh(){clearTimeout(state.countTimer);state.countTimer=setTimeout(function(){loadCounts(true);},420);}
-function scheduleRefresh(){clearTimeout(state.refreshTimer);state.refreshTimer=setTimeout(function(){loadCounts(true);if(state.tab==='posts'&&postsAllowed())loadPosts(true);},350);}
-function scheduleStoryRefresh(){clearTimeout(state.storyRefreshTimer);state.storyRefreshTimer=setTimeout(function(){if(storiesAllowed())setupStory();},180);}
-function schedulePrivacyRefresh(){clearTimeout(state.privacyRefreshTimer);state.privacyRefreshTimer=setTimeout(function(){refreshPrivacy(false);},260);}
-function scheduleIdentityRefresh(){clearTimeout(state.identityTimer);state.identityTimer=setTimeout(async function(){var seq=state.seq,p=await C.fetchProfile(state.uid,'visitor',function(){return alive(seq);});if(p&&alive(seq))paintIdentity(p);},250);}
-function cleanup(){state.destroyed=true;state.seq++;clearTimeout(state.refreshTimer);clearTimeout(state.countTimer);clearTimeout(state.identityTimer);clearTimeout(state.storyRefreshTimer);clearTimeout(state.privacyRefreshTimer);if(state.observer)state.observer.disconnect();var c=C.client();if(c&&state.channel){try{c.removeChannel(state.channel);}catch(_e){try{state.channel.unsubscribe();}catch(_x){}}}}
+function scheduleCountRefresh(){clearTimeout(state.countTimer);state.countTimer=setTimeout(function(){nonPriority('count',function(){if(alive(state.seq))loadCounts(true);},60);},180);}
+function scheduleRefresh(){clearTimeout(state.refreshTimer);state.refreshTimer=setTimeout(function(){nonPriority('post-refresh',function(){if(state.tab==='posts'&&postsAllowed())refreshFirstPageSecondary();scheduleCountRefresh();},70);},160);}
+function scheduleStoryRefresh(){clearTimeout(state.storyRefreshTimer);state.storyRefreshTimer=setTimeout(function(){nonPriority('story',function(){if(storiesAllowed())setupStory();},60);},100);}
+function schedulePrivacyRefresh(){clearTimeout(state.privacyRefreshTimer);state.privacyRefreshTimer=setTimeout(function(){nonPriority('privacy',function(){refreshPrivacy(false);},70);},120);}
+function scheduleIdentityRefresh(){clearTimeout(state.identityTimer);state.identityTimer=setTimeout(function(){nonPriority('identity',async function(){var seq=state.seq,p=await C.fetchProfile(state.uid,'visitor',function(){return alive(seq);});if(!p||!alive(seq))return;await waitSecondaryIdle();if(p&&alive(seq))paintIdentity(p);},70);},120);}
+function cleanup(){state.destroyed=true;state.seq++;clearTimeout(state.refreshTimer);clearTimeout(state.countTimer);clearTimeout(state.identityTimer);clearTimeout(state.storyRefreshTimer);clearTimeout(state.privacyRefreshTimer);cancelNonPriority();if(state.observer)state.observer.disconnect();var c=C.client();if(c&&state.channel){try{c.removeChannel(state.channel);}catch(_e){try{state.channel.unsubscribe();}catch(_x){}}}}
 function viewerUidHintV855R73(){try{if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';return C.clean(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){return '';}}
 function activeWarmIdentityV855R73(uid){try{var p=C.readJson(localStorage,'HAPPYAD_ACTIVE_PROFILE',null);return p&&C.objectUid(p)===uid?p:null;}catch(_e){return null;}}
 function announceReadyV855R73(){if(state.readySent)return;state.readySent=true;setBootOff();C.notifyReady('visitor',state.uid);}
 async function init(){
   C.pageRedirect('visitor');document.body.dataset.profileMode='visitor';state.uid=C.routeUid();if(!state.uid){setBootOff();setGridEmpty('Profil introuvable','L’identifiant du profil manque.');C.notifyReady('visitor','');return;}try{var discovery=window.HappyAccountDiscoveryV855R53;if(discovery&&discovery.applyRobots)discovery.applyRobots(state.uid).catch(function(){});}catch(_robots){}
   var seq=++state.seq;state.viewerUid=viewerUidHintV855R73();if(state.viewerUid&&state.viewerUid===state.uid){try{window.parent&&window.parent!==window?window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:'modules/my-profile.html',extra:{page:'profile',replace:true,source:'visitor-own-redirect-v855r73'}},'*'):location.replace('my-profile.html');}catch(_e){}return;}
-  var cached=C.readJson(localStorage,C.cacheKey('visitor',state.uid,'IDENTITY'),null)||activeWarmIdentityV855R73(state.uid);if(cached){paintIdentity(cached);}else{state.profile={id:state.uid,user_id:state.uid};state.view=C.profileView(state.profile);}bindTabs();$('followBtn').addEventListener('click',toggleFollow);$('messageBtn').addEventListener('click',openMessage);setupObserver();showGridSkeleton();
+  var cached=C.readJson(localStorage,C.cacheKey('visitor',state.uid,'IDENTITY'),null)||activeWarmIdentityV855R73(state.uid),hadCachedIdentity=!!cached;if(hadCachedIdentity){paintIdentity(cached);}else{state.profile={id:state.uid,user_id:state.uid};state.view=C.profileView(state.profile);}bindTabs();$('followBtn').addEventListener('click',toggleFollow);$('messageBtn').addEventListener('click',openMessage);setupObserver();showGridSkeleton();
   /* R73 : si l'identité vient de la carte Accueil, le Profil visiteur est rendu
      tout de suite. Auth, confidentialité et Supabase continuent en parallèle. */
   if(cached)announceReadyV855R73();
@@ -135,11 +190,11 @@ async function init(){
   authPromise.then(function(user){if(!alive(seq))return;state.viewerUid=C.clean(user&&user.id)||state.viewerUid;if(state.viewerUid&&state.viewerUid===state.uid){try{window.parent&&window.parent!==window?window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:'modules/my-profile.html',extra:{page:'profile',replace:true,source:'visitor-own-auth-confirm-v855r73'}},'*'):location.replace('my-profile.html');}catch(_e){}}}).catch(function(){});
   state.privacy=await privacyPromise;if(!alive(seq))return;state.privacyKnown=true;state.following=!!privacy().viewerIsFollower;applyPrivacyUi();paintFollow();
   var postsPromise=postsAllowed()?loadPosts(true):(function(){var m=privacyGridMessage();setGridEmpty(m[0],m[1]);return Promise.resolve([]);})();
-  var p=await profilePromise;if(!alive(seq))return;if(p)paintIdentity(p);announceReadyV855R73();setupRealtime();
-  postsPromise.finally(function(){if(!alive(seq))return;setTimeout(function(){if(!alive(seq))return;authPromise.finally(function(){if(alive(seq)){loadCounts(true);initFollow();setupStory();}});},0);});
+  var p=await profilePromise;if(!alive(seq))return;if(hadCachedIdentity)await waitSecondaryIdle();if(!alive(seq))return;if(p)paintIdentity(p);announceReadyV855R73();setupRealtime();
+  postsPromise.finally(function(){if(!alive(seq))return;nonPriority('initial-secondary',function(){if(!alive(seq))return;authPromise.finally(function(){if(alive(seq)){loadCounts(true);initFollow();setupStory();}});},40);});
   window.addEventListener('focus',schedulePrivacyRefresh);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')schedulePrivacyRefresh();});
 }
-$('profileBack').addEventListener('click',function(e){e.preventDefault();C.requestBack();});window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(event){var d=event&&event.detail||{};if(!state.uid||C.clean(d.uid)!==state.uid||d.known!==true)return;state.profile=Object.assign({},state.profile||{},{id:state.uid,user_id:state.uid,avatar:d.avatarUrl||'',avatar_url:d.avatarUrl||'',__happyadAvatarKnownV855R32:true});paintIdentity(state.profile);});window.addEventListener('pagehide',cleanup,{once:true});window.addEventListener('beforeunload',cleanup,{once:true});
+$('profileBack').addEventListener('click',function(e){e.preventDefault();C.requestBack();});window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(event){var d=event&&event.detail||{};if(!state.uid||C.clean(d.uid)!==state.uid||d.known!==true)return;nonPriority('avatar',function(){if(!state.uid||C.clean(d.uid)!==state.uid)return;state.profile=Object.assign({},state.profile||{},{id:state.uid,user_id:state.uid,avatar:d.avatarUrl||'',avatar_url:d.avatarUrl||'',__happyadAvatarKnownV855R32:true});paintIdentity(state.profile);},50);});window.addEventListener('pagehide',cleanup,{once:true});window.addEventListener('beforeunload',cleanup,{once:true});
 window.HappyVisitorProfileV855R50={init:init,state:state,destroy:cleanup,loadMore:function(){return loadPosts(false);},refreshPrivacy:refreshPrivacy};window.HappyVisitorProfileV855R7=window.HappyVisitorProfileV855R50;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

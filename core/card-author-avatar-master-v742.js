@@ -14,6 +14,10 @@
   ];
   var busy=false,pending=false,lastFetch=0,observer=null,observerTimer=0,cacheRepairTimer=0;
   var mapMemo=null,mapMemoRaw='';
+  function scrollPriority(){try{return window.HappyadHomeScrollPriorityV863||null;}catch(_e){return null;}}
+  function deferAfterHomeScroll(key,fn,delay){var p=scrollPriority();if(p&&p.run)return p.run(key,fn,delay);setTimeout(fn,Math.max(0,Number(delay)||0));return true;}
+  function homeScrollActive(){var p=scrollPriority();return !!(p&&p.isActive&&p.isActive());}
+  function waitHomeIdle(){var p=scrollPriority();return p&&p.whenIdle?p.whenIdle():Promise.resolve(true);}
 
   function clean(v){v=String(v==null?'':v).trim();return (!v||v==='null'||v==='undefined'||v==='[object Object]')?'':v;}
   function json(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?f:v;}catch(_e){return f;}}
@@ -131,8 +135,10 @@
   function scheduleCacheRepair(map){
     clearTimeout(cacheRepairTimer);
     cacheRepairTimer=setTimeout(function(){
-      var run=function(){repairCachesNow(map);};
-      try{if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:1800});else setTimeout(run,0);}catch(_e){setTimeout(run,0);}
+      /* V863 : pas de timeout requestIdleCallback capable de forcer cette grosse
+         sérialisation pendant un nouveau geste. Le coordinateur revérifie le
+         scroll juste avant l'exécution. */
+      deferAfterHomeScroll('author-cache-repair',function(){repairCachesNow(map);},90);
     },900);
   }
   function initials(v){v=nameOf(v)||clean(v)||'H';return (v.charAt(0)||'H').toUpperCase();}
@@ -194,25 +200,38 @@
     return rows;
   }
   async function hydrate(force,cards){
+    if(homeScrollActive()){
+      pending=true;
+      deferAfterHomeScroll('author-hydrate',function(){var again=pending;pending=false;if(again)hydrate(force,cards);},90);
+      return;
+    }
     if(busy){pending=true;return;}
     var now=Date.now();
-    if(!force&&now-lastFetch<3200){paintCards(cards&&cards.length?cards:allLoadedCards(),authorMap());return;}
+    if(!force&&now-lastFetch<3200){
+      deferAfterHomeScroll('author-paint-cached',function(){paintCards(cards&&cards.length?cards:allLoadedCards(),authorMap());},40);
+      return;
+    }
     busy=true;lastFetch=now;
     try{
       var localRows=collectProfilesFromPosts(),me=json(USER_KEY,{});if(uidOf(me)||clean(me.id))localRows.push(me);
       var localResult=remember(localRows),map=localResult.map;
       Object.keys(map).forEach(function(id){map[id]=better(localIdentity(id),map[id]);});
+      await waitHomeIdle();
       paintCards(cards&&cards.length?cards:allLoadedCards(),map);
       if(localResult.changed)scheduleCacheRepair(map);
       var ids=idsNeeding(map),remote=await fetchProfiles(ids);
       if(remote.length){
+        /* La requête peut terminer pendant que le doigt a repris le scroll.
+           Aucune écriture d'index auteur ni repaint global avant le repos. */
+        await waitHomeIdle();
         var remoteResult=remember(remote);map=remoteResult.map;
         Object.keys(map).forEach(function(id){map[id]=better(localIdentity(id),map[id]);});
+        await waitHomeIdle();
         paintCards(allLoadedCards(),map);
         if(remoteResult.changed)scheduleCacheRepair(map);
       }
-    }catch(e){try{console.warn('HAPPYAD V763 card author hydrate',e);}catch(_e){}}
-    finally{busy=false;if(pending){pending=false;setTimeout(function(){hydrate(false);},360);}}
+    }catch(e){try{console.warn('HAPPYAD V863 card author hydrate',e);}catch(_e){}}
+    finally{busy=false;if(pending){pending=false;deferAfterHomeScroll('author-hydrate-pending',function(){hydrate(false);},120);}}
   }
 
   var oldOwner=window.postOwnerData;
@@ -241,10 +260,10 @@
     setTimeout(function(){hydrate(true);},160);
     setTimeout(function(){hydrate(false);},2200);
   }
-  window.HappyadCardAuthorAvatarV742={version:VERSION,hydrate:hydrate,paint:function(){paintCards(allLoadedCards(),authorMap());}};
+  window.HappyadCardAuthorAvatarV742={version:VERSION+'+V863_SCROLL_PRIORITY',hydrate:hydrate,paint:function(){deferAfterHomeScroll('author-manual-paint',function(){paintCards(allLoadedCards(),authorMap());},40);}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){paintCards(allLoadedCards(),authorMap());setTimeout(function(){hydrate(false);},320);});
-  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(){mapMemo=null;mapMemoRaw='';paintCards(allLoadedCards(),authorMap());setTimeout(function(){hydrate(false);},60);});
+  window.addEventListener('HAPPYAD_PROFILE_IDENTITY_READY_V741',function(){deferAfterHomeScroll('author-identity-event',function(){paintCards(allLoadedCards(),authorMap());hydrate(false);},100);});
+  window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(){mapMemo=null;mapMemoRaw='';deferAfterHomeScroll('author-avatar-event',function(){paintCards(allLoadedCards(),authorMap());hydrate(false);},90);});
   window.addEventListener('focus',function(){hydrate(false);});
   window.addEventListener('online',function(){hydrate(true);});
   window.addEventListener('pageshow',function(e){if(e&&e.persisted)hydrate(false);});

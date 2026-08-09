@@ -114,3 +114,14 @@ body[data-profile-mode="visitor"] .haProfileBio{
   overflow-wrap:anywhere;
 }
 body[data-profile-mode="visitor"] .haProfileActions{padding-top:7px!important;}
+
+
+/* HAPPYAD V856 — Point 1 : carte annonce dédiée dans Mon profil et Profil visiteur. */
+.haProfileMarketplaceTileV856{background:#080b10!important;isolation:isolate}
+.haProfileMarketplaceTileV856:after{content:"";position:absolute;inset:auto 0 0;height:42%;z-index:2;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,.82))}
+.haProfileMarketplaceTileV856 .haProfileMarketplaceTagV856{position:absolute;left:7px;top:7px;z-index:6;padding:4px 7px;border-radius:999px;border:1px solid rgba(255,141,57,.55);background:rgba(16,12,8,.78);color:#ff9b50;font-size:8px;line-height:1;font-weight:1000;letter-spacing:.08em;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.haProfileMarketplaceTileV856 .haProfileMarketplaceShareV857{position:absolute;right:7px;top:7px;z-index:8;width:29px;height:29px;padding:0;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(9,12,17,.82);color:#fff;display:grid;place-items:center;touch-action:manipulation;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.haProfileMarketplaceTileV856 .haProfileMarketplaceShareV857 svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.haProfileMarketplaceTileV856 .haProfileMarketplaceCtaV856{position:absolute;left:7px;right:7px;bottom:7px;z-index:7;min-height:28px;padding:0 8px;border-radius:9px;background:rgba(9,12,17,.86);border:1px solid rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;gap:4px;color:#fff;font-size:9px;font-weight:950;line-height:1;white-space:nowrap;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.haProfileMarketplaceTileV856 .haProfileMarketplaceCtaV856 svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.haProfileMarketplaceTileV856 .haProfilePlay{z-index:5;width:34px;height:34px}

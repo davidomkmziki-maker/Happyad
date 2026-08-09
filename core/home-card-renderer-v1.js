@@ -6,7 +6,7 @@
   'use strict';
   if(window.HappyHomeCardRendererV1)return;
 
-  var VERSION='V2_DYNAMIC_CARD_PAYLOAD';
+  var VERSION='V4_MARKETPLACE_SHARE_ONLY_V857';
   var bridge=null;
 
   function connect(adapter){bridge=adapter||null;return api;}
@@ -14,6 +14,40 @@
   function call(name){var fn=b(name);if(!fn)return undefined;return fn.apply(bridge,[].slice.call(arguments,1));}
   function safeText(v){return String(v==null?'':v);}
   function esc(v){var fn=b('esc');if(fn)return fn(v);return safeText(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+
+
+  function truth(v){return v===true||v===1||/^(true|1|yes|oui|on)$/i.test(safeText(v).trim());}
+  function isMarketplace(p){p=p||{};return truth(p.happyadMarketplace)||truth(p.happyad_marketplace)||truth(p.is_marketplace)||safeText(p.mode).trim().toLowerCase()==='marketplace';}
+
+  function createMarketplaceCard(p){
+    var video=!!call('isVideo',p);
+    var owner=call('ownerData',p)||{};
+    var name=owner.name||'Utilisateur HAPPYAD';
+    var title=p.title||'Annonce HAPPYAD';
+    var rawDesc=safeText(p.desc||p.description||p.caption||'').trim();
+    var desc=(rawDesc&&rawDesc!==safeText(title).trim())?rawDesc:'';
+    var meta=p.location?('📍 '+p.location):(p.marketplaceCategory||p.marketplace_category||p.category||'Annonce');
+    var card=document.createElement('div');
+    card.__happyadPost=p;
+    card.__happyadVideo=video;
+    card.className='miniCard happyadMarketplaceDedicatedCardV856'+(video?' videoCard':'');
+    card.dataset.postId=safeText(p.id||p.post_id||'');
+    card.dataset.feedKey=safeText(p.__feedCardKey||('post:'+safeText(p.id||p.post_id||'')));
+    card.dataset.happyadMarketplace='1';
+    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':esc(call('initials',name)||'H');
+    var ago=call('timeAgo',call('postTimestamp',p))||'';
+    var badge=call('badgeHtml',owner.badge)||'';
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar">'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div><span class="happyadMarketplaceHomeTagV856">ANNONCE</span></div><div class="miniMedia">'+(video?'<div class="play">▶</div>':'')+'</div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Annonce HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc happyadMarketplaceDescV856">'+esc(desc)+'</div>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="happyadMarketplaceCtaRowV856"><button class="happyadMarketplaceShareOnlyV857" type="button" data-card-act="share" aria-label="Partager l’annonce"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button><button class="happyadMarketplaceCardCtaV856" type="button"><span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
+    try{var top=card.querySelector('.miniTop');if(top)top.onclick=function(e){e.preventDefault();e.stopPropagation();return call('openProfile',card.__happyadPost||p);};}catch(_e){}
+    var cta=card.querySelector('.happyadMarketplaceCardCtaV856');
+    if(cta)cta.onclick=function(e){e.preventDefault();e.stopPropagation();var cp=card.__happyadPost||p;return call('openListing',cp&& (cp.id||cp.post_id),cp);};
+    var media=card.querySelector('.miniMedia');
+    if(media)media.onclick=function(e){e.preventDefault();e.stopPropagation();var cp=card.__happyadPost||p;if(video)return call('openVideo',cp&&(cp.id||cp.post_id),cp);return call('openPhoto',cp&&(cp.id||cp.post_id),cp);};
+    card.onclick=function(e){if(e.target&&e.target.closest&&e.target.closest('button,a,.miniTop,.miniMedia'))return;var cp=card.__happyadPost||p;if(video)return call('openVideo',cp&&(cp.id||cp.post_id),cp);return call('openPhoto',cp&&(cp.id||cp.post_id),cp);};
+    if(!video){try{call('preparePhotoRatio',card.querySelector('.miniMedia'),p);}catch(_e){}}
+    call('observeMedia',card,p,video);
+    return card;
+  }
 
   function bindDoubleTapLike(card,p){
     try{
@@ -42,6 +76,7 @@
 
   function createCard(p){
     if(!p)throw new Error('HappyHomeCardRendererV1.createCard: post manquant');
+    if(isMarketplace(p))return createMarketplaceCard(p);
     call('primeAction',p);
     var video=!!call('isVideo',p);
     var owner=call('ownerData',p)||{};

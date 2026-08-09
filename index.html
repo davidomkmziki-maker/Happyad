@@ -1461,6 +1461,30 @@ body[data-happyad-main-page="profile_public"] #happyadAppShell{inset:0!important
 html.happyadVisitorProfileNoDockV854R3 body #happyadAppShell .happyadAppFrame,
 body[data-happyad-main-page="profile_public"] #happyadAppShell .happyadAppFrame{inset:0!important;bottom:0!important;height:100%!important;max-height:none!important}
 </style>
+<style id="happyad-v713-shared-direct-boot-css">
+/* V713 — un lien partagé externe n'affiche jamais l'Accueil avant son média. */
+html.happyadSharedDirectBootV713,html.happyadSharedDirectBootV713 body{background:#050608!important;}
+html.happyadSharedDirectBootV713 body>.app{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+html.happyadSharedDirectBootV713 body::before{content:"";position:fixed;inset:0;z-index:2147483646;background:#050608;display:block;}
+html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;top:50%;z-index:2147483647;width:30px;height:30px;margin:-15px 0 0 -15px;border:3px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.92);border-radius:50%;animation:happyadSharedDirectSpinV713 .72s linear infinite;}
+@keyframes happyadSharedDirectSpinV713{to{transform:rotate(360deg)}}
+</style>
+<script id="happyad-v713-shared-direct-boot-js">
+(function(){
+  try{
+    var q=new URLSearchParams(location.search),id=String(q.get('happyad_post')||'').trim();
+    var direct=q.get('happyad_direct')==='1'||q.get('source')==='shared_link';
+    if(id&&direct){
+      document.documentElement.classList.add('happyadSharedDirectBootV713');
+      window.__HAPPYAD_SHARED_DIRECT_BOOT_V713={postId:id,type:String(q.get('happyad_type')||'photo'),at:Date.now(),holdUntilTarget:true};
+      /* V714 — aucun délai de secours ne révèle l'Accueil. Le masque est retiré
+         uniquement lorsque la surface ciblée (fullscreen photo / frame vidéo)
+         est réellement montée. En cas d'échec, share-master bascule vers la
+         route média directe sans exposer le feed intermédiaire. */
+    }
+  }catch(_e){}
+})();
+</script>
 </head><body><div class="app"><div class="top"><div class="topRow happyadHomeTopRow"><div class="happyadHomeWordmark" aria-label="HAPPYAD"><img src="icons/happyad-home-wordmark-v1.svg?v=540logo1" alt="HAPPYAD"></div><div class="happyadHomeActions"><button class="round searchRound" type="button" id="homeSearchBtn" aria-label="Recherche"><span class="searchIcon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.2-4.2"></path></svg></span></button><button class="round homeNotificationRound" type="button" id="homeNotificationBtn" data-happyad-notification-ready="1" aria-label="Notifications"><span class="homeNotificationIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 6.2-2.7 7.2-3 9h18c-.3-1.8-3-2.8-3-9Z"></path><path d="M10 21h4"></path></svg></span><span class="homeNotificationBadge" id="homeNotificationBadge" hidden>0</span></button></div></div></div><div class="sponsorStrip happyadSponsorBootHiddenV855R89" data-happyad-sponsor-boot="pending"><div class="sponsorTrack" id="sponsorTrack"></div></div><div class="homeSearchPanel" id="homeSearchPanel"><input class="homeSearchInput" id="homeSearchInput" placeholder="Rechercher une publication, une vidéo ou un profil..."></div><div class="chips"><button class="chip on" data-filter="all">Tout</button><button class="chip" data-filter="video">Vidéos</button><button class="chip" data-filter="photo">Photos</button><button class="chip" data-filter="Service">Services</button><button class="chip" data-filter="Événement">Lieux</button></div><section id="happyadGuestRadarStableV599" class="radarBlock" aria-hidden="true"><div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div></section><div id="list" class="homeTimeline"></div><nav class="bottom happyadMainDockV585" id="happyadMainDockV585" aria-label="Navigation principale">
 <button class="nav active" type="button" data-happyad-main-nav="home" aria-label="Accueil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.7v-6.2H9.7V21H5a1.5 1.5 0 0 1-1.5-1.5z"></path></svg></span><span class="mainDockLabel">Accueil</span></button>
 <button class="nav" type="button" data-happyad-main-nav="video" aria-label="Vidéos"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"></rect><path d="m10 8 6 4-6 4z"></path></svg></span><span class="mainDockLabel">Vidéos</span></button>
@@ -1516,11 +1540,11 @@ body[data-happyad-main-page="profile_public"] #happyadAppShell .happyadAppFrame{
 })();
 </script>
 <script src="core/home-feed-repository-v1.js?v=2-batch-complete"></script>
-<script src="core/home-feed-master-v1.js?v=4-atomic-idle-feed"></script>
+<script src="core/home-feed-master-v1.js?v=856-point1-annonce-card"></script>
 <script src="core/home-media-loader-v1.js?v=1-single-home-media-owner"></script>
 <script src="core/home-actions-master-v1.js?v=2-idle-persist"></script>
-<script src="core/home-card-renderer-v1.js?v=2-dynamic-card-payload"></script>
-<script src="core/home-feed-view-v1.js?v=2-atomic-card-payload"></script>
+<script src="core/home-card-renderer-v1.js?v=857-point1-annonce-share-only"></script>
+<script src="core/home-feed-view-v1.js?v=856-point1-annonce-card"></script>
 <script src="core/home-feed-boot-v1.js?v=2-atomic-boot-cache"></script>
 <script>
 let ALL_POSTS=[],HAPPYAD_STORIES_ITEMS=[],currentFilter='all',happyadPostsLoading=true;
@@ -3816,6 +3840,8 @@ function happyadGroupFeedPosts(items){var m=window.HappyHomeFeedV1;return m&&m.g
     prepareAlbumShell:function(card,p){return window.happyadPrepareAlbumShellV772(card,p);},
     refreshAction:function(card,id){return window.refreshCardAction(card,id);},
     observeCard:function(card,p,video){return window.observeHomeCard(card,p,video);},
+    observeMedia:function(card,p,video){var l=window.HappyHomeMediaLoaderV1;return l&&l.observe?l.observe(card,p,video):undefined;},
+    openListing:function(id,p){if(typeof window.HappyadOpenMarketplaceListingV850==='function')return window.HappyadOpenMarketplaceListingV850(id,'home-card',p);try{document.dispatchEvent(new CustomEvent('happyad:annonces-requested',{detail:{source:'home-card',listingId:id,listing:p,fastOpen:true}}));return true;}catch(_e){return false;}},
     openProfile:function(p){return window.happyadOpenPublicProfileFromPostV417(p);},
     openVideo:function(id,p){return window.openLongVideo(id,p);},
     openPhoto:function(id,p){return window.openLongPhoto(id,p);},
@@ -7002,10 +7028,13 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     if(!p){try{var view=window.HappyHomeFeedViewV1;if(view&&view.getItemByMediaId)p=view.getItemByMediaId(id);}catch(_view){}}
     if(!p){try{p=happyadFindHomePhotoPostV466(id);}catch(_find){}}
     p=p||{id:id,title:'Publication HAPPYAD'};
-    var items=(p&&p.__albumItems&&p.__albumItems.length)?p.__albumItems:[p];
+    var marketplaceFs=(p.happyadMarketplace===true||p.happyadMarketplace===1||/^(true|1|yes|oui|on)$/i.test(String(p.happyadMarketplace||''))||p.happyad_marketplace===true||p.happyad_marketplace===1||/^(true|1|yes|oui|on)$/i.test(String(p.happyad_marketplace||''))||p.is_marketplace===true||p.is_marketplace===1||/^(true|1|yes|oui|on)$/i.test(String(p.is_marketplace||''))||String(p.mode||'').toLowerCase()==='marketplace');
+    /* V856 POINT 1 — une annonce photo n'entre jamais dans le moteur d'album social. */
+    var items=marketplaceFs?[p]:((p&&p.__albumItems&&p.__albumItems.length)?p.__albumItems:[p]);
     var idx=Number(p.__startAlbumIndex||0)||0;
     if(idx<0)idx=0;if(idx>=items.length)idx=items.length-1;
     var box=ensureBox();
+    box.classList.toggle('happyadMarketplacePhotoFullscreenV856',!!marketplaceFs);
     var card=box.querySelector('.haHomeFsCard');
     var track=box.querySelector('.haHomeFsAlbumTrack');
     var count=box.querySelector('.haHomeFsCount');
@@ -7027,6 +7056,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     function renderFsActions(){
       try{
         if(!acts||!albumActionId)return;
+        if(marketplaceFs){acts.innerHTML='';acts.removeAttribute('data-happyad-album-action-id');return;}
         /* La barre est construite une seule fois par ouverture. Le glissement entre
            les photos ne change jamais l'identifiant, les compteurs ni les handlers. */
         acts.dataset.happyadAlbumActionId=albumActionId;
@@ -7066,7 +7096,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     var slideRows=[];
     function directSlideUrl(it,i){
       it=it||{};
-      var u=safeText(it.mediaUrl||it.media_url||it.homeMediaUrl||it.home_media_url||it.imageUrl||it.image_url||it.photoUrl||it.photo_url||it.url||it.src).trim();
+      var u=safeText(it.marketplace_cover_url||it.marketplaceCoverUrl||it.mediaUrl||it.media_url||it.homeMediaUrl||it.home_media_url||it.imageUrl||it.image_url||it.photoUrl||it.photo_url||it.url||it.src).trim();
       if(u)return u;
       if(i===idx){
         try{
@@ -7274,7 +7304,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=home-feed-view-v1-append-only-dom',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=865-auth-profile-scroll',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9397,7 +9427,8 @@ html,body{background:#000!important;}
 html.haProfilePhotoFullscreenV854R8 body #happyadHomePhotoFullscreen{z-index:2147483000!important;pointer-events:auto!important;}
 html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!important;}
 </style>
-<script src="core/profile-avatar-master-v855r32.js?v=855r100-home-scroll-physical-stable"></script>
+<script src="core/home-scroll-priority-master-v863.js?v=863-home-scroll-priority"></script>
+<script src="core/profile-avatar-master-v855r32.js?v=866-profile-scroll-hard"></script>
 <script id="happyad-avatar-radar-bridge-v855r32">
 (function(){
   'use strict';
@@ -9419,13 +9450,13 @@ html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!im
   setTimeout(function(){canonicalize(window.HAPPYAD_STORIES_ITEMS||[]).then(function(){try{if(typeof renderRadarHome==='function')renderRadarHome();}catch(_e){}});},300);
 })();
 </script>
-<script src="core/profile/profile-photo-parent-v854r8.js?v=855r32-avatar-canonique"></script>
-<script src="core/navigation-master-v668.js?v=855r79-video-target-first-direct"></script>
-<script src="core/auth-session-master-v598.js?v=855r73-login-spacing"></script>
-<script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=855r32-avatar-canonique"></script>
+<script src="core/profile/profile-photo-parent-v854r8.js?v=856-point1-annonce-card"></script>
+<script src="core/navigation-master-v668.js?v=866-profile-scroll-hard"></script>
+<script src="core/auth-session-master-v598.js?v=865-auth-canonical"></script>
+<script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=863-home-scroll-priority"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection"></script>
-<script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=855r32-avatar-canonique"></script>
-<script src="core/main-tabs-master-v615.js?v=855r79-video-target-first-direct"></script>
+<script id="happyad-card-author-avatar-master-v742" src="core/card-author-avatar-master-v742.js?v=863-home-scroll-priority"></script>
+<script src="core/main-tabs-master-v615.js?v=866-profile-scroll-hard"></script>
 <style id="happyad-v855r77-visitor-direct-chat-overlay">
 body.happyadVisitorDirectChatOpenV855R77 .bottom.happyadMainDockV585{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body.happyadVisitorDirectChatOpenV855R77 #happyadAppShell{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important}
@@ -9444,10 +9475,10 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 #happyadHomePhotoFullscreen .haHomeFsSeeMore{position:relative!important;z-index:95!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;border:1px solid rgba(255,255,255,.58)!important;background:rgba(255,255,255,.07)!important;color:#fff!important;pointer-events:auto!important;touch-action:manipulation!important}
 #happyadHomePhotoFullscreen .haHomeFsSeeMore:active{background:rgba(255,255,255,.14)!important;border-color:#fff!important;color:#fff!important;transform:scale(.97)!important}
 </style>
-<script src="core/internal-return-master-v694.js?v=855r2-stats-close-repair"></script>
+<script src="core/internal-return-master-v694.js?v=862-dock-restore-immediate"></script>
 <script src="core/home-photo-fullscreen-master-v591.js?v=home-photo-return-v591"></script>
-<script src="core/share-master.js?v=783-message-read-story-age"></script>
-<script src="core/share-button-bridge.js?v=855r52-interaction-privacy"></script>
+<script src="core/share-master.js?v=861-point4-share-instant"></script>
+<script src="core/share-button-bridge.js?v=858-share-touch-instant"></script>
 <script src="core/share-count-master.js?v=share-count-v567"></script>
 <script src="core/notification-home-comment-center.js?v=notification-home-comment-center-v547-close-to-post"></script>
 <script src="core/notification-master-v700.js?v=855r57-quiet-mode-real"></script>
@@ -9981,7 +10012,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <link rel="stylesheet" href="core/button-state-master-v604.css?v=604">
 <script src="core/button-state-master-v604.js?v=604"></script>
 <link rel="stylesheet" href="core/dock-master-v618.css?v=618">
-<script src="core/dock-auto-hide-master-v653.js?v=854r3-visitor-no-dock"></script>
+<script src="core/dock-auto-hide-master-v653.js?v=862-navigation-scroll-guard"></script>
 <link id="happyad-comment-overlay-dock-v681-css" rel="stylesheet" href="core/comment-overlay-dock-master-v681.css?v=681-comment-dock">
 <script id="happyad-comment-overlay-dock-v681-js" src="core/comment-overlay-dock-master-v681.js?v=855r93-home-silent"></script>
 
@@ -10320,7 +10351,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
 <script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=855r71-chat-writing-smooth"></script>
-<script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=home-feed-v1"></script>
+<script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=857-point1-annonce-share-only"></script>
 <script id="happyad-keyboard-surface-master-v851r7-js" src="core/keyboard-surface-master-v851r7.js?v=855r93-home-silent"></script>
 <script id="happyad-language-preference-master-v855r59-js" src="core/language-preference-master-v855r59.js?v=855r59-language-storage-real"></script>
 </body></html>
