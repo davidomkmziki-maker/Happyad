@@ -6,12 +6,13 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V792_RADAR_AUTH_STABLE';
+  var VERSION='STORY_MASTER_V793_GESTURES_INSTANT_PRELOAD';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,progressAnim:null,progressBaseElapsed:0,
-    holdTimer:0,hold:false,startX:0,startY:0,moved:false,lastTapAt:0,
+    holdTimer:0,hold:false,startX:0,startY:0,moved:false,lastTapAt:0,pointerDownAt:0,lastPointerType:'',
     pointers:new Map(),pinch:false,pinchDistance:0,pinchScale:1,
+    preloadTimer:0,preloads:new Map(),
     zoom:{scale:1,x:0,y:0},openToken:0,
     composerDismissGuard:false,composerDismissGuardUntil:0,composerDismissPointerId:null,
     composerDismissTimer:0,composerViewportBase:0,
@@ -472,7 +473,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
   function close(reason){
     try{var closingRow=currentRow();if(closingRow&&reason!=='complete'&&reason!=='deleted'&&reason!=='empty'&&reason!=='error')analyticsTrackV728('story_exit',closingRow,{dedupeKey:'v728:story-exit:'+sessionStorage.getItem('HAPPYAD_ANALYTICS_SESSION_V728')+':'+storyId(closingRow)+':'+Math.floor(Date.now()/3000),metadata:{reason:clean(reason)||'close'}})}catch(_ae){}
-    state.closed=true;state.openToken++;stopTimer();stopAgeTickerV783();stopMedia();clearTimeout(state.holdTimer);state.holdTimer=0;clearTimeout(state.composerDismissTimer);state.composerDismissTimer=0;state.composerDismissGuard=false;state.composerDismissGuardUntil=0;state.composerDismissPointerId=null;state.composerViewportBase=0;state.shareOverlayOpen=false;state.shareResumePending=false;state.pointers.clear();resetZoom(false);
+    state.closed=true;state.openToken++;stopTimer();stopAgeTickerV783();stopMedia();clearStoryPreloadsV793();clearTimeout(state.holdTimer);state.holdTimer=0;clearTimeout(state.composerDismissTimer);state.composerDismissTimer=0;state.composerDismissGuard=false;state.composerDismissGuardUntil=0;state.composerDismissPointerId=null;state.composerViewportBase=0;state.shareOverlayOpen=false;state.shareResumePending=false;state.pointers.clear();resetZoom(false);
     if(state.box){
       state.box.classList.remove('on','full','haStoryShareUnderlayV705');
       state.box.setAttribute('aria-hidden','true');
@@ -482,7 +483,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       state.box.style.setProperty('visibility','hidden','important');
       state.box.style.setProperty('opacity','0','important');
     }
-    state.paused=false;state.hold=false;state.pinch=false;state.moved=false;state.lastTapAt=0;
+    state.paused=false;state.hold=false;state.pinch=false;state.moved=false;state.lastTapAt=0;state.pointerDownAt=0;state.lastPointerType='';
     unlock();
     /* V705 : la fermeture définitive de la Story restaure explicitement le dock principal.
        Le dock reste masqué tant que la Story ou son popup de partage est encore ouvert. */
@@ -603,32 +604,64 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
   function distance(a,b){var x=a.x-b.x,y=a.y-b.y;return Math.sqrt(x*x+y*y)}
 
+  /* V793 : navigation Story instantanée.
+     - aucun délai artificiel pour attendre un éventuel double-tap ;
+     - un maintien ne prend la main qu'après un vrai appui prolongé ;
+     - un pointercancel/lostpointercapture ne déclenche jamais next()/prev() ;
+     - dès qu'un déplacement réel commence, le timer de maintien est annulé. */
+  var STORY_HOLD_DELAY_V793=360;
+  function storyMoveToleranceV793(pointerType){return pointerType==='mouse'?8:16}
+  function clearStoryHoldV793(){if(state.holdTimer){clearTimeout(state.holdTimer);state.holdTimer=0}}
+  function finishStoryHoldV793(){clearStoryHoldV793();if(state.hold){state.hold=false;resume();return true}return false}
+
   function bindMediaGestures(){
     var media=$('ha629Media');if(!media||media.__haStoryGestureV629)return;media.__haStoryGestureV629=true;
-    function pt(e){return {x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,baseX:state.zoom.x,baseY:state.zoom.y}}
+    function pt(e){return {x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,baseX:state.zoom.x,baseY:state.zoom.y,pointerType:e.pointerType||''}}
     media.addEventListener('pointerdown',function(e){
-      if(state.closed||state.shareOverlayOpen)return;if(consumeComposerDismissPointer(e))return;try{media.setPointerCapture(e.pointerId)}catch(_e){}state.pointers.set(e.pointerId,pt(e));
-      if(state.pointers.size===2){clearTimeout(state.holdTimer);state.holdTimer=0;state.pinch=true;var a=Array.from(state.pointers.values());state.pinchDistance=distance(a[0],a[1]);state.pinchScale=state.zoom.scale;pause();e.preventDefault();return}
+      if(state.closed||state.shareOverlayOpen)return;if(consumeComposerDismissPointer(e))return;
+      state.lastPointerType=e.pointerType||'';state.pointerDownAt=Date.now();
+      try{media.setPointerCapture(e.pointerId)}catch(_e){}state.pointers.set(e.pointerId,pt(e));
+      if(state.pointers.size===2){clearStoryHoldV793();state.hold=false;state.pinch=true;var a=Array.from(state.pointers.values());state.pinchDistance=distance(a[0],a[1]);state.pinchScale=state.zoom.scale;pause();e.preventDefault();return}
       state.startX=e.clientX;state.startY=e.clientY;state.moved=false;state.hold=false;
-      if(state.zoom.scale<=1.01){state.holdTimer=setTimeout(function(){state.hold=true;pause()},190)}else pause();
+      if(state.zoom.scale<=1.01){state.holdTimer=setTimeout(function(){if(state.closed||state.shareOverlayOpen||state.moved||state.pointers.size!==1)return;state.hold=true;pause()},STORY_HOLD_DELAY_V793)}else pause();
     },{passive:false});
     media.addEventListener('pointermove',function(e){
       var p=state.pointers.get(e.pointerId);if(!p)return;p.x=e.clientX;p.y=e.clientY;
-      if(state.pointers.size>=2){var a=Array.from(state.pointers.values());var d=distance(a[0],a[1]);if(state.pinchDistance>0)setZoom(state.pinchScale*(d/state.pinchDistance),state.zoom.x,state.zoom.y);state.moved=true;e.preventDefault();return}
-      if(Math.abs(e.clientX-state.startX)>8||Math.abs(e.clientY-state.startY)>8)state.moved=true;
+      if(state.pointers.size>=2){clearStoryHoldV793();var a=Array.from(state.pointers.values());var d=distance(a[0],a[1]);if(state.pinchDistance>0)setZoom(state.pinchScale*(d/state.pinchDistance),state.zoom.x,state.zoom.y);state.moved=true;e.preventDefault();return}
+      var tol=storyMoveToleranceV793(e.pointerType||p.pointerType);
+      if(Math.abs(e.clientX-state.startX)>tol||Math.abs(e.clientY-state.startY)>tol){state.moved=true;clearStoryHoldV793()}
       if(state.zoom.scale>1.01){state.zoom.x=p.baseX+(e.clientX-p.startX);state.zoom.y=p.baseY+(e.clientY-p.startY);clampZoom();applyZoom();e.preventDefault()}
     },{passive:false});
     function up(e){
-      if(state.shareOverlayOpen)return;if(finishComposerDismissPointer(e))return;
-      var p=state.pointers.get(e.pointerId);state.pointers.delete(e.pointerId);clearTimeout(state.holdTimer);state.holdTimer=0;
+      if(state.shareOverlayOpen){clearStoryHoldV793();state.pointers.delete(e.pointerId);return}if(finishComposerDismissPointer(e))return;
+      var p=state.pointers.get(e.pointerId);state.pointers.delete(e.pointerId);clearStoryHoldV793();
       if(state.pinch){if(state.pointers.size<2){state.pinch=false;if(state.zoom.scale<=1.06)resetZoom(true)}return}
-      if(state.hold){state.hold=false;resume();return}
-      if(state.moved||state.zoom.scale>1.01)return;
-      var now=Date.now();if(now-state.lastTapAt<280){state.lastTapAt=0;setZoom(2,0,0);return}state.lastTapAt=now;
-      setTimeout(function(){if(state.lastTapAt!==now||state.closed||state.shareOverlayOpen)return;state.lastTapAt=0;var r=media.getBoundingClientRect();if(e.clientX>r.left+r.width*.56)next();else if(e.clientX<r.left+r.width*.44)prev()},285);
+      if(finishStoryHoldV793())return;
+      if(!p||state.moved||state.zoom.scale>1.01)return;
+      /* Si le callback de maintien a été retardé par le navigateur, un appui qui
+         a réellement duré longtemps ne doit tout de même jamais devenir un tap. */
+      if(Date.now()-(state.pointerDownAt||0)>=STORY_HOLD_DELAY_V793){resume();return}
+      var r=media.getBoundingClientRect(),x=e.clientX;
+      state.lastTapAt=0;
+      if(x>r.left+r.width*.56)next();
+      else if(x<r.left+r.width*.44)prev();
     }
-    media.addEventListener('pointerup',up,{passive:false});media.addEventListener('pointercancel',up,{passive:false});
-    media.addEventListener('dblclick',function(e){e.preventDefault();if(state.zoom.scale>1.01)resetZoom(true);else setZoom(2,0,0)},false);
+    function cancel(e){
+      if(finishComposerDismissPointer(e))return;
+      state.pointers.delete(e.pointerId);clearStoryHoldV793();
+      var wasHold=state.hold;state.hold=false;state.moved=false;state.pointerDownAt=0;
+      if(state.pinch&&state.pointers.size<2){state.pinch=false;if(state.zoom.scale<=1.06)resetZoom(true)}
+      else if(wasHold&&!state.closed)resume();
+    }
+    media.addEventListener('pointerup',up,{passive:false});
+    media.addEventListener('pointercancel',cancel,{passive:false});
+    media.addEventListener('lostpointercapture',cancel,{passive:false});
+    /* Le double-clic est conservé uniquement à la souris et uniquement dans la
+       zone centrale, où un clic simple n'est pas une commande précédent/suivant.
+       Sur écran tactile, le zoom reste disponible par pinch sans retarder les taps. */
+    media.addEventListener('dblclick',function(e){
+      if((state.lastPointerType||'')!=='mouse')return;var r=media.getBoundingClientRect(),ratio=(e.clientX-r.left)/Math.max(1,r.width);if(ratio<.44||ratio>.56)return;e.preventDefault();if(state.zoom.scale>1.01)resetZoom(true);else setZoom(2,0,0)
+    },false);
     media.addEventListener('contextmenu',function(e){e.preventDefault()},true);
   }
 
@@ -730,13 +763,40 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     }catch(_e){list.innerHTML='<div class="haSamEmpty">Impossible de charger les vues.</div>'}
   }
 
+  /* V793 : le voisin immédiat est préchauffé sans modifier la session Story.
+     Les photos sont chargées + décodées en mémoire. Les vidéos voisines ne
+     démarrent pas : le navigateur prépare seulement leur ressource pour réduire
+     le temps entre le tap et la première image. Le pool est volontairement petit. */
+  function storyPreloadKeyV793(row){return typeOf(row)+'|'+mediaOf(row)}
+  function clearStoryPreloadsV793(){
+    clearTimeout(state.preloadTimer);state.preloadTimer=0;
+    try{state.preloads.forEach(function(x){if(x&&x.kind==='video'&&x.node){try{x.node.pause()}catch(_e){}try{x.node.removeAttribute('src');x.node.load()}catch(_e){}}});state.preloads.clear()}catch(_e){}
+  }
+  function preloadStoryRowV793(row,priority){
+    if(!row||!active(row))return;var url=mediaOf(row),kind=typeOf(row),key=storyPreloadKeyV793(row);if(!url||state.preloads.has(key))return;
+    try{
+      if(kind==='photo'){
+        var img=new Image();img.decoding='async';try{img.fetchPriority=priority?'high':'low'}catch(_e){};state.preloads.set(key,{kind:'photo',node:img,at:Date.now()});img.src=url;
+        if(typeof img.decode==='function')img.decode().catch(function(){});
+      }else{
+        var v=document.createElement('video');v.preload=priority?'auto':'metadata';v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');state.preloads.set(key,{kind:'video',node:v,at:Date.now()});v.src=url;try{v.load()}catch(_e){}
+      }
+      if(state.preloads.size>4){var first=state.preloads.keys().next().value,old=state.preloads.get(first);state.preloads.delete(first);if(old&&old.kind==='video'&&old.node){try{old.node.removeAttribute('src');old.node.load()}catch(_e){}}}
+    }catch(_e){}
+  }
+  function scheduleStoryNeighborsV793(index){
+    clearTimeout(state.preloadTimer);state.preloadTimer=setTimeout(function(){
+      if(state.closed||state.shareOverlayOpen)return;preloadStoryRowV793(state.rows[index+1],true);preloadStoryRowV793(state.rows[index-1],false)
+    },90);
+  }
+
   function paint(n){
     if(state.closed||!state.rows.length)return;stopTimer();resetZoom(false);state.index=Math.max(0,Math.min(state.rows.length-1,n));var row=currentRow(),p=state.profile||{},name=clean(p.full_name||p.display_name||p.name||row.user_name)||'Utilisateur HAPPYAD',av=clean(p.avatar_url||p.avatar||row.user_avatar),badge=clean(p.badge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge||row.badge||row.user_badge||row.badge_type),media=mediaOf(row),typ=typeOf(row);
     $('ha629Avatar').innerHTML=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));$('ha629Name').innerHTML=esc(name)+badgeHtml(badge);$('ha629Sub').textContent=ageOf(row);$('ha629Caption').textContent=descOf(row);
     var backdrop=$('ha629Backdrop');if(typ==='photo')backdrop.style.backgroundImage='url("'+media.replace(/["\\]/g,'\\$&')+'")';else backdrop.style.backgroundImage='none';
     $('ha629Media').innerHTML=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Story" draggable="false">';
     resetSegments(state.index);renderBottom(row);window.__HAPPYAD_CURRENT_STORY_CTX={id:storyId(row),row:row,p:itemFromRow(row,p),profile:p,isMine:ownerOf(row)===currentUid()};
-    startAgeTickerV783();markSeen(row).then(function(){setTimeout(renderRadarHomeV629,50)});try{document.dispatchEvent(new CustomEvent('happyad:story-master-opened-v629'))}catch(_e){}startDuration(row)
+    startAgeTickerV783();markSeen(row).then(function(){setTimeout(renderRadarHomeV629,50)});try{document.dispatchEvent(new CustomEvent('happyad:story-master-opened-v629'))}catch(_e){}startDuration(row);scheduleStoryNeighborsV793(state.index)
   }
 
   function show(owner,rows,profile,startId){

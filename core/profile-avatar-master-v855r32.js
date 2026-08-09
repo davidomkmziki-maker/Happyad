@@ -19,6 +19,7 @@
   var channel=null;
   var domObserver=null;
   var domTimer=0;
+  var domRoots=[];
 
   function clean(v){return String(v==null?'':v).trim();}
   function own(o,k){return !!(o&&Object.prototype.hasOwnProperty.call(o,k));}
@@ -265,7 +266,36 @@
   }
   function watchDom(){
     try{
-      domObserver=new MutationObserver(function(){clearTimeout(domTimer);domTimer=setTimeout(function(){paintKnownNodes(document);},30);});
+      function relevantRoot(node){
+        if(!node||node.nodeType!==1)return null;
+        try{
+          if(node.matches&&node.matches('[data-happyad-avatar-uid],[data-happyad-owner-uid],.avatar'))return node;
+          if(node.querySelector&&node.querySelector('[data-happyad-avatar-uid],[data-happyad-owner-uid] .avatar'))return node;
+          var near=node.closest&&node.closest('[data-happyad-avatar-uid],[data-happyad-owner-uid] .avatar');
+          if(near)return near;
+        }catch(_e){}
+        return null;
+      }
+      function queue(root){
+        if(!root)return;
+        if(domRoots.indexOf(root)<0)domRoots.push(root);
+      }
+      function flushDom(){
+        domTimer=0;
+        var roots=domRoots.splice(0,domRoots.length);
+        roots.forEach(function(root){if(root&&root.isConnected)paintKnownNodes(root);});
+      }
+      domObserver=new MutationObserver(function(records){
+        records.forEach(function(record){
+          [].slice.call(record.addedNodes||[]).forEach(function(node){queue(relevantRoot(node));});
+        });
+        if(!domRoots.length)return;
+        clearTimeout(domTimer);
+        /* V794 : une photo/vidéo ajoutée au fil n'entraîne plus un scan de tout
+           document. Seules les nouvelles zones contenant réellement un avatar
+           sont traitées, hors frame critique du scroll. */
+        domTimer=setTimeout(flushDom,90);
+      });
       domObserver.observe(document.documentElement,{childList:true,subtree:true});
     }catch(_e){}
   }

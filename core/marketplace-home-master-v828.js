@@ -5,7 +5,7 @@
   if(window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__)return;
   window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__=true;
 
-  var VERSION='V855R93_MARKETPLACE_HOME_SCROLL_LIGHT';
+  var VERSION='V855R93_MARKETPLACE_HOME_FEED_V1';
   var observed=new WeakSet();
   var pending=new Map();
   var refreshTimer=0;
@@ -73,27 +73,26 @@
   }
   function mergeRows(rows){
     rows=(rows||[]).map(mapRow).filter(function(x){return idOf(x)&&showOnHome(x);});
-    var selected={};rows.forEach(function(x){selected[idOf(x)]=x;});
-    var next=[],seen={};
-    allPosts().forEach(function(post){
-      var id=idOf(post);if(!id||seen[id])return;
-      if(isMarketplace(post)){
-        if(selected[id]){next.push(selected[id]);seen[id]=1;delete selected[id];}
-        return; // Les annonces non choisies ne doivent jamais entrer dans l'Accueil.
+    /* HOME FEED V1 : Marketplace n'est plus propriétaire de la chronologie.
+       Il peut enrichir une annonce déjà chargée, jamais en ajouter, supprimer,
+       trier ou déplacer une carte du fil principal. */
+    var existingIds=new Set(allPosts().map(function(post){return idOf(post);}).filter(Boolean));
+    var patches=rows.filter(function(row){return existingIds.has(idOf(row));});
+    var before=allPosts(),next=before;
+    try{
+      if(typeof window.happyadFeedPatchExistingV1==='function')next=window.happyadFeedPatchExistingV1(patches)||before;
+      else{
+        var map={};patches.forEach(function(row){map[idOf(row)]=row;});
+        next=before.map(function(post){return map[idOf(post)]?Object.assign({},post,map[idOf(post)]):post;});
       }
-      next.push(post);seen[id]=1;
-    });
-    Object.keys(selected).forEach(function(id){if(!seen[id]){next.push(selected[id]);seen[id]=1;}});
-    next.sort(function(a,b){return Number(b.createdAt||Date.parse(b.created_at||0)||0)-Number(a.createdAt||Date.parse(a.created_at||0)||0);});
-    try{if(typeof ALL_POSTS!=='undefined')ALL_POSTS=next;else window.ALL_POSTS=next;}catch(_e){try{window.ALL_POSTS=next;}catch(_x){}}
+    }catch(_e){next=before;}
     window.__HAPPYAD_MARKETPLACE_HOME_ROWS_V828=rows.slice();
-    ['HAPPYAD_GLOBAL_POSTS_CACHE_V1','HAPPYAD_PUBLISH_POSTS_V2','HAPPYAD_HOME_POSTS_CACHE_V1','HAPPYAD_ALL_POSTS_V1','HAPPYAD_HOME_CONFIRMED_ORDER_V643','HAPPYAD_HOME_BOOT_SNAPSHOT_V1'].forEach(function(key){writeCache(key,next,localStorage);});
-    writeCache('HAPPYAD_SESSION_ALL_POSTS_V104',next,sessionStorage);
-    try{if(typeof HAPPYAD_LAST_RENDER_SIG!=='undefined')HAPPYAD_LAST_RENDER_SIG='';else window.HAPPYAD_LAST_RENDER_SIG='';}catch(_e){}
-    try{if(typeof render==='function')render();else if(typeof window.render==='function')window.render();}catch(_e){}
+    try{if(typeof window.happyadSaveHomeFastCache==='function')window.happyadSaveHomeFastCache(next);}catch(_e){}
+    try{if(typeof window.happyadRenderHomeFeedWhenIdleV794==='function')window.happyadRenderHomeFeedWhenIdleV794('marketplace-patch-feed-v1');}catch(_e){}
     setTimeout(scanCards,80);
     return next;
   }
+
   async function fetchSelected(){
     var c=client();if(!c)return [];
     var q=c.from('happyad_posts').select('*')

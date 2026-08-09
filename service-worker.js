@@ -1,8 +1,9 @@
+/* HOME FEED ATOMIC V9R1 + REPOSITORY V2 + BOOT V2 + VIEW V2 + MEDIA LOADER V1 + ACTIONS MASTER V1 build */
 // Regression lineage: happyad-pwa-v855r65-post-options-reactivation-fluid | happyad-pwa-v855r66-post-options-optimistic-bg | happyad-pwa-v855r67-popup-persistant-confirmation-haut
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v855r97-home-vertical-scroll-budget-20260809-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-home-feed-atomic-v9r1-20260809-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -28,7 +29,14 @@ var HAPPYAD_APP_SHELL = [
   './core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications',
   './core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable',
   './core/chat-integration-master-v795.js?v=855r71-chat-writing-smooth',
-  './core/marketplace-home-master-v828.js?v=855r93-scroll-light',
+  './core/marketplace-home-master-v828.js?v=home-feed-v1',
+  './core/home-feed-repository-v1.js?v=2-batch-complete',
+  './core/home-feed-master-v1.js?v=4-atomic-idle-feed',
+  './core/home-media-loader-v1.js?v=1-single-home-media-owner',
+  './core/home-actions-master-v1.js?v=2-idle-persist',
+  './core/home-card-renderer-v1.js?v=2-dynamic-card-payload',
+  './core/home-feed-view-v1.js?v=2-atomic-card-payload',
+  './core/home-feed-boot-v1.js?v=2-atomic-boot-cache',
   './modules/happyad-chat.html?v=855r71-chat-writing-smooth',
   './modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',
   './modules/assistance.html?v=851r12-ecriture-stable',
@@ -38,7 +46,7 @@ var HAPPYAD_APP_SHELL = [
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=855r7-all-video-surfaces',
   './core/navigation-master-v668.js?v=855r77-direct-chat-shared',
-  './core/profile-avatar-master-v855r32.js?v=855r32-source-unique',
+  './core/profile-avatar-master-v855r32.js?v=855r100-home-scroll-physical-stable',
   './core/auth-storage-quota-master-v752.js?v=763-home-cache-safe',
   './core/message-privacy-master-v855r51.js?v=855r53-account-discovery',
   './core/account-discovery-privacy-v855r53.js?v=855r53-account-discovery',
@@ -48,13 +56,13 @@ var HAPPYAD_APP_SHELL = [
   './core/interaction-privacy-master-v855r52.js?v=855r52-interactions',
   './core/post-options-master-v693.js?v=855r68-optimisation-finale',
   './core/share-button-bridge.js?v=855r52-interaction-privacy',
-  './core/story-master-v699.js?v=855r92-radar-auth-stable',
+  './core/story-master-v699.js?v=855r98-story-gestures-instant-preload',
   './core/notification-master-v700.js?v=855r57-quiet-mode-real',
   './core/auth-session-master-v598.js?v=855r73-login-spacing',
   './core/profile-identity-stable-master-v741.js?v=855r32-avatar-canonique',
   './core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection',
   './core/card-author-avatar-master-v742.js?v=855r32-avatar-canonique',
-  './core/home-scroll-prepaint-master-v696.js?v=855r97-vertical-scroll-budget',
+  './core/home-scroll-prepaint-master-v696.js?v=855r100-home-scroll-physical-stable',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=855r93-home-silent',
   './core/main-tabs-master-v615.js?v=855r77-direct-chat-shared',
