@@ -9,7 +9,7 @@
   'use strict';
   if(window.HappyHomeActionsV1)return;
 
-  var VERSION='V2_IDLE_PERSIST';
+  var VERSION='V876_LIKE_DIRECT';
   var KEY='HAPPYAD_VIDEO_ACTIONS_V1';
   var bridge=null;
   var memory=null;
@@ -20,6 +20,7 @@
   var mutations=Object.create(null);
   var refreshTimers=Object.create(null);
   var countTimers=Object.create(null);
+  var likeRetryTimers=Object.create(null);
   var visibleAt=new Map();
   var batchState={key:'',at:0,promise:null};
   var realtimeStarted=false;
@@ -160,6 +161,8 @@
     var x=getPending(id,'like');if(x){a.like=!!x.on;a.likes=Number(x.count||0);}
     x=getPending(id,'fav')||getPending(id,'favorite');if(x){a.fav=!!x.on;a.favs=Number(x.count||0);}
     x=getPending(id,'repost');if(x){a.repost=!!x.on;a.reposts=Number(x.count||0);}
+    var direct=window.HappyLikeDirectV876;
+    if(direct&&direct.apply)a=direct.apply(id,a)||a;
     return a;
   }
 
@@ -244,13 +247,30 @@
     if(String(contentType||'').toLowerCase()==='video')patch.views_count=Number(a.views||0);
     try{var r=await c.from('happyad_posts').update(patch).eq('id',id);if(r&&r.error)throw r.error;}catch(_e){}
   }
+  function paintLikeImmediate(el,on,count){
+    try{el.classList.toggle('on',!!on);var small=el.querySelector('small');if(small)small.textContent=compact(count||0);}catch(_e){}
+  }
+  function applyConfirmedLike(id,on,count){
+    var a=get(id);a.like=!!on;if(count!==null&&count!==undefined)a.likes=Math.max(0,Number(count)||0);
+    try{var d=window.HappyLikeDirectV876,p=d&&d.pending&&d.pending(id);if(p)a.__happyadLikeDirectV876=p;}catch(_e){}
+    set(id,a);clearPending(id,'like');refreshEverywhere(id);return a;
+  }
+  function silentLikeRetry(id,contentType,on,token,attempt){
+    attempt=Number(attempt||0);if(attempt>2)return;
+    clearTimeout(likeRetryTimers[id]);likeRetryTimers[id]=setTimeout(function(){
+      delete likeRetryTimers[id];var direct=window.HappyLikeDirectV876;if(direct&&direct.isCurrent&&!direct.isCurrent(id,token))return;
+      toggleRemote(id,contentType,'like',on,{likeToken:token,skipRetry:true}).then(function(result){
+        if(result&&result.__happyadConfirmedLikeV876)applyConfirmedLike(id,on,result.likes);
+      }).catch(function(){if(direct&&direct.keep)direct.keep(id,token,30000);silentLikeRetry(id,contentType,on,token,attempt+1);});
+    },attempt===0?500:(attempt===1?1400:3200));
+  }
   function broadcast(postId){try{localStorage.setItem('HAPPYAD_ACTION_FAST_SYNC_V1',JSON.stringify({id:String(postId),t:Date.now()}));}catch(_e){};}
   function bindStorage(){
     if(storageBound)return;storageBound=true;
     window.addEventListener('storage',function(e){try{if(e.key===KEY){memory=null;}if(e.key==='HAPPYAD_ACTION_FAST_SYNC_V1'&&e.newValue){var r=JSON.parse(e.newValue||'{}');if(r&&r.id){var p=postById(r.id);scheduleRefresh(r.id,isVideo(p)?'video':'photo',140);}}}catch(_e){}});
   }
 
-  async function toggleRemote(postId,contentType,actionType,nextValue){
+  async function toggleRemote(postId,contentType,actionType,nextValue,options){
     var c=sb(),id=String(postId||'');if(!c||!id)throw new Error('Supabase non chargé');var user=await authUser();if(!user||!user.id)throw new Error('Connecte-toi pour enregistrer cette action');
     markMutation(id,'actions',2600);
     if((actionType==='share'||actionType==='repost')&&(actionType==='share'||nextValue)){
@@ -262,7 +282,14 @@
       var safe=actionType==='fav'?'favorite':actionType;
       var up=await c.from('happyad_content_actions').upsert({post_id:id,content_id:id,content_type:contentType,action_type:safe,user_id:user.id,liked:!!nextValue},{onConflict:'post_id,content_type,action_type,user_id'});if(up.error)throw up.error;
     }
-    markMutation(id,'actions',2600);broadcast(id);schedulePostCounts(id,contentType);return get(id);
+    markMutation(id,'actions',2600);broadcast(id);
+    if(actionType==='like'){
+      var direct=window.HappyLikeDirectV876,token=options&&options.likeToken,count=null;
+      if(direct&&direct.confirm&&token){count=await direct.confirm(c,id,token,!!nextValue);}
+      if(count!==null&&count!==undefined){var confirmed=get(id);confirmed.like=!!nextValue;confirmed.likes=Math.max(0,Number(count)||0);set(id,confirmed);return {__happyadConfirmedLikeV876:true,likes:confirmed.likes,like:confirmed.like};}
+      return get(id);
+    }
+    schedulePostCounts(id,contentType);return get(id);
   }
 
   function bindCard(card,p,title){
@@ -271,12 +298,25 @@
       el.onclick=async function(e){
         e.stopPropagation();var type=el.dataset.cardAct,contentType=isVideo(p)?'video':'photo',a=get(p.id);
         if(type==='comment'){var fn=b('openComments');if(fn)fn(p,contentType);return;}
-        if(type==='like'||type==='fav'||type==='repost'){
+        if(type==='like'){
+          var beforeLike={on:!!a.like,count:Number(a.likes||0)},nextLike=!beforeLike.on;
+          a.like=nextLike;a.likes=Math.max(0,beforeLike.count+(nextLike?1:-1));
+          paintLikeImmediate(el,nextLike,a.likes);set(p.id,a);setPending(p.id,'like',nextLike,a.likes,30000);refreshEverywhere(p.id);
+          var direct=window.HappyLikeDirectV876,token=direct&&direct.mark?direct.mark(p.id,nextLike,a.likes,30000):'';
+          var run=function(){return toggleRemote(p.id,contentType,'like',nextLike,{likeToken:token}).then(function(result){
+            if(result&&result.__happyadConfirmedLikeV876)applyConfirmedLike(p.id,nextLike,result.likes);
+            else{var current=get(p.id);setPending(p.id,'like',nextLike,current.likes,12000);refreshEverywhere(p.id);}
+            if(nextLike)call('notifyAction',p,'like');
+          }).catch(function(){if(direct&&direct.keep)direct.keep(p.id,token,30000);silentLikeRetry(p.id,contentType,nextLike,token,0);});};
+          if(direct&&direct.queue)direct.queue(p.id,run);else run();
+          return;
+        }
+        if(type==='fav'||type==='repost'){
           if(el.dataset.busy==='1')return;el.dataset.busy='1';
-          var key=type==='like'?'like':type==='repost'?'repost':'fav',countKey=type==='like'?'likes':type==='repost'?'reposts':'favs',action=type==='fav'?'fav':type;
+          var key=type==='repost'?'repost':'fav',countKey=type==='repost'?'reposts':'favs',action=type==='fav'?'fav':type;
           var before={on:!!a[key],count:Number(a[countKey]||0)},next=!before.on;
           a[key]=next;a[countKey]=Math.max(0,before.count+(next?1:-1));setPending(p.id,action,next,a[countKey],7500);set(p.id,a);refreshEverywhere(p.id);
-          toggleRemote(p.id,contentType,action,next).then(function(){var now=get(p.id);setPending(p.id,action,next,now[countKey],2400);setTimeout(function(){clearPending(p.id,action);},2450);if(next)call('notifyAction',p,action);}).catch(function(err){clearPending(p.id,action);var rb=get(p.id);rb[key]=before.on;rb[countKey]=before.count;set(p.id,rb);refreshEverywhere(p.id);alert((type==='like'?'J’aime':type==='repost'?'Republication':'Favori')+' non enregistré : '+((err&&err.message)||err));}).finally(function(){setTimeout(function(){try{el.dataset.busy='0';}catch(_e){}},900);});return;
+          toggleRemote(p.id,contentType,action,next).then(function(){var now=get(p.id);setPending(p.id,action,next,now[countKey],2400);setTimeout(function(){clearPending(p.id,action);},2450);if(next)call('notifyAction',p,action);}).catch(function(err){clearPending(p.id,action);var rb=get(p.id);rb[key]=before.on;rb[countKey]=before.count;set(p.id,rb);refreshEverywhere(p.id);alert((type==='repost'?'Republication':'Favori')+' non enregistré : '+((err&&err.message)||err));}).finally(function(){setTimeout(function(){try{el.dataset.busy='0';}catch(_e){}},900);});return;
         }
         if(type==='share'){
           var before=Number(a.shares||0);a.shares=before+1;set(p.id,a);refreshEverywhere(p.id);

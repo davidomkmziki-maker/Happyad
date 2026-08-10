@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v866-profile-scroll-hard-20260809-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v897-share-opening-logo-20260810-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -15,6 +15,9 @@ var HAPPYAD_APP_SHELL = [
   './index.html?v=855r5-profile-counts-single-rpc',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
+  './icons/happyad-share-logo-free-v884.png',
+  './icons/happyad-share-logo-black-circle-v887.png',
+  './icons/happyad-share-logo-black-circle-v893.png',
   './icons/happyad-icon-v535center1-512.png',
   './icons/happyad-notification-badge-96.png',
   './icons/happyad-home-wordmark-v1.svg',
@@ -33,15 +36,16 @@ var HAPPYAD_APP_SHELL = [
   './core/home-feed-repository-v1.js?v=2-batch-complete',
   './core/home-feed-master-v1.js?v=856-point1-annonce-card',
   './core/home-media-loader-v1.js?v=1-single-home-media-owner',
-  './core/home-actions-master-v1.js?v=2-idle-persist',
+  './core/like-direct-master-v876.js?v=876-like-direct',
+  './core/home-actions-master-v1.js?v=876-like-direct',
   './core/home-card-renderer-v1.js?v=857-point1-annonce-share-only',
   './core/home-feed-view-v1.js?v=856-point1-annonce-card',
   './core/home-feed-boot-v1.js?v=2-atomic-boot-cache',
   './modules/happyad-chat.html?v=855r71-chat-writing-smooth',
   './modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',
   './modules/assistance.html?v=851r12-ecriture-stable',
-  './modules/video.html?v=861-point4-share-instant',
-  './modules/photo.html?v=861-point4-share-instant',
+  './modules/video.html?v=876-like-direct',
+  './modules/photo.html?v=876-like-direct',
   './modules/map.html?v=855r54-location-privacy',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=855r7-all-video-surfaces',
@@ -56,9 +60,9 @@ var HAPPYAD_APP_SHELL = [
   './core/message-presence-app-master-v855r51.js?v=855r51-app-presence',
   './core/interaction-privacy-master-v855r52.js?v=855r52-interactions',
   './core/post-options-master-v693.js?v=855r68-optimisation-finale',
-  './core/share-master.js?v=861-point4-share-instant',
+  './core/share-master.js?v=897-share-opening-logo',
   './core/share-button-bridge.js?v=858-share-touch-instant',
-  './modules/share-center.html?v=715-share-instant-warm',
+  './modules/share-center.html?v=882-share-real-post-logo',
   './core/story-master-v699.js?v=855r98-story-gestures-instant-preload',
   './core/notification-master-v700.js?v=855r57-quiet-mode-real',
   './core/auth-session-master-v598.js?v=865-auth-canonical',
