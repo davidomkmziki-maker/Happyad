@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v897-share-opening-logo-20260810-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v917-point1-story-identity-all-paths-20260811-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=855r5-profile-counts-single-rpc',
+  './index.html?v=917-point1-story-identity-all-paths',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -60,10 +60,10 @@ var HAPPYAD_APP_SHELL = [
   './core/message-presence-app-master-v855r51.js?v=855r51-app-presence',
   './core/interaction-privacy-master-v855r52.js?v=855r52-interactions',
   './core/post-options-master-v693.js?v=855r68-optimisation-finale',
-  './core/share-master.js?v=897-share-opening-logo',
+  './core/share-master.js?v=915-story-shared-video-loader-zone',
   './core/share-button-bridge.js?v=858-share-touch-instant',
-  './modules/share-center.html?v=882-share-real-post-logo',
-  './core/story-master-v699.js?v=855r98-story-gestures-instant-preload',
+  './modules/share-center.html?v=915-story-shared-video-loader-zone',
+  './core/story-master-v699.js?v=917-point1-story-identity-all-paths',
   './core/notification-master-v700.js?v=855r57-quiet-mode-real',
   './core/auth-session-master-v598.js?v=865-auth-canonical',
   './core/profile-identity-stable-master-v741.js?v=863-home-scroll-priority',
@@ -76,7 +76,7 @@ var HAPPYAD_APP_SHELL = [
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=862-dock-restore-immediate',
   './core/overlay-scroll-master-v615.js?v=615',
-  './core/overlay-scroll-master-v662.js?v=855r93-home-silent',
+  './core/overlay-scroll-master-v662.js?v=903-comments-scroll-handoff-close',
   './core/assistance-integration-master-v738.css?v=855r34-squelette-chaque-ouverture',
   './core/assistance-integration-master-v738.js?v=855r34-squelette-chaque-ouverture',
   './core/message-assistance-shortcut-v738.css?v=738-visible',
@@ -94,7 +94,7 @@ var HAPPYAD_APP_SHELL = [
   './core/profile/profile-stats-host-v855r4.css?v=855r28-skeleton',
   './core/profile/profile-settings-host-v855r26.css?v=855r28-skeleton',
   './core/profile/profile-edit-host-v855r31.css?v=855r31-securite-complete',
-  './core/profile/profile-core-v855r6.js?v=866-profile-scroll-hard',
+  './core/profile/profile-core-v855r6.js?v=919-point2-all-seen-first',
   './core/profile/profile-scroll-priority-v866.js?v=866-profile-scroll-hard',
   './core/profile/profile-stats-host-v855r4.js?v=855r62-click-prefetch',
   './core/profile/profile-settings-host-v855r26.js?v=855r58-language-global',

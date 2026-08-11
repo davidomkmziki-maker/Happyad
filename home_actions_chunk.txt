@@ -9,7 +9,7 @@
   'use strict';
   if(window.HappyHomeActionsV1)return;
 
-  var VERSION='V910_COMMENTS_DETAIL_CONTEXT_GUARD';
+  var VERSION='V908_COMMENTS_DETAIL_RACE_GUARD';
   var KEY='HAPPYAD_VIDEO_ACTIONS_V1';
   var bridge=null;
   var memory=null;
@@ -287,33 +287,9 @@
     },attempt===0?500:(attempt===1?1400:3200));
   }
   function broadcast(postId){try{localStorage.setItem('HAPPYAD_ACTION_FAST_SYNC_V1',JSON.stringify({id:String(postId),t:Date.now()}));}catch(_e){};}
-  function mergeExternalStatePreserveCommentDetailV910(raw){
-    try{
-      var incoming=JSON.parse(raw||'{}')||{},current=ensureMemory(),merged={};
-      var ids=Object.create(null);
-      Object.keys(current||{}).forEach(function(id){ids[String(id)]=1;});
-      Object.keys(incoming||{}).forEach(function(id){ids[String(id)]=1;});
-      Object.keys(ids).forEach(function(id){
-        var local=normalize(current[id]||{}),ext=normalize(incoming[id]||{}),hasLocalDetail=Array.isArray(local.commentsList)&&(local.commentsList.length>0||Number(local.__commentsLoadedAt||0)>0||local.__commentsLoading===true||local.__commentsRefreshing===true);
-        if(!Object.prototype.hasOwnProperty.call(incoming,id)){merged[id]=local;return;}
-        if(hasLocalDetail){
-          ext.commentsList=local.commentsList.slice();
-          ext.comments=Math.max(Number(ext.comments||0),Number(local.comments||0));
-          ['__commentsLoading','__commentsRefreshing','__commentsExact','__commentsLoadedAt','__commentsHasMore','__commentsOffset'].forEach(function(k){if(Object.prototype.hasOwnProperty.call(local,k))ext[k]=local[k];});
-        }
-        merged[id]=ext;
-      });
-      memory=merged;
-    }catch(_e){/* Ne jamais jeter l'état local détaillé sur une écriture iframe malformée. */}
-  }
   function bindStorage(){
     if(storageBound)return;storageBound=true;
-    window.addEventListener('storage',function(e){try{
-      /* V910 : photo.html / video.html utilisent encore la même clé d'actions. Une écriture
-         provenant d'un iframe ne doit plus vider commentsList du popup parent. */
-      if(e.key===KEY){if(e.newValue)mergeExternalStatePreserveCommentDetailV910(e.newValue);}
-      if(e.key==='HAPPYAD_ACTION_FAST_SYNC_V1'&&e.newValue){var r=JSON.parse(e.newValue||'{}');if(r&&r.id){var p=postById(r.id);scheduleRefresh(r.id,isVideo(p)?'video':'photo',140);}}
-    }catch(_e){}});
+    window.addEventListener('storage',function(e){try{if(e.key===KEY){memory=null;}if(e.key==='HAPPYAD_ACTION_FAST_SYNC_V1'&&e.newValue){var r=JSON.parse(e.newValue||'{}');if(r&&r.id){var p=postById(r.id);scheduleRefresh(r.id,isVideo(p)?'video':'photo',140);}}}catch(_e){}});
   }
 
   async function toggleRemote(postId,contentType,actionType,nextValue,options){

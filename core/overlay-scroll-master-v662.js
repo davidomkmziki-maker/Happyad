@@ -4,7 +4,7 @@
   if(window.__HAPPYAD_OVERLAY_SCROLL_MASTER_V615__)return;
   window.__HAPPYAD_OVERLAY_SCROLL_MASTER_V615__=true;
 
-  var VERSION='V855R93_OVERLAY_SCROLL_HOME_SILENT';
+  var VERSION='V901_OVERLAY_SCROLL_COMMENTS_NATIVE';
   var TAP_SHIELD_ID='happyadAppTapShield';
   var scheduled=false;
   var observer=null;
@@ -14,7 +14,7 @@
   var managedAttrs='data-happyad-overlay-neutralized-v615';
 
   var SELECTORS=[
-    '#happyadHomePhotoFullscreen','#happyadHomeCommentPopup','#happyStoryViewer','#happyStoryViewersModal',
+    '#happyadShareCenter','#happyadHomePhotoFullscreen','#happyadHomeCommentPopup','#happyStoryViewer','#happyStoryViewersModal',
     '#happyadPwaGuide','#hsvMoreMenu','#happyadNotificationReturnCenter','#happyadPublicAvatarViewer',
     '#profileEditBackdrop','#happyadSettingActionBackdrop','#happyadPhotoLoadingV438',
     '#happyadProfilePhotoFullscreenV478','#happyadProfilePhotoFullscreenV481',
@@ -160,6 +160,14 @@
           /* V651 : les transformations tactiles de l'image active du fullscreen Profil
              ne doivent pas relancer une analyse globale des overlays à chaque frame. */
           if(m&&m.type==='attributes'&&m.attributeName==='style'&&target&&target.nodeType===1&&target.matches&&target.matches('#happyadProfilePostFeedV581 .ha581Slide img,#happyadHomePhotoFullscreen .haHomeFsAlbumSlide img'))continue;
+          /* V900 : la hauteur du bottom-sheet de partage change à chaque frame
+             pendant un drag. Ce style ne doit pas relancer l'audit global des
+             overlays 60 fois/s. L'état ouvert/fermé reste suivi par la classe du centre. */
+          if(m&&m.type==='attributes'&&m.attributeName==='style'&&target&&target.nodeType===1&&target.id==='happyadShareSheet')continue;
+          /* V901 : likes, avatars, pagination et drag de la poignée modifient souvent
+             le DOM du popup Commentaires. Ces mutations internes ne changent jamais
+             l'état global d'un overlay et ne doivent donc pas relancer reconcile(). */
+          try{if(target&&target.nodeType===1&&target.closest&&target.closest('#happyadHomeCommentPopup')&&target.id!=='happyadHomeCommentPopup')continue;}catch(_comments){}
           if(m.type==='childList'||m.attributeName==='class'||m.attributeName==='style'||m.attributeName==='aria-hidden'){relevant=true;break;}
         }
         if(relevant)schedule('mutation');
