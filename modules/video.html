@@ -26,7 +26,7 @@
   document.addEventListener('DOMContentLoaded',function(){check('dom-ready');},{once:true});
   setTimeout(function(){check('safety');},700);
 })();
-</script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
+</script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
 <script src="../core/return-reset-master-v584.js?v=584"></script>
@@ -229,7 +229,44 @@
   try{ localStorage.removeItem('HAPPYAD_ACTIVE_PROFILE'); }catch(e){}
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="happyad-video-supabase-fast-bridge-v873">
+(function(){
+  'use strict';
+  if(window.__HAPPYAD_VIDEO_SUPABASE_FAST_BRIDGE_V873__)return;
+  window.__HAPPYAD_VIDEO_SUPABASE_FAST_BRIDGE_V873__=true;
+  var loading=null;
+  function adoptParent(){
+    try{
+      if(!window.parent||window.parent===window)return false;
+      if(!window.happyadSupabase&&window.parent.happyadSupabase)window.happyadSupabase=window.parent.happyadSupabase;
+      if(!window.happyadSupabase&&typeof window.parent.happyadSb==='function'){
+        try{window.happyadSupabase=window.parent.happyadSb()||null;}catch(_shared){}
+      }
+      if(!window.supabase&&window.parent.supabase)window.supabase=window.parent.supabase;
+      return !!(window.happyadSupabase||(window.supabase&&window.supabase.createClient));
+    }catch(_e){return false;}
+  }
+  function ensure(){
+    if(adoptParent()||window.happyadSupabase||(window.supabase&&window.supabase.createClient))return Promise.resolve(true);
+    if(loading)return loading;
+    /* Secours autonome uniquement. Le script distant est asynchrone et démarre
+       après le premier rendu local : il ne peut plus produire l'écran noir. */
+    loading=new Promise(function(resolve){
+      try{
+        var script=document.createElement('script');
+        script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        script.async=true;
+        script.onload=function(){resolve(!!(window.supabase&&window.supabase.createClient));};
+        script.onerror=function(){resolve(false);};
+        (document.head||document.documentElement).appendChild(script);
+      }catch(_e){resolve(false);}
+    });
+    return loading;
+  }
+  adoptParent();
+  window.happyadVideoEnsureSupabaseV873=ensure;
+})();
+</script>
 <script src="../core/like-direct-master-v876.js?v=876-like-direct"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
@@ -367,9 +404,66 @@ html.happyadVideoEmbeddedV613E .reel .timeControls{bottom:0!important}
 const $=id=>document.getElementById(id);
 const feed=$('feed'), topBar=$('topBar'), cleanHint=$('cleanHint');
 let allVideos=[], currentVideos=[], activeVideo=null, activeCommentPost=null, commentSort='popular', commentLimit=6, replyingTo=null, activeCartPost=null, expandedReplies={};
+let happyadVideoVisualReadySentV873=false;
+
+function happyadVideoNotifyVisualReadyV873(reason){
+  try{
+    document.documentElement.setAttribute('data-happyad-video-visual-ready-v873','1');
+    if(happyadVideoVisualReadySentV873)return;
+    happyadVideoVisualReadySentV873=true;
+    requestAnimationFrame(function(){
+      try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_VIDEO_VISUAL_READY_V873',reason:String(reason||'first-visual'),at:Date.now()},'*');}catch(_e){}
+    });
+  }catch(_e){}
+}
+
+function happyadVideoDormantWarmupV883(){
+  try{
+    if(!(window.parent&&window.parent!==window))return false;
+    var fr=window.frameElement;
+    return !!(fr&&fr.getAttribute('data-happyad-video-dormant-warmup-v883')==='1');
+  }catch(_e){return false;}
+}
+let happyadVideoBootPromiseV883=null;
+let happyadVideoDormantActivatedV883=false;
+function happyadVideoRunProfileSyncV883(){
+  try{
+    if(window.happyadVideoSyncProfile){
+      happyadVideoTimeout(window.happyadVideoSyncProfile(),1800,'Profil vidéo').catch(function(e){console.warn('video profile sync timeout',e);});
+    }
+  }catch(_e){}
+}
+async function happyadVideoActivateDormantV883(reason){
+  if(happyadVideoDormantActivatedV883)return false;
+  happyadVideoDormantActivatedV883=true;
+  try{if(happyadVideoBootPromiseV883)await Promise.resolve(happyadVideoBootPromiseV883);}catch(_boot){}
+  happyadVideoRunProfileSyncV883();
+  try{await loadVideos();}catch(_load){}
+  try{window.__HAPPYAD_VIDEO_DORMANT_ACTIVATED_V883={reason:String(reason||'visible'),at:Date.now()};}catch(_m){}
+  return true;
+}
+window.addEventListener('message',function(ev){
+  try{
+    var d=ev&&ev.data;
+    if(d&&d.type==='HAPPYAD_VIDEO_ACTIVATE_V883')happyadVideoActivateDormantV883(d.source||'parent-activate');
+  }catch(_e){}
+},true);
 
 
-function happyadSb(){if(window.happyadSupabase)return window.happyadSupabase;if(window.supabase&&window.supabase.createClient){window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});return window.happyadSupabase;}return null}
+function happyadSb(){
+  if(window.happyadSupabase)return window.happyadSupabase;
+  try{
+    if(window.parent&&window.parent!==window){
+      if(window.parent.happyadSupabase){window.happyadSupabase=window.parent.happyadSupabase;return window.happyadSupabase;}
+      if(typeof window.parent.happyadSb==='function'){
+        try{window.happyadSupabase=window.parent.happyadSb()||null;if(window.happyadSupabase)return window.happyadSupabase;}catch(_shared){}
+      }
+      if(!window.supabase&&window.parent.supabase)window.supabase=window.parent.supabase;
+    }
+  }catch(_parent){}
+  if(window.supabase&&window.supabase.createClient){window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});return window.happyadSupabase;}
+  return null;
+}
 
 function happyadVideoUrlLooksVideo(u){return /\.(mp4|webm|mov|m4v|3gp)(\?|#|$)/i.test(String(u||''));}
 function happyadVideoNormalizeKind(){
@@ -839,10 +933,12 @@ const HAPPYAD_VIDEO_ACTION_AT_V68=Object.create(null);
 const HAPPYAD_VIDEO_LOCAL_MUTATION_V68=Object.create(null);
 const HAPPYAD_VIDEO_REMOTE_TIMER_V68=Object.create(null);
 const HAPPYAD_VIDEO_COUNT_TIMER_V68=Object.create(null);
+function happyadVideoFrameVisibleV869(){try{if(document.hidden)return false;var boot=window.happyadVideoVisibilityBootV621B;if(boot&&typeof boot.frameVisible==='function')return !!boot.frameVisible();if(window.parent===window)return true;var f=window.frameElement;return !!(f&&f.classList.contains('on')&&!f.hasAttribute('inert')&&f.getAttribute('aria-hidden')!=='true');}catch(_e){return false;}}
+function happyadVideoRealtimeTrackedV869(id){id=String(id||'');if(!id)return false;try{return !!document.querySelector('.reel[data-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id.replace(/[^a-zA-Z0-9_-]/g,'\\$&'))+'"]');}catch(_e){return false;}}
 function happyadVideoMutationKeyV68(id,kind){return String(id||'')+'::'+String(kind||'actions');}
 function happyadMarkVideoLocalMutationV68(id,kind,ttl){HAPPYAD_VIDEO_LOCAL_MUTATION_V68[happyadVideoMutationKeyV68(id,kind)]=Date.now()+Number(ttl||2500);}
 function happyadVideoMutationRecentV68(id,kind){var k=happyadVideoMutationKeyV68(id,kind),u=Number(HAPPYAD_VIDEO_LOCAL_MUTATION_V68[k]||0);if(u>Date.now())return true;if(u)delete HAPPYAD_VIDEO_LOCAL_MUTATION_V68[k];return false;}
-function happyadScheduleVideoRemoteRefreshV68(id,delay){id=String(id||'');if(!id)return;clearTimeout(HAPPYAD_VIDEO_REMOTE_TIMER_V68[id]);HAPPYAD_VIDEO_REMOTE_TIMER_V68[id]=setTimeout(function(){delete HAPPYAD_VIDEO_REMOTE_TIMER_V68[id];refreshVideoLikeFromSupabase(id);},Number(delay||130));}
+function happyadScheduleVideoRemoteRefreshV68(id,delay){id=String(id||'');if(!id||!happyadVideoRealtimeTrackedV869(id))return false;var run=function(){delete HAPPYAD_VIDEO_REMOTE_TIMER_V68[id];if(!happyadVideoFrameVisibleV869()||!happyadVideoRealtimeTrackedV869(id))return null;return refreshVideoLikeFromSupabase(id);};try{var coordinator=window.HappyadConnectionWorkCoordinatorV869;if(coordinator&&typeof coordinator.schedule==='function')return coordinator.schedule('video-actions-'+id,run,{surface:'video',delay:Number(delay||130),maxDelay:1800,minGap:400});}catch(_e){}clearTimeout(HAPPYAD_VIDEO_REMOTE_TIMER_V68[id]);HAPPYAD_VIDEO_REMOTE_TIMER_V68[id]=setTimeout(run,Number(delay||130));return true;}
 function happyadScheduleVideoCountsV68(id){id=String(id||'');if(!id)return;clearTimeout(HAPPYAD_VIDEO_COUNT_TIMER_V68[id]);HAPPYAD_VIDEO_COUNT_TIMER_V68[id]=setTimeout(function(){delete HAPPYAD_VIDEO_COUNT_TIMER_V68[id];syncVideoPostCounts(id).catch(function(){});},160);}
 function happyadVideoPostId(input){return String((input&&typeof input==='object'?(input.id||input.post_id||input.content_id):input)||'').trim();}
 function happyadVideoSchemaError(err){return /Could not find the ['"][^'"]+['"] column|schema cache|PGRST204|42703/i.test(String((err&&err.message)||err||''));}
@@ -1015,8 +1111,14 @@ async function updateVideoCommentSupabase(commentId,text){const c=happyadSb();if
 async function deleteVideoCommentSupabase(commentId){const c=happyadSb();if(!c||!commentId||String(commentId).indexOf('local_')===0)return;const user=await happyadAuthUser();let q=c.from('happyad_content_comments').delete().eq('id',String(commentId));if(user&&user.id)q=q.eq('user_id',String(user.id));const del=await q.select('id');if(del.error)throw del.error;if(!del.data||!del.data.length)throw new Error('Commentaire non supprimé dans Supabase');try{await c.from('happyad_content_comment_likes').delete().eq('comment_id',String(commentId));}catch(_e){}}
 
 function refreshVideoLikeFromSupabase(postId){try{return Promise.resolve(loadVideoActionsFromSupabase(postId,{force:true})).then(()=>{document.querySelectorAll('.reel[data-id="'+CSS.escape(String(postId))+'"]').forEach(refreshActionUI);if(activeCommentPost&&String(activeCommentPost.id)===String(postId))renderComments();}).catch(function(e){console.warn('video action refresh',e);return getA(postId);});}catch(e){console.warn('video action refresh',e);return Promise.resolve(getA(postId));}}
-window.addEventListener('storage',function(e){try{if(e.key==='HAPPYAD_ACTION_FAST_SYNC_V1'&&e.newValue){var r=JSON.parse(e.newValue||'{}');if(r&&r.id)happyadScheduleVideoRemoteRefreshV68(r.id,140);}}catch(_e){}});
-let HAPPYAD_VIDEO_RT_STARTED=false;function startVideoRealtimeActions(){const c=happyadSb();if(!c||HAPPYAD_VIDEO_RT_STARTED)return;HAPPYAD_VIDEO_RT_STARTED=true;try{c.channel('happyad-video-actions-global').on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_actions'},p=>{const r=(p&&p.new)||p.old;if(r&&r.content_type==='video'&&!happyadVideoMutationRecentV68(r.post_id,'actions'))happyadScheduleVideoRemoteRefreshV68(r.post_id,120);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_comments'},p=>{const r=(p&&p.new)||p.old;if(r&&r.post_id&&!happyadVideoMutationRecentV68(r.post_id,'comments'))happyadScheduleVideoRemoteRefreshV68(r.post_id,140);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_video_views'},p=>{const r=(p&&p.new)||p.old;if(r&&r.post_id&&!happyadVideoMutationRecentV68(r.post_id,'views'))happyadScheduleVideoRemoteRefreshV68(r.post_id,160);}).subscribe();}catch(e){console.warn('video realtime',e)}}setTimeout(startVideoRealtimeActions,700);
+window.addEventListener('storage',function(e){try{if(!happyadVideoFrameVisibleV869())return;if(e.key==='HAPPYAD_ACTION_FAST_SYNC_V1'&&e.newValue){var r=JSON.parse(e.newValue||'{}');if(r&&r.id)happyadScheduleVideoRemoteRefreshV68(r.id,140);}}catch(_e){}});
+let HAPPYAD_VIDEO_RT_STARTED=false,HAPPYAD_VIDEO_RT_CHANNEL_V869=null;
+function stopVideoRealtimeActionsV869(){var old=HAPPYAD_VIDEO_RT_CHANNEL_V869;HAPPYAD_VIDEO_RT_CHANNEL_V869=null;HAPPYAD_VIDEO_RT_STARTED=false;Object.keys(HAPPYAD_VIDEO_REMOTE_TIMER_V68).forEach(function(id){clearTimeout(HAPPYAD_VIDEO_REMOTE_TIMER_V68[id]);delete HAPPYAD_VIDEO_REMOTE_TIMER_V68[id];});if(old){try{var c=happyadSb();if(c&&typeof c.removeChannel==='function')c.removeChannel(old);else if(typeof old.unsubscribe==='function')old.unsubscribe();}catch(_e){}}}
+function startVideoRealtimeActions(){const c=happyadSb();if(!happyadVideoFrameVisibleV869()||!c||HAPPYAD_VIDEO_RT_STARTED)return;HAPPYAD_VIDEO_RT_STARTED=true;try{HAPPYAD_VIDEO_RT_CHANNEL_V869=c.channel('happyad-video-actions-v869').on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_actions'},p=>{const r=(p&&p.new)||p.old;if(r&&r.content_type==='video'&&happyadVideoRealtimeTrackedV869(r.post_id)&&!happyadVideoMutationRecentV68(r.post_id,'actions'))happyadScheduleVideoRemoteRefreshV68(r.post_id,120);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_comments'},p=>{const r=(p&&p.new)||p.old;if(r&&happyadVideoRealtimeTrackedV869(r.post_id)&&!happyadVideoMutationRecentV68(r.post_id,'comments'))happyadScheduleVideoRemoteRefreshV68(r.post_id,140);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_video_views'},p=>{const r=(p&&p.new)||p.old;if(r&&happyadVideoRealtimeTrackedV869(r.post_id)&&!happyadVideoMutationRecentV68(r.post_id,'views'))happyadScheduleVideoRemoteRefreshV68(r.post_id,160);}).subscribe();}catch(e){HAPPYAD_VIDEO_RT_STARTED=false;HAPPYAD_VIDEO_RT_CHANNEL_V869=null;console.warn('video realtime',e)}}
+window.addEventListener('HAPPYAD_MODULE_SUSPEND_V614',stopVideoRealtimeActionsV869,true);
+window.addEventListener('HAPPYAD_MODULE_RESUME_V614',function(){setTimeout(startVideoRealtimeActions,180);},true);
+document.addEventListener('visibilitychange',function(){if(document.hidden)stopVideoRealtimeActionsV869();else if(happyadVideoFrameVisibleV869())setTimeout(startVideoRealtimeActions,180);},true);
+setTimeout(function(){if(happyadVideoFrameVisibleV869())startVideoRealtimeActions();},700);
 function fmt(t){t=Math.floor(t||0);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 function setPausedUI(v){const r=v&&v.closest('.reel');if(r)r.classList.toggle('paused',v.paused)}
 function happyadPauseVideo(v){
@@ -1122,7 +1224,7 @@ reel.querySelector('[data-act="like"] button').onclick=e=>{e.stopPropagation();c
 reel.querySelector('[data-act="fav"] button').onclick=async e=>{e.stopPropagation();const a=getA(p.id);const before={fav:!!a.fav,favs:Number(a.favs||0)};const next=!before.fav;a.fav=next;a.favs=Math.max(0,before.favs+(next?1:-1));setVideoPendingAction(p.id,'fav',next,a.favs,8000);setA(p.id,a);refreshActionUI(reel);toggleVideoActionSupabase(p.id,'fav',next).then(function(){setVideoPendingAction(p.id,'fav',next,getA(p.id).favs,2400);setTimeout(function(){clearVideoPendingAction(p.id,'fav');},2450)}).catch(function(err){clearVideoPendingAction(p.id,'fav');const rb=getA(p.id);rb.fav=before.fav;rb.favs=before.favs;setA(p.id,rb);refreshActionUI(reel);alert('Favori non enregistré : '+(err.message||err));})};
 reel.querySelector('[data-act="comment"] button').onclick=e=>{e.stopPropagation();openComments(p,reel)};
 reel.querySelector('[data-act="share"] button').onclick=async e=>{e.stopPropagation();const a=getA(p.id);const before=Number(a.shares||0);a.shares=before+1;setA(p.id,a);refreshActionUI(reel);try{await toggleVideoActionSupabase(p.id,'share',true)}catch(err){const rb=getA(p.id);rb.shares=before;setA(p.id,rb);refreshActionUI(reel);alert('Partage non enregistré : '+(err.message||err));}sharePost(p,reel)};
-refreshActionUI(reel);try{refreshVideoLikeFromSupabase(p.id);}catch(_actionSync){}return reel}
+refreshActionUI(reel);if(!happyadVideoDormantWarmupV883()){try{refreshVideoLikeFromSupabase(p.id);}catch(_actionSync){}}return reel}
 function happyadVideoPaintCanonicalAvatar(detail){
   detail=detail||{};const uid=String(detail.uid||'').trim(),master=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster;if(!uid||detail.known!==true||!master)return;
   function patch(p){if(!p||happyadVideoOwnerId(p)!==uid)return p;const next=master.patchRecord?master.patchRecord(p,uid):p;Object.assign(p,next);return p;}
@@ -1309,12 +1411,13 @@ function happyadVideoSoftUpdateExistingReels(posts,nextKey){
 async function renderVideoFeed(posts,keepWhenEmpty){
   posts=happyadVideoReorderStart(posts||[]);
   window.__HAPPYAD_VIDEO_SOURCE_V621=posts.slice();
-  try{const master=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster;if(master&&master.resolveMany)master.resolveMany(posts.map(happyadVideoOwnerId).filter(Boolean)).catch(()=>{});}catch(_avatarSync){}
+  try{if(!happyadVideoDormantWarmupV883()){const master=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster;if(master&&master.resolveMany)master.resolveMany(posts.map(happyadVideoOwnerId).filter(Boolean)).catch(()=>{});}}catch(_avatarSync){}
   if(!posts.length){
     if(keepWhenEmpty&&feed.querySelector('.reel'))return;
     try{if(feed.__happyadVideoWindowV621)feed.__happyadVideoWindowV621.destroy();}catch(_d){}
     feed.innerHTML='<div class="empty"><div><b>Aucune vidéo</b><div>Les vidéos publiées apparaîtront ici.</div><a class="btn" href="publish.html">Publier une vidéo</a></div></div>';
     allVideos=[];currentVideos=[];activeVideo=null;
+    happyadVideoNotifyVisualReadyV873('empty-state');
     return;
   }
   const nextKey=videoListKey(posts);
@@ -1396,6 +1499,14 @@ async function renderVideoFeed(posts,keepWhenEmpty){
       if(this.destroyed)return;
       index=Math.max(0,Math.min(this.posts.length-1,Number(index||0)));
       this.activeIndex=index;
+      /* V883 : le préchauffage caché construit la carte et son poster, mais ne
+         crée pas encore le lecteur <video>. Aucun téléchargement média ne peut
+         donc concurrencer le scroll Accueil. Le vrai clic réutilise cette carte
+         puis attache le lecteur dans le même moteur. */
+      if(happyadVideoDormantWarmupV883()){
+        try{sessionStorage.setItem('HAPPYAD_VIDEO_ACTIVE_POST_V621',this.activePostId());}catch(_s){}
+        return;
+      }
       const self=this;
       this.ensure(index,true).then(function(v){
         if(!v)return;
@@ -1514,6 +1625,7 @@ async function renderVideoFeed(posts,keepWhenEmpty){
     feed.addEventListener('scroll',function(){const m=feed.__happyadVideoWindowV621;if(m)m.onScroll();},{passive:true});
   }
   manager.mount(initialIndex);
+  happyadVideoNotifyVisualReadyV873('cached-reel');
   try{
     var visibleNow=window.__HAPPYAD_VIDEO_TAB_VISIBLE_V594===true;
     if(!visibleNow&&window.happyadVideoVisibilityBootV621B)visibleNow=window.happyadVideoVisibilityBootV621B.frameVisible();
@@ -1553,6 +1665,7 @@ async function loadVideos(){
      On récupère uniquement cette publication puis on l'injecte devant la liste. */
   if(exactTarget&&!cached.some(function(p){return String(p&&p.id||p&&p.post_id||'')===exactTarget;})){
     feed.innerHTML='<div class="empty"><div><b>Chargement vidéo...</b><div>Ouverture de la publication sélectionnée.</div></div></div>';
+    happyadVideoNotifyVisualReadyV873('target-loading-shell');
     try{
       var exactPost=await happyadVideoFetchFreshPostById(exactTarget);
       if(exactPost&&isVideo(exactPost))cached=happyadVideoReorderStart(happyadVideoUniq([exactPost].concat(cached)));
@@ -1562,7 +1675,23 @@ async function loadVideos(){
     await renderVideoFeed(cached,true);
   }else{
     feed.innerHTML='<div class="empty"><div><b>Chargement vidéos...</b><div>Synchronisation HAPPYAD en cours.</div></div></div>';
+    happyadVideoNotifyVisualReadyV873('central-loading-shell');
   }
+
+  /* V883 : pendant le préchauffage caché du démarrage, on s'arrête ici.
+     La frame a déjà composé la Centrale depuis les caches locaux, mais aucune
+     requête Supabase, synchro profil ou Realtime ne part en arrière-plan. */
+  if(happyadVideoDormantWarmupV883()){
+    try{
+      window.__HAPPYAD_VIDEO_DORMANT_READY_V883={ready:true,network:false,at:Date.now()};
+      window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_VIDEO_WARM_READY_V883',at:Date.now()},'*');
+    }catch(_warm){}
+    return;
+  }
+
+  /* Le premier écran local est déjà présenté. Le SDK distant n'est demandé que
+     maintenant et seulement si l'Accueil n'a pas fourni son client partagé. */
+  try{if(!happyadSb()&&window.happyadVideoEnsureSupabaseV873)await window.happyadVideoEnsureSupabaseV873();}catch(_sdk){}
 
   let appliedKey=feed.dataset.videoKey||'';
   async function applyVideoList(source, delayed){
@@ -1677,7 +1806,15 @@ function showVideoCommentMenu(c,a){
 }
 $('commentList').onclick=e=>{const prof=e.target.closest('[data-comment-profile]');const like=e.target.closest('.cLike');const rep=e.target.closest('.cReply');const cmenu=e.target.closest('[data-cmenu]');const more=e.target.closest('#moreComments');const tog=e.target.closest('[data-toggle-replies]');if(cmenu){e.stopPropagation();if(!activeCommentPost)return;const a=getA(activeCommentPost.id);const c=findComment(a.commentsList,cmenu.dataset.cmenu);if(!c||!isCommentMine(c))return;showVideoCommentMenu(c,a);return}if(prof){if(!activeCommentPost)return;const a=getA(activeCommentPost.id);const c=findComment(a.commentsList,prof.dataset.commentId);if(c)openCommentProfile(c);else{localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify({id:prof.dataset.commentUid||'',user_id:prof.dataset.commentUid||'',name:prof.dataset.commentProfile||'Utilisateur',handle:prof.dataset.commentHandle||'',username:String(prof.dataset.commentHandle||'').replace(/^@+/,''),avatar:prof.dataset.commentAvatar||'',avatar_url:prof.dataset.commentAvatar||'',badge:prof.dataset.commentBadge||''}));(function(u,localU){try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:u,source:'video-comment-fallback-profile-route-v527'},'*');return;}}catch(_e){}location.href=localU;})('modules/visitor-profile.html?uid='+encodeURIComponent(prof.dataset.commentUid||'')+(activeCommentPost&&activeCommentPost.id?'&post='+encodeURIComponent(activeCommentPost.id):''),'visitor-profile.html?uid='+encodeURIComponent(prof.dataset.commentUid||'')+(activeCommentPost&&activeCommentPost.id?'&post='+encodeURIComponent(activeCommentPost.id):''));}return}if(more){commentLimit+=8;renderComments();return}if(tog){const id=tog.dataset.toggleReplies;expandedReplies[id]=!expandedReplies[id];renderComments();return}if(!activeCommentPost)return;const a=getA(activeCommentPost.id);if(like){if(like.dataset.busy==='1')return;like.dataset.busy='1';const c=findComment(a.commentsList,like.dataset.cid);if(c){const oldOn=!!c.liked,oldLikes=Number(c.likes||0);c.liked=!oldOn;c.likes=Math.max(0,oldLikes+(c.liked?1:-1));setA(activeCommentPost.id,a);renderComments();persistVideoCommentLike(c,c.liked,c.likes).then(saved=>{if(saved){const ax=getA(activeCommentPost.id);const cc=findComment(ax.commentsList,like.dataset.cid);if(cc){cc.likes=Number(saved.likes||0);cc.liked=!!saved.liked;}setA(activeCommentPost.id,ax);renderComments();}}).catch(err=>{const rb=getA(activeCommentPost.id);const cc=findComment(rb.commentsList,like.dataset.cid);if(cc){cc.likes=oldLikes;cc.liked=oldOn;}setA(activeCommentPost.id,rb);renderComments();alert('J’aime commentaire non enregistré : '+(err.message||err));}).finally(()=>{like.dataset.busy='0'});}else like.dataset.busy='0';return}if(rep){replyingTo=rep.dataset.cid;$('commentInput').focus();renderComments()}};
 
-(async function(){try{if(window.happyadVideoSyncProfile)happyadVideoTimeout(window.happyadVideoSyncProfile(),1800,'Profil vidéo').catch(function(e){console.warn('video profile sync timeout',e);});}catch(e){} loadVideos();})();
+(async function(){
+  var dormant=happyadVideoDormantWarmupV883();
+  if(!dormant){
+    happyadVideoDormantActivatedV883=true;
+    happyadVideoRunProfileSyncV883();
+  }
+  happyadVideoBootPromiseV883=loadVideos();
+  try{await happyadVideoBootPromiseV883;}catch(_e){}
+})();
 </script>
 
 <script id="happyad-v77-video-profile-supabase-sync">
@@ -1686,7 +1823,7 @@ $('commentList').onclick=e=>{const prof=e.target.closest('[data-comment-profile]
   const URL=window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co';
   const KEY=window.HAPPYAD_SUPABASE_KEY||'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
   let sb=null;
-  function client(){if(sb)return sb;if(window.supabase&&window.supabase.createClient){sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});return sb;}return null;}
+  function client(){if(sb)return sb;try{if(typeof happyadSb==='function'){sb=happyadSb();if(sb)return sb;}}catch(_shared){}if(window.supabase&&window.supabase.createClient){sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});return sb;}return null;}
   function normBadge(v){v=String(v||'aucun').toLowerCase();if(v==='bleu'||v==='blue')return 'bleu';if(v==='violet'||v==='jaune'||v==='yellow')return 'violet';return 'aucun';}
   async function syncProfile(){
     const c=client(); if(!c) return;

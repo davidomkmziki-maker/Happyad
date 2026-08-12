@@ -4,8 +4,8 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V864_OWNER_PROFILE_LIGHT_WARMUP';
-  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=866-profile-scroll-hard';
+  var MASTER_VERSION='NAV_MASTER_V883_CENTRAL_VIDEO_SINGLE_FIRST_OPEN';
+  var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=869-connection-phase2';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
   var SHELL_ID='happyadAppShell';
@@ -27,11 +27,11 @@
 
   var pages={
     home:'index.html',
-    profile:'modules/my-profile.html?v=866-profile-scroll-hard',
+    profile:'modules/my-profile.html?v=877-dock-execution-direct',
     profile_public:'modules/visitor-profile.html',
-    video:'modules/video.html?v=855r79-target-first-direct',
+    video:'modules/video.html?v=883-central-video-single-first-open',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',
+    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line',
     publish:'modules/publish.html',
     map:'modules/map.html'
   };
@@ -46,6 +46,12 @@
       var st=document.createElement('style');st.id=SKELETON_STYLE_ID;
       st.textContent='\n'+
       '#happyadAppShell.happyadSkeletonOpen{display:block!important;background:#050507!important;}\n'+
+      /* V876 : le document Messages peut réellement composer son cache, mais le
+         shell entier reste transparent par opacity. Aucune règle noire héritée
+         du routeur ou du dock ne peut donc recouvrir la surface courante. */
+      '#happyadAppShell.happyadMessageCachePreparingV876{display:block!important;opacity:0!important;visibility:visible!important;background:transparent!important;pointer-events:none!important;}\n'+
+      '#happyadAppShell.happyadMessageCachePreparingV876 #happyadAppFrame_message{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:none!important;}\n'+
+      '#happyadAppShell.happyadMessageCachePreparingWithinShellV876 #happyadAppFrame_message{display:block!important;opacity:0!important;visibility:visible!important;pointer-events:none!important;}\n'+
       '.happyadTapAcceptedV16U{filter:brightness(1.08)!important;transition:filter .12s ease,transform .12s ease!important;}\n'+
       '#happyadAppSkeleton{position:absolute!important;inset:0!important;z-index:7!important;display:none!important;background:linear-gradient(180deg,#050609 0%,#020306 100%)!important;color:#fff!important;overflow:hidden!important;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;pointer-events:auto!important;}\n'+
       '#happyadAppSkeleton.on{display:block!important;}\n'+
@@ -455,6 +461,21 @@
     }
     return found||null;
   }
+  function videoDirectFirstCachedPostV873(){
+    try{
+      var list=readVideoDirectList(),firstVideo=null;
+      for(var i=0;i<list.length;i++){
+        var p=list[i]||{};
+        var kind=String(p.kind||p.type||p.mediaType||p.media_type||'').toLowerCase();
+        var media=String(p.videoUrl||p.video_url||p.mediaUrl||p.media_url||p.homeMediaUrl||p.home_media_url||p.mediaPath||p.media_path||'').toLowerCase();
+        var isVideo=kind.indexOf('video')>=0||/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(media)||String(p.__from_video||'')==='1';
+        if(!isVideo)continue;
+        if(!firstVideo)firstVideo=p;
+        if(videoPosterFromPost(p))return p;
+      }
+      return firstVideo;
+    }catch(_e){return null;}
+  }
   function ensureVideoDirect(){
     try{
       injectSkeletonStyle();
@@ -468,8 +489,11 @@
     try{
       var d=ensureVideoDirect(); if(!d)return false;
       if(!on){d.classList.remove('on');d.innerHTML='';d.setAttribute('aria-hidden','true');return false;}
-      var p=videoDirectPostForUrl(url)||null;
       var hasSpecific=hasPost(url);
+      /* V873 : l'ouverture centrale réutilise le premier poster vidéo déjà présent
+         dans les caches Accueil/Vidéos. Même pendant un démarrage froid, le clic ne
+         découvre donc plus le fond noir brut de l'iframe. */
+      var p=videoDirectPostForUrl(url)||(!hasSpecific?videoDirectFirstCachedPostV873():null);
       try{var root=ensureShell();if(root){root.classList.add('on');root.setAttribute('aria-hidden','false');}document.body.classList.add('happyadAppOpen');}catch(_r){}
       var poster=p?videoPosterFromPost(p):'';
       var title=String((p&&(p.title||p.desc||p.description))||(hasSpecific?'Vidéo HAPPYAD':'Vidéos HAPPYAD')).trim();
@@ -522,7 +546,7 @@
       if(!key)return null;
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
-      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=855r77-direct-chat-shared',source:'url'};
+      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=882-conversation-no-white-line',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/my-profile.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
@@ -533,6 +557,7 @@
     activePage=page||'home';activeUrl=rootUrl(url||pages[activePage]||'index.html');
     rememberReloadRouteV16ZH(activePage,activeUrl);
     try{if(window.HappyState)HappyState.route(activePage,{url:activeUrl},MASTER_VERSION);}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_CONNECTION_SURFACE_CHANGE_V869',{detail:{page:activePage,url:activeUrl,at:Date.now()}}));}catch(_surface){}
   }
   var VISITOR_DOCK_LOCK_CLASS_V854R3='happyadVisitorProfileNoDockV854R3';
   var visitorDockGuardV854R3=null;
@@ -631,9 +656,9 @@
   }
   function persistentMainUrl(page){
     page=String(page||'');
-    if(page==='video')return 'modules/video.html?v=855r79-target-first-direct';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared';
-    if(page==='profile')return 'modules/my-profile.html?v=866-profile-scroll-hard';
+    if(page==='video')return 'modules/video.html?v=883-central-video-single-first-open';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line';
+    if(page==='profile')return 'modules/my-profile.html?v=877-dock-execution-direct';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html';
     return pages[page]||'index.html';
@@ -668,39 +693,181 @@
       return true;
     }catch(_e){return false;}
   }
-  var ownerProfileWarmupTimerV864=0;
-  function scheduleOwnerProfileWarmupV864(delay){
+  var messageDormantWarmupTimerV876=0;
+  var messageDormantWarmupStartedV876=false;
+  var messageDormantWarmupLastInteractionV876=Date.now();
+  /* V879 point 1 : le premier clic après un vrai redémarrage ne doit plus payer
+     la création froide de Messages. La frame prépare seulement son document et
+     le cache local au premier créneau calme de l'Accueil. Le travail connecté
+     (session Supabase, Realtime, présence) reste bloqué jusqu'à l'affichage réel. */
+  var MESSAGE_WARMUP_QUIET_MS_V879=160;
+  var MESSAGE_WARMUP_BOOT_DELAY_MS_V879=180;
+  function messageWarmupScrollActiveV876(){
     try{
-      clearTimeout(ownerProfileWarmupTimerV864);
-      var earliest=Date.now()+Math.max(450,Number(delay)||650);
-      function check(){
-        ownerProfileWarmupTimerV864=0;
-        try{
-          if(document.hidden){ownerProfileWarmupTimerV864=setTimeout(check,700);return;}
-          if(activePage!=='home')return;
-          if(!ownerAuthUidHintV855R23())return;
-          var existing=document.getElementById(frameId('profile'));if(existing&&String(existing.getAttribute('data-happyad-src')||'').trim())return;
-          var priority=window.HappyadHomeScrollPriorityV863;
-          if(Date.now()<earliest||(priority&&typeof priority.isActive==='function'&&priority.isActive())){
-            ownerProfileWarmupTimerV864=setTimeout(check,140);return;
-          }
-          /* V864 : Mon profil est préparé seulement quand l'Accueil est calme.
-             Le document Profil charge l'identité + les 12 premières publications,
-             mais garde Realtime, pagination et compteurs lourds éteints tant qu'il
-             reste caché. */
-          preloadFrame('profile',persistentMainUrl('profile'));
-        }catch(_e){ownerProfileWarmupTimerV864=setTimeout(check,260);}
+      var global=window.HappyadGlobalScrollCoordinatorV868;
+      if(global&&typeof global.isActive==='function'&&global.isActive())return true;
+    }catch(_global){}
+    try{
+      var homePriority=window.HappyadHomeScrollPriorityV863;
+      if(homePriority&&typeof homePriority.isActive==='function'&&homePriority.isActive())return true;
+    }catch(_home){}
+    return false;
+  }
+  function messageWarmupConnectionBusyV876(){
+    try{
+      var coordinator=window.HappyadConnectionWorkCoordinatorV869;
+      var status=coordinator&&typeof coordinator.status==='function'&&coordinator.status();
+      var lastAt=Number(status&&status.stats&&status.stats.lastAt||0)||0;
+      return !!(status&&(Number(status.queued||0)>0||(lastAt&&Date.now()-lastAt<700)));
+    }catch(_e){return false;}
+  }
+  function messageWarmupSurfaceBlockedV876(){
+    try{
+      var body=document.body,html=document.documentElement;
+      var classes=['happyadInternalScreenOpenV591','happyadNotificationInternalV591','haHomePhotoFsLock','happyadPhotoSurfaceV591','modal-open','story-open','fullscreen-open','happyadShareOpen'];
+      for(var i=0;i<classes.length;i++)if((body&&body.classList.contains(classes[i]))||(html&&html.classList.contains(classes[i])))return true;
+    }catch(_e){}
+    return false;
+  }
+  function markMessageWarmupInteractionV876(event){
+    messageDormantWarmupLastInteractionV876=Date.now();
+    /* Un bouton du dock est une intention de navigation, pas un geste de scroll.
+       L'annulation éventuelle appartient à loadFrame(), après acceptation du clic.
+       Cela évite de suspendre Messages ou Profil juste avant leur ouverture. */
+    try{
+      var dockTarget=event&&event.target&&event.target.closest&&event.target.closest('.bottom [data-happyad-main-nav]');
+      if(dockTarget){
+        window.__HAPPYAD_DOCK_INTENT_V877={page:String(dockTarget.getAttribute('data-happyad-main-nav')||''),at:Date.now()};
+        return;
       }
-      ownerProfileWarmupTimerV864=setTimeout(check,Math.max(120,Number(delay)||650));
+    }catch(_dockIntent){}
+    if(!messageDormantWarmupStartedV876)return;
+    try{
+      var fr=document.getElementById(frameId('message'));
+      if(activePage==='home'&&fr&&fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1'&&fr.getAttribute('data-happyad-message-cache-ready-v875')!=='1'){
+        cancelMessageCachePreparationV876('home-gesture-interrupt-warmup-v876');
+        window.__HAPPYAD_MESSAGE_DORMANT_WARMUP_V876={started:true,ready:false,interrupted:true,at:Date.now(),network:false};
+      }
+    }catch(_interrupt){}
+  }
+  function startMessageDormantWarmupV876(){
+    try{
+      if(messageDormantWarmupStartedV876||document.hidden||activePage!=='home')return false;
+      var uid=ownerAuthUidHintV855R23();
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uid))return false;
+      if(messageWarmupScrollActiveV876()||messageWarmupSurfaceBlockedV876()||Date.now()-messageDormantWarmupLastInteractionV876<MESSAGE_WARMUP_QUIET_MS_V879)return false;
+      var page='message',url=rootUrl(persistentMainUrl(page));
+      var root=ensureShell();if(!root)return false;
+      var fr=ensureFrame(page,url);if(!fr)return false;
+      var hasSource=!!String(fr.getAttribute('data-happyad-src')||'').trim();
+      if(hasSource&&frameLooksReady(fr,'message')){
+        messageDormantWarmupStartedV876=true;
+        fr.setAttribute('data-happyad-message-warm-ready-v876','1');
+        window.__HAPPYAD_MESSAGE_DORMANT_WARMUP_V876={started:true,ready:true,reused:true,at:Date.now(),url:url,network:false};
+        return true;
+      }
+      messageDormantWarmupStartedV876=true;
+      /* Cache local uniquement. La frame compose hors écran sans devenir une
+         surface active : pas de classe .on, pas de verrou de scroll, aucun noir. */
+      root.classList.remove('on','happyadSkeletonOpen');
+      root.classList.add('happyadMessageCachePreparingV876');
+      root.setAttribute('aria-hidden','true');
+      fr.classList.remove('on');
+      fr.setAttribute('data-happyad-message-dormant-warmup-v876','1');
+      fr.setAttribute('data-happyad-message-cache-prepare-v875','1');
+      fr.setAttribute('data-happyad-message-cache-from-page-v875','home');
+      fr.removeAttribute('data-happyad-message-cache-ready-v875');
+      fr.removeAttribute('data-happyad-first-render-ready-v623');
+      fr.setAttribute('data-happyad-loading','1');
+      fr.setAttribute('loading','eager');
+      fr.style.opacity='';fr.style.visibility='visible';
+      fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');
+      if(!hasSource){
+        fr.setAttribute('data-happyad-src',url);
+        fr.src=url;
+      }else{
+        /* V879 : si un scroll avait interrompu une première préparation, la frame
+           persistante est réarmée sans rechargement. Le maître Messages repeint son
+           cache local et renvoie READY; l'utilisateur ne paie donc plus l'interruption. */
+        try{fr.contentWindow&&fr.contentWindow.postMessage({
+          type:'HAPPYAD_MESSAGE_CACHE_PREPARE_V875',
+          detail:{mode:'inbox',source:'navigation-warmup-rearm-v879'}
+        },'*');}catch(_rearm){}
+      }
+      window.__HAPPYAD_MESSAGE_DORMANT_WARMUP_V876={started:true,ready:false,rearmed:hasSource,at:Date.now(),url:url,network:false};
+      return true;
+    }catch(_e){messageDormantWarmupStartedV876=false;return false;}
+  }
+  function scheduleMessageDormantWarmupV876(delay){
+    try{
+      if(messageDormantWarmupStartedV876)return true;
+      clearTimeout(messageDormantWarmupTimerV876);
+      var wait=Math.max(90,Number(delay)||MESSAGE_WARMUP_BOOT_DELAY_MS_V879);
+      messageDormantWarmupTimerV876=setTimeout(function check(){
+        messageDormantWarmupTimerV876=0;
+        if(messageDormantWarmupStartedV876)return;
+        if(document.hidden||activePage!=='home'||messageWarmupScrollActiveV876()||messageWarmupSurfaceBlockedV876()||Date.now()-messageDormantWarmupLastInteractionV876<MESSAGE_WARMUP_QUIET_MS_V879){
+          messageDormantWarmupTimerV876=setTimeout(check,110);
+          return;
+        }
+        if(!startMessageDormantWarmupV876())messageDormantWarmupTimerV876=setTimeout(check,220);
+      },wait);
       return true;
     }catch(_e){return false;}
   }
+  try{
+    ['pointerdown','touchstart','wheel','scroll'].forEach(function(type){window.addEventListener(type,markMessageWarmupInteractionV876,{passive:true,capture:true});});
+    window.addEventListener('HAPPYAD_GLOBAL_SCROLL_STATE_CHANGE_V868',function(event){if(event&&event.detail&&event.detail.active)markMessageWarmupInteractionV876();},true);
+  }catch(_warmupSignals){}
+  var ownerProfileWarmupTimerV864=0;
+  /* V880 point 2 : Mon profil adopte le même premier accès froid que Messages.
+     Sa frame persistante est préparée très tôt dès que l'Accueil est calme. Le
+     moteur propriétaire reste en warmOnly : cache local/identité + première page
+     locale seulement; Realtime, pagination réseau et compteurs secondaires restent
+     suspendus tant que la frame n'est pas réellement visible. */
+  var OWNER_PROFILE_WARMUP_BOOT_DELAY_MS_V880=220;
+  function scheduleOwnerProfileWarmupV864(delay){
+    try{
+      clearTimeout(ownerProfileWarmupTimerV864);
+      var earliest=Date.now()+Math.max(180,Number(delay)||OWNER_PROFILE_WARMUP_BOOT_DELAY_MS_V880);
+      function check(){
+        ownerProfileWarmupTimerV864=0;
+        try{
+          if(document.hidden){ownerProfileWarmupTimerV864=setTimeout(check,420);return;}
+          if(activePage!=='home'){ownerProfileWarmupTimerV864=setTimeout(check,240);return;}
+          /* Au boot, Auth peut confirmer la session après le routeur. Ne pas créer
+             de profil invité; l'événement HAPPYAD_AUTH_STATE_V595 relancera ce
+             warmup dès que l'UID propriétaire est réellement disponible. */
+          if(!ownerAuthUidHintV855R23())return;
+          var existing=document.getElementById(frameId('profile'));
+          if(existing&&String(existing.getAttribute('data-happyad-src')||'').trim())return;
+          var priority=window.HappyadHomeScrollPriorityV863;
+          var global=window.HappyadGlobalScrollCoordinatorV868;
+          if(Date.now()<earliest
+             ||(priority&&typeof priority.isActive==='function'&&priority.isActive())
+             ||(global&&typeof global.isActive==='function'&&global.isActive())){
+            ownerProfileWarmupTimerV864=setTimeout(check,110);return;
+          }
+          preloadFrame('profile',persistentMainUrl('profile'));
+        }catch(_e){ownerProfileWarmupTimerV864=setTimeout(check,220);}
+      }
+      ownerProfileWarmupTimerV864=setTimeout(check,Math.max(110,Number(delay)||OWNER_PROFILE_WARMUP_BOOT_DELAY_MS_V880));
+      return true;
+    }catch(_e){return false;}
+  }
+  var videoDormantWarmupTimerV883=0;
+  var VIDEO_WARMUP_BOOT_DELAY_MS_V883=320;
+  var VIDEO_WARMUP_QUIET_MS_V883=220;
   function preloadVideoFrameV624(){
     try{
       var page='video',url=persistentMainUrl(page),root=ensureShell();
       if(!root)return false;
       var fr=ensureFrame(page,url);if(!fr)return false;
       if(String(fr.getAttribute('data-happyad-src')||'').trim())return true;
+      /* V883 : préparation froide de la Centrale uniquement depuis les caches
+         locaux. Le module reconnaît cet attribut et s'arrête avant Supabase,
+         Realtime et synchronisation profil tant que Vidéos n'est pas ouverte. */
+      fr.setAttribute('data-happyad-video-dormant-warmup-v883','1');
       fr.setAttribute('data-happyad-preloading-v594','1');
       fr.setAttribute('data-happyad-src',rootUrl(url));
       fr.setAttribute('data-happyad-loading','1');
@@ -709,48 +876,58 @@
       fr.style.opacity='';fr.style.visibility='';
       fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');
       fr.src=rootUrl(url);
-      try{window.__HAPPYAD_VIDEO_WARMUP_V624__={started:true,at:Date.now(),url:url};}catch(_w){}
+      try{window.__HAPPYAD_VIDEO_WARMUP_V624__={started:true,ready:false,dormant:true,network:false,at:Date.now(),url:url};}catch(_w){}
       return true;
     }catch(_e){return false;}
   }
-  function scheduleVideoWarmupV624(){
+  function scheduleVideoWarmupV624(delay){
     try{
-      if(window.__HAPPYAD_VIDEO_WARMUP_SCHEDULED_V624__)return false;
-      window.__HAPPYAD_VIDEO_WARMUP_SCHEDULED_V624__=true;
-      var run=function(){
+      clearTimeout(videoDormantWarmupTimerV883);
+      var wait=Math.max(180,Number(delay)||VIDEO_WARMUP_BOOT_DELAY_MS_V883);
+      var earliest=Date.now()+wait;
+      function check(){
+        videoDormantWarmupTimerV883=0;
         try{
-          if(activePage!=='home'){window.__HAPPYAD_VIDEO_WARMUP_SCHEDULED_V624__=false;return;}
+          if(document.hidden){videoDormantWarmupTimerV883=setTimeout(check,420);return;}
+          if(activePage!=='home')return;
+          var existing=document.getElementById(frameId('video'));
+          if(existing&&String(existing.getAttribute('data-happyad-src')||'').trim())return;
+          var priority=window.HappyadHomeScrollPriorityV863;
+          var global=window.HappyadGlobalScrollCoordinatorV868;
+          var scrollActive=(priority&&typeof priority.isActive==='function'&&priority.isActive())||
+                           (global&&typeof global.isActive==='function'&&global.isActive());
+          if(Date.now()<earliest||scrollActive||messageWarmupSurfaceBlockedV876()||
+             Date.now()-messageDormantWarmupLastInteractionV876<VIDEO_WARMUP_QUIET_MS_V883){
+            videoDormantWarmupTimerV883=setTimeout(check,120);return;
+          }
           preloadVideoFrameV624();
-        }catch(_e){}
-      };
-      if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:450});
-      else setTimeout(run,160);
+        }catch(_e){videoDormantWarmupTimerV883=setTimeout(check,240);}
+      }
+      videoDormantWarmupTimerV883=setTimeout(check,wait);
       return true;
     }catch(_e){return false;}
   }
+
   function scheduleMainTabsPreloadV594(){
     try{
-      if(window[MAIN_TABS_PRELOAD_FLAG])return true;
+      if(window[MAIN_TABS_PRELOAD_FLAG]){
+        /* V883 : si le tout premier créneau a été manqué parce que l'utilisateur
+           a quitté l'Accueil très vite, un retour Accueil réarme uniquement les
+           warmups encore absents. */
+        scheduleMessageDormantWarmupV876(MESSAGE_WARMUP_BOOT_DELAY_MS_V879);
+        scheduleOwnerProfileWarmupV864(OWNER_PROFILE_WARMUP_BOOT_DELAY_MS_V880);
+        scheduleVideoWarmupV624(VIDEO_WARMUP_BOOT_DELAY_MS_V883);
+        return true;
+      }
       window[MAIN_TABS_PRELOAD_FLAG]=true;
       window.__HAPPYAD_MAIN_TABS_DIRECT_V625__=true;
-      var queue=[
-        {page:'video',delay:80},
-        {page:'profile',delay:650,lightWarmup:true},
-        {page:'message',delay:820},
-        {page:'publish',delay:1320}
-      ];
-      queue.forEach(function(item){
-        if(item.page==='profile'){
-          scheduleOwnerProfileWarmupV864(item.delay);
-          return;
-        }
-        setTimeout(function(){
-          try{
-            if(item.page==='video')preloadVideoFrameV624();
-            else preloadFrame(item.page,persistentMainUrl(item.page));
-          }catch(_e){}
-        },item.delay);
-      });
+      /* V879 point 1 : Messages reste un préchauffage dormant/local uniquement.
+         Il démarre très tôt au premier repos physique de l'Accueil. On ne le bloque
+         plus derrière le coordinateur réseau de l'Accueil, car son boot caché
+         s'arrête avant Supabase/Realtime. Le scroll garde néanmoins priorité absolue. */
+      scheduleMessageDormantWarmupV876(MESSAGE_WARMUP_BOOT_DELAY_MS_V879);
+      scheduleOwnerProfileWarmupV864(OWNER_PROFILE_WARMUP_BOOT_DELAY_MS_V880);
+      scheduleVideoWarmupV624(VIDEO_WARMUP_BOOT_DELAY_MS_V883);
       return true;
     }catch(_e){return false;}
   }
@@ -790,6 +967,7 @@
       var txt=String(d.body.innerText||'').replace(/\s+/g,' ').trim().toLowerCase();
       if(!txt&&!(d.images&&d.images.length)&&!d.querySelector('video,.reel,#videoFeed,.videoFeed,.centralVideo,.happyadVideo'))return false;
       if(page==='profile'||page==='profile_public'){
+        if(page==='profile'&&fr.getAttribute('data-happyad-profile-shell-ready-v877')==='1')return true;
         var html=d.documentElement;
         var gate=!!(html&&html.classList&&html.classList.contains('haProfileBootGateV621C'));
         var masterReady=!!(html&&html.classList&&html.classList.contains('haProfileReadyV621C'));
@@ -797,9 +975,9 @@
         return !gate&&(masterReady||signaled);
       }
       if(page==='message'){
-        var messageMaster=false;
-        try{messageMaster=!!(fr.contentWindow&&fr.contentWindow.HappyadMessageMaster);}catch(_m){}
-        return messageMaster||fr.getAttribute('data-happyad-first-render-ready-v623')==='1';
+        var htmlMessage=d.documentElement;
+        return fr.getAttribute('data-happyad-message-cache-ready-v875')==='1'||
+          !!(htmlMessage&&htmlMessage.getAttribute('data-happyad-message-cache-ready-v875')==='1');
       }
       if(page==='video'){
         /* V16R: la centrale vidéo doit apparaître vite. On attend seulement que le document ne soit plus vide,
@@ -816,6 +994,11 @@
       if(!fr||fr.getAttribute('data-happyad-defer-visible')!=='1')return false;
       var started=Number(fr.getAttribute('data-happyad-skeleton-start')||0)||Date.now();
       var elapsed=Date.now()-started;
+      /* V876 : aucun plafond ne peut révéler une frame vide. Le signal enfant est
+         émis même sans IndexedDB et reste donc l'unique preuve de peinture. */
+      if(page==='message'&&fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1'){
+        return !frameLooksReady(fr,'message');
+      }
       if(elapsed<minSkeletonMs(page))return true;
       if(elapsed<maxSkeletonMs(page)&&!frameLooksReady(fr,page))return true;
     }catch(_e){}
@@ -863,11 +1046,90 @@
       watch();
     }catch(_e){try{showVideoDirect(url,false);}catch(_x){}}
   }
+  function centralVideoVisualReadyV873(fr){
+    try{
+      var d=fr&&fr.contentDocument;if(!d||!d.body)return false;
+      var html=d.documentElement;
+      if(html&&html.getAttribute('data-happyad-video-visual-ready-v873')==='1')return true;
+      var feed=d.getElementById('feed');
+      if(!feed)return false;
+      return !!feed.querySelector('.reel,.empty');
+    }catch(_e){return false;}
+  }
+  function stopCentralVideoOpeningV873(fr,token,reason){
+    try{
+      if(!fr||fr.__happyadCentralVideoOpeningTokenV873!==token)return false;
+      if(fr.__happyadCentralVideoOpeningWatchV873){clearTimeout(fr.__happyadCentralVideoOpeningWatchV873);fr.__happyadCentralVideoOpeningWatchV873=0;}
+      fr.__happyadCentralVideoOpeningTokenV873='';
+      showVideoDirect('',false);
+      window.__HAPPYAD_CENTRAL_VIDEO_OPENING_V873={reason:String(reason||'ready'),at:Date.now()};
+      return true;
+    }catch(_e){return false;}
+  }
+  function cancelMessageCachePreparationV876(reason){
+    try{
+      var root=shell();
+      var fr=document.getElementById(frameId('message'));
+      if(root)root.classList.remove('happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');
+      if(!fr||fr.getAttribute('data-happyad-message-cache-prepare-v875')!=='1')return false;
+      try{if(fr.__happyadRevealWatch){clearTimeout(fr.__happyadRevealWatch);fr.__happyadRevealWatch=null;}}catch(_watch){}
+      try{if(fr.__happyadLoadWatch){clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=null;}}catch(_load){}
+      fr.removeAttribute('data-happyad-defer-visible');
+      fr.removeAttribute('data-happyad-skeleton-start');
+      fr.removeAttribute('data-happyad-message-cache-prepare-v875');
+      fr.removeAttribute('data-happyad-message-cache-from-page-v875');
+      fr.removeAttribute('data-happyad-message-dormant-warmup-v876');
+      fr.classList.remove('on');
+      fr.style.opacity='';fr.style.visibility='';
+      fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');
+      pauseFrame(fr,reason||'cancel-message-cache-prepare-v876');
+      if(root&&activePage==='home'&&!root.querySelector('.happyadAppFrame.on')){
+        root.classList.remove('on');root.setAttribute('aria-hidden','true');
+      }
+      /* V879 : une interruption de geste ne doit pas marquer le warmup comme
+         définitivement effectué. On le réarme seulement après retour au repos;
+         le coordinateur de scroll garde donc la priorité absolue. */
+      if(activePage==='home'&&/home-gesture-interrupt-warmup-v876/i.test(String(reason||''))){
+        messageDormantWarmupStartedV876=false;
+        scheduleMessageDormantWarmupV876(MESSAGE_WARMUP_BOOT_DELAY_MS_V879);
+      }
+      return true;
+    }catch(_e){return false;}
+  }
+  function startCentralVideoOpeningV873(fr,url){
+    try{
+      if(!fr)return false;
+      try{if(window.HappyPwaInstallV610&&typeof window.HappyPwaInstallV610.hide==='function')window.HappyPwaInstallV610.hide();}catch(_pwa){}
+      if(fr.__happyadCentralVideoOpeningWatchV873){clearTimeout(fr.__happyadCentralVideoOpeningWatchV873);fr.__happyadCentralVideoOpeningWatchV873=0;}
+      var token='video873-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+      var started=Date.now();
+      fr.__happyadCentralVideoOpeningTokenV873=token;
+      showVideoDirect(url,true);
+      function watch(){
+        try{
+          if(fr.__happyadCentralVideoOpeningTokenV873!==token)return;
+          if(activePage!=='video'){stopCentralVideoOpeningV873(fr,token,'leave-video');return;}
+          if(centralVideoVisualReadyV873(fr)){
+            requestAnimationFrame(function(){stopCentralVideoOpeningV873(fr,token,'first-visual');});
+            return;
+          }
+          /* Aucun temps minimal : le poster disparaît au premier rendu utile.
+             Le plafond court empêche une couche de chargement persistante si un
+             ancien navigateur ne transmet pas le signal visuel. */
+          if(Date.now()-started>=720){stopCentralVideoOpeningV873(fr,token,'short-safety');return;}
+          fr.__happyadCentralVideoOpeningWatchV873=setTimeout(watch,24);
+        }catch(_e){stopCentralVideoOpeningV873(fr,token,'watch-error');}
+      }
+      fr.__happyadCentralVideoOpeningWatchV873=setTimeout(watch,16);
+      return true;
+    }catch(_e){try{showVideoDirect(url,false);}catch(_x){}return false;}
+  }
   function revealFrame(fr,page,url,source){
     /* V656 : aucun rappel différé d'une ancienne page ne peut reprendre l'écran.
        Ce verrou bloque notamment une frame Vidéo qui termine son chargement après
        le retour du fullscreen photo dans un Profil visiteur. */
-    if(page&&activePage&&page!==activePage){
+    var validMessageCacheRevealV875=page==='message'&&fr&&fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1'&&String(fr.getAttribute('data-happyad-message-cache-from-page-v875')||'')===String(activePage||'');
+    if(page&&activePage&&page!==activePage&&!validMessageCacheRevealV875){
       try{
         if(fr){fr.classList.remove('on');fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');fr.style.opacity='';fr.style.visibility='';pauseFrame(fr,'stale-frame-reveal-blocked-v656-'+page);}
         if(page==='video'){showVideoDirect('',false);blankVideoFrame('stale-video-reveal-v656');}
@@ -878,15 +1140,28 @@
     try{if(fr&&fr.__happyadLoadWatch){clearTimeout(fr.__happyadLoadWatch);fr.__happyadLoadWatch=null;}}catch(_t){}
     try{if(fr&&fr.__happyadRevealWatch){clearTimeout(fr.__happyadRevealWatch);fr.__happyadRevealWatch=null;}}catch(_rt){}
     if(shouldHoldSkeleton(fr,page,source)){
+      /* Messages sera rappelé par HAPPYAD_MESSAGE_CACHE_READY_V875. Aucun polling
+         et surtout aucune révélation forcée d'un document noir. */
+      if(page==='message'&&fr&&fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1')return;
       try{fr.__happyadRevealWatch=setTimeout(function(){revealFrame(fr,page,url,(source||'frame')+'-hold');},160);}catch(_h){}
       return;
     }
     var root=ensureShell();
+    if(page==='message'&&fr&&fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1'){
+      /* La navigation devient active au même instant où la liste locale déjà
+         peinte devient visible. Avant cela, Accueil reste la vraie surface. */
+      try{setNavActive(page,url);updateState(page,url);}catch(_messageState){}
+    }
+    try{root&&root.classList.remove('happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');}catch(_messagePreparingClass){}
     hideOtherFrames(root,fr,page);
     try{
       fr.removeAttribute('data-happyad-loading');
       fr.removeAttribute('data-happyad-defer-visible');
       fr.removeAttribute('data-happyad-skeleton-start');
+      fr.removeAttribute('data-happyad-message-cache-prepare-v875');
+      fr.removeAttribute('data-happyad-message-cache-from-page-v875');
+      fr.removeAttribute('data-happyad-message-dormant-warmup-v876');
+      fr.removeAttribute('data-happyad-message-warm-ready-v876');
       fr.style.opacity='';
       fr.style.visibility='';
       fr.classList.add('on');
@@ -961,6 +1236,13 @@
             fr.setAttribute('data-happyad-ready-v594','1');
             fr.__happyadVisitorOpenRequestedV601=false;
           }catch(_visitorLoad){}
+          return;
+        }
+        if(pg==='message'&&(fr.getAttribute('data-happyad-message-dormant-warmup-v876')==='1'||fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1')){
+          /* Le signal CACHE_READY est l'unique autorité de révélation. load ne
+             suspend pas ce document avant ses deux frames de peinture et ne le
+             rend jamais visible de lui-même. */
+          try{fr.removeAttribute('data-happyad-loading');fr.setAttribute('data-happyad-ready-v594','1');}catch(_messageDormantLoad){}
           return;
         }
         if(fr.getAttribute('data-happyad-preloading-v594')==='1'){
@@ -1088,9 +1370,10 @@
           }catch(_e){}
         },1800);
       }
-    }else if(!fr){
-      scheduleOwnerProfileWarmupV864(650);
     }
+    /* V869 : une connexion réussie ne crée plus Mon profil en arrière-plan.
+       La session est déjà conservée par le maître Auth; la frame Profil sera
+       construite uniquement au clic sur Profil. */
     return true;
   }
   function resetVisitorFrameForUrl(url){
@@ -1122,6 +1405,7 @@
   }
   function loadFrame(page,url,extra){
     extra=extra||{};
+    if(page!=='message')cancelMessageCachePreparationV876('switch-to-'+String(page||'unknown'));
     var root=ensureShell();if(!root)return false;
     if(page==='profile_public')resetVisitorFrameForUrl(url);
     var fr=ensureFrame(page,url);if(!fr)return false;
@@ -1142,7 +1426,7 @@
          reconstruction à chaque passage Accueil -> Profil. */
       if(!ownerReusableV756)deliverOwnerTargetV649(fr,url,extra);
       else{
-        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=866-profile-scroll-hard');
+        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=877-dock-execution-direct');
         fr.setAttribute('data-happyad-owner-persistent-v756','1');
       }
     }
@@ -1160,6 +1444,21 @@
     var mustReload=visitorPersistent?(!visitorHasSource||!visitorReady):!sameFrameUrl(fr,url);
     if(page==='profile'&&ownerReusableV756)mustReload=false;
     var directMedia=isDirectMediaPage(page);
+    /* V883 : si la Centrale a été préparée hors écran, le premier vrai clic
+       transforme cette même iframe en surface active. Aucun poster transitoire
+       n'est nécessaire lorsque son premier rendu local est déjà prêt. */
+    if(page==='video'&&!hasPost(url)&&fr.getAttribute('data-happyad-video-dormant-warmup-v883')==='1'){
+      try{
+        fr.removeAttribute('data-happyad-video-dormant-warmup-v883');
+        fr.contentWindow&&fr.contentWindow.postMessage({type:'HAPPYAD_VIDEO_ACTIVATE_V883',source:'navigation-first-central-open-v883'},'*');
+        window.__HAPPYAD_VIDEO_WARMUP_V624__={started:true,ready:true,dormant:false,network:'activate-on-open',at:Date.now(),url:url};
+      }catch(_videoActivate){}
+    }
+    var centralVideoOpeningV873=page==='video'&&!hasPost(url)&&(mustReload||!frameLooksReady(fr,'video'));
+    var inboxMessageCachePendingV875=page==='message'&&/main-tabs-message/i.test(String(extra&&extra.source||''))&&(mustReload||!frameLooksReady(fr,'message'));
+    if(page==='video'&&!hasPost(url)){
+      try{if(window.HappyPwaInstallV610&&typeof window.HappyPwaInstallV610.hide==='function')window.HappyPwaInstallV610.hide();}catch(_pwa){}
+    }
     /* V756 : au premier chargement seulement, Mon profil reste invisible jusqu'à
        son vrai signal READY; l'Accueil ou la page précédente reste affichée. Une
        fois peinte, la même iframe est réutilisée sans rechargement. */
@@ -1169,7 +1468,7 @@
        reste invisible jusqu'au signal peint du profil : aucun écran noir ne peut
        apparaître entre le clic et le squelette interne. */
     var visitorFirstPendingV855R24=visitorPersistent&&(!visitorReady||mustReload);
-    var deferVisible=visitorFirstPendingV855R24||ownerFirstPendingV756;
+    var deferVisible=visitorFirstPendingV855R24||ownerFirstPendingV756||inboxMessageCachePendingV875;
     if(visitorPersistent){
       fr.__happyadVisitorOpenRequestedV601=true;
       fr.__happyadVisitorTargetV601={url:rootUrl(url),extra:extra||{}};
@@ -1180,7 +1479,47 @@
        aucun lecteur vidéo direct n'est lancé hors centrale. */
     if(deferVisible){
       showVideoDirect(url,false);
-      if(ownerFirstPendingV756){
+      if(inboxMessageCachePendingV875){
+        /* V876 : la page actuelle reste la seule surface opaque. Sur Accueil, le
+           shell entier compose à opacity:0; depuis une autre frame, seule Messages
+           compose à opacity:0 et l'ancienne frame reste visible. */
+        showSkeleton(page,url,false);
+        try{if(window.HappyPwaInstallV610&&typeof window.HappyPwaInstallV610.hide==='function')window.HappyPwaInstallV610.hide();}catch(_pwaMessage){}
+        try{
+          var currentSurfaceV876=root.querySelector('.happyadAppFrame.on[data-happyad-page]');
+          var prepareOverHomeV876=activePage==='home'||!currentSurfaceV876||currentSurfaceV876===fr;
+          root.classList.remove('happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');
+          if(prepareOverHomeV876){
+            root.classList.remove('on');
+            root.classList.add('happyadMessageCachePreparingV876');
+            root.setAttribute('aria-hidden','true');
+          }else{
+            root.classList.add('on','happyadMessageCachePreparingWithinShellV876');
+            root.setAttribute('aria-hidden','false');
+          }
+          fr.classList.remove('on');
+          fr.style.opacity='';
+          fr.style.visibility='visible';
+          fr.setAttribute('data-happyad-defer-visible','1');
+          fr.setAttribute('data-happyad-skeleton-start',String(Date.now()));
+          fr.setAttribute('data-happyad-message-cache-prepare-v875','1');
+          fr.setAttribute('data-happyad-message-cache-from-page-v875',String(activePage||'home'));
+          fr.setAttribute('data-happyad-message-dormant-warmup-v876','1');
+          fr.removeAttribute('data-happyad-message-cache-ready-v875');
+          fr.removeAttribute('data-happyad-first-render-ready-v623');
+          fr.setAttribute('inert','');
+          fr.setAttribute('aria-hidden','true');
+          /* Une frame Messages peut déjà exister, chargée mais suspendue. Dans ce
+             cas aucun nouvel événement load ne relancera son boot : cet ordre lui
+             demande explicitement de peindre le cache pendant qu'elle reste
+             transparente. Pour une frame neuve, le message peut être perdu sans
+             conséquence car son bootstrap relit l'attribut ci-dessus. */
+          try{fr.contentWindow&&fr.contentWindow.postMessage({
+            type:'HAPPYAD_MESSAGE_CACHE_PREPARE_V875',
+            detail:{mode:'inbox',source:'navigation-cache-prepare-v876'}
+          },'*');}catch(_messagePreparePost){}
+        }catch(_messagePending){}
+      }else if(ownerFirstPendingV756){
         /* Aucun écran noir/spinner : la surface précédente reste visible jusqu'au
            premier rendu réel de Mon profil. */
         showSkeleton(page,url,false);
@@ -1206,7 +1545,8 @@
         }catch(_d){}
       }
     }else{
-      showVideoDirect(url,false);
+      if(centralVideoOpeningV873)startCentralVideoOpeningV873(fr,url);
+      else showVideoDirect(url,false);
       showSkeleton(page,url,false);
       hideOtherFrames(root,fr,page);
     }
@@ -1215,6 +1555,7 @@
       fr.setAttribute('data-happyad-src',rootUrl(url));
       fr.setAttribute('data-happyad-loading','1');
       fr.removeAttribute('data-happyad-first-render-ready-v623');
+      if(page==='profile')fr.removeAttribute('data-happyad-profile-shell-ready-v877');
       try{fr.setAttribute('loading','eager');}catch(_loading){}
       showLoader(false);
       try{fr.src=rootUrl(url);}catch(_e){try{fr.setAttribute('src',rootUrl(url));}catch(_x){}}
@@ -1227,7 +1568,9 @@
       }catch(_w){}
     }
 
-    setNavActive(page,url);updateState(page,url);
+    /* V876 : pendant la préparation froide de l'inbox, ne pas annoncer Messages
+       avant que ses vraies lignes locales puissent remplacer Accueil. */
+    if(!inboxMessageCachePendingV875){setNavActive(page,url);updateState(page,url);}
     if(visitorPersistent){
       fr.setAttribute('data-happyad-route-url-v601',rootUrl(url));
       if(!mustReload&&visitorReady){
@@ -1399,6 +1742,7 @@
   }
   function close(reason,replace){
     reason=String(reason||'close');
+    cancelMessageCachePreparationV876('close-'+reason);
     applyVisitorDockLockV854R3(false,'close-'+reason);
     /* V855R25 : libérer immédiatement les couches photo avant le retour Accueil.
        Sans cela, le maître de retour interne pouvait conserver home-photo/profile-photo
@@ -1417,7 +1761,7 @@
     /* V619: rendre l'Accueil visible avant tout nettoyage coûteux. */
     try{
       frames.forEach(function(fr){fr.classList.remove('on');fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');});
-      if(root){root.classList.remove('on','happyadSkeletonOpen');root.setAttribute('aria-hidden','true');}
+      if(root){root.classList.remove('on','happyadSkeletonOpen','happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');root.setAttribute('aria-hidden','true');}
       showSkeleton('home','index.html',false);showVideoDirect('',false);showLoader(false);releaseNavGate(reason);
       document.body.classList.remove('happyadAppOpen','happyadPublishFullscreenV586','no-scroll','modal-open','story-open','fullscreen-open','happyad-story-fullscreen-lock','happyadShareOpen');
       document.documentElement.classList.remove('no-scroll','modal-open','story-open','fullscreen-open','happyad-story-fullscreen-lock','happyadShareOpen');
@@ -1477,11 +1821,40 @@
       var type=String(data&&data.type||'');
       /* V625: le signal générique du début de document ne ferme plus le squelette
          des pages lourdes. On attend leur maître réellement prêt. */
-      if((page==='profile'||page==='profile_public')&&type!=='HAPPYAD_PROFILE_VISUAL_READY_V621C'&&type!=='HAPPYAD_PROFILE_READY'&&type!=='HAPPYAD_PROFILE_ENGINE_READY_V854')return false;
-      if(page==='message'&&type!=='HAPPYAD_MESSAGE_CENTER_READY')return false;
-      if(page==='video'&&type!=='HAPPYAD_VIDEO_TAB_READY_V594'&&type!=='HAPPYAD_VIDEO_READY')return false;
+      if(page==='profile_public'&&type!=='HAPPYAD_PROFILE_VISUAL_READY_V621C'&&type!=='HAPPYAD_PROFILE_READY'&&type!=='HAPPYAD_PROFILE_ENGINE_READY_V854')return false;
+      if(page==='profile'&&type!=='HAPPYAD_PROFILE_SHELL_READY_V877'&&type!=='HAPPYAD_PROFILE_VISUAL_READY_V621C'&&type!=='HAPPYAD_PROFILE_READY'&&type!=='HAPPYAD_PROFILE_ENGINE_READY_V854')return false;
+      /* Le moteur prêt n'est pas une preuve visuelle. Messages est révélée
+         uniquement lorsque son cache (ou son état sans cache) est déjà peint. */
+      if(page==='message'&&type!=='HAPPYAD_MESSAGE_CACHE_READY_V875')return false;
+      if(page==='video'&&type!=='HAPPYAD_VIDEO_VISUAL_READY_V873'&&type!=='HAPPYAD_VIDEO_TAB_READY_V594'&&type!=='HAPPYAD_VIDEO_READY')return false;
       fr.setAttribute('data-happyad-first-render-ready-v623','1');
       fr.setAttribute('data-happyad-first-render-reason-v623',type||'ready');
+      if(page==='profile'&&type==='HAPPYAD_PROFILE_SHELL_READY_V877')fr.setAttribute('data-happyad-profile-shell-ready-v877','1');
+      if(page==='video'&&fr.__happyadCentralVideoOpeningTokenV873){
+        var videoOpeningTokenV873=fr.__happyadCentralVideoOpeningTokenV873;
+        requestAnimationFrame(function(){stopCentralVideoOpeningV873(fr,videoOpeningTokenV873,type||'video-ready');});
+      }
+      if(page==='message')fr.setAttribute('data-happyad-message-cache-ready-v875','1');
+      /* Le préchauffage automatique s'arrête exactement après la peinture locale.
+         Accueil demeure la surface active et aucun boot connecté ne peut commencer
+         avant un vrai clic sur Messages. */
+      if(page==='message'&&fr.getAttribute('data-happyad-message-dormant-warmup-v876')==='1'&&fr.getAttribute('data-happyad-defer-visible')!=='1'){
+        var dormantRootV876=shell();
+        fr.setAttribute('data-happyad-message-warm-ready-v876','1');
+        fr.removeAttribute('data-happyad-message-cache-prepare-v875');
+        fr.removeAttribute('data-happyad-message-cache-from-page-v875');
+        fr.classList.remove('on');
+        fr.style.opacity='';fr.style.visibility='';
+        fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');
+        if(dormantRootV876){
+          dormantRootV876.classList.remove('happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');
+          if(activePage==='home'&&!dormantRootV876.querySelector('.happyadAppFrame.on'))dormantRootV876.classList.remove('on');
+          dormantRootV876.setAttribute('aria-hidden','true');
+        }
+        pauseFrame(fr,'message-dormant-cache-ready-v876');
+        try{window.__HAPPYAD_MESSAGE_DORMANT_WARMUP_V876={started:true,ready:true,at:Date.now(),count:Number(data&&data.count||0)||0,network:false};}catch(_warmMarker){}
+        return true;
+      }
       if(page==='profile'){fr.setAttribute('data-happyad-owner-persistent-v756','1');var ownerUid=String(data&&data.uid||'').trim();if(ownerUid){fr.setAttribute('data-happyad-owner-uid-v855r23',ownerUid);fr.removeAttribute('data-happyad-owner-guest-v855r23');}else{fr.removeAttribute('data-happyad-owner-uid-v855r23');fr.setAttribute('data-happyad-owner-guest-v855r23','1');}}
       if(fr.getAttribute('data-happyad-defer-visible')==='1'){
         revealFrame(fr,page,fr.getAttribute('data-happyad-route-url-v601')||fr.getAttribute('data-happyad-src')||pages[page]||'',type||'first-render-v625');
@@ -1492,6 +1865,7 @@
 
   window.HappyNavigation={
     version:MASTER_VERSION,rootUrl:rootUrl,pathOf:pathOf,pageOf:pageOf,profileUidFromUrl:profileUidFromUrl,isOwnProfileUid:isOwnProfileUid,strictAuthProfileUidV69:strictAuthProfileUidV69,open:open,openAppPage:openAppPage,close:close,back:back,restore:restore,
+    currentPage:function(){return activePage;},currentUrl:function(){return activeUrl;},
     activeFrame:activeFrame,isBusy:navBusy,releaseNavGate:releaseNavGate,pauseFrame:pauseFrame,resumeFrame:resumeFrame,clearVideoRouteMemory:clearVideoRouteMemory,blankVideoFrame:blankVideoFrame,prefetchUrl:prefetchUrl,scheduleSoftPreload:scheduleSoftPreload,prepareOwnerProfile:prepareOwnerProfileOpenV649,
     preloadFrame:preloadFrame,preloadMainTabs:scheduleMainTabsPreloadV594,warmVideo:preloadVideoFrameV624,activateMainTab:activateMainTabV594,openVideoPost:openVideoPostV594,postToFrame:postToFrameV594,deliverVisitorProfile:deliverVisitorTargetV601,restoreProfileAfterPhoto:restoreProfileSurfaceAfterPhotoV656,invalidateOwnerProfile:destroyOwnerFrameV855R23,syncOwnerProfileAuth:syncOwnerProfileAuthV855R23
   };
@@ -1508,7 +1882,11 @@
     }catch(_e){}
   },true);}catch(_e){}
   try{window.addEventListener('HAPPYAD_AUTH_STATE_V595',function(ev){
-    try{syncOwnerProfileAuthV855R23(ev&&ev.detail||{});}catch(_e){}
+    var authDetail=ev&&ev.detail||{};
+    try{syncOwnerProfileAuthV855R23(authDetail);}catch(_e){}
+    /* V880 : si le routeur a démarré avant la confirmation Auth, préparer Mon
+       profil dès que la session propriétaire devient valide, sans attendre un clic. */
+    try{if(authDetail.authenticated&&activePage==='home')scheduleOwnerProfileWarmupV864(120);}catch(_warm){}
   },true);}catch(_e){}
   try{window.addEventListener('message',function(ev){
     try{
@@ -1518,7 +1896,7 @@
       if(readyType==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591'&&d.detail&&String(d.detail.id||'')==='profile-photo'){
         restoreProfileSurfaceAfterPhotoV656(ev.source,d.detail||{});
       }
-      if(readyType==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V622'||readyType==='HAPPYAD_MESSAGE_CENTER_READY'||readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_VIDEO_TAB_READY_V594'||readyType==='HAPPYAD_VIDEO_READY'||readyType==='HAPPYAD_PROFILE_READY'||readyType==='HAPPYAD_PROFILE_ENGINE_READY_V854'){
+      if(readyType==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V622'||readyType==='HAPPYAD_MESSAGE_CACHE_READY_V875'||readyType==='HAPPYAD_MESSAGE_CENTER_READY'||readyType==='HAPPYAD_PROFILE_SHELL_READY_V877'||readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_VIDEO_VISUAL_READY_V873'||readyType==='HAPPYAD_VIDEO_TAB_READY_V594'||readyType==='HAPPYAD_VIDEO_READY'||readyType==='HAPPYAD_PROFILE_READY'||readyType==='HAPPYAD_PROFILE_ENGINE_READY_V854'){
         acceptFirstRenderV623(ev,d);
       }
       if(d==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_NAV_BACK_REQUEST'){
@@ -1585,7 +1963,7 @@
       bootHomeSafety();
       scheduleMainTabsPreloadV594();
     }
-    try{window.__HAPPYAD_LAZY_MODULE_BOOT_V614__={at:Date.now(),preloadedFrames:4,directMainPages:true,visitorSkeletonOnly:true,visitorPostsPreload:false,profileBatchSize:12};}catch(_e){}
+    try{window.__HAPPYAD_LAZY_MODULE_BOOT_V614__={at:Date.now(),preloadedFrames:0,directMainPages:true,visitorSkeletonOnly:true,visitorPostsPreload:false,profileBatchSize:12,hiddenNetworkFrames:false};}catch(_e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootV16ZJ,{once:true});else bootV16ZJ();
   try{if(window.HappyMasterRegistry)HappyMasterRegistry.register('navigation',{file:'core/navigation-master-v656.js',responsibility:'navigation unique, iframe, retour interne, bouton téléphone, ouverture modules',legacy:['happyadOpenInternalUrlV492','happyadOpenAppPage','happyadCloseAppPage','V492 router','V520 history'],active:true,version:MASTER_VERSION});}catch(_e){}

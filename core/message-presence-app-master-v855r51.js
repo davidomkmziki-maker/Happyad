@@ -3,12 +3,23 @@
 if(window.__HAPPYAD_MESSAGE_PRESENCE_APP_V855R51__)return;
 window.__HAPPYAD_MESSAGE_PRESENCE_APP_V855R51__=true;
 var timer=0;
-function touch(){
+function touchNow(){
   if(document.visibilityState==='hidden')return;
   try{
     var master=window.HappyMessagePrivacyV855R51;
     if(master&&typeof master.touchPresence==='function')master.touchPresence(null,false).catch(function(){});
   }catch(_e){}
+}
+function touch(){
+  if(document.visibilityState==='hidden')return;
+  try{
+    var coordinator=window.HappyadConnectionWorkCoordinatorV869;
+    if(coordinator&&typeof coordinator.schedule==='function'){
+      coordinator.schedule('message-presence-app-v869',touchNow,{surface:'any',delay:220,maxDelay:3600,minGap:15000});
+      return;
+    }
+  }catch(_e){}
+  setTimeout(touchNow,220);
 }
 function start(){
   clearInterval(timer);

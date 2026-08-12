@@ -41,7 +41,7 @@
       if(!(await sharingAllowed(id,p)))throw new Error('Le propriétaire n’autorise pas ce partage.');
       if(clean(p.content_type||p.source_type||p.mode).toLowerCase()==='story')return true;
       var c=client();if(!c||!c.rpc)throw new Error('Connexion Supabase indisponible.');
-      var r=await c.rpc('happyad_share_commit',{p_post_id:id,p_content_type:type,p_channel:channel,p_share_units:units,p_client_event_id:eventId,p_metadata:{source:clean(p.source),link:clean(p.link),recipient_count:units}});
+      var r=await c.rpc('happyad_share_commit',{p_post_id:id,p_content_type:type,p_channel:channel,p_share_units:units,p_client_event_id:eventId,p_metadata:{source:clean(p.source),link:clean(p.link),recipient_count:units,channel:channel,share_channel:channel,share_context:channel==='happyad-story'?'story':'standard'}});
       if(r&&r.error)throw r.error;
       var out=first(r&&r.data);var count=Number(out.shares_count);
       if(!Number.isFinite(count)){

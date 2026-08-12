@@ -3,10 +3,10 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V862_DOCK_RESTORE_IMMEDIATE';
+  var VERSION='V872_CONVERSATION_OPEN_RETURN';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
-  var NOTIF_URL='modules/notification-center.html?v=700-infinite-scroll';
+  var NOTIF_URL='modules/notification-center.html?v=895-story-repost-return';
   var NOTIF_CLASS='happyadNotificationInternalV591';
   var layers=[];
   var handlers=Object.create(null);
@@ -19,6 +19,8 @@
   var photoReturnRoute=null;
   var profileSettingsHistoryArmed=false;
   var profileSettingsPopInstalled=false;
+  var messageChatHistoryArmedV872=false;
+  var messageChatPopInstalledV872=false;
 
   function clean(v){return String(v==null?'':v).trim();}
   function now(){return Date.now?Date.now():(new Date()).getTime();}
@@ -117,11 +119,44 @@
     try{History.prototype.go.call(history,-1);return true;}catch(_e){return false;}
   }
 
+  /* V872 : la neutralisation V584 reste en place pour les anciens contrôleurs,
+     mais la conversation possède une seule entrée native et contextuelle. Le
+     bouton Android ferme donc le chat au lieu d'oublier sa surface d'origine. */
+  function armMessageChatHistoryV872(){
+    if(messageChatHistoryArmedV872)return true;
+    try{
+      var base=Object.assign({},history.state||{});
+      base.__happyadMessageChatBaseV872=true;
+      delete base.__happyadMessageChatActiveV872;
+      History.prototype.replaceState.call(history,base,'',location.href);
+      History.prototype.pushState.call(history,Object.assign({},base,{__happyadMessageChatActiveV872:true,at:now()}),'',location.href);
+      messageChatHistoryArmedV872=true;
+    }catch(_e){messageChatHistoryArmedV872=false;}
+    if(!messageChatPopInstalledV872){
+      messageChatPopInstalledV872=true;
+      try{EventTarget.prototype.addEventListener.call(window,'popstate',function(){
+        if(messageChatHistoryArmedV872&&topLayer()==='message-chat'){
+          messageChatHistoryArmedV872=false;
+          back('message-chat');
+        }
+      },true);}catch(_e){}
+    }
+    return messageChatHistoryArmedV872;
+  }
+  function consumeMessageChatHistoryV872(){
+    if(!messageChatHistoryArmedV872)return false;
+    messageChatHistoryArmedV872=false;
+    try{History.prototype.go.call(history,-1);return true;}catch(_e){return false;}
+  }
+
   function openLayer(id,options){
     id=clean(id)||'internal';
-    var idx=layerIndex(id);if(idx>=0)layers.splice(idx,1);
-    layers.push(id);
+    var idx=layerIndex(id),alreadyTop=idx>=0&&idx===layers.length-1;
     if(options&&typeof options.onBack==='function')handlers[id]=options.onBack;
+    if(id==='message-chat')armMessageChatHistoryV872();
+    if(alreadyTop)return id;
+    if(idx>=0)layers.splice(idx,1);
+    layers.push(id);
     if(id==='profile-settings')armProfileSettingsHistory();
     applyDock();
     try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
@@ -130,8 +165,11 @@
   function closeLayer(id){
     id=clean(id);
     if(!id)id=topLayer();
-    var idx=layerIndex(id);if(idx>=0)layers.splice(idx,1);
+    var idx=layerIndex(id);
+    if(idx<0){delete handlers[id];return false;}
+    layers.splice(idx,1);
     if(id==='profile-settings')consumeProfileSettingsHistory();
+    if(id==='message-chat')consumeMessageChatHistoryV872();
     delete handlers[id];
     applyDock();
     try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_o){}

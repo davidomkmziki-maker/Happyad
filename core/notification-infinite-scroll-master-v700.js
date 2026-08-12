@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_NOTIFICATION_INFINITE_SCROLL_V700__)return;
   window.__HAPPYAD_NOTIFICATION_INFINITE_SCROLL_V700__=true;
 
-  var VERSION='V700_NOTIFICATION_VERTICAL_INFINITE_SINGLE_MASTER';
+  var VERSION='V869_NOTIFICATION_ANCHOR_STABLE';
   var FIRST_PAGE=12;
   var NEXT_PAGE=10;
   var states=Object.create(null);
@@ -18,6 +18,16 @@
 
   function finite(value){var n=Number(value);return Number.isFinite(n)?n:0;}
   function clean(value){return String(value==null?'':value).trim();}
+  function globalScrollActive(){
+    try{var g=window.HappyadGlobalScrollCoordinatorV868;return !!(g&&typeof g.isActive==='function'&&g.isActive());}catch(_e){return false;}
+  }
+  function deferRestore(page,target){
+    try{
+      var g=window.HappyadGlobalScrollCoordinatorV868;
+      if(g&&typeof g.defer==='function'){g.defer('notification-scroll-position',function(){restorePosition(page,target);},55);return true;}
+    }catch(_e){}
+    return false;
+  }
 
   function injectStyle(){
     if(document.getElementById('happyad-notification-scroll-style-v700'))return;
@@ -49,6 +59,19 @@
   function saveCurrentPosition(){
     if(!container||!currentKey)return;
     stateFor(currentKey).scrollTop=Math.max(0,finite(container.scrollTop));
+  }
+
+  function captureVisibleAnchor(){
+    if(!container||!list||finite(container.scrollTop)<3)return null;
+    try{
+      var top=container.getBoundingClientRect().top;
+      var rows=list.querySelectorAll('.notification-item[data-id]');
+      for(var i=0;i<rows.length;i++){
+        var rect=rows[i].getBoundingClientRect();
+        if(rect.bottom>top+1)return {id:clean(rows[i].dataset&&rows[i].dataset.id),offset:rect.top-top};
+      }
+    }catch(_e){}
+    return null;
   }
 
   function cancelObserver(){
@@ -107,6 +130,7 @@
   function begin(config){
     config=config||{};
     bindContainer(config.container,config.list);
+    var visibleAnchor=captureVisibleAnchor();
     var key=clean(config.key)||'all|all';
     var keyChanged=!!currentKey&&currentKey!==key;
     if(currentKey)saveCurrentPosition();
@@ -133,13 +157,48 @@
       hasClientMore:state.limit<items.length,
       hasServerMore:config.serverHasMore===true,
       restoreScrollTop:state.scrollTop,
+      visibleAnchor:visibleAnchor,
       keyChanged:keyChanged
     };
+  }
+
+  function restorePosition(page,target){
+    if(globalScrollActive()){deferRestore(page,target);return;}
+    cancelAnimationFrame(restoreRaf);
+    restoreRaf=requestAnimationFrame(function(){
+      if(!container||currentKey!==page.key)return;
+      if(globalScrollActive()){deferRestore(page,target);return;}
+      var max=Math.max(0,container.scrollHeight-container.clientHeight);
+      var desired=Math.min(target,max),anchor=page&&page.visibleAnchor;
+      if(anchor&&anchor.id){
+        try{
+          var escaped=window.CSS&&typeof window.CSS.escape==='function'?window.CSS.escape(anchor.id):anchor.id.replace(/["\\]/g,'\\$&');
+          var next=list.querySelector('.notification-item[data-id="'+escaped+'"]');
+          if(next){var top=container.getBoundingClientRect().top;desired=Math.max(0,Math.min(max,container.scrollTop+(next.getBoundingClientRect().top-top)-finite(anchor.offset)));}
+        }catch(_e){}
+      }
+      if(Math.abs(container.scrollTop-desired)>1)container.scrollTop=desired;
+      stateFor(page.key).scrollTop=desired;
+      requestAnimationFrame(function(){
+        if(!container||currentKey!==page.key||globalScrollActive())return;
+        var max2=Math.max(0,container.scrollHeight-container.clientHeight);
+        var settled=Math.min(desired,max2);
+        if(Math.abs(container.scrollTop-settled)>2)container.scrollTop=settled;
+        stateFor(page.key).scrollTop=settled;
+        fallbackNearEnd();
+      });
+    });
   }
 
   function commit(page){
     page=page||{};
     if(!list||!container)return;
+    if(globalScrollActive()){
+      try{
+        var global=window.HappyadGlobalScrollCoordinatorV868;
+        if(global&&typeof global.defer==='function'){global.defer('notification-scroll-commit',function(){commit(page);},55);return;}
+      }catch(_g){}
+    }
     cancelObserver();
     var needsSentinel=page.hasClientMore||page.hasServerMore;
     var sentinel=null;
@@ -151,19 +210,8 @@
       list.appendChild(sentinel);
       observeSentinel(sentinel);
     }
-    cancelAnimationFrame(restoreRaf);
     var target=Math.max(0,finite(page.restoreScrollTop));
-    restoreRaf=requestAnimationFrame(function(){
-      if(!container||currentKey!==page.key)return;
-      var max=Math.max(0,container.scrollHeight-container.clientHeight);
-      container.scrollTop=Math.min(target,max);
-      requestAnimationFrame(function(){
-        if(!container||currentKey!==page.key)return;
-        var max2=Math.max(0,container.scrollHeight-container.clientHeight);
-        if(Math.abs(container.scrollTop-Math.min(target,max2))>2)container.scrollTop=Math.min(target,max2);
-        fallbackNearEnd();
-      });
-    });
+    restorePosition(page,target);
   }
 
   function notifyDataArrived(){

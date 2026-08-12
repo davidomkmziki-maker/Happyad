@@ -125,3 +125,20 @@ body[data-profile-mode="visitor"] .haProfileActions{padding-top:7px!important;}
 .haProfileMarketplaceTileV856 .haProfileMarketplaceCtaV856{position:absolute;left:7px;right:7px;bottom:7px;z-index:7;min-height:28px;padding:0 8px;border-radius:9px;background:rgba(9,12,17,.86);border:1px solid rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;gap:4px;color:#fff;font-size:9px;font-weight:950;line-height:1;white-space:nowrap;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .haProfileMarketplaceTileV856 .haProfileMarketplaceCtaV856 svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 .haProfileMarketplaceTileV856 .haProfilePlay{z-index:5;width:34px;height:34px}
+
+/* HAPPYAD V871 — Mon profil : stabilise la zone onglets + premières lignes.
+   Les cartes Annonce pouvaient cumuler neuf surfaces backdrop-filter dans les
+   six premières cases. Android devait recalculer ces flous sous la barre sticky
+   à chaque frame, ce qui produisait le léger tremblement observé uniquement en
+   haut du profil. Les fonds restent visuellement identiques, sans flou vivant. */
+body[data-profile-mode="owner"] .haProfileTabs{
+  background:#030405;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+body[data-profile-mode="owner"] .haProfileMarketplaceTileV856 .haProfileMarketplaceTagV856,
+body[data-profile-mode="owner"] .haProfileMarketplaceTileV856 .haProfileMarketplaceShareV857,
+body[data-profile-mode="owner"] .haProfileMarketplaceTileV856 .haProfileMarketplaceCtaV856{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}

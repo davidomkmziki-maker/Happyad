@@ -4,12 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#020303">
-<title>HAPPYAD — Mon profil</title>
+<title>HAPPYAD — Mon profil V877</title>
 <!-- HAPPYAD V855R32 — profil propriétaire relié à l'avatar canonique -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script>
+<script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script>
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
+<script id="happyad-owner-parent-client-v877">
+(function(){
+  'use strict';
+  try{
+    if(window.parent&&window.parent!==window){
+      var p=window.parent;
+      var shared=p.happyadSupabase||p.supabaseClient||null;
+      if(!shared&&typeof p.happyadSb==='function')shared=p.happyadSb();
+      if(shared)window.happyadSupabase=shared;
+      if(p.supabase&&typeof p.supabase.createClient==='function')window.supabase=p.supabase;
+    }
+  }catch(_e){}
+})();
+</script>
+<script id="happyad-owner-shell-ready-v877">
+(function(){
+  'use strict';
+  function ready(){
+    if(!document.getElementById('profileBoot'))return;
+    var send=function(){try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'HAPPYAD_PROFILE_SHELL_READY_V877',mode:'owner',at:Date.now()},'*');}catch(_e){}};
+    try{requestAnimationFrame(function(){requestAnimationFrame(send);});}catch(_e){setTimeout(send,0);}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+})();
+</script>
 <script src="../core/auth-storage-quota-master-v752.js?v=854r2"></script>
-<link rel="stylesheet" href="../core/profile/profile-design-v854r5.css?v=857-point1-annonce-share-only">
+<link rel="stylesheet" href="../core/profile/profile-design-v854r5.css?v=871-owner-top-zone-stable">
 <link rel="stylesheet" href="../core/profile/profile-stats-host-v855r4.css?v=855r28-skeleton">
 <link rel="stylesheet" href="../core/profile/profile-settings-host-v855r26.css?v=855r28-skeleton">
 <link rel="stylesheet" href="../core/profile/profile-edit-host-v855r31.css?v=855r31-securite-complete">
@@ -48,5 +74,5 @@ body.haProfileGuestV855R23 .haProfileGrid{min-height:48vh;display:flex;align-ite
   <section class="haProfileGrid" id="profileGrid" aria-live="polite"></section><div class="haProfileSentinel" id="profileSentinel"></div>
 </main>
 <div class="haProfileToast" id="profileToast"></div>
-<script src="../core/profile/profile-scroll-priority-v866.js?v=866-profile-scroll-hard"></script><script src="../core/profile-avatar-master-v855r32.js?v=866-profile-scroll-hard"></script><script src="../core/profile/profile-core-v855r6.js?v=924-point5-story-master-shared-cache"></script><script src="../core/share-button-bridge.js?v=858-share-touch-instant"></script><script src="../core/profile/profile-stats-host-v855r4.js?v=855r62-click-prefetch"></script><script src="../core/profile/profile-settings-host-v855r26.js?v=855r58-language-global"></script><script src="../core/profile/profile-edit-host-v855r31.js?v=855r32-transfert-binaire"></script><script src="../core/profile/owner-profile-v855r31.js?v=924-point5-story-prehydrated"></script>
+<script src="../core/profile/profile-scroll-priority-v866.js?v=869-connection-phase2"></script><script src="../core/profile-avatar-master-v855r32.js?v=866-profile-scroll-hard"></script><script src="../core/profile/profile-core-v855r6.js?v=877-dock-execution-direct"></script><script src="../core/share-button-bridge.js?v=858-share-touch-instant"></script><script src="../core/profile/profile-stats-host-v855r4.js?v=855r62-click-prefetch"></script><script src="../core/profile/profile-settings-host-v855r26.js?v=855r58-language-global"></script><script src="../core/profile/profile-edit-host-v855r31.js?v=855r32-transfert-binaire"></script><script src="../core/profile/owner-profile-v855r31.js?v=870-owner-scroll-stable"></script>
 </body></html>

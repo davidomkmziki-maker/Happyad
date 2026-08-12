@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_MAIN_TABS_MASTER_V615__)return;
   window.__HAPPYAD_MAIN_TABS_MASTER_V615__=true;
 
-  var VERSION='MAIN_TABS_V864_OWNER_PROFILE_LIGHT_WARMUP';
+  var VERSION='MAIN_TABS_V877_DOCK_EXECUTION_DIRECT';
   var lastAction='';
   var lastAt=0;
   var pendingMessageContext=null;
@@ -27,7 +27,7 @@
   }
   function dedupe(name){var now=Date.now();if(lastAction===name&&now-lastAt<260)return true;lastAction=name;lastAt=now;return false;}
   function loggedIn(){
-    try{return localStorage.getItem('HAPPYAD_SESSION_ACTIVE')==='1'&&!!clean(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){return false;}
+    try{return localStorage.getItem('HAPPYAD_SESSION_ACTIVE')==='1'&&isUuid(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){return false;}
   }
   function unlockReconnect(){
     try{
@@ -75,10 +75,26 @@
     try{
       if(n&&typeof n.activateMainTab==='function')return n.activateMainTab(page,extra);
       if(n&&typeof n.open==='function'){
-        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared',profile:'modules/my-profile.html?v=866-profile-scroll-hard',publish:'modules/publish.html'};
+        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line',profile:'modules/my-profile.html?v=877-dock-execution-direct',publish:'modules/publish.html'};
         return n.open(urls[page]||'index.html',{page:page,source:extra.source||VERSION,force:true});
       }
     }catch(_e){}
+    return false;
+  }
+  function activateDockSurfaceV877(page,extra){
+    extra=extra&&typeof extra==='object'?extra:{};
+    var accepted=activate(page,extra);
+    if(accepted===true)return true;
+    /* Une installation qui vient de changer de service worker peut exposer le
+       bouton un cycle avant le nouveau routeur. Une seule reprise, dans la tâche
+       suivante, exécute l'intention sans demander un deuxième clic. */
+    setTimeout(function(){
+      try{
+        var n=nav();
+        if(n&&typeof n.currentPage==='function'&&n.currentPage()===page)return;
+        activate(page,Object.assign({},extra,{force:true,source:clean(extra.source||VERSION)+'-retry-v877'}));
+      }catch(_retry){}
+    },32);
     return false;
   }
   function clearDirectBootContextV855R76(){
@@ -112,7 +128,36 @@
     return false;
   }
   var visitorDirectChatOpenV855R77=false;
+  var visitorDirectChatSeqV872=0;
+  var visitorDirectContextV872=null;
   function visitorProfileFrameV855R77(){return document.getElementById('happyadAppFrame_profile_public');}
+  function visitorDirectOpeningV872(){return document.getElementById('happyadVisitorDirectOpeningV872');}
+  function hideVisitorDirectOpeningV872(){
+    try{var el=visitorDirectOpeningV872();if(el&&el.parentNode)el.parentNode.removeChild(el);}catch(_e){}
+  }
+  function showVisitorDirectOpeningV872(context){
+    try{
+      hideVisitorDirectOpeningV872();
+      visitorDirectChatOpenV855R77=true;
+      document.body&&document.body.classList.add('happyadVisitorDirectChatOpenV855R77');
+      var root=document.getElementById('happyadAppShell')||document.body;
+      var el=document.createElement('section');
+      el.id='happyadVisitorDirectOpeningV872';
+      el.setAttribute('aria-label','Ouverture de la conversation');
+      el.innerHTML='<header class="haV872Chatbar"><button type="button" class="haV872Back" aria-label="Retour" data-happyad-internal-return-v591="1">‹</button><div class="haV872Avatar"></div><div class="haV872Identity"><strong></strong><span>Conversation HAPPYAD</span></div></header><div class="haV872OpeningBubbles"><i></i><i></i><i></i></div>';
+      var target=context&&context.target||{},name=clean(target.name)||'Utilisateur HAPPYAD';
+      var title=el.querySelector('.haV872Identity strong');if(title)title.textContent=name;
+      var avatar=el.querySelector('.haV872Avatar'),url=clean(target.avatar);
+      if(avatar){
+        if(url){var img=document.createElement('img');img.alt='';img.src=url;img.referrerPolicy='no-referrer';img.onerror=function(){try{avatar.textContent=name.slice(0,1).toUpperCase();}catch(_e){}};avatar.appendChild(img);}
+        else avatar.textContent=name.slice(0,1).toUpperCase();
+      }
+      var back=el.querySelector('.haV872Back');if(back)back.addEventListener('click',function(ev){stop(ev);closeVisitorDirectChatV855R77('visitor-opening-back-v872');},true);
+      root.appendChild(el);
+      try{var ir=window.HappyInternalReturnV694||window.HappyInternalReturnV591;if(ir&&typeof ir.open==='function')ir.open('message-chat',{onBack:function(){return closeVisitorDirectChatV855R77('visitor-opening-hardware-v872');}});}catch(_ir){}
+      return el;
+    }catch(_e){return null;}
+  }
   function revealVisitorDirectChatV855R77(frame,context){
     if(!frame)return false;
     try{
@@ -123,6 +168,7 @@
       frame.style.setProperty('z-index','120','important');
       frame.style.setProperty('opacity','1','important');
       frame.style.setProperty('visibility','visible','important');
+      hideVisitorDirectOpeningV872();
       try{frame.contentWindow&&frame.contentWindow.postMessage({type:'HAPPYAD_APP_FRAME_VISIBLE',page:'message',source:'visitor-direct-chat-v855r77',detail:{context_id:context&&context.context_id||''}},'*');}catch(_m){}
       try{frame.focus();}catch(_f){}
       return true;
@@ -130,18 +176,16 @@
   }
   function closeVisitorDirectChatV855R77(reason){
     var frame=messageFrame();
+    visitorDirectChatSeqV872++;
     visitorDirectChatOpenV855R77=false;
+    visitorDirectContextV872=null;
     pendingMessageContext=null;
     clearTimeout(pendingMessageTimer);
     clearDirectBootContextV855R76();
+    var api=null;
+    try{api=frame&&frame.contentWindow&&frame.contentWindow.HappyadMessageMaster;}catch(_api){}
     try{
-      if(frame&&frame.contentWindow){
-        var api=frame.contentWindow.HappyadMessageMaster;
-        if(api&&typeof api.showInbox==='function')api.showInbox();
-        try{frame.contentWindow.postMessage({type:'HAPPYAD_PAUSE_ALL_MEDIA',reason:reason||'visitor-direct-chat-close-v855r77'},'*');}catch(_p){}
-      }
-    }catch(_api){}
-    try{
+      hideVisitorDirectOpeningV872();
       if(frame){
         frame.classList.remove('on','happyadVisitorDirectChatFrameV855R77');
         frame.style.removeProperty('z-index');frame.style.removeProperty('opacity');frame.style.removeProperty('visibility');
@@ -155,16 +199,24 @@
         try{visitor.focus();}catch(_vf){}
       }
     }catch(_e){}
+    try{var ir=window.HappyInternalReturnV694||window.HappyInternalReturnV591;if(ir&&typeof ir.close==='function')ir.close('message-chat');}catch(_ir){}
+    try{if(frame&&frame.contentWindow)frame.contentWindow.postMessage({type:'HAPPYAD_PAUSE_ALL_MEDIA',reason:reason||'visitor-direct-chat-close-v855r77'},'*');}catch(_p){}
+    /* Le profil est déjà présenté. Le nettoyage du chat caché vient dans la tâche
+       suivante et ne peut plus retarder le retour visible. */
+    if(api&&typeof api.showInbox==='function')requestAnimationFrame(function(){setTimeout(function(){try{api.showInbox({source:'visitor-return-v872'});}catch(_e){}},0);});
     return false;
   }
   function openVisitorDirectChatV855R77(context){
+    var openSeq=++visitorDirectChatSeqV872;
+    visitorDirectContextV872=context;
     pendingMessageContext=context;
     saveDirectBootContextV855R76(context);
+    showVisitorDirectOpeningV872(context);
     var n=nav();
-    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=visitor-direct-chat&v=855r77-direct-chat-shared');}catch(_pre){}
+    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=visitor-direct-chat&v=882-conversation-no-white-line');}catch(_pre){}
     var started=Date.now(),done=false;
     function prepare(){
-      if(done)return;
+      if(done||openSeq!==visitorDirectChatSeqV872)return;
       var frame=messageFrame();
       if(frame){
         markMessageDirectBootV855R76(frame);
@@ -184,11 +236,13 @@
          démonté. Le contexte stocké est consommé au bootstrap de Messages. */
       if(frame){
         done=true;
-        revealVisitorDirectChatV855R77(frame,context);
-        [0,80,220,520].forEach(function(delay){setTimeout(deliverMessageContext,delay);});
+        /* Le shell parent reste visible jusqu'à l'accusé de réception V872. Ainsi,
+           même un CDN lent ne peut jamais remplacer le profil par une frame noire. */
+        [0,80,220,520,1000,1800,3000].forEach(function(delay){setTimeout(deliverMessageContext,delay);});
       }else{
         clearDirectBootContextV855R76();
         pendingMessageContext=null;
+        closeVisitorDirectChatV855R77('visitor-opening-unavailable-v872');
       }
     }
     prepare();
@@ -202,7 +256,7 @@
       /* Si Messages n'est pas encore chaud, on démarre sa frame en arrière-plan.
          Le Profil visiteur reste à l'écran jusqu'à ce que la vue directe sache
          se peindre. */
-      if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=v738-assistance&v=855r77-direct-chat-shared');
+      if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line');
     }catch(_pre){}
     var started=Date.now(),done=false;
     function reveal(){
@@ -245,7 +299,7 @@
     try{sessionStorage.setItem(VIDEO_DIRECT_KEY_V855R79,id);sessionStorage.setItem('HAPPYAD_VIDEO_TARGET_POST_V594',id);}catch(_s){}
     try{window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79=id;}catch(_w){}
     var n=nav();
-    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('video','modules/video.html?v=855r79-target-first-direct');}catch(_pre){}
+    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('video','modules/video.html?v=883-central-video-single-first-open');}catch(_pre){}
     var started=Date.now(),preparing=false;
     function fallback(){
       if(seq!==videoDirectSeqV855R79)return false;
@@ -281,8 +335,8 @@
 
   function openMessage(detail){
     detail=detail&&typeof detail==='object'?detail:{};
-    var auth=window.HappyAuthSessionV596||window.HappyAuthSessionV595||null;
-    if(auth&&typeof auth.isAuthenticated==='function'&&!auth.isAuthenticated()&&!detail.authResume){
+    var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV596||window.HappyAuthSessionV595||null;
+    if(auth&&typeof auth.isAuthenticated==='function'&&!auth.isAuthenticated()&&!loggedIn()&&!detail.authResume){
       auth.require({action:'messages',resume:function(){openMessage(Object.assign({},detail,{authResume:true}));}});
       return false;
     }
@@ -291,7 +345,7 @@
     if(context.mode==='direct'&&context.target)return openDirectMessageSmoothV855R76(context);
     clearDirectBootContextV855R76();
     pendingMessageContext=context;
-    activate('message',{source:context.source||'main-tabs-message-v595'});
+    activateDockSurfaceV877('message',{source:context.source||'main-tabs-message-v877'});
     [0,60,160,360,720].forEach(function(delay){setTimeout(deliverMessageContext,delay);});
     return false;
   }
@@ -335,8 +389,8 @@
     var resumeDetail=detail&&typeof detail==='object'?detail:{};
     if(!name||(!resumeDetail.authResume&&dedupe(name)))return false;
     setPressed(name);
-    var auth=window.HappyAuthSessionV596||window.HappyAuthSessionV595||null;
-    if(name!=='video'&&auth&&typeof auth.isAuthenticated==='function'&&!auth.isAuthenticated()&&!resumeDetail.authResume){
+    var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV596||window.HappyAuthSessionV595||null;
+    if(name!=='video'&&auth&&typeof auth.isAuthenticated==='function'&&!auth.isAuthenticated()&&!loggedIn()&&!resumeDetail.authResume){
       auth.require({
         action:'menu-'+name,
         mainNav:name,
@@ -348,10 +402,10 @@
     rememberHomeScroll();
     if(name==='video'){clearVideoDirectV855R79();setPublishFullscreen(false);activate('video',{source:'main-tabs-video-v855r79-central'});return false;}
     clearVideoDirectV855R79();
-    if(name==='message'){setPublishFullscreen(false);return openMessage(Object.assign({mode:'inbox',source:'main-tabs-message-v595'},resumeDetail));}
+    if(name==='message'){setPublishFullscreen(false);return openMessage(Object.assign({mode:'inbox',source:'main-tabs-message-v877'},resumeDetail));}
     if(name==='profile'){
       setPublishFullscreen(false);
-      activate('profile',{source:'main-tabs-profile-v595',url:'modules/my-profile.html?v=866-profile-scroll-hard'});return false;
+      activateDockSurfaceV877('profile',{source:'main-tabs-profile-v877',url:'modules/my-profile.html?v=877-dock-execution-direct'});return false;
     }
     if(name==='publish'){setPublishFullscreen(true);activate('publish',{source:'main-tabs-publish-v595'});return false;}
     return false;
@@ -370,6 +424,20 @@
       var data=ev&&ev.data;if(!data)return;
       if(data.type==='HAPPYAD_NEW_MESSAGE_SYSTEM_REQUEST')return openMessage(data.detail||{});
       if(data.type==='HAPPYAD_MESSAGE_CENTER_READY')return deliverMessageContext();
+      if(data.type==='HAPPYAD_MESSAGE_CONTEXT_ACCEPTED_V872'){
+        var ackFrame=messageFrame();
+        if(!ackFrame||ev.source!==ackFrame.contentWindow)return;
+        var acceptedId=clean(data.detail&&data.detail.context_id);
+        if(pendingMessageContext&&(!acceptedId||acceptedId===pendingMessageContext.context_id)){
+          pendingMessageContext=null;
+          clearTimeout(pendingMessageTimer);
+        }
+        if(visitorDirectChatOpenV855R77&&visitorDirectOpeningV872()){
+          var visitorFrame=messageFrame();
+          if(visitorFrame)requestAnimationFrame(function(){revealVisitorDirectChatV855R77(visitorFrame,visitorDirectContextV872||{});});
+        }
+        return;
+      }
       if(data.type==='HAPPYAD_VISITOR_DIRECT_CHAT_CLOSE_V855R77'){
         var frame=messageFrame();
         if(frame&&ev.source===frame.contentWindow)return closeVisitorDirectChatV855R77(clean(data.detail&&data.detail.reason)||'message-back');

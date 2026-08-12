@@ -5,7 +5,7 @@
   if(window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__)return;
   window.__HAPPYAD_MARKETPLACE_HOME_MASTER_V828__=true;
 
-  var VERSION='V857_POINT1_MARKETPLACE_SHARE_ONLY';
+  var VERSION='V869_CONNECTION_PHASE2_MARKETPLACE_STABLE';
   var observed=new WeakSet();
   var pending=new Map();
   var refreshTimer=0;
@@ -55,6 +55,7 @@
       supabase:true,__homeServerConfirmedV643:true
     });
   }
+  function marketplaceSignatureV869(post){post=post||{};return JSON.stringify([idOf(post),clean(post.marketplace_cover_url||post.marketplaceCoverUrl||post.media_url||post.mediaUrl),clean(post.marketplace_cover_path||post.marketplaceCoverPath||post.media_path||post.mediaPath),clean(post.marketplace_cover_type||post.marketplaceCoverType||post.media_type||post.kind),Number(post.marketplace_cover_index||post.marketplaceCoverIndex||0),Number(post.listing_views_count||post.listingViewsCount||0),clean(post.listing_status),truth(post.marketplace_show_on_home||post.marketplaceShowOnHome),clean(post.seller_badge||post.sellerBadge||post.badge||post.user_badge)]);}
   function allPosts(){
     try{if(typeof ALL_POSTS!=='undefined'&&Array.isArray(ALL_POSTS))return ALL_POSTS;}catch(_e){}
     try{return Array.isArray(window.ALL_POSTS)?window.ALL_POSTS:[];}catch(_e){return [];}
@@ -76,9 +77,11 @@
     /* HOME FEED V1 : Marketplace n'est plus propriétaire de la chronologie.
        Il peut enrichir une annonce déjà chargée, jamais en ajouter, supprimer,
        trier ou déplacer une carte du fil principal. */
-    var existingIds=new Set(allPosts().map(function(post){return idOf(post);}).filter(Boolean));
-    var patches=rows.filter(function(row){return existingIds.has(idOf(row));});
+    var existingBy=Object.create(null);allPosts().forEach(function(post){var id=idOf(post);if(id)existingBy[id]=post;});
+    var patches=rows.filter(function(row){var old=existingBy[idOf(row)];return !!old&&marketplaceSignatureV869(old)!==marketplaceSignatureV869(row);});
     var before=allPosts(),next=before;
+    window.__HAPPYAD_MARKETPLACE_HOME_ROWS_V828=rows.slice();
+    if(!patches.length)return before;
     try{
       if(typeof window.happyadFeedPatchExistingV1==='function')next=window.happyadFeedPatchExistingV1(patches)||before;
       else{
@@ -86,7 +89,6 @@
         next=before.map(function(post){return map[idOf(post)]?Object.assign({},post,map[idOf(post)]):post;});
       }
     }catch(_e){next=before;}
-    window.__HAPPYAD_MARKETPLACE_HOME_ROWS_V828=rows.slice();
     try{if(typeof window.happyadSaveHomeFastCache==='function')window.happyadSaveHomeFastCache(next);}catch(_e){}
     try{if(typeof window.happyadRenderHomeFeedWhenIdleV794==='function')window.happyadRenderHomeFeedWhenIdleV794('marketplace-patch-feed-v1');}catch(_e){}
     setTimeout(scanCards,80);
@@ -107,7 +109,14 @@
   }
   function refresh(reason){
     clearTimeout(refreshTimer);
-    refreshTimer=setTimeout(function(){fetchSelected().then(mergeRows).catch(function(error){console.warn('HAPPYAD marketplace home '+reason,error);});},120);
+    refreshTimer=0;
+    var run=function(){return fetchSelected().then(mergeRows).catch(function(error){console.warn('HAPPYAD marketplace home '+reason,error);});};
+    try{
+      var coordinator=window.HappyadConnectionWorkCoordinatorV869;
+      if(coordinator&&typeof coordinator.schedule==='function')return coordinator.schedule('home-marketplace-refresh-v869',run,{surface:'home',delay:reason==='boot'?300:700,maxDelay:4200,minGap:reason==='stability'?60000:8000});
+    }catch(_e){}
+    refreshTimer=setTimeout(run,reason==='boot'?300:700);
+    return true;
   }
 
   function currentUid(){
@@ -213,7 +222,14 @@
   }
   function bindRealtime(){
     var c=client();if(!c||typeof c.channel!=='function'||realtimeChannel)return;
-    try{realtimeChannel=c.channel('happyad-marketplace-home-v828').on('postgres_changes',{event:'*',schema:'public',table:'happyad_posts'},function(payload){var row=(payload&&payload.new)||payload.old||{};if(isMarketplace(row)||truth(row.marketplace_show_on_home))refresh('realtime');}).subscribe();}catch(_e){}
+    try{realtimeChannel=c.channel('happyad-marketplace-home-v828').on('postgres_changes',{event:'*',schema:'public',table:'happyad_posts'},function(payload){
+      var row=(payload&&payload.new)||payload.old||{},id=idOf(row);
+      if(!id||!(isMarketplace(row)||truth(row.marketplace_show_on_home)))return;
+      /* La tête du Feed possède déjà les INSERT. Ce maître ne relit donc les
+         annonces que si la carte concernée existe réellement sur l'Accueil. */
+      if(!allPosts().some(function(post){return idOf(post)===id;}))return;
+      refresh('realtime');
+    }).subscribe();}catch(_e){}
   }
   function install(){
     patchFullscreenOpenV856();scanCards();syncFullscreen();refresh('boot');bindRealtime();

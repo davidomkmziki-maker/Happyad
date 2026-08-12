@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_NOTIFICATION_MASTER_V1__) return;
   window.__HAPPYAD_NOTIFICATION_MASTER_V1__ = true;
 
-  var VERSION='V855R57_NOTIFICATION_QUIET_MODE_REAL';
+  var VERSION='V888_STORY_MENTION_ADD_TO_STORY';
   var TABLE='happyad_notifications';
   var CACHE_PREFIX='happyad-notifications-cache-v1:';
   var INITIAL_LIMIT=100;
@@ -26,6 +26,9 @@
   var notificationPreferences={};
   var notificationPreferencesUpdatedAt='';
   var notificationPreferencesReady=false;
+  var suggestionsUpdatedAt=0;
+  var lastRefreshCompletedAt=0;
+  var SUGGESTIONS_TTL=300000;
 
   function clean(value){return String(value==null?'':value).trim();}
   function avatarMaster(){return window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;}
@@ -175,7 +178,7 @@
     if(type==='comment')return 'comments';
     if(type==='reply'||type==='comment_reply')return 'commentReplies';
     if(type==='share'||type==='repost')return 'shares';
-    if(type==='mention')return 'mentions';
+    if(type==='mention'||type==='story_mention'||type==='mention_story')return 'mentions';
     if(type==='tag'||type==='tagged'||type==='identification')return 'tags';
     if(type==='follow'||type==='follower'||type==='new_follower')return 'newFollowers';
     if(type==='message'||type==='private_message'||type==='dm'||type==='direct_message'||type==='chat_message')return 'privateMessages';
@@ -275,7 +278,14 @@
       return parsed;
     }catch(_e){return null;}
   }
-  function writeCache(){
+  function connectionWork(key,fn,options){
+    try{
+      var coordinator=window.HappyadConnectionWorkCoordinatorV869;
+      if(coordinator&&typeof coordinator.schedule==='function')return coordinator.schedule('notification-'+clean(key),fn,Object.assign({surface:'any',delay:80,maxDelay:1200},options||{}));
+    }catch(_e){}
+    setTimeout(fn,Math.max(0,finite(options&&options.delay)||0));return true;
+  }
+  function writeCacheNow(){
     if(!isUuid(currentUserId))return;
     try{
       localStorage.setItem(cacheKey(currentUserId),JSON.stringify({
@@ -288,6 +298,7 @@
       }));
     }catch(_e){}
   }
+  function writeCache(){return connectionWork('cache',writeCacheNow,{delay:180,maxDelay:2600,minGap:1200});}
   function clearLocalState(){
     rows=[];
     suggestions=[];
@@ -296,6 +307,7 @@
     notificationPreferences=notificationDefaults();
     notificationPreferencesUpdatedAt='';
     notificationPreferencesReady=false;
+    suggestionsUpdatedAt=0;
     renderBadge(0);
     publish();
   }
@@ -355,19 +367,31 @@
     var entityType=clean(row.entity_type).toLowerCase();
     var contentType=clean(meta.content_type||meta.media_type||meta.post_type||(entityType==='story'?'story':'')).toLowerCase()||'post';
     var isStoryLike=type==='story_like'||type==='like_story'||(type==='like'&&(entityType==='story'||contentType==='story'));
-    var category=isStoryLike?'like':(type==='reply'?'comment':((type==='share'||type==='repost')?'activity':type));
     var isPublicationType=!isStoryLike&&(type==='like'||type==='comment'||type==='reply'||type==='favorite'||type==='share'||type==='repost');
     var postId=isPublicationType?clean(row.post_id||(entityType==='post'?row.entity_id:'')):'';
     var storyId=clean(meta.story_id||meta.storyId||(entityType==='story'?row.entity_id:'')||(contentType==='story'?row.post_id:''));
+    var isStoryMention=(type==='mention'||type==='story_mention'||type==='mention_story')&&!!storyId;
+    var isStoryRepostReturn=(type==='story_repost_return'||meta.story_repost_return===true)&&!!storyId;
+    var category=isStoryLike?'like':(type==='reply'?'comment':((type==='share'||type==='repost'||isStoryMention||isStoryRepostReturn)?'activity':type));
     var commentId=clean(row.comment_id||meta.comment_id||(entityType==='comment'?row.entity_id:''));
     var parentCommentId=clean(meta.parent_id||meta.parent_comment_id);
+    var shareChannel=clean(meta.channel||meta.share_channel||meta.shareChannel||meta.destination||meta.share_destination||row.share_channel||row.shareChannel||row.channel).toLowerCase();
+    var shareContext=clean(meta.share_context||meta.shareContext||meta.destination_type||meta.destinationType||meta.action_source).toLowerCase();
+    var addedPublicationToStory=(type==='share'||type==='repost')&&(
+      shareChannel==='happyad-story'||shareChannel==='story'||shareChannel==='my-story'||shareChannel==='ma-story'||
+      shareContext==='story'||shareContext==='happyad-story'||shareContext==='add-to-story'||
+      meta.added_to_story===true||meta.addedToStory===true||meta.to_story===true||meta.toStory===true||meta.story_share===true
+    );
     var bodyHtml='';
     if(isStoryLike)bodyHtml='<strong>'+escapeHtml(name)+'</strong> a aimé votre story.';
+    else if(isStoryMention)bodyHtml='<strong>'+escapeHtml(name)+'</strong> vous a mentionné dans sa story.';
+    else if(isStoryRepostReturn)bodyHtml='<strong>'+escapeHtml(name)+'</strong> a ajouté votre story à sa story.';
     else if(type==='like')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a aimé votre publication.';
     else if(type==='comment')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a commenté votre publication.';
     else if(type==='reply')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a répondu à votre commentaire.';
     else if(type==='follow')bodyHtml='<strong>'+escapeHtml(name)+'</strong> s’est abonné à votre profil.';
     else if(type==='favorite')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a ajouté votre publication aux favoris.';
+    else if(addedPublicationToStory)bodyHtml='<strong>'+escapeHtml(name)+'</strong> a ajouté votre publication à sa story.';
     else if(type==='repost')bodyHtml='<strong>'+escapeHtml(name)+'</strong> a republié votre publication.';
     else if(type==='share'){var shareUnits=Math.max(1,finite(meta.share_units||1));bodyHtml='<strong>'+escapeHtml(name)+'</strong> a partagé votre publication'+(shareUnits>1?' '+shareUnits+' fois.':'.');}
     else {
@@ -418,6 +442,10 @@
       is_read:row.is_read===true,
       badge:(type==='like'||isStoryLike)?'heart':undefined,
       badgeColor:(type==='like'||isStoryLike)?'pink':undefined,
+      canAddMentionedStory:isStoryMention&&(meta.can_add_to_story!==false),
+      can_add_mentioned_story:isStoryMention&&(meta.can_add_to_story!==false),
+      canAddStoryRepostReturn:isStoryRepostReturn&&(meta.can_add_repost_to_story!==false),
+      can_add_story_repost_return:isStoryRepostReturn&&(meta.can_add_repost_to_story!==false),
       metadata:meta
     };
   }
@@ -456,7 +484,9 @@
       if(fr&&fr.contentWindow)fr.contentWindow.postMessage({type:type,payload:payload||{}},'*');
     }catch(_e){}
   }
-  function publish(){
+  function centerVisibleV869(){try{var fr=frame(),host=document.getElementById('happyadNotificationReturnCenter');if(host)return !!(fr&&host.classList.contains('on')&&host.getAttribute('aria-hidden')!=='true'&&!host.hasAttribute('inert'));return !!(fr&&fr.classList.contains('on')&&fr.getAttribute('aria-hidden')!=='true'&&!fr.hasAttribute('inert'));}catch(_e){return false;}}
+  function publishNow(){
+    if(!centerVisibleV869())return {deferred:true,unreadTotal:unreadTotal,loadedCount:rows.length,hasMore:hasMore===true};
     var payload={
       notifications:mappedRows(),
       suggestions:suggestions.slice(),
@@ -472,6 +502,7 @@
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_NOTIFICATIONS_DATA',{detail:clone(payload)}));}catch(_e){}
     return payload;
   }
+  function publish(){return connectionWork('publish',publishNow,{delay:80,maxDelay:1200,minGap:120});}
   function normalizeRows(nextRows){
     var seen=Object.create(null);
     return (Array.isArray(nextRows)?nextRows:[]).filter(function(row){
@@ -604,7 +635,15 @@
     var result=await c.rpc('happyad_account_recommendations_v855r54',{p_limit:12});
     if(result&&result.error){result=await c.rpc('happyad_account_recommendations_v855r53',{p_limit:12});}
     if(result&&result.error)throw result.error;
-    var ids=(Array.isArray(result&&result.data)?result.data:[]).map(function(row){return clean(row&&row.target_user_id);}).filter(isUuid);
+    var ids=(Array.isArray(result&&result.data)?result.data:[]).map(function(row){return clean(row&&row.target_user_id);}).filter(isUuid).filter(function(id){return id!==currentUserId;});
+    if(!ids.length)return [];
+    try{
+      var follows=await c.from('happyad_follows').select('creator_id').eq('follower_id',currentUserId).in('creator_id',ids);
+      if(follows&&!follows.error){
+        var followed=Object.create(null);(follows.data||[]).forEach(function(row){followed[clean(row&&row.creator_id)]=1;});
+        ids=ids.filter(function(id){return !followed[id];});
+      }
+    }catch(_followError){}
     if(!ids.length)return [];
     var profiles=await c.from('profiles').select('*').in('id',ids);
     if(profiles&&profiles.error)throw profiles.error;
@@ -612,9 +651,12 @@
     (profiles&&Array.isArray(profiles.data)?profiles.data:[]).forEach(function(row){var id=clean(row&&row.id);if(isUuid(id))map[id]=row;});
     return ids.map(function(id){return profileSuggestion(map[id]);}).filter(Boolean);
   }
-  function scheduleRefresh(delay){
+  function scheduleRefresh(delay,reason){
     clearTimeout(retryTimer);
-    retryTimer=setTimeout(function(){refresh({reason:'scheduled'}).catch(function(){});},Math.max(0,finite(delay)));
+    retryTimer=0;
+    reason=clean(reason||'scheduled');
+    var minGap=reason==='realtime-reconcile'?4500:(reason==='silent-poll'?30000:900);
+    return connectionWork('refresh',function(){return refresh({reason:reason}).catch(function(){});},{delay:Math.max(0,finite(delay)),maxDelay:reason==='realtime-reconcile'?7000:2500,minGap:minGap});
   }
   async function refresh(options){
     options=options||{};
@@ -644,16 +686,18 @@
       }
       await fetchNotificationPreferences(c,uid);
       var next=await fetchRows(c,null,INITIAL_LIMIT);
-      try{suggestions=await fetchSuggestions(c);}catch(_suggestionsError){suggestions=suggestions||[];}
+      var refreshSuggestions=!suggestionsUpdatedAt||Date.now()-suggestionsUpdatedAt>SUGGESTIONS_TTL||options.force===true||/boot|center-open|request-data|preferences|settings/.test(clean(options.reason));
+      if(refreshSuggestions){try{suggestions=await fetchSuggestions(c);suggestionsUpdatedAt=Date.now();}catch(_suggestionsError){suggestions=suggestions||[];}}
       var preserveOlder=rows.length>INITIAL_LIMIT;
       var firstPageHasMore=next.length>=INITIAL_LIMIT;
       if(!preserveOlder)hasMore=firstPageHasMore;
       var count=await fetchUnread(c,next);
       if(myGeneration!==generation&&options.force!==true)return rows;
       applyRows(next,count,{append:preserveOlder,hasMore:hasMore});
+      lastRefreshCompletedAt=Date.now();
       return next;
     })().catch(function(error){
-      scheduleRefresh(1800);
+      scheduleRefresh(1800,'retry');
       try{console.warn('[HAPPYAD Notifications] refresh',error&&error.message||error);}catch(_e){}
       return rows;
     }).finally(function(){refreshPromise=null;});
@@ -708,7 +752,7 @@
         var next=payload&&payload.new;
         var old=payload&&payload.old;
         if(eventType==='INSERT'&&next&&clean(next.id)){
-          if(!notificationAllowed(next,'inApp')){scheduleRefresh(120);return;}
+          if(!notificationAllowed(next,'inApp')){scheduleRefresh(5000,'realtime-reconcile');return;}
           rows=[next].concat(rows.filter(function(row){return clean(row.id)!==clean(next.id);})).slice(0,MAX_ROWS);
           if(next.is_read!==true)renderBadge(unreadTotal+1);
           writeCache();publish();
@@ -724,7 +768,7 @@
           renderBadge(remaining);writeCache();publish();
         }
       }catch(_e){}
-      scheduleRefresh(120);
+      scheduleRefresh(5000,'realtime-reconcile');
     });
     channel=ch;
     try{
@@ -788,7 +832,7 @@
       c.auth.onAuthStateChange(function(event,session){
         var uid=clean(session&&session.user&&session.user.id);
         if(!uid){currentUserId='';stopRealtime();clearLocalState();}
-        scheduleRefresh(30);
+        scheduleRefresh(30,'auth-change');
       });
     }catch(_e){authBound=false;}
   }
@@ -797,14 +841,14 @@
     if(!data||typeof data!=='object')return;
     if(data.type==='HAPPYAD_NOTIFICATION_CENTER_READY'){
       publish();
-      scheduleRefresh(20);
+      scheduleRefresh(20,'center-open');
     }else if(data.type==='HAPPYAD_NOTIFICATION_MARK_READ'){
       markRead(data.notificationId||data.notification_id||(data.detail&&data.detail.notificationId));
     }else if(data.type==='HAPPYAD_NOTIFICATIONS_MARK_ALL_READ'){
       markAllRead();
     }else if(data.type==='HAPPYAD_NOTIFICATIONS_REQUEST_DATA'){
       publish();
-      scheduleRefresh(20);
+      scheduleRefresh(20,'request-data');
     }else if(data.type==='HAPPYAD_NOTIFICATIONS_LOAD_MORE'){
       loadMore();
     }else if(data.type==='HAPPYAD_NOTIFICATION_PREFERENCES_UPDATED_V855R56'||data.type==='HAPPYAD_NOTIFICATION_PREFERENCES_UPDATED_V855R57'){
@@ -836,15 +880,15 @@
        où Android ou le réseau suspend momentanément le canal Realtime. */
     minuteTimer=setInterval(function(){
       if(document.hidden){publish();return;}
-      refresh({reason:'silent-poll'}).catch(function(){});
-    },30000);
+      scheduleRefresh(0,'silent-poll');
+    },120000);
   }
 
   window.addEventListener('message',onMessage,true);
-  window.addEventListener('HAPPYAD_NOTIFICATION_CENTER_OPENED',function(){publish();scheduleRefresh(20);},true);
-  window.addEventListener('focus',function(){scheduleRefresh(30);},true);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)scheduleRefresh(30);},true);
-  window.addEventListener('online',function(){scheduleRefresh(30);},true);
+  window.addEventListener('HAPPYAD_NOTIFICATION_CENTER_OPENED',function(){publish();scheduleRefresh(20,'center-open');},true);
+  window.addEventListener('focus',function(){scheduleRefresh(30,'focus');},true);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)scheduleRefresh(30,'visible');},true);
+  window.addEventListener('online',function(){scheduleRefresh(30,'online');},true);
   window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(){publish();},true);
   window.addEventListener('happyad:settings-data-change',function(event){
     var detail=event&&event.detail;if(detail&&detail.section==='notifications'){notificationPreferencesReady=false;refresh({force:true,reason:'settings-event'}).catch(function(){});}

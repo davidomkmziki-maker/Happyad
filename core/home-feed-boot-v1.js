@@ -21,7 +21,10 @@
     lifecycleBound:false,
     deletePoll:0,
     pendingHead:null,
-    pendingHeadBeforeKey:''
+    pendingHeadBeforeKey:'',
+    initialRetryTimer:0,
+    initialRetryCount:0,
+    initialEmptyCount:0
   };
   var KEYS={
     boot:'HAPPYAD_HOME_BOOT_SNAPSHOT_V1',
@@ -137,6 +140,38 @@
     task.then(finish,finish);return task;
   }
 
+  function clearInitialRetry(resetCount){
+    clearTimeout(state.initialRetryTimer);state.initialRetryTimer=0;
+    if(resetCount!==false){state.initialRetryCount=0;state.initialEmptyCount=0;}
+    syncState();
+  }
+  function scheduleInitialRetry(delay){
+    if(posts().length){clearInitialRetry();return false;}
+    if(state.initialRetryTimer||state.initialRetryCount>=3)return false;
+    var delays=[700,1500,3200];
+    delay=Math.max(180,Number(delay)||delays[Math.min(state.initialRetryCount,delays.length-1)]);
+    state.initialRetryCount++;
+    bcall('setLoading',true);bcall('renderSkeleton');syncState();
+    state.initialRetryTimer=setTimeout(async function(){
+      state.initialRetryTimer=0;syncState();
+      if(posts().length){clearInitialRetry();return;}
+      var before=String(bcall('postsKey',posts())||''),remote=null;
+      try{remote=await Promise.resolve(bcall('fetchRemote',false,true));}catch(_e){remote=null;}
+      if(Array.isArray(remote)){
+        if(!remote.length)state.initialEmptyCount++;
+        /* Une seule réponse vide juste après le démarrage peut encore provenir
+           d'une session/règle RLS en restauration. Deux réponses vides réussies
+           sont requises avant d'afficher le véritable état vide. */
+        if(remote.length||state.initialEmptyCount>=2){
+          await applyRemoteHead(remote,before,true);clearInitialRetry();return;
+        }
+      }
+      if(state.initialRetryCount<3)scheduleInitialRetry();
+      else{bcall('setLoading',true);bcall('renderSkeleton');syncState();}
+    },delay);
+    return true;
+  }
+
   async function applyRemoteHead(remote,beforeKey,forceNow){
     if(!Array.isArray(remote)||(!remote.length&&posts().length))return false;
     var hasCards=!!bcall('hasCards');
@@ -148,6 +183,7 @@
     var nextKey=String(bcall('postsKey',remote)||'');
     bcall('setLoading',false);
     bcall('replaceHead',remote,false);saveFastCache(posts());
+    clearInitialRetry();
     state.pendingHead=null;state.pendingHeadBeforeKey='';bcall('markPendingNew',false);syncState();
     if(nextKey!==beforeKey||!hasCards)bcall('render');else bcall('renderRadar');
     return true;
@@ -159,6 +195,7 @@
   }
 
   async function runBoot(){
+    clearInitialRetry();
     bcall('setLoading',true);
     try{bcall('seedCache',readBootCache(),remotePage());if(posts().length){saveFastCache(posts());bcall('exposePosts');}}catch(_e){bcall('setPosts',[]);bcall('exposePosts');}
     try{var stories=readJson('local',KEYS.stories,[]);bcall('setStories',Array.isArray(stories)?stories:[]);}catch(_e){bcall('setStories',[]);}
@@ -175,21 +212,31 @@
     if(needForce){try{sessionStorage.removeItem(KEYS.lastSync);sessionStorage.removeItem(KEYS.session);localStorage.removeItem(KEYS.refreshNeeded);}catch(_e){}}
 
     var remotePromise=Promise.resolve(bcall('fetchRemote',false,needForce));
-    var applied=false,applyTask=null;
+    var applied=false,applyTask=null,initialEmptyDeferred=false;
     async function applyOnce(remote){
       if(applied)return false;
+      if(Array.isArray(remote)&&!remote.length&&!posts().length){
+        if(!initialEmptyDeferred){initialEmptyDeferred=true;state.initialEmptyCount=Math.max(1,state.initialEmptyCount);scheduleInitialRetry(700);}
+        return false;
+      }
       if(applyTask)return applyTask;
       applyTask=(async function(){var did=await applyRemoteHead(remote,beforeKey,false);if(did)applied=true;return did;})();
       try{return await applyTask;}finally{applyTask=null;}
     }
-    remotePromise.then(async function(late){try{if(await applyOnce(late))bcall('refreshActions');}catch(_e){}}).catch(function(e){console.warn('home remote late sync',e);});
-    var remote=await Promise.race([remotePromise,new Promise(function(resolve){setTimeout(function(){resolve(null);},900);})]);
-    if(await applyOnce(remote))return posts();
-    bcall('setLoading',false);
+    remotePromise.then(async function(late){
+      try{
+        if(await applyOnce(late)){bcall('refreshActions');return;}
+        if(!posts().length&&!Array.isArray(late))scheduleInitialRetry(700);
+      }catch(_e){if(!posts().length)scheduleInitialRetry(700);}
+    }).catch(function(e){if(!posts().length)scheduleInitialRetry(700);console.warn('home remote late sync',e);});
+    var pendingToken={},remote=await Promise.race([remotePromise,new Promise(function(resolve){setTimeout(function(){resolve(pendingToken);},900);})]);
+    if(remote!==pendingToken&&await applyOnce(remote))return posts();
     if(!posts().length){
-      if(bcall('hasSkeleton'))setTimeout(function(){try{if(!posts().length&&!bcall('isLoading'))bcall('render');}catch(_e){}},9000);
-      else bcall('render');
-    }else{bcall('renderRadar');bcall('refreshActions');}
+      /* Après 900 ms, la requête est seulement lente : l'Accueil conserve ses
+         douze squelettes. Il ne transforme plus ce délai en "Aucune publication". */
+      bcall('setLoading',true);bcall('renderSkeleton');
+      if(remote!==pendingToken&&!Array.isArray(remote))scheduleInitialRetry(700);
+    }else{bcall('setLoading',false);bcall('renderRadar');bcall('refreshActions');}
     return posts();
   }
 
@@ -220,6 +267,7 @@
         else{bcall('renderRadar');bcall('refreshActions');}
         return posts();
       }
+      if(!posts().length)scheduleInitialRetry(700);
     }catch(e){console.warn('home forced posts refresh',reason,e);}
     bcall('renderRadar');return posts();
   }
@@ -245,7 +293,10 @@
       if(soft&&state.bootReady&&now-state.bootFinishedAt<9000)return false;
       if(soft&&hasCards&&now-state.refreshLastAt<1200)return false;
       clearTimeout(state.refreshTimer);state.refreshLastReason=reason;syncState();
-      state.refreshTimer=setTimeout(function(){state.refreshLastAt=Date.now();syncState();refresh(state.refreshLastReason);},Math.max(0,Number(delay)||300));
+      var run=function(){state.refreshTimer=0;state.refreshLastAt=Date.now();syncState();return refresh(state.refreshLastReason);};
+      var coordinator=window.HappyadConnectionWorkCoordinatorV869;
+      if(coordinator&&typeof coordinator.schedule==='function')coordinator.schedule('home-feed-background-v869',run,{surface:'home',delay:Math.max(0,Number(delay)||300),maxDelay:3200,minGap:soft?5000:1200});
+      else state.refreshTimer=setTimeout(run,Math.max(0,Number(delay)||300));
       return true;
     }catch(_e){return false;}
   }
@@ -259,7 +310,7 @@
     try{window.addEventListener('happyad:post-deleted',function(e){
       var id=e&&e.detail&&e.detail.id;Promise.resolve(waitIdle()).then(function(){if(id){bcall('removePost',id);saveFastCache(posts());bcall('render');}setTimeout(function(){refresh('post-deleted');},80);});
     });}catch(_e){}
-    try{state.deletePoll=setInterval(function(){try{if(!document.hidden)refresh('delete-fast-poll');}catch(_e){}},180000);}catch(_e){}
+    try{state.deletePoll=setInterval(function(){try{if(!document.hidden)scheduleRefresh('delete-fast-poll',500);}catch(_e){}},180000);}catch(_e){}
     return api;
   }
 

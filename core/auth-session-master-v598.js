@@ -872,6 +872,12 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   function isAuthOverlayTarget(target){return !!(target&&target.closest&&target.closest('#happyadAuthGateV595'));}
   function isPwaInstallTarget(target){return !!(target&&target.closest&&target.closest('#happyadInstallAppBtn,#happyadPwaGuide'));}
+  function isCachedMainDockSurfaceV877(target){
+    try{
+      if(!localHintId()||!target||!target.closest)return false;
+      return !!target.closest('.bottom [data-happyad-main-nav="message"],.bottom [data-happyad-main-nav="profile"]');
+    }catch(_e){return false;}
+  }
   function isHomePhotoViewerControl(target){
     if(!target||!target.closest)return false;
     return !!target.closest('#happyadHomePhotoFullscreen .haHomeFsBackV591,#happyadHomePhotoFullscreen .haHomeFsClose,#happyadHomePhotoFullscreen .haHomeFsSeeMore,#happyadHomePhotoFullscreen .haHomeFsPrev,#happyadHomePhotoFullscreen .haHomeFsNext');
@@ -897,6 +903,10 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   function gateParentClick(e){
     var target=e&&e.target;if(!target||isAuthOverlayTarget(target)||isPwaInstallTarget(target)||isAuthenticated())return;
+    /* Une vérification réseau momentanément en retard ne doit pas avaler le clic
+       sur une surface locale déjà autorisée. Chaque module reconfirme ensuite la
+       session canonique avant son travail connecté. */
+    if(isCachedMainDockSurfaceV877(target))return;
     var direct=target.closest&&target.closest('[data-happyad-auth-direct-v598]');
     if(direct){
       stop(e);
@@ -917,6 +927,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   function holdParentPointerDownV710(e){
     var target=e&&e.target;if(!target||isAuthOverlayTarget(target)||isPwaInstallTarget(target)||isAuthenticated())return;
+    if(isCachedMainDockSurfaceV877(target))return;
     var direct=target.closest&&target.closest('[data-happyad-auth-direct-v598]');
     if(!direct&&isHomePhotoViewerControl(target))return;
     if(!direct&&isAllowedVideoOpen(target))return;

@@ -1,4 +1,4 @@
-/* HAPPYAD V863 — priorité absolue au geste de scroll de l'Accueil.
+/* HAPPYAD V868 — priorité globale au geste de scroll, Accueil et modules.
    Ce maître ne change ni le rendu ni le moteur de scroll. Il décale uniquement
    les travaux secondaires lourds (caches, avatars, identité) tant que le doigt
    ou l'inertie de l'Accueil sont actifs. */
@@ -6,7 +6,7 @@
   'use strict';
   if(window.HappyadHomeScrollPriorityV863)return;
 
-  var VERSION='V863_HOME_SCROLL_PRIORITY';
+  var VERSION='V868_HOME_GLOBAL_SCROLL_PRIORITY';
   var jobs=Object.create(null);
   var timers=Object.create(null);
   var seq=0;
@@ -19,6 +19,10 @@
   }
   function isActive(){
     try{if(document.hidden)return false;}catch(_e){}
+    try{
+      var global=window.HappyadGlobalScrollCoordinatorV868;
+      if(global&&typeof global.isActive==='function'&&global.isActive())return true;
+    }catch(_e2){}
     return feedScrollActive();
   }
   function clearTimer(key){

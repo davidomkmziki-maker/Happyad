@@ -7,7 +7,7 @@
   'use strict';
   if(window.HappyHomeFeedViewV1)return;
 
-  var VERSION='V3_MARKETPLACE_CARD_SIGNATURE_V856';
+  var VERSION='V868_GLOBAL_SCROLL_AWARE';
   var bridge=null;
   var mode='';
   var items=[];
@@ -45,7 +45,10 @@
     scrollActiveUntil=Math.max(scrollActiveUntil,Date.now()+Math.max(180,Number(delay||0)));
     return scrollActiveUntil;
   }
-  function isScrollActive(){return Date.now()<scrollActiveUntil;}
+  function globalScrollActive(){
+    try{var g=window.HappyadGlobalScrollCoordinatorV868;return !!(g&&typeof g.isActive==='function'&&g.isActive());}catch(_e){return false;}
+  }
+  function isScrollActive(){return Date.now()<scrollActiveUntil||globalScrollActive();}
   function currentMode(){return mode;}
 
   function notifyPending(reason){

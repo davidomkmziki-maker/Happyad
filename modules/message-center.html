@@ -24,15 +24,54 @@
   document.addEventListener('DOMContentLoaded',function(){check('dom-ready');},{once:true});
   setTimeout(function(){check('safety');},700);
 })();
-</script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
+</script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
 <script src="../core/return-reset-master-v584.js?v=584"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
-  <title>HappyAD - Messages V746</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>HappyAD - Messages V877</title>
   <script>window.HAPPYAD_SUPABASE_URL='https://txjjyhupbejgjcianrmr.supabase.co';window.HAPPYAD_SUPABASE_KEY='sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';</script>
+  <script id="happyad-message-supabase-fast-bridge-v874">
+    (function(){
+      'use strict';
+      if(window.__HAPPYAD_MESSAGE_SUPABASE_FAST_BRIDGE_V874__)return;
+      window.__HAPPYAD_MESSAGE_SUPABASE_FAST_BRIDGE_V874__=true;
+      var loading=null;
+      function adoptParent(){
+        try{
+          if(window.happyadSupabase)return window.happyadSupabase;
+          if(window.parent&&window.parent!==window){
+            var parentWindow=window.parent;
+            var shared=parentWindow.happyadSupabase||parentWindow.supabaseClient||null;
+            if(!shared&&typeof parentWindow.happyadSb==='function')shared=parentWindow.happyadSb();
+            if(shared){window.happyadSupabase=shared;return shared;}
+            if(parentWindow.supabase&&typeof parentWindow.supabase.createClient==='function')window.supabase=parentWindow.supabase;
+          }
+        }catch(_e){}
+        return window.happyadSupabase||null;
+      }
+      function ensureSupabase(){
+        var shared=adoptParent();
+        if(shared||(window.supabase&&typeof window.supabase.createClient==='function'))return Promise.resolve(shared||window.supabase);
+        if(loading)return loading;
+        /* Secours autonome seulement. Dans l'application, le client du parent est
+           réutilisé et aucun CDN ne bloque plus la peinture de Messages. */
+        loading=new Promise(function(resolve,reject){
+          var script=document.createElement('script');
+          script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+          script.async=true;
+          script.onload=function(){resolve(window.supabase||null);};
+          script.onerror=function(){reject(new Error('Supabase indisponible.'));};
+          (document.head||document.documentElement).appendChild(script);
+        });
+        return loading;
+      }
+      window.happyadMessageAdoptSupabaseV874=adoptParent;
+      window.happyadMessageEnsureSupabaseV874=ensureSupabase;
+      adoptParent();
+    })();
+  </script>
   <script src="../core/profile-avatar-master-v855r32.js?v=855r32-source-unique"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
   <script src="../core/message-privacy-master-v855r51.js?v=855r53-account-discovery"></script>
@@ -139,6 +178,30 @@
 
     .view.chat.hidden{transform:translateX(100%)}
     html.message-direct-boot #listView{display:none!important}
+
+    /* HAPPYAD V872 — la destination du clic existe avant toute lecture réseau.
+       Ce petit état fixe remplace le vide pendant l'unique frame réservée à la
+       transition visuelle, puis les bulles locales prennent immédiatement place. */
+    .happyad-chat-opening-v872{
+      flex:1;
+      min-height:100%;
+      padding:22px 14px 84px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      gap:10px;
+      pointer-events:none;
+    }
+    .happyad-chat-opening-v872 span{
+      display:block;
+      height:34px;
+      border-radius:17px 17px 17px 5px;
+      background:rgba(255,255,255,.065);
+      border:1px solid rgba(255,255,255,.045);
+    }
+    .happyad-chat-opening-v872 span:nth-child(1){width:52%}
+    .happyad-chat-opening-v872 span:nth-child(2){width:66%;align-self:flex-end;border-radius:17px 17px 5px 17px;background:rgba(28,116,214,.2)}
+    .happyad-chat-opening-v872 span:nth-child(3){width:38%}
 
     .topbar{
       height:calc(var(--header-h) + env(safe-area-inset-top,0px));
@@ -340,6 +403,10 @@
       overflow:hidden;
     }
 
+    /* V882 point 3 : le trait entre conversations n'est plus une bordure native
+       du <button>. Sur Android/WebView, cette bordure pouvait être repeinte en
+       blanc pendant :active/focus. Le séparateur devient un pseudo-élément
+       purement visuel, indépendant du contrôle tactile. */
     .row{
       width:100%;
       min-height:66px;
@@ -347,23 +414,51 @@
       display:flex;
       align-items:center;
       gap:10px;
-      border:0;
-      border-bottom:1px solid var(--line);
+      position:relative;
+      border:0!important;
       background:transparent;
       color:inherit;
       text-align:left;
       cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
-      transition:background .14s ease, transform .14s ease, box-shadow .14s ease;
+      -webkit-appearance:none!important;
+      appearance:none!important;
+      outline:0!important;
+      box-shadow:none;
+      -webkit-tap-highlight-color:rgba(0,0,0,0)!important;
+      transition:background .08s ease;
       touch-action:pan-y;
     }
-    .row:last-child{border-bottom:0}
-    .row:hover{background:rgba(255,255,255,.025)}
-    .row:active{background:rgba(32,168,255,.11);transform:scale(.993)}
+    .row:not(:last-child)::after{
+      content:'';
+      position:absolute;
+      left:11px;
+      right:11px;
+      bottom:0;
+      height:1px;
+      background:var(--line);
+      pointer-events:none;
+      opacity:1;
+    }
+    .row:focus,
+    .row:focus-visible,
+    .row:active{
+      outline:0!important;
+      -webkit-appearance:none!important;
+      appearance:none!important;
+      border:0!important;
+      box-shadow:none!important;
+    }
+    @media (hover:hover) and (pointer:fine){
+      .row:hover{background:rgba(255,255,255,.025)}
+    }
+    .row:active{
+      background:rgba(32,168,255,.055);
+      transform:none!important;
+    }
     .row.long-press-active{
       background:rgba(255,72,92,.14);
-      box-shadow:inset 3px 0 0 rgba(255,92,108,.92);
-      transform:scale(.991);
+      box-shadow:inset 3px 0 0 rgba(255,92,108,.92)!important;
+      transform:none!important;
     }
 
     .avatar{
@@ -3449,6 +3544,102 @@
     </div>
   </main>
 
+  <script id="happyad-message-cache-prefetch-v875">
+    (function(){
+      'use strict';
+      if(window.__HAPPYAD_MESSAGE_CACHE_PREFETCH_V875__)return;
+      window.__HAPPYAD_MESSAGE_CACHE_PREFETCH_V875__=true;
+      var UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      var SNAPSHOT_PREFIX='HAPPYAD_MESSAGE_INBOX_SNAPSHOT_V875:';
+      var settled=false,resolvePromise;
+      var promise=new Promise(function(resolve){resolvePromise=resolve;});
+      window.happyadMessageEarlyCachePromiseV875=promise;
+
+      function clean(value){return String(value==null?'':value).trim();}
+      function activeUid(){
+        try{
+          if(localStorage.getItem('HAPPYAD_FORCE_LOGOUT')==='1')return '';
+          if(Number(localStorage.getItem('HAPPYAD_FORCE_LOGOUT_UNTIL')||0)>Date.now())return '';
+          if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';
+          var uid=clean(localStorage.getItem('HAPPYAD_AUTH_UID'));
+          if(!UUID.test(uid))return '';
+          /* Si le maître Auth parent a terminé, son utilisateur en mémoire doit
+             confirmer exactement le même UUID avant toute lecture du cache. */
+          try{
+            if(window.parent&&window.parent!==window){
+              var auth=window.parent.HappyAuthSessionV598||window.parent.HappyAuthSessionV596||window.parent.HappyAuthSessionV595;
+              if(auth&&typeof auth.isReady==='function'&&auth.isReady()){
+                var user=typeof auth.user==='function'?auth.user():null;
+                if(!user||clean(user.id)!==uid)return '';
+              }
+            }
+          }catch(_auth){}
+          return uid;
+        }catch(_e){return '';}
+      }
+      function validRows(rows,uid){
+        return (Array.isArray(rows)?rows:[]).filter(function(row){
+          if(!row||!UUID.test(clean(row.id))||!UUID.test(clean(row.targetId)))return false;
+          if(clean(row.ownerUserId)!==uid)return false;
+          var key=clean(row.conversationKey);
+          return !key||key===uid+':'+clean(row.id);
+        }).sort(function(a,b){
+          var left=Math.max(Number(a.previewSeq)||0,Number(a.lastSeq)||0);
+          var right=Math.max(Number(b.previewSeq)||0,Number(b.lastSeq)||0);
+          if(right!==left)return right-left;
+          return new Date(b.previewAt||b.lastAt||0).getTime()-new Date(a.previewAt||a.lastAt||0).getTime();
+        }).slice(0,50);
+      }
+      function finish(uid,rows,source){
+        if(settled)return;
+        settled=true;
+        rows=validRows(rows,uid);
+        var state={uid:uid,rows:rows,source:source||'none',at:Date.now()};
+        window.__HAPPYAD_MESSAGE_EARLY_CACHE_V875__=state;
+        var dormant=false;
+        try{var frame=window.frameElement;dormant=!!(window.parent!==window&&frame&&frame.getAttribute('data-happyad-message-cache-prepare-v875')==='1'&&frame.getAttribute('aria-hidden')==='true');}catch(_frame){}
+        if(uid&&rows.length&&!dormant){
+          try{localStorage.setItem(SNAPSHOT_PREFIX+uid,JSON.stringify({version:1,ownerUserId:uid,savedAt:Date.now(),rows:rows}));}catch(_storage){}
+        }
+        resolvePromise(state);
+      }
+
+      var mode='';
+      try{mode=clean(new URLSearchParams(location.search||'').get('mode')).toLowerCase();}catch(_query){}
+      var uid=activeUid();
+      if(mode==='direct'||document.documentElement.classList.contains('message-direct-boot')||!uid){finish(uid,[],'skipped');return;}
+
+      try{
+        var saved=JSON.parse(localStorage.getItem(SNAPSHOT_PREFIX+uid)||'null');
+        if(saved&&clean(saved.ownerUserId)===uid&&Array.isArray(saved.rows)&&saved.rows.length){
+          finish(uid,saved.rows,'snapshot');
+          return;
+        }
+      }catch(_snapshot){}
+
+      if(!('indexedDB' in window)){finish(uid,[],'indexeddb-unavailable');return;}
+      var request;
+      try{request=indexedDB.open('happyad-msg-v38a1-'+uid);}catch(_open){finish(uid,[],'indexeddb-open-error');return;}
+      request.onupgradeneeded=function(){
+        /* Une base absente ne doit pas être créée par ce lecteur anticipé. */
+        try{request.transaction.abort();}catch(_abort){}
+      };
+      request.onsuccess=function(){
+        var db=request.result;
+        try{
+          if(!db.objectStoreNames.contains('conversations')){db.close();finish(uid,[],'indexeddb-empty');return;}
+          var tx=db.transaction('conversations','readonly');
+          var read=tx.objectStore('conversations').getAll();
+          read.onsuccess=function(){try{db.close();}catch(_close){}finish(uid,read.result||[],'indexeddb');};
+          read.onerror=function(){try{db.close();}catch(_close){}finish(uid,[],'indexeddb-read-error');};
+        }catch(_tx){try{db.close();}catch(_close){}finish(uid,[],'indexeddb-transaction-error');}
+      };
+      request.onerror=function(){finish(uid,[],'indexeddb-open-error');};
+      request.onblocked=function(){finish(uid,[],'indexeddb-blocked');};
+      setTimeout(function(){finish(uid,[],'short-timeout');},360);
+    })();
+  </script>
+
   <script src="../core/account-discovery-privacy-v855r53.js?v=855r53-account-discovery"></script>
   <script id="happyad-message-master-v38c7f-long-press-all-ordinary">
     (function(){
@@ -3456,7 +3647,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V775_MESSAGES_COMPOSER_BOTTOM_STABLE';
+      const MASTER_VERSION = 'V877_MESSAGES_DOCK_EXECUTION_DIRECT';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -3465,6 +3656,141 @@
       const clean = value => String(value == null ? '' : value).trim();
       const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(value));
       const query = new URLSearchParams(location.search || '');
+      let messageUserPaintUntilV868 = 0;
+      let deferredMessageBottomV868 = false;
+
+      function allowMessageUserPaintV868(duration){
+        messageUserPaintUntilV868 = Math.max(messageUserPaintUntilV868,Date.now() + Math.max(180,finiteNumber(duration,700)));
+      }
+      function cancelMessageUserPaintV868(){messageUserPaintUntilV868=0;}
+      function waitForMessageVisualCommitV872(){
+        return new Promise(resolve => {
+          if(document.hidden){ setTimeout(resolve,0); return; }
+          /* Résoudre dans une tâche suivant requestAnimationFrame laisse le navigateur
+             présenter l'en-tête et la transition avant tout travail de cache/réseau. */
+          requestAnimationFrame(() => setTimeout(resolve,0));
+        });
+      }
+      let messageCacheReadySentV875 = false;
+      let messageCacheReadyPromiseV875 = null;
+      function signalMessageCacheReadyV875(reason,count){
+        if(messageCacheReadySentV875)return Promise.resolve(true);
+        if(messageCacheReadyPromiseV875)return messageCacheReadyPromiseV875;
+        messageCacheReadyPromiseV875=new Promise(resolve => {
+          const send=() => {
+            if(!messageCacheReadySentV875){
+              messageCacheReadySentV875=true;
+              try{document.documentElement.setAttribute('data-happyad-message-cache-ready-v875','1');}catch(_attr){}
+              try{if(window.parent&&window.parent!==window)window.parent.postMessage({
+                type:'HAPPYAD_MESSAGE_CACHE_READY_V875',
+                reason:clean(reason)||'cache-ready',
+                count:Math.max(0,finiteNumber(count,0)),
+                at:Date.now()
+              },'*');}catch(_post){}
+            }
+            resolve(true);
+          };
+          try{requestAnimationFrame(function(){requestAnimationFrame(send);});}catch(_e){setTimeout(send,0);}
+        });
+        return messageCacheReadyPromiseV875;
+      }
+      function repeatMessageCacheReadyV877(reason){
+        if(!messageCacheReadySentV875)return false;
+        const send=() => {
+          try{if(window.parent&&window.parent!==window)window.parent.postMessage({
+            type:'HAPPYAD_MESSAGE_CACHE_READY_V875',
+            reason:clean(reason)||'cache-ready-repeat-v877',
+            count:Math.max(0,Array.isArray(conversations)?conversations.length:0),
+            repeated:true,
+            at:Date.now()
+          },'*');}catch(_post){}
+        };
+        try{requestAnimationFrame(send);}catch(_e){setTimeout(send,0);}
+        return true;
+      }
+      function paintChatOpeningShellV872(expectedConversationKey){
+        if(!chatBody) return;
+        const expectedKey=clean(expectedConversationKey);
+        if(expectedKey && expectedKey!==activeConversationViewKey) return;
+        if(expectedKey) chatBody.dataset.conversationKey=expectedKey;
+        chatBody.innerHTML='<div class="happyad-chat-opening-v872" aria-label="Ouverture de la conversation"><span></span><span></span><span></span></div>';
+      }
+      function messageFrameVisibleV868(){
+        try{
+          if(document.hidden)return false;
+          if(window.parent===window)return true;
+          const frame=window.frameElement;
+          return !!(frame&&frame.classList.contains('on')&&frame.getAttribute('aria-hidden')!=='true'&&!frame.hasAttribute('inert'));
+        }catch(_e){return false;}
+      }
+      function messageCachePreparingV875(){
+        try{
+          const frame=window.frameElement;
+          return !!(window.parent!==window&&frame&&frame.getAttribute('data-happyad-message-cache-prepare-v875')==='1');
+        }catch(_e){return false;}
+      }
+      let messageVisibleWaitersV876 = [];
+      let messageConnectedBootReadyV876 = false;
+      let messageResumeAfterBootQueuedV876 = false;
+      let messageRealtimeStartAnnouncedV876 = false;
+      function waitForMessageVisibleV876(){
+        if(messageFrameVisibleV868()||window.parent===window)return Promise.resolve(true);
+        return new Promise(resolve => { messageVisibleWaitersV876.push(resolve); });
+      }
+      function releaseMessageVisibleWaitersV876(){
+        if(!messageFrameVisibleV868())return false;
+        const waiters=messageVisibleWaitersV876.splice(0);
+        if(!waiters.length)return true;
+        /* Deux frames visibles garantissent que la liste locale est réellement
+           présentée avant getSession, Supabase et les abonnements. */
+        const release=() => waiters.forEach(resolve => {try{resolve(true);}catch(_e){}});
+        try{requestAnimationFrame(() => requestAnimationFrame(release));}catch(_e){setTimeout(release,0);}
+        return true;
+      }
+      function announceMessageRealtimeStartV876(){
+        if(messageRealtimeStartAnnouncedV876||!messageFrameVisibleV868())return false;
+        messageRealtimeStartAnnouncedV876=true;
+        try{window.parent.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_START'},'*');}catch(_e){}
+        return true;
+      }
+      function scheduleMessageConnectionWorkV869(key,work,options){
+        if(typeof work !== 'function') return false;
+        options=options&&typeof options==='object'?options:{};
+        try{
+          const coordinator=window.HappyadConnectionWorkCoordinatorV869;
+          if(coordinator&&typeof coordinator.schedule==='function'){
+            return coordinator.schedule('message-'+clean(key||'background'),work,Object.assign({surface:'message',delay:100,maxDelay:2200},options));
+          }
+        }catch(_e){}
+        setTimeout(() => { if(messageFrameVisibleV868()) work(); },Math.max(0,finiteNumber(options.delay,100)));
+        return true;
+      }
+      function deferMessagePaintV868(key,paint,delay){
+        if(Date.now() < messageUserPaintUntilV868) return false;
+        try{
+          const coordinator = window.HappyadGlobalScrollCoordinatorV868;
+          if(coordinator && typeof coordinator.deferIfActive === 'function') {
+            return coordinator.deferIfActive('message-' + clean(key || 'paint'),paint,Math.max(0,finiteNumber(delay,55)));
+          }
+        }catch(_e){}
+        return false;
+      }
+      function deferMessageCacheV868(key,work,delay){
+        try{
+          const coordinator = window.HappyadGlobalScrollCoordinatorV868;
+          if(coordinator && typeof coordinator.deferIfActive === 'function') {
+            return coordinator.deferIfActive('message-cache-' + clean(key || 'write'),work,Math.max(0,finiteNumber(delay,90)));
+          }
+        }catch(_e){}
+        return false;
+      }
+      try{
+        document.addEventListener('scroll',cancelMessageUserPaintV868,{passive:true,capture:true});
+        window.addEventListener('wheel',cancelMessageUserPaintV868,{passive:true,capture:true});
+        window.addEventListener('HAPPYAD_GLOBAL_SCROLL_STATE_CHANGE_V868',event => {
+          if(event && event.detail && event.detail.active) cancelMessageUserPaintV868();
+        },{capture:true});
+      }catch(_e){}
 
       const listView = byId('listView');
       const chatView = byId('chatView');
@@ -3682,6 +4008,10 @@
       let lastMessageContentSignature = '';
       let reconnectSyncTimer = 0;
       let reconnectSyncPromise = null;
+      let messageHiddenRealtimeDirtyV869 = false;
+      let messageRequestsPollTimerV869 = 0;
+      let pendingMessageContextV869 = null;
+      let pendingAuthRecoveryV869 = null;
       let deferredChatLoadingTimer = 0;
       const MESSAGE_DELTA_REPAIR_LIMIT = 16;
       const MESSAGE_DELTA_REPAIR_INTERVAL_MS = 8 * 60 * 1000;
@@ -3764,7 +4094,8 @@
         },Math.max(120,finiteNumber(delay,280)));
       }
 
-      function activateConversationView(conversationId,token){
+      function activateConversationView(conversationId,token,options){
+        options=options&&typeof options==='object'?options:{};
         const id = clean(conversationId);
         const key = fixedConversationKey(id);
         if(!isUuid(id) || !key) return null;
@@ -3780,11 +4111,16 @@
           chatBody.dataset.conversationKey = key;
           chatBody.dataset.conversationGeneration = String(activeConversationGeneration);
         }
-        if(bucket.length) renderMessages(false);
+        if(bucket.length && options.visualFirst===true){
+          /* Le premier cycle peint uniquement la destination du clic. La liste locale
+             complète sera construite après que le navigateur l'a présentée. */
+          paintChatOpeningShellV872(key);
+        }else if(bucket.length) renderMessages(false);
         else{
           /* IndexedDB est consulté avant tout affichage réseau. On ne montre pas
              un faux rechargement pendant les quelques millisecondes de lecture locale. */
-          if(chatBody) chatBody.replaceChildren();
+          if(options.visualFirst===true) paintChatOpeningShellV872(key);
+          else if(chatBody) chatBody.replaceChildren();
           scheduleDeferredChatLoading(key,'Chargement des messages…',320);
         }
         return {key,generation:activeConversationGeneration,token};
@@ -5148,11 +5484,22 @@
 
       function queuePersistConversations(){
         if(!authUser || !isUuid(authUser.id)) return;
+        if(messageCachePreparingV875()&&!messageFrameVisibleV868())return;
+        if(deferMessageCacheV868('conversations',queuePersistConversations,120)) return;
         const ownerUserId = clean(authUser.id);
         const records = conversations.map(localConversationRecord).filter(record => record && record.ownerUserId === ownerUserId);
-        if(!records.length) return;
+        if(!records.length){
+          try{localStorage.removeItem('HAPPYAD_MESSAGE_INBOX_SNAPSHOT_V875:'+ownerUserId);}catch(_emptySnapshot){}
+          return;
+        }
+        /* Petit miroir JSON du dernier inbox, strictement indexé par UUID. Il ne
+           remplace pas IndexedDB : il permet seulement au prochain démarrage de
+           peindre les vraies lignes avant même l'ouverture asynchrone de la base. */
+        try{localStorage.setItem('HAPPYAD_MESSAGE_INBOX_SNAPSHOT_V875:'+ownerUserId,JSON.stringify({version:1,ownerUserId:ownerUserId,savedAt:Date.now(),rows:records.slice(0,50)}));}catch(_snapshot){}
         clearTimeout(localConversationWriteTimer);
         localConversationWriteTimer = setTimeout(() => {
+          localConversationWriteTimer = 0;
+          if(deferMessageCacheV868('conversations',queuePersistConversations,80)) return;
           if(!authUser || clean(authUser.id) !== ownerUserId || localDbUserId !== ownerUserId) return;
           persistLocalConversationRecords(records,ownerUserId).catch(error => console.warn('[HAPPYAD V38A1B] conversations cache:',error));
         },180);
@@ -5161,6 +5508,7 @@
       function queuePersistMessageBucket(conversationId){
         const id = clean(conversationId);
         if(!authUser || !isUuid(authUser.id) || !isUuid(id)) return;
+        if(deferMessageCacheV868('bucket-' + id,() => queuePersistMessageBucket(id),100)) return;
         const ownerUserId = clean(authUser.id);
         const conversationKey = fixedConversationKey(id,ownerUserId);
         if(!conversationKey) return;
@@ -5178,6 +5526,7 @@
         if(previousTimer) clearTimeout(previousTimer);
         const timer = setTimeout(() => {
           localMessageWriteTimers.delete(conversationKey);
+          if(deferMessageCacheV868('bucket-' + id,() => queuePersistMessageBucket(id),80)) return;
           if(!authUser || clean(authUser.id) !== ownerUserId || localDbUserId !== ownerUserId) return;
           persistLocalMessageRecords(id,messageRecords,attachmentRecords,ownerUserId).catch(error => console.warn('[HAPPYAD V38C5] messages cache:',error));
         },120);
@@ -5767,7 +6116,9 @@
       }
 
       let messageLayoutRepairFrame = 0;
+      let messageLayoutRepairTimerV872 = 0;
       function repairMessageCenterLayout(reason){
+        if(deferMessagePaintV868('layout',() => repairMessageCenterLayout(reason),70)) return;
         if(messageLayoutRepairFrame) cancelAnimationFrame(messageLayoutRepairFrame);
         messageLayoutRepairFrame = requestAnimationFrame(() => {
           messageLayoutRepairFrame = 0;
@@ -5832,7 +6183,18 @@
         });
       }
       function scheduleMessageLayoutRepair(reason){
-        [0,50,170,420].forEach(delay => setTimeout(() => repairMessageCenterLayout(reason || 'layout'),delay));
+        /* V872 : une réception de contexte pouvait programmer quatre réparations,
+           puis les cinq livraisons de secours recommençaient la même série. Ces
+           recalculs forçaient transition:none pendant l'ouverture. Une réparation
+           coalescée, après la transition de 220 ms, suffit. Resize/orientation reste
+           prioritaire mais ne peut plus créer une rafale. */
+        clearTimeout(messageLayoutRepairTimerV872);
+        const why=clean(reason)||'layout';
+        const urgent=/resize|orientation/i.test(why);
+        messageLayoutRepairTimerV872=setTimeout(() => {
+          messageLayoutRepairTimerV872=0;
+          repairMessageCenterLayout(why);
+        },urgent?70:260);
       }
 
       function cancelComposerKeyboardPinV851R5(){
@@ -6905,22 +7267,32 @@
       }
 
       async function refreshTargetPresenceV855R51(){
-        if(activeMessageView!=='chat'||!currentTarget||!isUuid(currentTarget.id)||!isUuid(currentConversationId))return;
+        if(!messageFrameVisibleV868()||activeMessageView!=='chat'||!currentTarget||!isUuid(currentTarget.id)||!isUuid(currentConversationId))return;
         const master=window.HappyMessagePrivacyV855R51;
         if(!master||typeof master.readPresence!=='function')return resetChatStatusFromProfileV855R51();
         const targetId=clean(currentTarget.id);
         const conversationId=clean(currentConversationId);
         const presence=await master.readPresence(targetId,conversationId).catch(()=>({active:false,typing:false}));
-        if(activeMessageView!=='chat'||!currentTarget||clean(currentTarget.id)!==targetId||clean(currentConversationId)!==conversationId)return;
-        if(presence&&presence.typing) chatStatus.textContent='Écrit…';
-        else if(presence&&presence.active) chatStatus.textContent='Actif maintenant';
-        else resetChatStatusFromProfileV855R51();
+        const paint=()=>{
+          if(!messageFrameVisibleV868()||activeMessageView!=='chat'||!currentTarget||clean(currentTarget.id)!==targetId||clean(currentConversationId)!==conversationId)return;
+          if(presence&&presence.typing) chatStatus.textContent='Écrit…';
+          else if(presence&&presence.active) chatStatus.textContent='Actif maintenant';
+          else resetChatStatusFromProfileV855R51();
+        };
+        if(deferMessagePaintV868('target-presence',paint,55))return;
+        paint();
+      }
+
+      function scheduleTargetPresenceV869(delay){
+        if(!messageFrameVisibleV868()||activeMessageView!=='chat')return false;
+        return scheduleMessageConnectionWorkV869('target-presence',refreshTargetPresenceV855R51,{delay:Math.max(80,finiteNumber(delay,180)),maxDelay:1800,minGap:4000});
       }
 
       function startPresencePollingV855R51(){
         stopPresencePollingV855R51();
-        refreshTargetPresenceV855R51();
-        presencePollTimerV855R51=setInterval(()=>refreshTargetPresenceV855R51(),2500);
+        if(!messageFrameVisibleV868())return;
+        scheduleTargetPresenceV869(120);
+        presencePollTimerV855R51=setInterval(()=>{if(messageFrameVisibleV868())scheduleTargetPresenceV869(160);},5000);
       }
 
       function touchOwnPresenceV855R51(typing){
@@ -6950,9 +7322,11 @@
 
       function startPresenceHeartbeatV855R51(){
         clearInterval(presenceHeartbeatTimerV855R51);
+        presenceHeartbeatTimerV855R51=0;
+        if(!messageFrameVisibleV868())return;
         touchOwnPresenceV855R51(false);
         presenceHeartbeatTimerV855R51=setInterval(()=>{
-          if(document.visibilityState==='visible') touchOwnPresenceV855R51(lastTypingStateV855R51 && !!(messageInput&&clean(messageInput.value)));
+          if(messageFrameVisibleV868()) touchOwnPresenceV855R51(lastTypingStateV855R51 && !!(messageInput&&clean(messageInput.value)));
         },30000);
       }
 
@@ -8934,6 +9308,14 @@
         element.innerHTML = '';
         element.classList.remove('has-photo');
         if(url){
+          if(messageCachePreparingV875()&&!messageFrameVisibleV868()){
+            element.textContent = initials(name);
+            element.dataset.happyadDeferredAvatarV876 = url;
+            element.dataset.happyadDeferredAvatarNameV876 = clean(name);
+            return;
+          }
+          delete element.dataset.happyadDeferredAvatarV876;
+          delete element.dataset.happyadDeferredAvatarNameV876;
           const img = document.createElement('img');
           img.src = url;
           img.alt = clean(name) || 'Profil';
@@ -8948,6 +9330,22 @@
           return;
         }
         element.textContent = initials(name);
+      }
+      function hydrateDeferredMessageAvatarsV876(){
+        if(!messageFrameVisibleV868())return false;
+        try{
+          document.querySelectorAll('[data-happyad-deferred-avatar-v876]').forEach(element => {
+            const url=clean(element.dataset.happyadDeferredAvatarV876);
+            const name=clean(element.dataset.happyadDeferredAvatarNameV876);
+            if(url)setAvatar(element,name,url);
+          });
+          if(currentUserPhoto&&currentUserPhoto.dataset.happyadDeferredSrcV876){
+            const own=clean(currentUserPhoto.dataset.happyadDeferredSrcV876);
+            delete currentUserPhoto.dataset.happyadDeferredSrcV876;
+            if(own)currentUserPhoto.src=own;
+          }
+          return true;
+        }catch(_e){return false;}
       }
 
       function showToast(message, duration){
@@ -8966,11 +9364,13 @@
       }
 
       function setListState(message){
+        if(deferMessagePaintV868('list-state',() => setListState(message),55)) return;
         if(!conversationPanel) return;
         conversationPanel.innerHTML = '<div class="empty" style="display:block">' + escapeHtml(message) + '</div>';
       }
 
       function setChatState(message,expectedConversationKey){
+        if(deferMessagePaintV868('chat-state',() => setChatState(message,expectedConversationKey),55)) return;
         if(!chatBody) return;
         cancelDeferredChatLoading();
         const expectedKey = clean(expectedConversationKey);
@@ -10529,6 +10929,7 @@
             longPressConsumed = false;
             return;
           }
+          allowMessageUserPaintV868(900);
           openExistingConversation(item);
         });
       }
@@ -10587,14 +10988,26 @@
         if(messageRequestsCount) messageRequestsCount.textContent=messageRequestIdsV855R55.size?String(messageRequestIdsV855R55.size):'';
       }
       async function refreshMessageRequestsV855R55(force){
+        if(!messageFrameVisibleV868()){messageHiddenRealtimeDirtyV869=true;return;}
         if(messageRequestsRefreshBusyV855R55)return;
         const api=window.HappyFilteringPrivacyV855R55;if(!api||!api.requestIds)return;
         messageRequestsRefreshBusyV855R55=true;
         try{messageRequestIdsV855R55=await api.requestIds(!!force);updateMessageRequestModeV855R55();renderConversations(searchInput&&searchInput.value);}catch(_e){}
         finally{messageRequestsRefreshBusyV855R55=false;}
       }
+      function stopMessageRequestPollingV869(){clearInterval(messageRequestsPollTimerV869);messageRequestsPollTimerV869=0;}
+      function startMessageRequestPollingV869(){
+        stopMessageRequestPollingV869();
+        if(!messageFrameVisibleV868())return;
+        scheduleMessageConnectionWorkV869('requests-open',() => refreshMessageRequestsV855R55(true),{delay:650,maxDelay:1800,minGap:1000});
+        messageRequestsPollTimerV869=setInterval(() => {
+          if(!messageFrameVisibleV868())return;
+          scheduleMessageConnectionWorkV869('requests-poll',() => refreshMessageRequestsV855R55(true),{delay:500,maxDelay:2200,minGap:60000});
+        },60000);
+      }
 
       function renderConversations(filterText){
+        if(deferMessagePaintV868('conversation-list',() => renderConversations(searchInput && searchInput.value),55)) return;
         if(!conversationPanel) return;
         const needle = clean(filterText).toLowerCase();
         const filtered = conversations.filter(item => !isConversationDeletedForMe(item)).filter(item => {
@@ -11201,6 +11614,20 @@
       }
 
       function renderMessages(scrollToBottom){
+        if(Date.now() >= messageUserPaintUntilV868){
+          try{
+            const coordinator = window.HappyadGlobalScrollCoordinatorV868;
+            if(coordinator && typeof coordinator.isActive === 'function' && coordinator.isActive()){
+              deferredMessageBottomV868 = deferredMessageBottomV868 || scrollToBottom !== false;
+              coordinator.defer('message-bubbles',() => {
+                const shouldBottom = deferredMessageBottomV868;
+                deferredMessageBottomV868 = false;
+                renderMessages(shouldBottom);
+              },55);
+              return;
+            }
+          }catch(_e){}
+        }
         if(!chatBody) return;
         cancelDeferredChatLoading();
         const activeConversationId = clean(currentConversationId || messagesConversationId);
@@ -11891,13 +12318,13 @@
       }
 
       const receiptRefreshTimerV783 = setInterval(() => {
-        refreshCurrentReceiptExactV783('visible-poll',false).catch(() => {});
-      },3000);
+        if(messageFrameVisibleV868())scheduleMessageConnectionWorkV869('receipt-poll',() => refreshCurrentReceiptExactV783('visible-poll',false).catch(() => {}),{delay:180,maxDelay:1300,minGap:5000});
+      },5000);
       document.addEventListener('visibilitychange',() => {
-        if(document.visibilityState === 'visible') setTimeout(() => refreshCurrentReceiptExactV783('visibility',true).catch(() => {}),120);
+        if(document.visibilityState==='visible'&&messageFrameVisibleV868())scheduleMessageConnectionWorkV869('receipt-poll',() => refreshCurrentReceiptExactV783('visibility',true).catch(() => {}),{delay:160,maxDelay:1200,minGap:900});
       },true);
-      window.addEventListener('focus',() => setTimeout(() => refreshCurrentReceiptExactV783('focus',true).catch(() => {}),120),true);
-      window.addEventListener('online',() => setTimeout(() => refreshCurrentReceiptExactV783('online',true).catch(() => {}),180),true);
+      window.addEventListener('focus',() => {if(messageFrameVisibleV868())scheduleMessageConnectionWorkV869('receipt-poll',() => refreshCurrentReceiptExactV783('focus',true).catch(() => {}),{delay:160,maxDelay:1200,minGap:900});},true);
+      window.addEventListener('online',() => {if(messageFrameVisibleV868())scheduleMessageConnectionWorkV869('receipt-poll',() => refreshCurrentReceiptExactV783('online',true).catch(() => {}),{delay:220,maxDelay:1400,minGap:900});},true);
       window.addEventListener('beforeunload',() => clearInterval(receiptRefreshTimerV783),{once:true});
 
       async function fetchMessageDeltaPage(conversationId,afterServerSeq,limit){
@@ -12110,7 +12537,8 @@
         }
       }
 
-      async function loadMessages(conversationId, token){
+      async function loadMessages(conversationId, token, options){
+        options=options&&typeof options==='object'?options:{};
         const id = clean(conversationId);
         if(!isUuid(id)) throw new Error('Conversation invalide.');
         if(token != null && token !== openToken) return [];
@@ -12141,22 +12569,12 @@
         if(memoryBucket.length){
           messages = memoryBucket.slice();
           localMessageHydratedConversationId = id;
-          /* V688 : vérifier d'abord le stockage local pendant une fenêtre très
-             courte. Un média déjà téléchargé ne doit jamais redevenir un bouton
-             « Télécharger » au premier rendu. */
-          const localFirstPaint = waitForLocalMediaFirstPaint(hydrateLocalMediaBeforeFirstPaint(memoryBucket),MEDIA_LOCAL_FIRST_PAINT_WAIT_MS);
-          await localFirstPaint.gate;
-          if(!stillActive()) return [];
-          messages = memoryBucket.slice();
-          lastMessageContentSignature = '';
-          renderMessages(false);
-          localFirstPaint.task.then(() => {
-            if(!stillActive()) return;
-            messages = (conversationMessageBuckets.get(conversationKey) || memoryBucket).slice();
+          /* V872 : les textes et bulles en mémoire sont la première vérité visuelle.
+             La vérification des médias locaux ne retarde plus leur affichage. */
+          if(options.memoryAlreadyPainted!==true){
             lastMessageContentSignature = '';
             renderMessages(false);
-            queuePersistMessageBucket(id);
-          }).catch(() => {});
+          }
           refreshHydratedMediaInBackground(memoryBucket);
         }else{
           scheduleDeferredChatLoading(conversationKey,'Chargement des messages…',320);
@@ -12175,14 +12593,11 @@
         if(!stillActive()) return [];
         localMessageHydratedConversationId = id;
         if(cached.length){
-          const cachedFirstPaint = waitForLocalMediaFirstPaint(hydrateLocalMediaBeforeFirstPaint(cached),MEDIA_LOCAL_FIRST_PAINT_WAIT_MS);
-          await cachedFirstPaint.gate;
-          if(!stillActive()) return [];
           mergeMessages(cached,id);
           if(!stillActive()) return [];
           const cachedBucket = conversationMessageBuckets.get(conversationKey) || [];
-          /* Affichage IndexedDB immédiat : aucune attente Cache Storage,
-             URL signée ou téléchargement audio avant de peindre les bulles. */
+          /* IndexedDB est peint dès sa lecture. Les pièces jointes se réhydratent
+             ensuite sans bloquer les messages texte ni la transition. */
           syncConversationPreviewFromBucket(id);
           renderMessages(memoryBucket.length === 0);
           renderConversations(searchInput && searchInput.value);
@@ -12256,6 +12671,7 @@
       }
 
       function displayDirect(target){
+        if(deferMessagePaintV868('direct-header',() => displayDirect(target),45)) return;
         target = targetFromProfile({},target || {}) || target || {};
         if(personSelectorOpen) closePersonSelector(false);
         activeMessageView = 'chat';
@@ -12275,24 +12691,42 @@
         try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_INTERNAL_SCREEN_OPEN_V591',detail:{id:'message-chat',source:'message-center-v591'}},'*');}catch(_e){}
       }
 
+      async function commitConversationVisualFirstV872(conversationId,token,activation){
+        const id=clean(conversationId);
+        await waitForMessageVisualCommitV872();
+        if(!activation||!conversationViewIsActive(id,token,activation.key,activation.generation))return false;
+        const bucket=conversationMessageBuckets.get(activation.key)||[];
+        if(!bucket.length)return false;
+        messages=bucket.slice();
+        lastMessageContentSignature='';
+        renderMessages(false);
+        return true;
+      }
+
       async function openTarget(target){
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
         const token = ++openToken;
         if(!target || !isUuid(target.id)) throw new Error('UUID du profil introuvable.');
-        const privacy=await loadMessagePrivacyV855R51(target.id,true);
-        if(token !== openToken)return;
-        if(!privacy.available) throw new Error('Confidentialité Messages indisponible. Réessayez.');
-        if(!privacy.newConversationAllowed) throw new Error('Cet utilisateur n’autorise pas les messages des inconnus.');
-        currentTargetPrivacyV855R51=privacy;
-        displayDirect(target);
+        currentTarget=targetFromProfile({},target)||target;
+        currentTargetPrivacyV855R51=privacyForTargetV855R51(target.id);
+        displayDirect(currentTarget);
         activeConversationViewKey = '';
         activeConversationGeneration += 1;
         messages = [];
         messagesConversationId = '';
         if(chatBody){ delete chatBody.dataset.conversationKey; }
-        setChatState('Ouverture de la conversation…');
+        paintChatOpeningShellV872('');
+        await waitForMessageVisualCommitV872();
+        if(token !== openToken)return;
+        const privacy=await loadMessagePrivacyV855R51(target.id,true);
+        if(token !== openToken)return;
+        if(!privacy.available) throw new Error('Confidentialité Messages indisponible. Réessayez.');
+        if(!privacy.newConversationAllowed) throw new Error('Cet utilisateur n’autorise pas les messages des inconnus.');
+        currentTargetPrivacyV855R51=privacy;
+        applyCallPolicyUiV855R51(privacy);
+        updateComposerBlockState();
         const verifiedProfile = await fetchProfile(target.id,{force:true});
         if(token !== openToken) return;
         if(!verifiedProfile || !isUuid(verifiedProfile.id)) throw new Error('Ce profil n’existe pas dans Supabase.');
@@ -12332,7 +12766,7 @@
         if(!isUuid(id)) return openTarget(target);
 
         const cachedConversation = conversations.find(item => item && clean(item.id) === id) || null;
-        currentTargetPrivacyV855R51=await loadMessagePrivacyV855R51(target.id,false);
+        currentTargetPrivacyV855R51=privacyForTargetV855R51(target.id);
         currentConversationId = id;
         currentConversationMeta = cachedConversation;
         readEligibleConversationId = id;
@@ -12348,7 +12782,15 @@
           : {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
 
         displayDirect(target);
-        activateConversationView(id,token);
+        const activation=activateConversationView(id,token,{visualFirst:true});
+        const memoryPainted=await commitConversationVisualFirstV872(id,token,activation);
+        if(token !== openToken)return;
+        loadMessagePrivacyV855R51(target.id,false).then(privacy => {
+          if(token!==openToken||clean(currentConversationId)!==id)return;
+          currentTargetPrivacyV855R51=privacy;
+          applyCallPolicyUiV855R51(privacy);
+          updateComposerBlockState();
+        }).catch(()=>{});
         startPresencePollingV855R51();
         touchOwnPresenceV855R51(false);
         refreshBlockState(target.id).catch(() => {});
@@ -12365,18 +12807,18 @@
         }).catch(() => {});
 
         if(token !== openToken) return;
-        await loadMessages(id,token);
+        await loadMessages(id,token,{memoryAlreadyPainted:memoryPainted});
       }
 
       async function openExistingConversation(item){
-        if(messageRequestIdsV855R55.has(clean(item&&item.id))){
-          try{const api=window.HappyFilteringPrivacyV855R55;if(api&&api.acceptRequest)await api.acceptRequest(item.id);messageRequestIdsV855R55.delete(clean(item.id));updateMessageRequestModeV855R55();}catch(_e){}
-        }
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
         const token = ++openToken;
-        currentTargetPrivacyV855R51=await loadMessagePrivacyV855R51(item&&item.targetId,false);
+        const id=clean(item&&item.id);
+        const targetId=clean(item&&item.targetId);
+        if(!item||!isUuid(id))throw new Error('Conversation introuvable.');
+        currentTargetPrivacyV855R51=privacyForTargetV855R51(targetId);
         currentConversationId = item.id;
         currentConversationMeta = item;
         readEligibleConversationId = currentConversationId;
@@ -12387,10 +12829,29 @@
           context_id:'conversation:' + item.id,
           source:'conversation-list',
           mode:'direct',
+          conversation_id:item.id,
           target:currentTarget
         };
         displayDirect(currentTarget);
-        activateConversationView(currentConversationId,token);
+        const activation=activateConversationView(currentConversationId,token,{visualFirst:true});
+        const memoryPainted=await commitConversationVisualFirstV872(currentConversationId,token,activation);
+        if(token !== openToken)return;
+
+        /* Accepter une demande et actualiser sa politique ne sont plus des barrières
+           visuelles. La conversation déjà connue reste utilisable depuis son cache. */
+        if(messageRequestIdsV855R55.has(id)){
+          const api=window.HappyFilteringPrivacyV855R55;
+          if(api&&api.acceptRequest)Promise.resolve(api.acceptRequest(id)).then(() => {
+            messageRequestIdsV855R55.delete(id);
+            updateMessageRequestModeV855R55();
+          }).catch(()=>{});
+        }
+        if(isUuid(targetId))loadMessagePrivacyV855R51(targetId,false).then(privacy => {
+          if(token!==openToken||clean(currentConversationId)!==id)return;
+          currentTargetPrivacyV855R51=privacy;
+          applyCallPolicyUiV855R51(privacy);
+          updateComposerBlockState();
+        }).catch(()=>{});
         startPresencePollingV855R51();
         touchOwnPresenceV855R51(false);
         refreshBlockState(currentTarget && currentTarget.id).catch(() => {});
@@ -12409,7 +12870,7 @@
           }).catch(() => {});
         }
         if(token !== openToken) return;
-        await loadMessages(currentConversationId, token).catch(error => {
+        await loadMessages(currentConversationId, token,{memoryAlreadyPainted:memoryPainted}).catch(error => {
           if(token === openToken){
             setChatState('Impossible de charger les messages.');
             showToast(error.message);
@@ -12417,30 +12878,36 @@
         });
       }
 
-      function showInbox(){
+      let inboxCleanupTimerV872=0;
+      function refreshInboxAfterReturnV872(returnToken){
+        const refresh=() => {
+          if(returnToken!==openToken||activeMessageView!=='inbox'||!messageFrameVisibleV868())return;
+          loadConversations({silent:conversations.length>0}).then(() => {
+            if(!initialGapSyncDone){
+              initialGapSyncDone=true;
+              syncKnownConversationGaps({limit:10}).catch(()=>{});
+            }
+          }).catch(error => {
+            if(!conversations.length){
+              setListState('Impossible de charger les conversations.');
+              showToast(error.message);
+            }
+          });
+        };
+        if(!conversations.length)refresh();
+        else scheduleMessageConnectionWorkV869('inbox-return-refresh',refresh,{delay:520,maxDelay:1800,minGap:900});
+      }
+      function finishInboxCleanupV872(returnToken){
+        if(returnToken!==openToken||activeMessageView!=='inbox')return;
         setTypingPresenceV855R51(false,true);
         stopPresencePollingV855R51();
-        cancelDeferredChatLoading();
         if(recording) cancelAudioRecording();
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
         stopActiveAudioPlayback();
         pauseAllMessageVideos();
-        ++openToken;
-        if(personSelectorOpen) closePersonSelector(false);
-        activeMessageView = 'inbox';
-        updateNewConversationFabVisibility();
-        readEligibleConversationId = '';
-        chatOpenedAt = 0;
-        clearTimeout(realtimeReadTimer);
-        document.documentElement.classList.remove('message-direct-boot');
-        listView.classList.remove('hidden');
-        listView.setAttribute('aria-hidden','false');
-        chatView.classList.add('hidden');
-        chatView.setAttribute('aria-hidden','true');
         restoreNewConversationFabPosition();
-        updateNewConversationFabVisibility();
         currentConversationId = '';
         currentConversationMeta = null;
         activeConversationViewKey = '';
@@ -12459,27 +12926,52 @@
         blockStateTargetId = '';
         blockState = {known:false,blockedByMe:false,blockedMe:false};
         updateComposerBlockState();
-        try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_INTERNAL_SCREEN_CLOSE_V591',detail:{id:'message-chat',source:'message-center-v591'}},'*');}catch(_e){}
-        messages = [];
-        messagesConversationId = '';
-        localMessageHydratedConversationId = '';
-        lastMessageContentSignature = '';
-        if(searchInput) searchInput.value = '';
-        loadConversations({silent:true}).then(() => {
-          if(!initialGapSyncDone){
-            initialGapSyncDone = true;
-            syncKnownConversationGaps({limit:10}).catch(() => {});
-          }
-        }).catch(error => {
-          setListState('Impossible de charger les conversations.');
-          showToast(error.message);
+        refreshInboxAfterReturnV872(returnToken);
+      }
+      function showInbox(options){
+        options=options&&typeof options==='object'?options:{};
+        if(messageFrameVisibleV868()) allowMessageUserPaintV868(520);
+        const returnToken=++openToken;
+        cancelDeferredChatLoading();
+        clearTimeout(inboxCleanupTimerV872);
+        if(personSelectorOpen) closePersonSelector(false);
+
+        /* V872 : invalider les travaux du chat puis restaurer la vue conservée dans
+           le même cycle que le clic. Aucun RPC, média ou nettoyage ne précède ceci. */
+        activeMessageView = 'inbox';
+        readEligibleConversationId = '';
+        chatOpenedAt = 0;
+        clearTimeout(realtimeReadTimer);
+        document.documentElement.classList.remove('message-direct-boot');
+        listView.classList.remove('hidden');
+        listView.setAttribute('aria-hidden','false');
+        chatView.classList.add('hidden');
+        chatView.setAttribute('aria-hidden','true');
+        updateNewConversationFabVisibility();
+        try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_INTERNAL_SCREEN_CLOSE_V591',detail:{id:'message-chat',source:'message-center-v872-visual-first'}},'*');}catch(_e){}
+
+        const cleanup=() => finishInboxCleanupV872(returnToken);
+        if(options.immediateCleanup===true)cleanup();
+        else if(!messageFrameVisibleV868())inboxCleanupTimerV872=setTimeout(() => {
+          inboxCleanupTimerV872=0;
+          cleanup();
+        },40);
+        else requestAnimationFrame(() => {
+          inboxCleanupTimerV872=setTimeout(() => {
+            inboxCleanupTimerV872=0;
+            cleanup();
+          },240);
         });
+        return true;
       }
 
 
       function scheduleSilentReconnectSync(delay){
         clearTimeout(reconnectSyncTimer);
-        reconnectSyncTimer = setTimeout(() => {
+        reconnectSyncTimer = 0;
+        if(!messageFrameVisibleV868()){messageHiddenRealtimeDirtyV869=true;return;}
+        scheduleMessageConnectionWorkV869('reconnect-sync',() => {
+          if(!messageFrameVisibleV868()){messageHiddenRealtimeDirtyV869=true;return;}
           if(reconnectSyncPromise || !authUser || !isUuid(authUser.id)) return;
           reconnectSyncPromise = (async function(){
             flushTextOutbox().catch(() => {});
@@ -12496,7 +12988,7 @@
             }
             syncCurrentReceiptFromConversation();
           })().finally(() => { reconnectSyncPromise = null; });
-        },Math.max(80,finiteNumber(delay,220)));
+        },{delay:Math.max(80,finiteNumber(delay,220)),maxDelay:2600,minGap:1400});
       }
 
       function messageCenterVisible(){
@@ -12520,10 +13012,12 @@
 
       function scheduleRealtimeConversationRefresh(delay){
         clearTimeout(realtimeConversationTimer);
-        realtimeConversationTimer = setTimeout(() => {
-          if(!authUser) return;
+        realtimeConversationTimer = 0;
+        if(!messageFrameVisibleV868()){messageHiddenRealtimeDirtyV869=true;return;}
+        scheduleMessageConnectionWorkV869('conversation-refresh',() => {
+          if(!messageFrameVisibleV868()||!authUser) return;
           loadConversations({silent:true}).catch(() => {});
-        }, Math.max(40, finiteNumber(delay,140)));
+        },{delay:Math.max(40,finiteNumber(delay,140)),maxDelay:1800,minGap:900});
       }
 
       function applyRealtimeMember(row){
@@ -12566,7 +13060,7 @@
             currentReceipt.targetRead = Math.max(currentReceipt.targetRead || 0, read);
           }
           renderMessages(false);
-          setTimeout(() => refreshCurrentReceiptExactV783('member-realtime',false).catch(() => {}),60);
+          scheduleMessageConnectionWorkV869('receipt-'+conversationId,() => refreshCurrentReceiptExactV783('member-realtime',false).catch(() => {}),{delay:120,maxDelay:1400,minGap:500});
         }
         renderConversations(searchInput && searchInput.value);
       }
@@ -12589,15 +13083,19 @@
           queuePersistConversations();
 
           if(conversationId === currentConversationId){
-            renderMessages(!alreadyVisible && !normalized.deletedForAll);
+            /* Un nouveau message ne doit jamais arracher l'utilisateur à la
+               position qu'il est en train de lire. Suivre le bas uniquement si
+               le chat était déjà ancré près du dernier message. */
+            const followIncoming=!alreadyVisible&&!normalized.deletedForAll&&isChatNearBottom(220);
+            renderMessages(followIncoming);
             renderConversations(searchInput && searchInput.value);
           }
 
-          syncConversationDelta(conversationId,{
+          scheduleMessageConnectionWorkV869('delta-'+conversationId,() => syncConversationDelta(conversationId,{
             afterServerSeq:Math.max(0,finiteNumber(normalized.serverSeq,0) - 1),
             background:conversationId !== currentConversationId,
             scrollToBottom:false
-          }).catch(() => {});
+          }).catch(() => {}),{delay:170,maxDelay:1300,minGap:350});
 
           const mayReadNow = authUser
             && !normalized.deletedForAll
@@ -12618,7 +13116,7 @@
           }
         }
         scheduleRealtimeConversationRefresh(260);
-        refreshUnreadTotal().catch(() => {});
+        scheduleMessageConnectionWorkV869('unread-total',() => refreshUnreadTotal().catch(() => {}),{delay:260,maxDelay:1700,minGap:700});
       }
 
       function handleRealtimeBlock(row){
@@ -12639,8 +13137,23 @@
         const payload = detail.payload && typeof detail.payload === 'object' ? detail.payload : {};
         const row = payload.new && typeof payload.new === 'object' ? payload.new : (payload.old || {});
 
+        /* Le canal parent reste ouvert pour ne perdre aucun événement, mais une
+           frame Messages cachée ne lance ni lecture réseau ni peinture. Le corps
+           d'un nouveau message est seulement fusionné en mémoire : il est donc
+           déjà disponible au clic, puis une seule synchronisation différentielle
+           réconcilie le reste quand la surface redevient visible. */
+        if(!messageFrameVisibleV868()){
+          messageHiddenRealtimeDirtyV869=true;
+          if(table==='happyad_msg_messages'){
+            const conversationId=clean(row.conversation_id);
+            const normalized=isUuid(conversationId)?normalizeMessage(row,conversationId):null;
+            if(normalized){mergeMessages([normalized],conversationId);syncConversationPreviewFromBucket(conversationId);}
+          }
+          return;
+        }
+
         if(table === 'happyad_msg_user_blocks'){
-          handleRealtimeBlock(row);
+          scheduleMessageConnectionWorkV869('block-state',() => handleRealtimeBlock(row),{delay:120,maxDelay:1200,minGap:500});
           return;
         }
         if(table === 'happyad_msg_messages'){
@@ -12649,7 +13162,7 @@
         }
         if(table === 'happyad_msg_conversation_members'){
           applyRealtimeMember(row);
-          refreshUnreadTotal().catch(() => {});
+          scheduleMessageConnectionWorkV869('unread-total',() => refreshUnreadTotal().catch(() => {}),{delay:220,maxDelay:1500,minGap:700});
           return;
         }
         if(table === 'happyad_msg_conversations'){
@@ -12659,7 +13172,7 @@
         if(table === 'happyad_msg_message_deletions'){
           applyRealtimePersonalDeletion(row);
           scheduleRealtimeConversationRefresh(120);
-          refreshUnreadTotal().catch(() => {});
+          scheduleMessageConnectionWorkV869('unread-total',() => refreshUnreadTotal().catch(() => {}),{delay:220,maxDelay:1500,minGap:700});
           return;
         }
         if(table === 'happyad_msg_message_access'){
@@ -12755,6 +13268,7 @@
       async function flushMessagePushQueue(){
         if(messagePushFlushPromise) return messagePushFlushPromise;
         messagePushFlushPromise = (async () => {
+          if(!messageFrameVisibleV868())return false;
           if(typeof navigator !== 'undefined' && navigator.onLine === false) return false;
           let queue = readMessagePushQueue();
           if(!queue.length) return true;
@@ -12778,8 +13292,8 @@
         return messagePushFlushPromise;
       }
 
-      window.addEventListener('online',() => { flushMessagePushQueue().catch(() => {}); });
-      window.addEventListener('pageshow',() => { setTimeout(() => { flushMessagePushQueue().catch(() => {}); },250); });
+      window.addEventListener('online',() => { if(messageFrameVisibleV868())scheduleMessageConnectionWorkV869('push-queue',() => flushMessagePushQueue().catch(() => {}),{delay:200,maxDelay:1500,minGap:900}); });
+      window.addEventListener('pageshow',() => { if(messageFrameVisibleV868())scheduleMessageConnectionWorkV869('push-queue',() => flushMessagePushQueue().catch(() => {}),{delay:300,maxDelay:1600,minGap:900}); });
 
       function photoExtension(file){
         const mime = clean(file && file.type).toLowerCase();
@@ -14517,8 +15031,10 @@
               if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
               currentUserPhoto.removeAttribute('src');
             };
-            if(identity.avatar) currentUserPhoto.src = identity.avatar;
+            if(identity.avatar&&messageCachePreparingV875()&&!messageFrameVisibleV868())currentUserPhoto.dataset.happyadDeferredSrcV876=identity.avatar;
+            else if(identity.avatar) currentUserPhoto.src = identity.avatar;
             else{
+              delete currentUserPhoto.dataset.happyadDeferredSrcV876;
               currentUserPhoto.removeAttribute('src');
               if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
             }
@@ -14532,7 +15048,10 @@
 
       function refreshConnectedIdentitySoon(delay){
         clearTimeout(profileRefreshTimer);
-        profileRefreshTimer = setTimeout(() => {
+        profileRefreshTimer=0;
+        if(!messageFrameVisibleV868()){messageHiddenRealtimeDirtyV869=true;return;}
+        scheduleMessageConnectionWorkV869('connected-identity',() => {
+          if(!messageFrameVisibleV868())return;
           if(!authUser || !isUuid(authUser.id)) return;
           try{
             if(window.parent && window.parent !== window && window.parent.HappyadProfileAvatarRecoveryV743 && typeof window.parent.HappyadProfileAvatarRecoveryV743.repair === 'function'){
@@ -14542,9 +15061,9 @@
           const cached = cachedConnectedIdentity(authUser.id);
           if(cached) applyConnectedIdentity(cached,authUser,{persist:true,sync:true});
           fetchProfile(authUser.id,{force:true}).then(profile => {
-            if(profile){ authProfile = profile; applyConnectedIdentity(profile,authUser,{persist:true,sync:true}); }
+            if(profile&&messageFrameVisibleV868()){ authProfile = profile; applyConnectedIdentity(profile,authUser,{persist:true,sync:true}); }
           }).catch(() => {});
-        },Math.max(0,finiteNumber(delay,80)));
+        },{delay:Math.max(0,finiteNumber(delay,80)),maxDelay:1800,minGap:700});
       }
 
       function knownProfileId(id){
@@ -14579,17 +15098,22 @@
       }
 
       function subscribeProfileIdentityRealtime(){
-        if(profileRealtimeChannel || !authUser || !isUuid(authUser.id)) return;
+        if(!messageFrameVisibleV868() || profileRealtimeChannel || !authUser || !isUuid(authUser.id)) return;
         const sb = getClient();
         if(!sb || !sb.channel) return;
         try{
-          profileRealtimeChannel = sb.channel('happyad_message_profiles_v746_' + authUser.id)
+          profileRealtimeChannel = sb.channel('happyad_message_profiles_v869_' + authUser.id)
             .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},payload => {
               const id = clean(payload && ((payload.new && payload.new.id) || (payload.old && payload.old.id)));
               if(!knownProfileId(id)) return;
-              setTimeout(() => refreshConversationProfile(id).catch(() => false),40);
+              scheduleMessageConnectionWorkV869('profile-'+id,() => refreshConversationProfile(id).catch(() => false),{delay:120,maxDelay:1200,minGap:500});
             }).subscribe();
         }catch(_e){ profileRealtimeChannel = null; }
+      }
+      function stopProfileIdentityRealtimeV869(){
+        if(!profileRealtimeChannel)return;
+        try{getClient().removeChannel(profileRealtimeChannel);}catch(_e){try{profileRealtimeChannel.unsubscribe();}catch(_x){}}
+        profileRealtimeChannel=null;
       }
 
       function applyCanonicalAvatarEventV855R32(detail){
@@ -14615,19 +15139,68 @@
         }
         if(changed){ renderConversations(searchInput && searchInput.value);queuePersistConversations(); }
       }
-      window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',event => applyCanonicalAvatarEventV855R32(event && event.detail),true);
+      window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',event => {if(messageFrameVisibleV868())applyCanonicalAvatarEventV855R32(event&&event.detail);else messageHiddenRealtimeDirtyV869=true;},true);
 
       async function boot(){
         if(bootPromise) return bootPromise;
         bootPromise = (async function(){
+          const dormantLocalOnlyBootV876 = messageCachePreparingV875() && !messageFrameVisibleV868();
+          messageConnectedBootReadyV876 = false;
           const hintedUserId = cachedSessionUserId();
           let hintedCache = [];
           if(hintedUserId){
             authUser = {id:hintedUserId,user_metadata:{}};
-            await openLocalMessageDb(hintedUserId).catch(() => null);
-            hintedCache = await readLocalConversations().catch(() => []);
+            const hintedIdentity = cachedConnectedIdentity(hintedUserId);
+            if(hintedIdentity) applyConnectedIdentity(hintedIdentity,authUser,{persist:false,sync:false});
+            /* Le prélecteur V875 a commencé avant les gros scripts. Il fournit
+               d'abord le miroir instantané, sinon IndexedDB, toujours pour le
+               même UUID actif. */
+            let earlyCache = null;
+            let earlyCacheResolved = false;
+            try{
+              if(window.happyadMessageEarlyCachePromiseV875){
+                earlyCache = await Promise.race([
+                  window.happyadMessageEarlyCachePromiseV875,
+                  new Promise(resolve => setTimeout(() => resolve(null),380))
+                ]);
+              }
+            }catch(_early){}
+            if(earlyCache&&clean(earlyCache.uid)===hintedUserId&&Array.isArray(earlyCache.rows)){
+              earlyCacheResolved = true;
+              hintedCache=earlyCache.rows.map(restoreLocalConversation).filter(Boolean);
+            }
+            /* Ne pas refaire une seconde ouverture IndexedDB lorsque le prélecteur
+               a déjà répondu « vide » : cette répétition pouvait bloquer la
+               révélation sur certains WebView. Le chargement local normal reprendra
+               après l'affichage, avec la session confirmée. */
+            if(!earlyCacheResolved){
+              await openLocalMessageDb(hintedUserId).catch(() => null);
+              hintedCache = await readLocalConversations().catch(() => []);
+            }
+            /* Le cache du compte est peint AVANT getSession, Supabase, tombstones
+               et tout travail réseau. Le parent ne révèle Messages qu'après ce
+               rendu. */
+            if(hintedCache.length){
+              conversations = mergeConversationCollections([],hintedCache);
+              renderConversations(searchInput && searchInput.value);
+            }
           }
-          if(!hintedCache.length && !conversations.length) setListState('Ouverture des conversations…');
+          if(!hintedCache.length && !conversations.length) setListState('Aucune conversation enregistrée sur cet appareil.');
+          await signalMessageCacheReadyV875(hintedCache.length?'account-cache':'no-local-cache',hintedCache.length);
+          await waitForMessageVisualCommitV872();
+
+          /* Le préchauffage caché s'arrête ici : seulement HTML + cache du même
+             compte. La suite connectée est libérée par le clic visible. */
+          if(dormantLocalOnlyBootV876 && !messageFrameVisibleV868()){
+            await waitForMessageVisibleV876();
+          }
+
+          /* La surface statique est déjà peinte. Le client partagé du parent est
+             normalement disponible immédiatement; le CDN asynchrone ne sert que
+             lorsqu'on ouvre directement ce fichier hors de l'application. */
+          if(!getClient()&&typeof window.happyadMessageEnsureSupabaseV874==='function'){
+            await window.happyadMessageEnsureSupabaseV874().catch(() => null);
+          }
 
           /* getSession est local : confirmer d'abord l'UUID avant d'afficher un cache de compte. */
           const user = await requireSession();
@@ -14643,43 +15216,56 @@
           updateNewConversationFabVisibility();
           await loadViewOnceTombstones(user.id).catch(() => viewOnceTombstones);
           requestPersistentMessageStorage().catch(() => false);
-          let localShown = false;
-          if(!accountChanged && hintedCache.length){
-            conversations = mergeConversationCollections([],hintedCache);
-            renderConversations(searchInput && searchInput.value);
-            localShown = true;
-          }
+          let localShown = !accountChanged && hintedCache.length > 0;
           if(!localShown) localShown = await hydrateInboxFromLocalUser(user.id).catch(() => false);
           const cachedIdentity = cachedConnectedIdentity(user.id);
           applyConnectedIdentity(cachedIdentity || null,user,{persist:false,sync:true});
 
-          /* Le titre Messages peint immédiatement le meilleur cache disponible,
-             puis vérifie le profil réel sans effacer une photo locale plus complète. */
-          fetchProfile(user.id,{force:true}).then(profile => {
-            authProfile = profile || null;
-            if(authProfile) applyConnectedIdentity(authProfile,user,{persist:true,sync:true});
-          }).catch(() => { authProfile = null; });
-          refreshConnectedIdentitySoon(180);
-          setTimeout(() => refreshConnectedIdentitySoon(0),1100);
-          subscribeProfileIdentityRealtime();
-          startPresenceHeartbeatV855R51();
-          refreshUnreadTotal().catch(() => {});
+          /* Le cache peint immédiatement le titre. Une seule vérification réseau,
+             coalescée au repos, remplace les trois lectures concurrentes historiques. */
+          refreshConnectedIdentitySoon(260);
+          if(messageFrameVisibleV868()){
+            subscribeProfileIdentityRealtime();
+            startPresenceHeartbeatV855R51();
+            startMessageRequestPollingV869();
+            scheduleMessageConnectionWorkV869('boot-unread',() => refreshUnreadTotal().catch(() => {}),{delay:300,maxDelay:1600,minGap:700});
+          }
+          messageConnectedBootReadyV876 = true;
           return user;
         })().catch(error => {
+          messageConnectedBootReadyV876 = false;
           if(messageInput && (!authUser || !isUuid(authUser.id))) messageInput.disabled = true;
           if(!conversations.length) setListState('Connexion requise pour ouvrir Messages.');
+          signalMessageCacheReadyV875('boot-error',conversations.length);
           throw error;
         });
         return bootPromise;
       }
 
+      function acknowledgeMessageContextV872(normalized,phase){
+        try{
+          if(window.parent&&window.parent!==window)window.parent.postMessage({
+            type:'HAPPYAD_MESSAGE_CONTEXT_ACCEPTED_V872',
+            detail:{context_id:clean(normalized&&normalized.context_id),mode:clean(normalized&&normalized.mode),phase:clean(phase)||'accepted'}
+          },'*');
+        }catch(_e){}
+      }
       async function applyContext(next){
         const normalized = normalizeContext(next);
+        acknowledgeMessageContextV872(normalized,'received');
+        const directPrepaint=normalized.mode==='direct'&&normalized.target&&document.documentElement.classList.contains('message-direct-boot');
+        if(!messageFrameVisibleV868()&&!messageCachePreparingV875()&&!directPrepaint){
+          pendingMessageContextV869=normalized;
+          messageHiddenRealtimeDirtyV869=true;
+          return normalized;
+        }
+        pendingMessageContextV869=null;
+        if(normalized.mode === 'direct' || messageFrameVisibleV868() || messageCachePreparingV875()) allowMessageUserPaintV868(900);
         if(context && normalized.context_id && context.context_id === normalized.context_id) return context;
         context = normalized;
         if(context.mode === 'direct' && context.target){
           displayDirect(context.target);
-          setChatState('Ouverture de la conversation…');
+          paintChatOpeningShellV872('');
         }else{
           document.documentElement.classList.remove('message-direct-boot');
           listView.classList.remove('hidden');
@@ -14980,8 +15566,7 @@
       if(searchInput) searchInput.addEventListener('input', () => renderConversations(searchInput.value));
       if(messageNormalMode) messageNormalMode.addEventListener('click',()=>{messageRequestModeV855R55='normal';updateMessageRequestModeV855R55();renderConversations(searchInput&&searchInput.value);});
       if(messageRequestsMode) messageRequestsMode.addEventListener('click',()=>{messageRequestModeV855R55='requests';updateMessageRequestModeV855R55();renderConversations(searchInput&&searchInput.value);});
-      setTimeout(()=>refreshMessageRequestsV855R55(true),900);
-      setInterval(()=>refreshMessageRequestsV855R55(true),15000);
+      if(messageFrameVisibleV868())startMessageRequestPollingV869();
       if(listMenuBtn) listMenuBtn.addEventListener('click', () => showToast('Options Messages disponibles après la stabilisation du noyau.'));
       if(chatMenuBtn) chatMenuBtn.addEventListener('click', openConversationOptionsSheet);
       if(attachBtn) attachBtn.addEventListener('click', () => {
@@ -15120,8 +15705,9 @@
       if(backBtn) backBtn.addEventListener('click', event => {
         event.preventDefault(); event.stopPropagation(); if(event.stopImmediatePropagation) event.stopImmediatePropagation();
         if(requestVisitorDirectCloseV855R77('chat-back-button')) return;
-        try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'HAPPYAD_INTERNAL_BACK_REQUEST_V591',detail:{id:'message-chat',source:'message-center-v591'}},'*');return;}}catch(_e){}
-        showInbox();
+        /* V872 : le bouton visible commande directement sa vue locale. Le parent est
+           informé par showInbox après la restauration, sans aller-retour postMessage. */
+        showInbox({source:'chat-back-button-v872'});
       });
       if(!window.__HAPPYAD_MESSAGE_INTERNAL_RETURN_V591_BOUND__){
         window.__HAPPYAD_MESSAGE_INTERNAL_RETURN_V591_BOUND__=true;
@@ -15129,7 +15715,7 @@
           const data=event&&event.data;
           if(data&&data.type==='HAPPYAD_INTERNAL_BACK_EXECUTE_V591'&&data.detail&&data.detail.id==='message-chat'){
             if(requestVisitorDirectCloseV855R77('internal-back')) return;
-            showInbox();
+            showInbox({source:'hardware-or-parent-back-v872'});
           }
         });
       }
@@ -15176,12 +15762,13 @@
       }
       window.addEventListener('resize',() => { restoreNewConversationFabPosition(); if(personSelectorOpen) setPersonSelectorHeight(personSelectorSheet && personSelectorSheet.getBoundingClientRect().height,false); scheduleMessageLayoutRepair('resize'); },{passive:true});
       window.addEventListener('orientationchange',() => scheduleMessageLayoutRepair('orientation'),{passive:true});
-      window.addEventListener('pageshow',() => { scheduleMessageLayoutRepair('pageshow'); refreshConnectedIdentitySoon(40); touchOwnPresenceV855R51(false); },{passive:true});
+      window.addEventListener('pageshow',() => { if(!messageFrameVisibleV868())return;scheduleMessageLayoutRepair('pageshow');refreshConnectedIdentitySoon(40);touchOwnPresenceV855R51(false); },{passive:true});
       document.addEventListener('visibilitychange',() => {
-        if(document.visibilityState==='visible') touchOwnPresenceV855R51(lastTypingStateV855R51 && !!(messageInput&&clean(messageInput.value)));
+        if(document.visibilityState==='visible'&&messageFrameVisibleV868()) touchOwnPresenceV855R51(lastTypingStateV855R51 && !!(messageInput&&clean(messageInput.value)));
         else setTypingPresenceV855R51(false,true);
       },true);
       window.addEventListener('online',() => {
+        if(!messageFrameVisibleV868()){messageHiddenRealtimeDirtyV869=true;return;}
         touchOwnPresenceV855R51(false);
         scheduleTextOutboxFlush(40);
         scheduleSilentReconnectSync(160);
@@ -15193,6 +15780,15 @@
         detail = detail && typeof detail === 'object' ? detail : {};
         const nextUser = detail.user && isUuid(detail.user.id) ? detail.user : (isUuid(detail.user_id) ? {id:detail.user_id,user_metadata:{}} : null);
         if(!nextUser) return false;
+        if(!messageFrameVisibleV868()){
+          /* Conserver le détail complet sans remplacer authUser ici : lors d'un
+             changement de compte, la reprise doit encore connaître l'ancien id
+             afin de fermer la bonne base IndexedDB et de vider ses mémoires. */
+          pendingAuthRecoveryV869=detail;
+          messageHiddenRealtimeDirtyV869=true;
+          return true;
+        }
+        pendingAuthRecoveryV869=null;
         if(authUser && clean(authUser.id) === nextUser.id && bootPromise){
           if(messageInput) messageInput.disabled = false;
           scheduleSilentReconnectSync(60);
@@ -15235,8 +15831,13 @@
       function applySignedOutV595(){
         authUser = null;
         authProfile = null;
-        if(profileRealtimeChannel){ try{ getClient().removeChannel(profileRealtimeChannel); }catch(_e){} profileRealtimeChannel = null; }
+        stopProfileIdentityRealtimeV869();
+        stopMessageRequestPollingV869();
+        stopPresencePollingV855R51();
+        clearInterval(presenceHeartbeatTimerV855R51);presenceHeartbeatTimerV855R51=0;
         bootPromise = null;
+        messageConnectedBootReadyV876 = false;
+        messageResumeAfterBootQueuedV876 = false;
         reconnectSyncPromise = null;
         conversations = [];
         messages = [];
@@ -15250,24 +15851,119 @@
         setListState('Connecte-toi pour ouvrir Messages.');
       }
 
+      function suspendMessageRuntimeV869(){
+        stopProfileIdentityRealtimeV869();
+        stopMessageRequestPollingV869();
+        stopPresencePollingV855R51();
+        clearInterval(presenceHeartbeatTimerV855R51);presenceHeartbeatTimerV855R51=0;
+        clearInterval(typingTouchTimerV855R51);typingTouchTimerV855R51=0;lastTypingStateV855R51=false;
+        clearTimeout(realtimeReadTimer);clearTimeout(realtimeConversationTimer);clearTimeout(reconnectSyncTimer);clearTimeout(profileRefreshTimer);
+        realtimeConversationTimer=0;reconnectSyncTimer=0;profileRefreshTimer=0;
+        try{
+          const coordinator=window.HappyadConnectionWorkCoordinatorV869;
+          if(coordinator&&typeof coordinator.cancel==='function'){
+            if(typeof coordinator.cancelPrefix==='function')coordinator.cancelPrefix('message-');
+            else ['reconnect-sync','conversation-refresh','unread-total','connected-identity','boot-unread','requests-open','requests-poll'].forEach(key => coordinator.cancel('message-'+key));
+          }
+        }catch(_e){}
+      }
+      function finishMessageRuntimeResumeV869(){
+        if(!messageFrameVisibleV868())return false;
+        announceMessageRealtimeStartV876();
+        subscribeProfileIdentityRealtime();
+        startPresenceHeartbeatV855R51();
+        startMessageRequestPollingV869();
+        if(activeMessageView==='chat')startPresencePollingV855R51();
+        refreshConnectedIdentitySoon(180);
+        scheduleMessageConnectionWorkV869('push-queue',() => flushMessagePushQueue().catch(() => {}),{delay:500,maxDelay:1800,minGap:900});
+        if(messageHiddenRealtimeDirtyV869){
+          messageHiddenRealtimeDirtyV869=false;
+          if(activeMessageView==='chat')renderMessages(false);else renderConversations(searchInput&&searchInput.value);
+          scheduleSilentReconnectSync(650);
+        }
+        return true;
+      }
+      function resumeMessageRuntimeV869(source){
+        if(!messageFrameVisibleV868())return false;
+        releaseMessageVisibleWaitersV876();
+        try{requestAnimationFrame(() => requestAnimationFrame(() => {hydrateDeferredMessageAvatarsV876();announceMessageRealtimeStartV876();}));}catch(_e){setTimeout(() => {hydrateDeferredMessageAvatarsV876();announceMessageRealtimeStartV876();},0);}
+        allowMessageUserPaintV868(850);
+        scheduleMessageLayoutRepair(clean(source)||'frame-visible-v869');
+        if(pendingAuthRecoveryV869){
+          const authDetail=pendingAuthRecoveryV869;pendingAuthRecoveryV869=null;
+          recoverAuthenticatedSessionV595(authDetail).finally(() => {
+            finishMessageRuntimeResumeV869();
+            if(messageFrameVisibleV868())scheduleMessageLayoutRepair('resume-auth-v869');
+          });
+          return true;
+        }
+        if(pendingMessageContextV869){
+          const pending=pendingMessageContextV869;pendingMessageContextV869=null;
+          applyContext(pending).finally(() => {
+            finishMessageRuntimeResumeV869();
+            if(messageFrameVisibleV868())scheduleMessageLayoutRepair('resume-context-v869');
+          });
+          return true;
+        }
+        if(!bootPromise){
+          const next=pendingMessageContextV869||contextFromUrl();
+          applyContext(next).finally(() => {
+            finishMessageRuntimeResumeV869();
+            if(messageFrameVisibleV868())scheduleMessageLayoutRepair('resume-boot-v869');
+          });
+          return true;
+        }
+        if(!messageConnectedBootReadyV876){
+          if(!messageResumeAfterBootQueuedV876){
+            messageResumeAfterBootQueuedV876=true;
+            Promise.resolve(bootPromise).then(() => {
+              messageResumeAfterBootQueuedV876=false;
+              if(messageFrameVisibleV868()){
+                finishMessageRuntimeResumeV869();
+                scheduleMessageLayoutRepair('resume-connected-v876');
+              }
+            }).catch(() => { messageResumeAfterBootQueuedV876=false; });
+          }
+          return true;
+        }
+        return finishMessageRuntimeResumeV869();
+      }
+
       window.addEventListener('message', event => {
         const data = event && event.data;
         if(!data) return;
-        if(data.type === 'HAPPYAD_MESSAGE_CONTEXT'){
-          scheduleMessageLayoutRepair('context');
-          applyContext(data.detail || {}).finally(() => scheduleMessageLayoutRepair('context-applied'));
+        if(data.type === 'HAPPYAD_APP_FRAME_HIDDEN' || data.type === 'HAPPYAD_MODULE_SUSPEND') suspendMessageRuntimeV869();
+        else if(data.type === 'HAPPYAD_APP_FRAME_VISIBLE' || data.type === 'HAPPYAD_MODULE_RESUME') resumeMessageRuntimeV869(data.source||data.type);
+        else if(data.type === 'HAPPYAD_MESSAGE_CACHE_PREPARE_V875'){
+          /* Une iframe persistante déjà chargée ne repasse pas par son bootstrap.
+             Pendant la préparation parent, elle est pourtant layout-active et
+             transparente : peindre ici les vraies lignes locales, sans réseau. */
+          if(messageCachePreparingV875()){
+            allowMessageUserPaintV868(900);
+            /* Le signal prêt est idempotent. Si une ancienne préparation l'a déjà
+               émis, le clic courant reçoit une nouvelle confirmation au lieu de
+               rester bloqué derrière un signal unique déjà consommé. */
+            repeatMessageCacheReadyV877('dock-cache-prepare-v877');
+            applyContext(Object.assign({},contextFromUrl(),data.detail||{},{mode:'inbox'}))
+              .finally(() => scheduleMessageLayoutRepair('cache-prepare-v875'));
+          }
+        }
+        else if(data.type === 'HAPPYAD_MESSAGE_CONTEXT'){
+          applyContext(data.detail || {}).finally(() => {if(messageFrameVisibleV868())scheduleMessageLayoutRepair('context-applied-v872');});
         }
         else if(data.type === 'HAPPYAD_MESSAGE_SCROLL_HOLD_V711'){
           const detail = data.detail || {};
           holdSharedReturnScrollV711(detail.scrollTop,detail.duration);
         }
-        else if(data.type === 'HAPPYAD_MESSAGE_LAYOUT_REPAIR') scheduleMessageLayoutRepair(clean(data.detail && data.detail.reason) || 'parent');
+        else if(data.type === 'HAPPYAD_MESSAGE_LAYOUT_REPAIR'){if(messageFrameVisibleV868())scheduleMessageLayoutRepair(clean(data.detail&&data.detail.reason)||'parent');}
         else if(data.type === 'HAPPYAD_MESSAGE_REALTIME_EVENT') handleRealtimeEvent(data.detail || {});
         else if(data.type === 'HAPPYAD_MESSAGE_REALTIME_STATUS'){
           const detail = data.detail || {};
           if(clean(detail.status) === 'SUBSCRIBED' && (!detail.user_id || clean(detail.user_id) === clean(authUser && authUser.id))){
-            scheduleTextOutboxFlush(20);
-            scheduleSilentReconnectSync(120);
+            if(messageFrameVisibleV868()){
+              scheduleTextOutboxFlush(20);
+              scheduleSilentReconnectSync(120);
+            }else messageHiddenRealtimeDirtyV869=true;
           }
         }
         else if(data.type === 'HAPPYAD_AUTH_SIGNED_IN_V595') recoverAuthenticatedSessionV595(data.detail || {});
@@ -15275,13 +15971,16 @@
         else if(data.type === 'HAPPYAD_PROFILE_AVATAR_RECOVERED_V743' || data.type === 'HAPPYAD_PROFILE_IDENTITY_V746') refreshConnectedIdentitySoon(20);
       }, true);
 
-      try{ window.parent.postMessage({type:'HAPPYAD_MESSAGE_REALTIME_START'}, '*'); }catch(_e){}
+      /* Une frame cachée ne démarre plus le canal parent. Le premier rendu visible
+         l'annonce dans resumeMessageRuntimeV869(), après la liste du cache. */
+      if(messageFrameVisibleV868())announceMessageRealtimeStartV876();
       setViewOnceMode(false);
       scheduleMessageLayoutRepair('initial');
-      applyContext(contextFromUrl()).finally(() => scheduleMessageLayoutRepair('initial-applied'));
+      if(messageFrameVisibleV868()||messageCachePreparingV875())applyContext(contextFromUrl()).finally(() => scheduleMessageLayoutRepair('initial-applied'));
 
       document.addEventListener('visibilitychange', () => {
         if(document.hidden){
+          suspendMessageRuntimeV869();
           clearTimeout(realtimeReadTimer);
           pauseAllMessageVideos();
           stopActiveAudioPlayback();
@@ -15289,8 +15988,7 @@
           if(activeViewOnceVideo) closeViewOnceVideo();
           if(activeViewOnceAudio) closeViewOnceAudio();
         }else{
-          scheduleMessageLayoutRepair('visible');
-          refreshConnectedIdentitySoon(50);
+          resumeMessageRuntimeV869('document-visible');
         }
       });
       window.addEventListener('blur', () => {

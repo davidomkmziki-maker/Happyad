@@ -1,11 +1,11 @@
-/* HAPPYAD V866 — protection renforcée du geste de scroll dans Mon profil et Profil visiteur.
+/* HAPPYAD V868 — protection du geste local et du scroll global inter-modules.
    Le chargement/pagination des publications reste prioritaire. Les tâches secondaires lourdes
    et leurs commits après réponse réseau sont coalescés puis repris uniquement au repos réel. */
 (function(){
   'use strict';
   if(window.HappyProfileScrollPriorityV866)return;
 
-  var VERSION='V866_PROFILE_SCROLL_PRIORITY_HARD';
+  var VERSION='V868_PROFILE_GLOBAL_SCROLL_PRIORITY';
   var activeUntil=0;
   var jobs=Object.create(null);
   var timers=Object.create(null);
@@ -23,6 +23,10 @@
   function arm(ms){activeUntil=Math.max(activeUntil,now()+Math.max(0,Number(ms)||0));markClass(true);}
   function isActive(){
     try{if(document.hidden)return false;}catch(_e){}
+    try{
+      var global=window.HappyadGlobalScrollCoordinatorV868;
+      if(global&&typeof global.isActive==='function'&&global.isActive())return true;
+    }catch(_e2){}
     return now()<activeUntil;
   }
   function clearTimer(key){if(timers[key]){clearTimeout(timers[key]);delete timers[key];}}

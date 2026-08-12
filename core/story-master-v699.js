@@ -6,7 +6,7 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V925_POINT6_OPTIMISTIC_MY_STORY';
+  var VERSION='STORY_MASTER_V925_PLUS_V892_PORTRAIT_SAFE';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,progressAnim:null,progressBaseElapsed:0,
@@ -38,6 +38,8 @@
   var radarStableSnapshotV792=[];
   var radarStableSnapshotAtV792=0;
   var radarCanonicalV792={loading:false,promise:null,awaitingStable:false,emptyUid:'',emptyAt:0,emptyCount:0};
+  var STORY_LAST_GOOD_KEY_V885='HAPPYAD_STORIES_LAST_GOOD_V885';
+  var radarSkeletonUntilV885=Date.now()+180;
   function rememberRadarStableV792(items){
     try{
       items=(Array.isArray(items)?items:[]).filter(active);
@@ -67,7 +69,7 @@
     items=Array.isArray(items)?items.filter(active):[];
     if(items.length)rememberRadarStableV792(items);
     else{radarStableSnapshotV792=[];radarStableSnapshotAtV792=Date.now()}
-    try{window.HAPPYAD_STORIES_ITEMS=items;window.__HAPPYAD_STORIES_ITEMS_CACHE=items;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(items.slice(0,320)))}catch(_e){}
+    try{window.HAPPYAD_STORIES_ITEMS=items;window.__HAPPYAD_STORIES_ITEMS_CACHE=items;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(items.slice(0,320)));if(items.length)rememberLastGoodStoriesV885(items);else clearLastGoodStoriesV885()}catch(_e){}
     publishStoryMasterSyncV924(items,'canonical-commit');
     return items;
   }
@@ -94,6 +96,21 @@
   function sharedPostIdV912(p){p=p||{};return clean(p.source_post_id||p.sourcePostId)}
   function sharedPostTypeV912(p){p=p||{};var t=clean(p.source_post_media_type||p.sourcePostMediaType||p.media_type||p.mediaType||p.kind).toLowerCase();return /video|reel|clip/.test(t)?'video':'photo'}
   function isSharedPostStoryV912(p){return !!sharedPostIdV912(p)}
+  function sourceStoryIdV888(p){p=p||{};return clean(p.source_story_id||p.sourceStoryId)}
+  function sourceStoryOwnerV888(p){p=p||{};return clean(p.source_story_owner_id||p.sourceStoryOwnerId)}
+  function sourceStoryAuthorV888(p){p=p||{};return clean(p.source_story_author_name||p.sourceStoryAuthorName)||'Utilisateur HAPPYAD'}
+  function sourceStoryUsernameV888(p){p=p||{};return clean(p.source_story_author_username||p.sourceStoryAuthorUsername).replace(/^@+/,'')}
+  function sourceStoryAvatarV888(p){p=p||{};return clean(p.source_story_author_avatar||p.sourceStoryAuthorAvatar)}
+  function sourceStoryBadgeV888(p){p=p||{};return clean(p.source_story_author_badge||p.sourceStoryAuthorBadge)}
+  function sourceStoryCaptionV888(p){p=p||{};return clean(p.source_story_caption||p.sourceStoryCaption)}
+  function originStoryIdV895(p){p=p||{};return clean(p.origin_story_id||p.originStoryId)}
+  function originStoryOwnerV895(p){p=p||{};return clean(p.origin_story_owner_id||p.originStoryOwnerId)}
+  function originStoryAuthorV895(p){p=p||{};return clean(p.origin_story_author_name||p.originStoryAuthorName)}
+  function originStoryUsernameV895(p){p=p||{};return clean(p.origin_story_author_username||p.originStoryAuthorUsername).replace(/^@+/,'')}
+  function originStoryAvatarV895(p){p=p||{};return clean(p.origin_story_author_avatar||p.originStoryAuthorAvatar)}
+  function originStoryBadgeV895(p){p=p||{};return clean(p.origin_story_author_badge||p.originStoryAuthorBadge)}
+  function repostDepthV895(p){p=p||{};return Math.max(0,Math.min(2,Number(p.story_repost_depth||p.storyRepostDepth||0)||0))}
+  function isSharedStoryV888(p){return !!sourceStoryIdV888(p)}
   /* V917 point 1 : l'identité d'une Story ne doit jamais être déduite de
      l'absence temporaire de source_post_id dans un ancien cache. Une ligne
      venant directement de happyad_stories est marquée explicitement native
@@ -101,18 +118,22 @@
      être vérifié avant le premier rendu. */
   function storySourceKindV917(p){
     p=p||{};
+    if(sourceStoryIdV888(p))return 'shared_story';
     if(sharedPostIdV912(p))return 'shared_post';
     var k=clean(p.story_source_kind||p.storySourceKind||p.__storySourceKindV917).toLowerCase();
+    if(k==='shared_story'||k==='story_repost')return 'shared_story';
     if(k==='shared_post'||k==='shared')return 'shared_post';
     if(k==='native'||k==='story')return 'native';
+    if(p.isSharedStory===true)return 'shared_story';
     if(p.isSharedPostStory===true)return 'shared_post';
-    if(p.isSharedPostStory===false&&p.__storyIdentityV916===true)return 'native';
+    if(p.isSharedPostStory===false&&p.isSharedStory!==true&&p.__storyIdentityV916===true)return 'native';
     return '';
   }
   function storyIdentityKnownV917(p){return !!storySourceKindV917(p)}
   function sourcePostTitleV912(p){p=p||{};return clean(p.source_post_title||p.sourcePostTitle)||'Publication HAPPYAD'}
   function sourcePostAuthorV912(p){p=p||{};return clean(p.source_post_author_name||p.sourcePostAuthorName)||'Utilisateur HAPPYAD'}
   function sourcePostAvatarV912(p){p=p||{};return clean(p.source_post_author_avatar||p.sourcePostAuthorAvatar)}
+  function sourcePostOwnerV890(p){p=p||{};return clean(p.source_post_owner_id||p.sourcePostOwnerId)}
   function sourcePostCaptionV912(p){p=p||{};return clean(p.source_post_caption||p.sourcePostCaption)}
   function sourcePostGroupIdsV913(p){
     p=p||{};var raw=p.source_post_group_ids!=null?p.source_post_group_ids:p.sourcePostGroupIds,arr=[];
@@ -163,22 +184,37 @@
     badge:clean(p.badge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge||r.badge||r.user_badge||r.badge_type),mediaUrl:mediaOf(r),media_url:mediaOf(r),mediaType:typeOf(r),kind:typeOf(r),
     description:descOf(r),desc:descOf(r),createdAt:createdOf(r),created_at:r.created_at||createdIsoV783(r),expiresAt:r.expires_at||r.expiresAt||'',
     source_post_id:sharedPostIdV912(r),sourcePostId:sharedPostIdV912(r),source_post_media_type:clean(r.source_post_media_type||r.sourcePostMediaType),source_post_owner_id:clean(r.source_post_owner_id||r.sourcePostOwnerId),source_post_title:clean(r.source_post_title||r.sourcePostTitle),source_post_author_name:clean(r.source_post_author_name||r.sourcePostAuthorName),source_post_author_avatar:clean(r.source_post_author_avatar||r.sourcePostAuthorAvatar),source_post_caption:clean(r.source_post_caption||r.sourcePostCaption),source_post_grouped:!!(r.source_post_grouped||r.sourcePostGrouped||isGroupedSharedPostV913(r)),source_post_group_count:sourcePostGroupCountV913(r),source_post_group_ids:sourcePostGroupIdsV913(r),
-    story_source_kind:sharedPostIdV912(r)?'shared_post':'native',storySourceKind:sharedPostIdV912(r)?'shared_post':'native',isSharedPostStory:!!sharedPostIdV912(r),__storyIdentityV916:true,__storySourceKindV917:sharedPostIdV912(r)?'shared_post':'native',
+    source_story_id:sourceStoryIdV888(r),sourceStoryId:sourceStoryIdV888(r),source_story_owner_id:sourceStoryOwnerV888(r),sourceStoryOwnerId:sourceStoryOwnerV888(r),source_story_author_name:sourceStoryAuthorV888(r),sourceStoryAuthorName:sourceStoryAuthorV888(r),source_story_author_username:sourceStoryUsernameV888(r),sourceStoryAuthorUsername:sourceStoryUsernameV888(r),source_story_author_avatar:sourceStoryAvatarV888(r),sourceStoryAuthorAvatar:sourceStoryAvatarV888(r),source_story_author_badge:sourceStoryBadgeV888(r),sourceStoryAuthorBadge:sourceStoryBadgeV888(r),source_story_caption:sourceStoryCaptionV888(r),sourceStoryCaption:sourceStoryCaptionV888(r),origin_story_id:originStoryIdV895(r),originStoryId:originStoryIdV895(r),origin_story_owner_id:originStoryOwnerV895(r),originStoryOwnerId:originStoryOwnerV895(r),origin_story_author_name:originStoryAuthorV895(r),originStoryAuthorName:originStoryAuthorV895(r),origin_story_author_username:originStoryUsernameV895(r),originStoryAuthorUsername:originStoryUsernameV895(r),origin_story_author_avatar:originStoryAvatarV895(r),originStoryAuthorAvatar:originStoryAvatarV895(r),origin_story_author_badge:originStoryBadgeV895(r),originStoryAuthorBadge:originStoryBadgeV895(r),story_repost_depth:repostDepthV895(r),storyRepostDepth:repostDepthV895(r),
+    story_source_kind:sourceStoryIdV888(r)?'shared_story':(sharedPostIdV912(r)?'shared_post':'native'),storySourceKind:sourceStoryIdV888(r)?'shared_story':(sharedPostIdV912(r)?'shared_post':'native'),isSharedStory:!!sourceStoryIdV888(r),isSharedPostStory:!!sharedPostIdV912(r),__storyIdentityV916:true,__storySourceKindV917:sourceStoryIdV888(r)?'shared_story':(sharedPostIdV912(r)?'shared_post':'native'),
     isRadar:true,isLive:false,isSeen:!!(r.isSeen||r.seen||r.viewed||isLocallySeenV787(storyId(r))),seen:!!(r.isSeen||r.seen||r.viewed||isLocallySeenV787(storyId(r))),viewed:!!(r.isSeen||r.seen||r.viewed||isLocallySeenV787(storyId(r))),__storyTable:'happyad_stories'
   }}
   function rowFromItem(p){return {
     id:storyId(p),user_id:ownerOf(p),media_url:mediaOf(p),media_type:typeOf(p),description:descOf(p),created_at:p.created_at||createdIsoV783(p),
     expires_at:p.expires_at||p.expiresAt||'',user_name:p.creatorName||p.user_name||p.title||'',user_avatar:p.avatar||p.user_avatar||p.avatar_url||'',
     source_post_id:sharedPostIdV912(p),source_post_media_type:clean(p.source_post_media_type||p.sourcePostMediaType),source_post_owner_id:clean(p.source_post_owner_id||p.sourcePostOwnerId),source_post_title:clean(p.source_post_title||p.sourcePostTitle),source_post_author_name:clean(p.source_post_author_name||p.sourcePostAuthorName),source_post_author_avatar:clean(p.source_post_author_avatar||p.sourcePostAuthorAvatar),source_post_caption:clean(p.source_post_caption||p.sourcePostCaption),source_post_grouped:!!(p.source_post_grouped||p.sourcePostGrouped||isGroupedSharedPostV913(p)),source_post_group_count:sourcePostGroupCountV913(p),source_post_group_ids:sourcePostGroupIdsV913(p),
-    story_source_kind:storySourceKindV917(p),storySourceKind:storySourceKindV917(p),isSharedPostStory:storySourceKindV917(p)==='shared_post',__storyIdentityV916:storyIdentityKnownV917(p),__storySourceKindV917:storySourceKindV917(p),
+    source_story_id:sourceStoryIdV888(p),source_story_owner_id:sourceStoryOwnerV888(p),source_story_author_name:sourceStoryAuthorV888(p),source_story_author_username:sourceStoryUsernameV888(p),source_story_author_avatar:sourceStoryAvatarV888(p),source_story_author_badge:sourceStoryBadgeV888(p),source_story_caption:sourceStoryCaptionV888(p),origin_story_id:originStoryIdV895(p),origin_story_owner_id:originStoryOwnerV895(p),origin_story_author_name:originStoryAuthorV895(p),origin_story_author_username:originStoryUsernameV895(p),origin_story_author_avatar:originStoryAvatarV895(p),origin_story_author_badge:originStoryBadgeV895(p),story_repost_depth:repostDepthV895(p),
+    story_source_kind:storySourceKindV917(p),storySourceKind:storySourceKindV917(p),isSharedStory:storySourceKindV917(p)==='shared_story',isSharedPostStory:storySourceKindV917(p)==='shared_post',__storyIdentityV916:storyIdentityKnownV917(p),__storySourceKindV917:storySourceKindV917(p),
     badge:p.badge||p.userBadge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge||'',username:clean(p.username||p.handle).replace(/^@+/,'')
   }}
   function profileFromItem(p){p=p||{};return {id:ownerOf(p),full_name:clean(p.creatorName||p.user_name||p.display_name||p.title),username:clean(p.username||p.handle).replace(/^@+/,''),avatar_url:clean(p.avatar||p.user_avatar||p.avatar_url),badge:clean(p.badge||p.userBadge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge)}}
+
+  function lastGoodStoriesV885(){
+    try{var arr=readJson(STORY_LAST_GOOD_KEY_V885,[]);return Array.isArray(arr)?arr.filter(active):[]}catch(_e){return []}
+  }
+  function rememberLastGoodStoriesV885(items){
+    try{
+      items=(Array.isArray(items)?items:[]).filter(active);
+      if(items.length)localStorage.setItem(STORY_LAST_GOOD_KEY_V885,JSON.stringify(items.slice(0,320)));
+      return items;
+    }catch(_e){return []}
+  }
+  function clearLastGoodStoriesV885(){try{localStorage.removeItem(STORY_LAST_GOOD_KEY_V885)}catch(_e){}}
 
   function cacheStories(){
     var arr=[];
     try{if(Array.isArray(window.HAPPYAD_STORIES_ITEMS))arr=arr.concat(window.HAPPYAD_STORIES_ITEMS)}catch(_e){}
     try{var x=readJson('HAPPYAD_STORIES_CACHE_V1',[]);if(Array.isArray(x))arr=arr.concat(x)}catch(_e){}
+    try{var lg=lastGoodStoriesV885();if(lg.length)arr=arr.concat(lg)}catch(_e){}
     var seen={},out=[];
     arr.forEach(function(p){var id=storyId(p),key=id||ownerOf(p)+'|'+mediaOf(p);if(!key||seen[key]||!isStory(p)||!active(p)||isMutedOwner(ownerOf(p)))return;if(id&&isLocallySeenV787(id)){p.isSeen=true;p.seen=true;p.viewed=true}seen[key]=1;out.push(p)});
     /* V792 : ne jamais faire clignoter un cache Story valide pendant un changement
@@ -195,7 +231,7 @@
       var has=out.some(function(p){return ownerOf(p)===uid&&mediaOf(p)===clean(me.story)});
       if(!has)out.push({id:clean(me.storyId||me.story_id),sourceId:clean(me.storyId||me.story_id),mode:'story',type:'story',category:'story',creatorId:uid,user_id:uid,creatorName:clean(me.name||me.full_name)||'Ta story',handle:clean(me.handle||me.username),avatar:clean(me.avatar||me.avatar_url),badge:clean(me.badge||me.user_badge),mediaUrl:clean(me.story),mediaType:clean(me.storyKind)||'photo',description:clean(me.storyDesc),createdAt:localCreated,created_at:new Date(localCreated).toISOString(),expiresAt:localExpires?new Date(localExpires).toISOString():'',isRadar:true,isLive:false,__storyTable:'happyad_stories'});
     }
-    if(out.length)rememberRadarStableV792(out);
+    if(out.length){rememberRadarStableV792(out);rememberLastGoodStoriesV885(out)}
     return out;
   }
   function cachedRowsForOwner(owner,seed){
@@ -218,7 +254,7 @@
       all.sort(function(a,b){return createdOf(b)-createdOf(a)});
       all=all.slice(0,100);
       window.HAPPYAD_STORIES_ITEMS=all;
-      localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(all));
+      localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(all));if(all.length)rememberLastGoodStoriesV885(all);
     }catch(_e){}
   }
 
@@ -375,9 +411,53 @@
     throw new Error(clean(last&&(last.message||last.details))||'Envoi impossible.');
   }
   function firstRow(data){if(Array.isArray(data))return data[0]||{};if(data&&Array.isArray(data.data))return data.data[0]||{};return data||{}}
+  async function storyReplyPermissionV898(row,force){
+    var gate=window.HappyInteractionPrivacyV855R52,id=storyId(row),owner=ownerOf(row);
+    if(!gate)return {allowed:null,available:false,source:'none'};
+    /* V899 : source canonique = le JSON privacy réellement enregistré par
+       Paramètres dans happyad_user_settings. L'ancienne RPC d'interactions peut
+       rester désynchronisée et ne doit plus produire un faux refus. */
+    if(owner&&typeof gate.canStoryRepliesOwnerStatusV899==='function'){
+      try{
+        var canonical=await gate.canStoryRepliesOwnerStatusV899(owner,!!force);
+        if(canonical&&canonical.available===true){
+          return {allowed:canonical.allowed===true,available:true,source:'settings-canonical'};
+        }
+      }catch(_canonicalGate){}
+    }
+    /* Compatibilité avant installation du SQL V899 : les anciennes sources ne
+       sont acceptées que lorsqu'elles autorisent explicitement. Un ancien false
+       est indéterminé, jamais une preuve de désactivation. */
+    if(owner&&typeof gate.loadPolicy==='function'){
+      try{
+        var policy=await gate.loadPolicy(owner,!!force);
+        if(policy&&policy.available===true&&policy.storyReplies===true){
+          return {allowed:true,available:true,source:'legacy-owner-allow'};
+        }
+      }catch(_ownerPolicy){}
+    }
+    if(id&&typeof gate.canStoryStatus==='function'){
+      try{
+        var s=await gate.canStoryStatus(id,'storyReplies',!!force);
+        if(s&&s.available&&s.allowed===true)return {allowed:true,available:true,source:'legacy-story-allow'};
+      }catch(_storyGate){}
+    }
+    return {allowed:null,available:false,source:'canonical-unavailable'};
+  }
+  async function confirmStoryReplyPermissionV898(row){
+    var waits=[0,220,520],last={allowed:null,available:false};
+    for(var i=0;i<waits.length;i++){
+      if(waits[i])await new Promise(function(resolve){setTimeout(resolve,waits[i])});
+      last=await storyReplyPermissionV898(row,true);
+      if(last&&last.available)return last;
+    }
+    return last;
+  }
   async function sendStoryReply(row,text){
     var target=ownerOf(row),me=await authUid();if(!isUuid(target)||!isUuid(me)||target===me)throw new Error('Destinataire indisponible.');
-    var interactionGate=window.HappyInteractionPrivacyV855R52;if(!interactionGate||!(await interactionGate.canStory(storyId(row),'storyReplies',true)))throw new Error('Le propriétaire a désactivé les réponses à cette Story.');
+    var replyPermission=await confirmStoryReplyPermissionV898(row);
+    if(replyPermission&&replyPermission.available&&replyPermission.allowed===false)throw new Error('Le propriétaire a désactivé les réponses à cette Story.');
+    if(!replyPermission||!replyPermission.available)throw new Error('Impossible de vérifier les réponses pour le moment. Réessayez.');
     var opened=await rpc('happyad_msg_open_direct_privacy_v855r51',[{p_target_user_id:target}]);
     var o=firstRow(opened),conversation=clean(o.conversation_id||o.id||(typeof opened==='string'?opened:''));if(!isUuid(conversation))throw new Error('Conversation indisponible.');
     var profile=state.profile||{},author=clean(profile.full_name||profile.display_name||profile.name||row.user_name)||'HAPPYAD';
@@ -417,29 +497,29 @@ body.haStoryOpenV629>iframe:not(#happyadShareCenterFrame){pointer-events:none!im
 #happyStoryViewerMasterV629.haStoryV629 .ha629Name{display:flex!important;align-items:center!important;gap:5px!important;min-width:0!important;font-size:16px!important;font-weight:900!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-shadow:0 1px 4px #000!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Sub{font-size:12px!important;color:#e0e3e9!important;margin-top:2px!important;white-space:nowrap!important;text-shadow:0 1px 4px #000!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Caption{position:absolute!important;left:18px!important;right:18px!important;bottom:calc(var(--ha-story-composer-h,62px) + 38px + env(safe-area-inset-bottom))!important;z-index:7!important;padding:0!important;background:transparent!important;color:#fff!important;font-size:16px!important;font-weight:750!important;line-height:1.35!important;text-shadow:0 1px 5px #000!important;max-height:25vh!important;overflow:auto!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions{position:absolute!important;left:12px!important;right:12px!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;z-index:12!important;display:grid!important;grid-template-columns:minmax(0,1fr) 48px 48px!important;align-items:end!important;gap:8px!important;padding:7px!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:30px!important;background:linear-gradient(180deg,rgba(9,13,22,.72),rgba(3,6,11,.9))!important;box-shadow:0 12px 34px rgba(0,0,0,.38)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;transition:padding .16s ease,border-radius .16s ease,background .16s ease!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions{position:absolute!important;left:8px!important;right:8px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;z-index:12!important;display:grid!important;grid-template-columns:minmax(0,1fr) 42px 42px!important;align-items:end!important;gap:6px!important;padding:5px!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:27px!important;background:linear-gradient(180deg,rgba(9,13,22,.72),rgba(3,6,11,.9))!important;box-shadow:0 10px 28px rgba(0,0,0,.34)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;transition:padding .16s ease,border-radius .16s ease,background .16s ease!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-composing{grid-template-columns:minmax(0,1fr)!important;gap:0!important;padding:0!important;border-color:rgba(255,255,255,.18)!important;border-radius:27px!important;background:rgba(19,22,29,.96)!important;box-shadow:0 18px 48px rgba(0,0,0,.52)!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyForm{position:relative!important;display:flex!important;align-items:flex-end!important;min-width:0!important;min-height:48px!important;height:48px!important;max-height:48px!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:24px!important;background:rgba(255,255,255,.075)!important;overflow:hidden!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;transition:min-height .16s ease,height .16s ease,max-height .16s ease,border-color .14s ease,background .14s ease,border-radius .16s ease!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyForm{position:relative!important;display:flex!important;align-items:flex-end!important;min-width:0!important;min-height:44px!important;height:44px!important;max-height:44px!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:22px!important;background:rgba(255,255,255,.075)!important;overflow:hidden!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;transition:min-height .16s ease,height .16s ease,max-height .16s ease,border-color .14s ease,background .14s ease,border-radius .16s ease!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629ReplyForm:focus-within{border-color:rgba(255,255,255,.5)!important;background:rgba(255,255,255,.105)!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-composing .ha629ReplyForm{width:100%!important;min-height:116px!important;height:116px!important;max-height:116px!important;border-color:transparent!important;border-radius:26px!important;background:transparent!important;box-shadow:none!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput{flex:1!important;min-width:0!important;width:100%!important;min-height:48px!important;height:48px!important;max-height:48px!important;border:0!important;outline:0!important;background:transparent!important;color:#fff!important;padding:13px 50px 12px 15px!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;font-size:16px!important;font-style:normal!important;font-variant:normal!important;font-weight:400!important;letter-spacing:normal!important;line-height:22px!important;text-transform:none!important;box-sizing:border-box!important;resize:none!important;overflow-y:hidden!important;overflow-x:hidden!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important;overscroll-behavior:contain!important;scrollbar-width:none!important;-ms-overflow-style:none!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput{flex:1!important;min-width:0!important;width:100%!important;min-height:44px!important;height:44px!important;max-height:44px!important;border:0!important;outline:0!important;background:transparent!important;color:#fff!important;padding:11px 43px 10px 13px!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;font-size:14.5px!important;font-style:normal!important;font-variant:normal!important;font-weight:400!important;letter-spacing:normal!important;line-height:20px!important;text-transform:none!important;box-sizing:border-box!important;resize:none!important;overflow-y:hidden!important;overflow-x:hidden!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important;overscroll-behavior:contain!important;scrollbar-width:none!important;-ms-overflow-style:none!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-composing .ha629ReplyInput{min-height:116px!important;height:116px!important;max-height:116px!important;padding:13px 54px 13px 16px!important;overflow-y:auto!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput::placeholder{color:rgba(255,255,255,.68)!important;font-family:inherit!important;font-size:16px!important;font-style:normal!important;font-weight:400!important;letter-spacing:normal!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput::placeholder{color:rgba(255,255,255,.68)!important;font-family:inherit!important;font-size:14.5px!important;font-style:normal!important;font-weight:400!important;letter-spacing:normal!important;white-space:nowrap!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629ReplyForm.is-scrollable .ha629ReplyInput{overflow-y:auto!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-composing>.ha629IconAct{display:none!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629Send{position:absolute!important;right:4px!important;bottom:4px!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;min-width:40px!important;margin:0!important;align-self:auto!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:50%!important;background:rgba(255,255,255,.10)!important;color:rgba(255,255,255,.65)!important;padding:0!important;transition:transform .14s ease,background .14s ease,color .14s ease!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629Send{position:absolute!important;right:4px!important;bottom:4px!important;display:grid!important;place-items:center!important;width:36px!important;height:36px!important;min-width:36px!important;margin:0!important;align-self:auto!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:50%!important;background:rgba(255,255,255,.10)!important;color:rgba(255,255,255,.65)!important;padding:0!important;transition:transform .14s ease,background .14s ease,color .14s ease!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-composing .ha629Send{right:8px!important;bottom:8px!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629Send svg{width:22px!important;height:22px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629Send svg{width:19px!important;height:19px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Send.ready{background:#fff!important;color:#0a0e16!important;border-color:#fff!important;box-shadow:0 6px 18px rgba(255,255,255,.18)!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Send.ready:active{transform:scale(.93)!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Send.sending{opacity:.62!important;pointer-events:none!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629IconAct{width:48px!important;height:48px!important;min-width:48px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;color:#fff!important;display:grid!important;place-items:center!important;padding:0!important;text-shadow:0 1px 5px #000!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629IconAct{width:42px!important;height:42px!important;min-width:42px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;color:#fff!important;display:grid!important;place-items:center!important;padding:0!important;text-shadow:0 1px 5px #000!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629IconAct:active{transform:scale(.93)!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629IconAct.on{color:#ff4f78!important;background:rgba(255,79,120,.12)!important;border-color:rgba(255,79,120,.35)!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{position:absolute!important;left:0!important;right:0!important;bottom:calc(6px + env(safe-area-inset-bottom))!important;z-index:12!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:2px!important;padding:10px 8px 4px!important;background:rgba(6,9,14,.86)!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{border:0!important;background:transparent!important;color:#fff!important;min-width:0!important;padding:4px 1px 8px!important;font-weight:800!important;font-size:13px!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important}
-#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{font-size:29px!important;line-height:1!important}#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:31px!important;height:31px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{position:absolute!important;left:0!important;right:0!important;bottom:calc(4px + env(safe-area-inset-bottom))!important;z-index:12!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;padding:7px 8px 3px!important;background:rgba(6,9,14,.84)!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{border:0!important;background:transparent!important;color:#fff!important;min-width:0!important;padding:2px 1px 5px!important;font-weight:800!important;font-size:11.5px!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:4px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{font-size:24px!important;line-height:1!important}#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:25px!important;height:25px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Loading{position:absolute!important;inset:0!important;z-index:2!important;display:grid!important;place-items:center!important;color:#d9dde5!important;font-weight:800!important;background:#000!important}
 #happyStoryViewerMasterV629.haStoryV629 .ha629Views{display:none!important}
 body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-behavior:none!important}
@@ -462,28 +542,110 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 `;
     st.textContent+=`
 #happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct{display:grid!important;place-items:center!important;padding:0!important}
-#happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct svg{width:30px!important;height:30px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important;pointer-events:none!important}
+#happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct svg{width:25px!important;height:25px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important;pointer-events:none!important}
 #happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct.on{color:#ff4773!important}
 #happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct[data-happyad-story-share-v699]{color:#fff!important}
 #happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct[data-happyad-story-share-v699]:active{transform:scale(.94)!important}
 
-/* V912 — carte publication partagee dans Story. Le media reste une reference, jamais une copie. */
-#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912{padding:92px 18px calc(var(--ha-story-composer-h,62px) + 74px)!important;align-items:center!important;touch-action:none!important}
-#happyStoryViewerMasterV629 .ha629SharedPostCardV912{position:relative!important;width:min(88vw,430px)!important;max-height:min(68dvh,690px)!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:22px!important;background:#11151c!important;color:#fff!important;overflow:hidden!important;box-shadow:0 20px 54px rgba(0,0,0,.42)!important;text-align:left!important;padding:0!important;display:flex!important;flex-direction:column!important;cursor:default!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;pointer-events:none!important}
-#happyStoryViewerMasterV629 .ha629SharedPostHeadV912{height:58px!important;display:flex!important;align-items:center!important;gap:10px!important;padding:9px 12px!important;background:rgba(15,18,24,.98)!important;flex:0 0 auto!important}
-#happyStoryViewerMasterV629 .ha629SharedPostAvatarV912{width:38px!important;height:38px!important;border-radius:50%!important;overflow:hidden!important;background:#252b35!important;display:grid!important;place-items:center!important;font-size:14px!important;font-weight:950!important;color:#fff!important;flex:0 0 38px!important}
+
+/* V900 — barre Story compacte et lisible sur petits téléphones. */
+#happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-replies-disabled .ha629Send{display:none!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-replies-disabled .ha629ReplyInput{padding-right:13px!important;white-space:nowrap!important;overflow:hidden!important;font-size:13.5px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions.is-replies-disabled .ha629ReplyInput::placeholder{font-size:13.5px!important;white-space:nowrap!important}
+@media(max-width:360px){
+#happyStoryViewerMasterV629.haStoryV629 .ha629VisitorActions{left:7px!important;right:7px!important;grid-template-columns:minmax(0,1fr) 40px 40px!important;gap:5px!important;padding:4px!important;border-radius:25px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyForm{min-height:42px!important;height:42px!important;max-height:42px!important;border-radius:21px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput{min-height:42px!important;height:42px!important;max-height:42px!important;padding:10px 40px 9px 12px!important;font-size:13.5px!important;line-height:19px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629ReplyInput::placeholder{font-size:13.5px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629Send{width:34px!important;height:34px!important;min-width:34px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629IconAct{width:40px!important;height:40px!important;min-width:40px!important}
+#happyStoryViewerMasterV629 .ha629VisitorActions .ha629IconAct svg{width:23px!important;height:23px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{font-size:11px!important;gap:3px!important;padding-bottom:4px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:23px!important;height:23px!important}
+}
+
+/* V901 — Ma Story : Vues / Partager plus discrets, zone tactile large conservée. */
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{bottom:calc(2px + env(safe-area-inset-bottom))!important;padding:3px 8px 1px!important;min-height:40px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{min-height:40px!important;padding:0 1px 2px!important;font-size:10px!important;line-height:1.05!important;gap:2px!important;font-weight:780!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{font-size:20px!important;line-height:1!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:20px!important;height:20px!important;stroke-width:2!important}
+@media(max-width:360px){
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{padding:2px 7px 1px!important;min-height:38px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{min-height:38px!important;font-size:9.5px!important;gap:1px!important;padding-bottom:1px!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:19px!important;height:19px!important}
+}
+
+/* V891 — cartes Story avec méta à l’extérieur, ratio naturel et texte net. */
+#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912{padding:84px 10px calc(var(--ha-story-composer-h,62px) + 36px)!important;align-items:center!important;justify-content:center!important;touch-action:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888{position:relative!important;width:min(94vw,520px)!important;max-width:520px!important;background:transparent!important;color:#fff!important;overflow:visible!important;text-align:left!important;padding:0!important;display:flex!important;flex-direction:column!important;gap:10px!important;cursor:default!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;pointer-events:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostHeadV912{min-height:0!important;display:flex!important;align-items:center!important;gap:11px!important;padding:0 4px!important;background:transparent!important;border:0!important;flex:0 0 auto!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostAvatarV912{width:46px!important;height:46px!important;border-radius:50%!important;overflow:hidden!important;background:rgba(20,24,31,.20)!important;display:grid!important;place-items:center!important;font-size:15px!important;font-weight:950!important;color:#fff!important;flex:0 0 46px!important;border:1.5px solid rgba(255,255,255,.72)!important;box-shadow:none!important}
 #happyStoryViewerMasterV629 .ha629SharedPostAvatarV912 img{width:100%!important;height:100%!important;object-fit:cover!important;transform:none!important}
-#happyStoryViewerMasterV629 .ha629SharedPostWhoV912{min-width:0!important;flex:1!important}.ha629SharedPostWhoV912 b{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:14px!important;line-height:1.18!important}.ha629SharedPostWhoV912 span{display:block!important;margin-top:3px!important;color:#9da6b4!important;font-size:11px!important;font-weight:750!important}
-#happyStoryViewerMasterV629 .ha629SharedPostMediaV912{position:relative!important;width:100%!important;height:min(48dvh,520px)!important;min-height:220px!important;max-height:52dvh!important;background:#05070a!important;display:grid!important;place-items:center!important;overflow:hidden!important;flex:0 1 auto!important}
-#happyStoryViewerMasterV629 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostMediaV912 video{position:relative!important;width:100%!important;height:100%!important;max-height:52dvh!important;object-fit:contain!important;background:#05070a!important;transform:none!important}
-#happyStoryViewerMasterV629 .ha629SharedPostGroupBadgeV913{position:absolute!important;right:11px!important;top:11px!important;z-index:5!important;display:inline-flex!important;align-items:center!important;gap:6px!important;min-height:31px!important;padding:5px 9px!important;border-radius:999px!important;background:rgba(8,10,14,.82)!important;border:1px solid rgba(255,255,255,.18)!important;color:#fff!important;box-shadow:0 5px 18px rgba(0,0,0,.28)!important;backdrop-filter:none!important;font-size:11px!important;font-weight:950!important;line-height:1!important;pointer-events:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostWhoV912{min-width:0!important;flex:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:0!important}
+#happyStoryViewerMasterV629 .ha629SharedNameLineV889{display:flex!important;align-items:center!important;gap:6px!important;min-width:0!important;min-height:23px!important}
+#happyStoryViewerMasterV629 .ha629SharedNameLineV889 b{display:block!important;min-width:0!important;max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:16px!important;line-height:1.2!important;font-weight:950!important;letter-spacing:.01em!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedNameLineV889 .happyBadgeMark{width:16px!important;height:16px!important;flex:0 0 16px!important;margin-left:0!important;vertical-align:0!important}
+#happyStoryViewerMasterV629 .ha629SharedContextV889{display:none!important}
+#happyStoryViewerMasterV629 .ha629RepostGlyphV890{display:inline-grid!important;place-items:center!important;width:24px!important;height:24px!important;flex:0 0 24px!important;margin-left:4px!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.24)!important;color:#fff!important;filter:none!important}
+#happyStoryViewerMasterV629 .ha629RepostGlyphV890 svg{width:14px!important;height:14px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+/* V895 — second et dernier repost : B principal, A origine en petit sous une ligne verticale. */
+#happyStoryViewerMasterV629 .ha629RepostChainV895{display:flex!important;align-items:center!important;gap:6px!important;min-width:0!important;margin-top:3px!important;color:rgba(255,255,255,.78)!important;font-size:11.5px!important;line-height:1.15!important;font-weight:850!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629RepostChainLineV895{display:block!important;width:1.5px!important;height:13px!important;flex:0 0 1.5px!important;border-radius:999px!important;background:rgba(255,255,255,.52)!important}
+#happyStoryViewerMasterV629 .ha629RepostChainNameV895{display:flex!important;align-items:center!important;gap:4px!important;min-width:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#happyStoryViewerMasterV629 .ha629RepostChainNameV895 .happyBadgeMark{width:12px!important;height:12px!important;flex:0 0 12px!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-repost-depth2-v895 .ha629SharedNameLineV889 b{font-size:17px!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-repost-depth2-v895 .ha629SharedPostWhoV912{justify-content:center!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891.is-repost-depth2-v895 .ha629SharedPostHeadV912{min-height:68px!important;padding-bottom:9px!important;align-items:flex-start!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891.is-repost-depth2-v895 .ha629SharedNameLineV889 b{font-size:15px!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891.is-repost-depth2-v895 .ha629RepostChainV895{font-size:10.8px!important;margin-top:2px!important}
+#happyStoryViewerMasterV629 .ha629SharedCardShellV891{position:relative!important;width:100%!important;border-radius:28px!important;overflow:hidden!important;border:1px solid rgba(255,255,255,.18)!important;background:transparent!important;box-shadow:0 12px 28px rgba(0,0,0,.18)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostMediaV912{position:relative!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 auto!important;border:0!important;border-radius:28px!important}
+#happyStoryViewerMasterV629 .ha629SharedPostMediaV912:before{display:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostMediaV912 video{position:relative!important;z-index:1!important;display:block!important;width:100%!important;height:auto!important;max-width:100%!important;max-height:min(63dvh,700px)!important;object-fit:contain!important;background:transparent!important;transform:none!important;border-radius:28px!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostMediaV912 video,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostMediaV912 video{width:auto!important;max-width:100%!important;max-height:min(67dvh,740px)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-landscape-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-landscape-v891 .ha629SharedPostMediaV912 video,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-landscape-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-landscape-v891 .ha629SharedPostMediaV912 video{width:100%!important;max-height:min(56dvh,560px)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-square-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-square-v891 .ha629SharedPostMediaV912 video,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-square-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-square-v891 .ha629SharedPostMediaV912 video{width:100%!important;max-height:min(61dvh,640px)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostGroupBadgeV913{position:absolute!important;right:12px!important;top:12px!important;z-index:5!important;display:inline-flex!important;align-items:center!important;gap:6px!important;min-height:31px!important;padding:5px 9px!important;border-radius:999px!important;background:rgba(18,22,29,.46)!important;border:1px solid rgba(255,255,255,.24)!important;color:#fff!important;box-shadow:none!important;-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important;font-size:11px!important;font-weight:950!important;line-height:1!important;pointer-events:none!important}
 #happyStoryViewerMasterV629 .ha629SharedPostGroupBadgeV913 svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linejoin:round!important;stroke-linecap:round!important}
 #happyStoryViewerMasterV629 .ha629SharedPostGroupBadgeV913 b{font:950 11px/1 system-ui!important;color:#fff!important}
-#happyStoryViewerMasterV629 .ha629SharedPostBodyV912{padding:11px 13px 12px!important;background:#11151c!important;flex:0 0 auto!important}.ha629SharedPostBodyV912 strong{display:block!important;font-size:14px!important;line-height:1.25!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.ha629SharedPostBodyV912 p{margin:5px 0 0!important;color:#c9ced7!important;font-size:12px!important;line-height:1.35!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}.ha629SharedPostOpenV912{margin-top:8px!important;display:inline-flex!important;pointer-events:auto!important;position:relative!important;z-index:12!important;align-items:center!important;gap:5px!important;border:0!important;background:transparent!important;padding:0!important;color:#ff9a2c!important;font:900 11px/1.2 system-ui!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important}.ha629SharedPostOpenV912:active{transform:scale(.97)!important}.ha629SharedPostOpenV912 svg{width:14px!important;height:14px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;pointer-events:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostBodyV912{padding:0 8px!important;background:transparent!important;flex:0 0 auto!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostBodyV912 strong{display:block!important;font-size:16px!important;line-height:1.25!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;color:#fff!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostBodyV912 p{margin:4px 0 0!important;color:rgba(255,255,255,.92)!important;font-size:13px!important;line-height:1.38!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostOpenV912{margin-top:8px!important;min-height:32px!important;display:flex!important;width:100%!important;justify-content:space-between!important;pointer-events:auto!important;position:relative!important;z-index:12!important;align-items:center!important;gap:8px!important;border:0!important;border-radius:0!important;background:transparent!important;padding:4px 0 2px!important;color:#ffc06f!important;font:950 13px/1.2 system-ui!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important;text-shadow:none!important}
+#happyStoryViewerMasterV629 .ha629SharedPostOpenV912:active{transform:none!important;background:transparent!important;opacity:.78!important}
+#happyStoryViewerMasterV629 .ha629SharedPostOpenV912 svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;pointer-events:none!important;flex:0 0 16px!important;filter:none!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryOriginV888{display:none!important}
+@media(max-height:760px){#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912{padding-top:78px!important;padding-bottom:calc(var(--ha-story-composer-h,62px) + 28px)!important}#happyStoryViewerMasterV629 .ha629SharedPostCardV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888{gap:8px!important}#happyStoryViewerMasterV629 .ha629SharedPostHeadV912{padding:0 2px!important}#happyStoryViewerMasterV629 .ha629SharedPostAvatarV912{width:42px!important;height:42px!important;flex-basis:42px!important}#happyStoryViewerMasterV629 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostMediaV912 video{max-height:min(58dvh,580px)!important}}
+
+/* V892 — portrait uniquement : identité compacte dans la carte + zone sûre au-dessus des actions. */
+#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912.haSharedPortraitV892{padding-top:74px!important;padding-bottom:calc(var(--ha-story-composer-h,62px) + 22px)!important;align-items:center!important;justify-content:flex-start!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891{position:relative!important;width:min(93vw,512px)!important;max-width:512px!important;gap:0!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:27px!important;overflow:hidden!important;background:transparent!important;box-shadow:0 10px 26px rgba(0,0,0,.14)!important;max-height:calc(100dvh - var(--ha-story-composer-h,62px) - 120px)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostHeadV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostHeadV912{position:absolute!important;left:0!important;right:0!important;top:0!important;z-index:9!important;padding:10px 11px 8px!important;gap:8px!important;min-height:48px!important;flex:0 0 auto!important;background:linear-gradient(180deg,rgba(7,10,14,.44),rgba(7,10,14,.10) 78%,transparent)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostAvatarV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostAvatarV912{width:34px!important;height:34px!important;flex:0 0 34px!important;border-width:1.25px!important;font-size:12px!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedNameLineV889,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedNameLineV889{gap:5px!important;min-height:18px!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedNameLineV889 b,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedNameLineV889 b{font-size:14px!important;line-height:1.15!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedNameLineV889 .happyBadgeMark,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedNameLineV889 .happyBadgeMark{width:14px!important;height:14px!important;flex-basis:14px!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629RepostGlyphV890{width:20px!important;height:20px!important;flex-basis:20px!important;margin-left:2px!important;background:transparent!important;border:0!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629RepostGlyphV890 svg{width:15px!important;height:15px!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedCardShellV891,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedCardShellV891{border:0!important;border-radius:inherit!important;box-shadow:none!important;overflow:hidden!important;flex:1 1 auto!important;min-height:0!important;height:100%!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostMediaV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostMediaV912{height:100%!important;max-height:none!important;border-radius:inherit!important;overflow:hidden!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostMediaV912 video,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostMediaV912 img,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostMediaV912 video{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;border-radius:inherit!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostBodyV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostBodyV912{position:absolute!important;left:0!important;right:0!important;bottom:0!important;z-index:9!important;padding:10px 12px 12px!important;flex:0 0 auto!important;background:linear-gradient(0deg,rgba(7,10,14,.78),rgba(7,10,14,.18) 72%,transparent)!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostBodyV912 strong{font-size:14px!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostBodyV912 p,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostBodyV912 p{font-size:12px!important;-webkit-line-clamp:2!important}
+#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891 .ha629SharedPostOpenV912,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891 .ha629SharedPostOpenV912{margin-top:6px!important;min-height:28px!important;font-size:12px!important;padding:2px 0 1px!important}
+@media(max-height:760px){#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912.haSharedPortraitV892{padding-top:70px!important;padding-bottom:calc(var(--ha-story-composer-h,62px) + 20px)!important}#happyStoryViewerMasterV629 .ha629SharedPostCardV912.is-portrait-v891,#happyStoryViewerMasterV629 .ha629SharedStoryCardV888.is-portrait-v891{max-height:calc(100dvh - var(--ha-story-composer-h,62px) - 112px)!important}}
+/* V896 — vidéo partagée : ne jamais peindre une carte avec un ratio inconnu.
+   Tant que loadedmetadata n’a pas fourni videoWidth/videoHeight, seule la Story
+   de fond reste visible avec un petit loader central. */
+#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912.haSharedRatioPendingV896 .ha629SharedPostCardV912,
+#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912.haSharedRatioPendingV896 .ha629SharedStoryCardV888{opacity:0!important;visibility:hidden!important}
+#happyStoryViewerMasterV629 .ha629Media.is-shared-post-v912.haSharedRatioPendingV896:after{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:34px!important;height:34px!important;margin:-17px 0 0 -17px!important;border:3px solid rgba(255,255,255,.24)!important;border-top-color:#fff!important;border-radius:50%!important;box-sizing:border-box!important;z-index:15!important;pointer-events:none!important;animation:haSharedSpinV915 .72s linear infinite!important}
 /* V915 : cercle pendant le chargement du média de la publication Story. */
 #happyStoryViewerMasterV629 .ha629SharedPostMediaLoaderV915{position:absolute!important;inset:0!important;z-index:4!important;display:grid!important;place-items:center!important;background:rgba(5,7,10,.42)!important;pointer-events:none!important;opacity:1!important;transition:opacity .15s ease!important}
 #happyStoryViewerMasterV629 .ha629SharedPostMediaLoaderV915.done{opacity:0!important;visibility:hidden!important}
 #happyStoryViewerMasterV629 .ha629SharedPostMediaLoaderV915 i,#haSharedPostOpenLoaderV915 .haSharedPostOpenSpinnerV915{width:34px!important;height:34px!important;border:3px solid rgba(255,255,255,.24)!important;border-top-color:#fff!important;border-radius:50%!important;display:block!important;animation:haSharedSpinV915 .72s linear infinite!important;box-sizing:border-box!important}
+#happyStoryViewerMasterV629 .ha629SharedStoryOriginV888{display:inline-flex!important;align-items:center!important;gap:6px!important;color:#aeb6c3!important;font-size:11px!important;font-weight:800!important}
 @keyframes haSharedSpinV915{to{transform:rotate(360deg)}}
 #haSharedPostOpenLoaderV915{position:fixed!important;inset:0!important;z-index:2147483647!important;display:none!important;place-items:center!important;background:rgba(4,6,10,.74)!important;pointer-events:auto!important}
 #haSharedPostOpenLoaderV915.on{display:grid!important}
@@ -868,7 +1030,34 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       function syncReplySend(){if(!sendBtn)return;var ready=!!clean(replyInput&&replyInput.value);sendBtn.classList.toggle('ready',ready);sendBtn.setAttribute('aria-disabled',ready?'false':'true');sizeReplyInput()}
       if(visitorActions){['pointerdown','click','touchstart'].forEach(function(type){visitorActions.addEventListener(type,function(e){e.stopPropagation()},{passive:type==='touchstart'})})}
       if(replyInput){replyInput.onfocus=function(){rememberComposerViewport();pause();sizeReplyInput();setTimeout(sizeReplyInput,80)};replyInput.onblur=function(){setTimeout(function(){sizeReplyInput();if(!composerActive()&&!state.composerDismissGuard)resume()},90)};replyInput.addEventListener('input',syncReplySend,{passive:true});replyInput.addEventListener('change',sizeReplyInput,{passive:true});syncReplySend();setTimeout(sizeReplyInput,0)}
-      try{var interactionGate=window.HappyInteractionPrivacyV855R52;if(!interactionGate){replyInput.disabled=true;sendBtn.disabled=true;replyInput.placeholder='Réponses désactivées';}else{interactionGate.canStory(storyId(row),'storyReplies',false).then(function(ok){if(state.closed||storyId(currentRow())!==storyId(row))return;if(!ok){replyInput.value='';replyInput.disabled=true;sendBtn.disabled=true;replyInput.placeholder='Réponses désactivées';sendBtn.classList.remove('ready');sendBtn.setAttribute('aria-disabled','true');}else{replyInput.disabled=false;sendBtn.disabled=false;replyInput.placeholder='Répondre à la story…';syncReplySend();}}).catch(function(){replyInput.disabled=true;sendBtn.disabled=true;replyInput.placeholder='Réponses désactivées';});}}catch(_privacy){replyInput.disabled=true;sendBtn.disabled=true;replyInput.placeholder='Réponses désactivées';}
+      var replyPermissionTokenV898=storyId(row)+'::'+Date.now();
+      function applyReplyPermissionV898(status){
+        if(state.closed||storyId(currentRow())!==storyId(row)||replyPermissionTokenV898.indexOf(storyId(row)+'::')!==0)return;
+        if(status&&status.available&&status.allowed===false){
+          if(visitorActions)visitorActions.classList.add('is-replies-disabled');
+          replyInput.value='';replyInput.disabled=true;sendBtn.disabled=true;replyInput.placeholder='Réponses désactivées';sendBtn.classList.remove('ready');sendBtn.setAttribute('aria-disabled','true');sizeReplyInput();return;
+        }
+        if(visitorActions)visitorActions.classList.remove('is-replies-disabled');
+        replyInput.disabled=false;sendBtn.disabled=false;replyInput.placeholder='Répondre à la story…';syncReplySend();
+      }
+      function checkReplyPermissionV898(attempt){
+        attempt=attempt||0;storyReplyPermissionV898(row,attempt>0).then(function(status){
+          if(state.closed||storyId(currentRow())!==storyId(row))return;
+          /* Un refus provenant du premier cache doit être confirmé par une lecture
+             distante forcée avant de modifier l'interface. */
+          if(status&&status.available&&status.allowed===false&&attempt===0){
+            applyReplyPermissionV898({allowed:null,available:false});
+            setTimeout(function(){checkReplyPermissionV898(1)},160);return;
+          }
+          applyReplyPermissionV898(status);
+          if((!status||!status.available)&&attempt<3)setTimeout(function(){checkReplyPermissionV898(attempt+1)},[180,420,850,1200][attempt]||850);
+        }).catch(function(){
+          if(state.closed||storyId(currentRow())!==storyId(row))return;
+          applyReplyPermissionV898({allowed:null,available:false});
+          if(attempt<3)setTimeout(function(){checkReplyPermissionV898(attempt+1)},[180,420,850,1200][attempt]||850);
+        });
+      }
+      applyReplyPermissionV898({allowed:null,available:false});checkReplyPermissionV898(0);
       var likeBtn=$('ha629Like'),likeId=storyId(row),localOn=localStoryLike(likeId);setStoryLikeButton(likeBtn,localOn);var likeTouched=false;
       loadLike(row).then(function(remoteOn){if(!state.closed&&storyId(currentRow())===likeId&&!likeTouched)setStoryLikeButton(likeBtn,remoteOn)});
       $('ha629ReplyForm').onsubmit=function(e){e.preventDefault();e.stopPropagation();var form=e.currentTarget,input=$('ha629ReplyInput'),button=$('ha629Send'),txt=clean(input&&input.value);if(!txt||form.dataset.sending==='1')return;form.dataset.sending='1';if(button)button.classList.add('sending');input.value='';syncReplySend();try{input.scrollTop=0}catch(_e){}sendStoryReply(row,txt).then(function(){armComposerDismissGuard(input);syncReplySend()}).catch(function(err){if(input&&!input.value)input.value=txt;syncReplySend();try{input.focus({preventScroll:true});input.scrollTop=input.scrollHeight}catch(_e){}toast(err&&err.message||'Réponse impossible')}).finally(function(){setTimeout(function(){try{delete form.dataset.sending}catch(_e){}if(button)button.classList.remove('sending');syncReplySend()},260)})};
@@ -1090,21 +1279,68 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
   function sharedPostCardHtmlV912(row){
     var media=mediaOf(row),typ=sharedPostTypeV912(row),name=sourcePostAuthorV912(row),av=sourcePostAvatarV912(row),title=sourcePostTitleV912(row),cap=sourcePostCaptionV912(row);
-    var grouped=isGroupedSharedPostV913(row),count=sourcePostGroupCountV913(row);
     var avHtml=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));
     /* V915 : pas de loop. Une vidéo partagée joue automatiquement une fois,
-       puis le moteur Story passe naturellement à l'élément suivant. */
+       puis la Story avance normalement. */
     var mediaHtml=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Publication partagee" draggable="false">';
     var loader='<span class="ha629SharedPostMediaLoaderV915" aria-hidden="true"><i></i></span>';
-    var groupBadge=grouped?'<span class="ha629SharedPostGroupBadgeV913" aria-label="Publication groupée, '+count+' médias"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="12" height="14" rx="2"></rect><path d="M5 16H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><b>1/'+count+'</b></span>':'';
-    var sub=grouped?'Publication groupée · '+count+' médias':'Publication originale';
-    var openLabel=grouped?'Voir la publication groupée':'Voir la publication';
+    var grouped=isGroupedSharedPostV913(row),count=sourcePostGroupCountV913(row)||sourcePostGroupIdsV913(row).length;
+    var groupBadge=grouped?'<span class="ha629SharedPostGroupBadgeV913" aria-label="Publication groupée"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="14" height="14" rx="2"></rect><path d="M8 3h10a3 3 0 0 1 3 3v10"></path></svg><b>'+esc(String(count||''))+'</b></span>':'';
     var arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
-    return '<div class="ha629SharedPostCardV912" id="ha629SharedPostCardV912" role="group" aria-label="Publication partagée"><span class="ha629SharedPostHeadV912"><span class="ha629SharedPostAvatarV912">'+avHtml+'</span><span class="ha629SharedPostWhoV912"><b>'+esc(name)+'</b><span>'+esc(sub)+'</span></span></span><span class="ha629SharedPostMediaV912">'+mediaHtml+loader+groupBadge+'</span><span class="ha629SharedPostBodyV912"><strong>'+esc(title)+'</strong>'+(cap?'<p>'+esc(cap)+'</p>':'')+'<button class="ha629SharedPostOpenV912" id="ha629SharedPostOpenBottomV914" type="button">'+esc(openLabel)+' '+arrow+'</button></span></div>'
+    return '<div class="ha629SharedPostCardV912" id="ha629SharedPostCardV912" role="group" aria-label="Publication partagée"><span class="ha629SharedPostHeadV912"><span class="ha629SharedPostAvatarV912">'+avHtml+'</span><span class="ha629SharedPostWhoV912"><span class="ha629SharedNameLineV889"><b>'+esc(name)+'</b><span id="ha629SharedPostBadgeV890"></span></span></span></span><span class="ha629SharedCardShellV891"><span class="ha629SharedPostMediaV912">'+mediaHtml+loader+groupBadge+'</span></span><span class="ha629SharedPostBodyV912"><strong>'+esc(title)+'</strong>'+(cap?'<p>'+esc(cap)+'</p>':'')+'<button class="ha629SharedPostOpenV912" id="ha629SharedPostOpenBottomV914" type="button"><span>Voir la publication</span>'+arrow+'</button></span></div>'
   }
+
+  function applySharedAspectClassV891(card,node){
+    if(!card||!node||!card.classList)return false;
+    var w=0,h=0;
+    try{w=Number(node.videoWidth||node.naturalWidth||node.clientWidth||0);h=Number(node.videoHeight||node.naturalHeight||node.clientHeight||0)}catch(_e){}
+    if(!(w>0&&h>0))return false;
+    card.classList.remove('is-portrait-v891','is-landscape-v891','is-square-v891');
+    var host=card.closest&&card.closest('.ha629Media');
+    if(host&&host.classList)host.classList.remove('haSharedPortraitV892','haSharedLandscapeV892','haSharedSquareV892');
+    var r=w/h;
+    if(r>1.18){card.classList.add('is-landscape-v891');if(host)host.classList.add('haSharedLandscapeV892')}
+    else if(r<0.86){card.classList.add('is-portrait-v891');if(host)host.classList.add('haSharedPortraitV892')}
+    else{card.classList.add('is-square-v891');if(host)host.classList.add('haSharedSquareV892')}
+    return true;
+  }
+
+  function beginSharedVideoAspectV896(card){
+    if(!card)return;
+    var host=card.closest&&card.closest('.ha629Media');
+    if(host&&host.classList){
+      host.classList.remove('haSharedPortraitV892','haSharedLandscapeV892','haSharedSquareV892');
+      host.classList.add('haSharedRatioPendingV896');
+    }
+    try{card.classList.remove('is-portrait-v891','is-landscape-v891','is-square-v891')}catch(_e){}
+  }
+  function revealSharedVideoAspectV896(card,node,force){
+    if(!card)return false;
+    var ok=applySharedAspectClassV891(card,node),host=card.closest&&card.closest('.ha629Media');
+    if(ok||force){
+      if(!ok&&force){card.classList.add('is-square-v891');if(host&&host.classList)host.classList.add('haSharedSquareV892')}
+      if(host&&host.classList)host.classList.remove('haSharedRatioPendingV896');
+      return true;
+    }
+    return false;
+  }
+
+  async function primeSharedPostBadgeV890(row,card){
+    var slot=card&&card.querySelector('#ha629SharedPostBadgeV890'),uid=sourcePostOwnerV890(row);if(!slot||!uid)return;
+    try{
+      var cached=null,keys=['HAPPYAD_AUTHOR_PROFILE_CACHE_V1','HAPPYAD_PROFILE_CACHE_V1'];
+      for(var i=0;i<keys.length&&!cached;i++){try{var raw=JSON.parse(localStorage.getItem(keys[i])||'null');if(raw&&typeof raw==='object')cached=raw[uid]||null}catch(_e){}}
+      var badge=clean(cached&&(cached.badge||cached.user_badge||cached.profile_badge||cached.badge_type||cached.verified_badge));
+      if(!badge){var c=sb();if(c){var q=await c.from('profiles').select('*').eq('id',uid).maybeSingle();if(q&&!q.error&&q.data)badge=clean(q.data.badge||q.data.user_badge||q.data.profile_badge||q.data.badge_type||q.data.verified_badge)}}
+      if(badge&&slot.isConnected)slot.innerHTML=badgeHtml(badge)
+    }catch(_e){}
+  }
+
   function bindSharedPostCardV912(row){
     var card=$('ha629SharedPostCardV912');if(!card)return;
     var action=$('ha629SharedPostOpenBottomV914'),node=card.querySelector('.ha629SharedPostMediaV912 video,.ha629SharedPostMediaV912 img'),loader=card.querySelector('.ha629SharedPostMediaLoaderV915'),sid=storyId(row),video=sharedPostTypeV912(row)==='video',mediaReady=false;
+    if(video)beginSharedVideoAspectV896(card);else applySharedAspectClassV891(card,node);
+    primeSharedPostBadgeV890(row,card);
     function sameStory(){return !state.closed&&storyId(currentRow())===sid}
     function finishMedia(ok){
       if(mediaReady)return;mediaReady=true;if(loader)loader.classList.add('done');if(node)node.classList.add('ha629SharedPostMediaReadyV915');if(sameStory())resume()
@@ -1118,7 +1354,9 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
         function playSharedVideoV915(){
           try{node.muted=false;var pr=node.play();if(pr&&typeof pr.catch==='function')pr.catch(function(){try{node.muted=true;var retry=node.play();if(retry&&typeof retry.catch==='function')retry.catch(function(){})}catch(_e){}})}catch(_e){try{node.muted=true;node.play().catch(function(){})}catch(_x){}}
         }
-        var readyVideo=function(){if(!sameStory())return;playSharedVideoV915();finishMedia(true)};
+        var metadataVideoV896=function(){if(!sameStory())return;revealSharedVideoAspectV896(card,node,false)};
+        var readyVideo=function(){if(!sameStory())return;revealSharedVideoAspectV896(card,node,false);playSharedVideoV915();finishMedia(true)};
+        node.addEventListener('loadedmetadata',metadataVideoV896);
         node.addEventListener('loadeddata',readyVideo,{once:true});node.addEventListener('canplay',readyVideo,{once:true});node.addEventListener('playing',readyVideo,{once:true});
         /* Les Stories vidéo créées par V912-V914 peuvent avoir stocké le poster
            dans media_url. Toujours relire la publication source et remplacer par
@@ -1128,10 +1366,12 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
           try{var res=await resolveSharedPostGroupV913(row,sb()),first=res&&res.first,real=first&&sharedPostPlayableMediaV915(first,true);if(!real||!node.isConnected)return;if(clean(node.currentSrc||node.src)!==clean(real)){node.src=real;row.media_url=real;row.mediaUrl=real;try{node.load()}catch(_e){}}playSharedVideoV915()}
           catch(_e){}finally{sourceResolveDone=true;if(!mediaReady&&sameStory()&&node.error)finishMedia(false)}
         })();
-        node.addEventListener('error',function(){if(sourceResolveDone&&!mediaReady&&sameStory())finishMedia(false)},{once:true});
-        if(node.readyState>=2)readyVideo();else playSharedVideoV915()
+        node.addEventListener('error',function(){if(sourceResolveDone&&!mediaReady&&sameStory()){revealSharedVideoAspectV896(card,node,true);finishMedia(false)}},{once:true});
+        if(node.readyState>=1)metadataVideoV896();
+        if(node.readyState>=2)readyVideo();else playSharedVideoV915();
+        setTimeout(function(){if(!mediaReady&&sameStory()){revealSharedVideoAspectV896(card,node,true)}},5000)
       }else{
-        node.addEventListener('load',function(){finishMedia(true)},{once:true});node.addEventListener('error',function(){finishMedia(false)},{once:true});if(node.complete&&node.naturalWidth)finishMedia(true)
+        node.addEventListener('load',function(){applySharedAspectClassV891(card,node);finishMedia(true)},{once:true});node.addEventListener('error',function(){finishMedia(false)},{once:true});if(node.complete&&node.naturalWidth){applySharedAspectClassV891(card,node);finishMedia(true)}
       }
     }else finishMedia(false);
 
@@ -1144,12 +1384,58 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     }
   }
 
+  async function openSharedStoryV888(row){
+    var id=sourceStoryIdV888(row);if(!id)return false;
+    pause();
+    try{
+      var ok=await openExactNotificationV735({story_id:id,id:id,owner_id:sourceStoryOwnerV888(row),user_id:sourceStoryOwnerV888(row),author_name:sourceStoryAuthorV888(row)});
+      if(!ok)resume();
+      return !!ok;
+    }catch(_e){resume();toast('Story originale indisponible.');return false}
+  }
+  function sharedStoryCardHtmlV888(row){
+    var media=mediaOf(row),typ=typeOf(row),name=sourceStoryAuthorV888(row),av=sourceStoryAvatarV888(row),badge=sourceStoryBadgeV888(row),cap=sourceStoryCaptionV888(row),depth=repostDepthV895(row);
+    var avHtml=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));
+    var mediaHtml=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Story ajoutée depuis une mention" draggable="false">';
+    var loader='<span class="ha629SharedPostMediaLoaderV915" aria-hidden="true"><i></i></span>';
+    var arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+    var repostIcon='<span class="ha629RepostGlyphV890" aria-label="Story republiée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l4 4-4 4"></path><path d="M3 11V9a2 2 0 0 1 2-2h16"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 13v2a2 2 0 0 1-2 2H3"></path></svg></span>';
+    var chain='';
+    if(depth>=2){
+      var originName=originStoryAuthorV895(row),originBadge=originStoryBadgeV895(row);
+      if(originName)chain='<span class="ha629RepostChainV895" aria-label="Story d’origine"><i class="ha629RepostChainLineV895" aria-hidden="true"></i><span class="ha629RepostChainNameV895">'+esc(originName)+badgeHtml(originBadge)+'</span></span>';
+    }
+    var depthClass=depth>=2?' is-repost-depth2-v895':'';
+    var actionText=depth>=2?'Voir la story':'Voir la story originale';
+    return '<div class="ha629SharedStoryCardV888'+depthClass+'" id="ha629SharedStoryCardV888" role="group" aria-label="Story republiée"><span class="ha629SharedPostHeadV912"><span class="ha629SharedPostAvatarV912">'+avHtml+'</span><span class="ha629SharedPostWhoV912"><span class="ha629SharedNameLineV889"><b>'+esc(name)+'</b>'+badgeHtml(badge)+repostIcon+'</span>'+chain+'</span></span><span class="ha629SharedCardShellV891"><span class="ha629SharedPostMediaV912">'+mediaHtml+loader+'</span></span><span class="ha629SharedPostBodyV912">'+(cap?'<p>'+esc(cap)+'</p>':'')+'<button class="ha629SharedPostOpenV912" id="ha629SharedStoryOpenV888" type="button"><span>'+actionText+'</span>'+arrow+'</button></span></div>';
+  }
+
+  function bindSharedStoryCardV888(row){
+    var card=$('ha629SharedStoryCardV888');if(!card)return;
+    var action=$('ha629SharedStoryOpenV888'),node=card.querySelector('.ha629SharedPostMediaV912 video,.ha629SharedPostMediaV912 img'),loader=card.querySelector('.ha629SharedPostMediaLoaderV915'),sid=storyId(row),ready=false,isVideo=!!(node&&node.tagName==='VIDEO');
+    if(isVideo)beginSharedVideoAspectV896(card);else applySharedAspectClassV891(card,node);
+    function sameStory(){return !state.closed&&storyId(currentRow())===sid}
+    function done(){if(ready)return;ready=true;if(loader)loader.classList.add('done');if(sameStory())resume()}
+    requestAnimationFrame(function(){if(!ready&&sameStory())pause()});
+    if(node){
+      if(node.tagName==='VIDEO'){
+        try{node.autoplay=true;node.playsInline=true;node.removeAttribute('loop');var pr=node.play();if(pr&&pr.catch)pr.catch(function(){try{node.muted=true;node.play().catch(function(){})}catch(_e){}})}catch(_e){}
+        var metaV896=function(){if(sameStory())revealSharedVideoAspectV896(card,node,false)};
+        var readyV896=function(){if(!sameStory())return;revealSharedVideoAspectV896(card,node,false);done()};
+        node.addEventListener('loadedmetadata',metaV896);node.addEventListener('loadeddata',readyV896,{once:true});node.addEventListener('canplay',readyV896,{once:true});node.addEventListener('playing',readyV896,{once:true});node.addEventListener('error',function(){revealSharedVideoAspectV896(card,node,true);done()},{once:true});if(node.readyState>=1)metaV896();if(node.readyState>=2)readyV896();setTimeout(function(){if(!ready&&sameStory())revealSharedVideoAspectV896(card,node,true)},5000);
+      }else{node.addEventListener('load',function(){applySharedAspectClassV891(card,node);done()},{once:true});node.addEventListener('error',done,{once:true});if(node.complete&&node.naturalWidth){applySharedAspectClassV891(card,node);done()}}
+    }else done();
+    if(action){['pointerdown','pointermove','pointerup','click'].forEach(function(t){action.addEventListener(t,function(e){e.stopPropagation()},{passive:false})});action.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openSharedStoryV888(row)},false)}
+  }
+
   function paint(n){
     if(state.closed||!state.rows.length)return;stopTimer();resetZoom(false);state.index=Math.max(0,Math.min(state.rows.length-1,n));var row=currentRow(),p=state.profile||{},name=clean(p.full_name||p.display_name||p.name||row.user_name)||'Utilisateur HAPPYAD',av=clean(p.avatar_url||p.avatar||row.user_avatar),badge=clean(p.badge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge||row.badge||row.user_badge||row.badge_type),media=mediaOf(row),typ=typeOf(row);
     $('ha629Avatar').innerHTML=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));$('ha629Name').innerHTML=esc(name)+badgeHtml(badge);$('ha629Sub').textContent=ageOf(row);$('ha629Caption').textContent=descOf(row);
-    var backdrop=$('ha629Backdrop'),mediaBox=$('ha629Media'),shared=isSharedPostStoryV912(row),backdropMedia=shared?clean(row.thumbnail_url||row.poster_url||media):media;if(typ==='photo'||shared)backdrop.style.backgroundImage='url("'+backdropMedia.replace(/["\\]/g,'\\$&')+'")';else backdrop.style.backgroundImage='none';
+    var backdrop=$('ha629Backdrop'),mediaBox=$('ha629Media'),sharedStory=isSharedStoryV888(row),sharedPost=isSharedPostStoryV912(row),shared=sharedStory||sharedPost,backdropMedia=shared?clean(row.thumbnail_url||row.poster_url||media):media;if(typ==='photo'||shared)backdrop.style.backgroundImage='url("'+backdropMedia.replace(/["\\]/g,'\\$&')+'")';else backdrop.style.backgroundImage='none';
     mediaBox.classList.toggle('is-shared-post-v912',shared);
-    if(shared){$('ha629Caption').textContent='';mediaBox.innerHTML=sharedPostCardHtmlV912(row);bindSharedPostCardV912(row)}
+    mediaBox.classList.remove('haSharedPortraitV892','haSharedLandscapeV892','haSharedSquareV892');
+    if(sharedStory){$('ha629Caption').textContent='';mediaBox.innerHTML=sharedStoryCardHtmlV888(row);bindSharedStoryCardV888(row)}
+    else if(sharedPost){$('ha629Caption').textContent='';mediaBox.innerHTML=sharedPostCardHtmlV912(row);bindSharedPostCardV912(row)}
     else mediaBox.innerHTML=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Story" draggable="false">';
     resetSegments(state.index);renderBottom(row);window.__HAPPYAD_CURRENT_STORY_CTX={id:storyId(row),row:row,p:itemFromRow(row,p),profile:p,isMine:ownerOf(row)===currentUid()};
     startAgeTickerV783();markSeen(row).then(function(){setTimeout(renderRadarHomeV629,50)});try{document.dispatchEvent(new CustomEvent('happyad:story-master-opened-v629'))}catch(_e){}startDuration(row);scheduleStoryNeighborsV793(state.index)
@@ -1246,7 +1532,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     /* Les stories ne contiennent que des métadonnées et des URL : garder plusieurs pages
        permet au rail de continuer sans recharger les médias eux-mêmes. */
     out=out.slice(0,320);
-    try{window.HAPPYAD_STORIES_ITEMS=out;window.__HAPPYAD_STORIES_ITEMS_CACHE=out;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(out))}catch(_e){}
+    try{window.HAPPYAD_STORIES_ITEMS=out;window.__HAPPYAD_STORIES_ITEMS_CACHE=out;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(out));if(out.length)rememberLastGoodStoriesV885(out)}catch(_e){}
     return items;
   }
   function fetchMoreRadarV788(){
@@ -1390,7 +1676,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     var mine=me&&groups[me];
     if(!mine||!mine.length)addNode();else{var staleAdd=row.querySelector('.haStoryAddOnlyV629');if(staleAdd)staleAdd.remove()}
     Array.prototype.slice.call(row.querySelectorAll('.haStoryRadarLoadingV792')).forEach(function(n){n.remove()});
-    if(!owners.length&&(radarCanonicalV792.loading||radarCanonicalV792.awaitingStable)){
+    if(!owners.length&&(radarCanonicalV792.loading||radarCanonicalV792.awaitingStable)&&Date.now()<radarSkeletonUntilV885){
       for(var lp=0;lp<2;lp++){var sk=document.createElement('div');sk.className='haStoryRadarUnitV629 haStoryRadarLoadingV792';sk.setAttribute('aria-hidden','true');sk.innerHTML='<div class="radarItem"><div class="radarAvatar"><span class="haStoryRadarPulseV792"></span></div><div class="radarName">&nbsp;</div><div class="radarMeta">&nbsp;</div></div>';row.appendChild(sk)}
     }
     block.setAttribute('data-radar-rendered-owners','0');
@@ -1453,7 +1739,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
 
   function ingestCreatedStoryV912(row){
-    row=row&&typeof row==='object'?row:{};var uid=currentUid();if(!uid||clean(row.user_id)!==uid||!storyId(row)||!sharedPostIdV912(row))return false;
+    row=row&&typeof row==='object'?row:{};var uid=currentUid();if(!uid||clean(row.user_id)!==uid||!storyId(row)||(!sharedPostIdV912(row)&&!sourceStoryIdV888(row)))return false;
     try{var me=readUser(),profile={id:uid,full_name:clean(me.name||me.full_name||me.display_name)||clean(row.user_name)||'Ta story',username:clean(me.handle||me.username).replace(/^@+/,''),avatar_url:clean(me.avatar||me.avatar_url)||clean(row.user_avatar),badge:clean(me.badge||me.user_badge||me.badge_type)};var item=itemFromRow(row,profile),arr=cacheStories().filter(function(x){return storyId(x)!==storyId(item)});arr.unshift(item);arr=arr.filter(active).slice(0,320);commitRadarCacheV792(arr);localStorage.setItem('HAPPYAD_RADAR_REFRESH_NEEDED','1');renderRadarHomeV629();return item}catch(_e){return false}
   }
   function ingestOptimisticStoryV925(row,tempId){
@@ -1520,7 +1806,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     window.renderRadarHome=renderRadarHomeV629;
   }
   restorePublicRoutes();
-  window.HappyStoryV629={version:VERSION,openItem:openItem,openOwner:openOwner,openExactNotification:openExactNotificationV735,close:close,pause:pause,resume:resume,restoreAfterShare:restoreStoryAfterShare,isShareOpen:function(){return !!state.shareOverlayOpen},renderRadar:renderRadarHomeV629,refreshRadarData:refreshRadarCanonicalV792,getCachedStories:function(){return cacheStories().filter(active)},routeRadar:routeRadar,openProfile:routeProfile,sendReply:sendStoryReply,ingestSharedPostStory:ingestCreatedStoryV912,openCreatedSharedPostStory:openCreatedStoryV914};
+  window.HappyStoryV629={version:VERSION,openItem:openItem,openOwner:openOwner,openExactNotification:openExactNotificationV735,close:close,pause:pause,resume:resume,restoreAfterShare:restoreStoryAfterShare,isShareOpen:function(){return !!state.shareOverlayOpen},renderRadar:renderRadarHomeV629,refreshRadarData:refreshRadarCanonicalV792,getCachedStories:function(){return cacheStories().filter(active)},routeRadar:routeRadar,openProfile:routeProfile,sendReply:sendStoryReply,ingestSharedPostStory:ingestCreatedStoryV912,ingestMentionedStoryV888:ingestCreatedStoryV912,openCreatedSharedPostStory:openCreatedStoryV914};
   window.HappyStoryV699=window.HappyStoryV629;
   window.HappyStoryV698=window.HappyStoryV629;
   window.HappyStoryV697=window.HappyStoryV629;
@@ -1535,16 +1821,154 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     var d=e&&e.detail||{};if(d.fromStory)restoreStoryAfterShare(d.reason||'share-close');
   },true);
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!state.closed&&!state.shareOverlayOpen)close('escape')},true);
-  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_STORY_POST_OPTIMISTIC_V925'){var od=d.detail||{};ingestOptimisticStoryV925(od.story||{},od.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_COMMITTED_V925'){var kd=d.detail||{};commitOptimisticStoryV925(kd.story||{},kd.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_FAILED_V925'){var fd=d.detail||{};failOptimisticStoryV925(fd.temp_id,fd.message);return;}if(d.type==='HAPPYAD_STORY_POST_CREATED_V912'){var cd=d.detail||{},cr=cd.story||{};if(cd.open_after_create===true)openCreatedStoryV914(cr);else ingestCreatedStoryV912(cr);return;}if(d.type==='HAPPYAD_OPEN_EXACT_STORY_NOTIFICATION_V735'){openExactNotificationV735(d.detail||{});return;}if(d.type==='HAPPYAD_OPEN_SHARED_STORY'){var x=d.detail||{};var seed={id:clean(x.story_id||x.id),story_id:clean(x.story_id||x.id),sourceId:clean(x.story_id||x.id),mode:'story',type:'story',category:'story',creatorId:clean(x.owner_id||x.user_id),user_id:clean(x.owner_id||x.user_id),creatorName:clean(x.author_name||x.creator_name)||'Utilisateur HAPPYAD',mediaUrl:clean(x.media_url||x.preview_url),media_url:clean(x.media_url||x.preview_url),mediaType:clean(x.media_type)||'photo',description:clean(x.description),created_at:x.created_at||'',expires_at:x.expires_at||'',isRadar:true,isLive:false,__storyTable:'happyad_stories'};openOwner(ownerOf(seed),storyId(seed),seed);return;}if(d.type==='HAPPYAD_OPEN_STORY_V629'||d.type==='HAPPYAD_OPEN_STORY_V628'){var x=d.detail||{};openOwner(clean(x.owner_id||x.user_id),clean(x.story_id),x.item||null)}if(d.type==='HAPPYAD_CLOSE_STORY_V629'||d.type==='HAPPYAD_CLOSE_STORY_V628')close('message')},true);
-  window.addEventListener('pageshow',function(){if(state.closed)unlock();installCss();restorePublicRoutes();setTimeout(renderRadarHomeV629,90);setTimeout(function(){refreshRadarCanonicalV792().then(renderRadarHomeV629)},130)},true);
-  window.addEventListener('online',function(){radarCanonicalV792.awaitingStable=true;refreshRadarCanonicalV792().then(renderRadarHomeV629)},true);
-  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'||d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){radarCanonicalV792.awaitingStable=true;setTimeout(function(){refreshRadarCanonicalV792().then(renderRadarHomeV629)},80)}},true);
+  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_STORY_POST_OPTIMISTIC_V925'){var od=d.detail||{};ingestOptimisticStoryV925(od.story||{},od.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_COMMITTED_V925'){var kd=d.detail||{};commitOptimisticStoryV925(kd.story||{},kd.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_FAILED_V925'){var fd=d.detail||{};failOptimisticStoryV925(fd.temp_id,fd.message);return;}if(d.type==='HAPPYAD_STORY_POST_CREATED_V912'){var cd=d.detail||{},cr=cd.story||{};if(cd.open_after_create===true)openCreatedStoryV914(cr);else ingestCreatedStoryV912(cr);return;}if(d.type==='HAPPYAD_OPEN_EXACT_STORY_NOTIFICATION_V735'){openExactNotificationV735(d.detail||{});return;}if(d.type==='HAPPYAD_STORY_MENTION_REPOST_CREATED_V888'){var md=d.detail||{};ingestCreatedStoryV912(md.story||{});return;}if(d.type==='HAPPYAD_OPEN_SHARED_STORY'){var x=d.detail||{};var seed={id:clean(x.story_id||x.id),story_id:clean(x.story_id||x.id),sourceId:clean(x.story_id||x.id),mode:'story',type:'story',category:'story',creatorId:clean(x.owner_id||x.user_id),user_id:clean(x.owner_id||x.user_id),creatorName:clean(x.author_name||x.creator_name)||'Utilisateur HAPPYAD',mediaUrl:clean(x.media_url||x.preview_url),media_url:clean(x.media_url||x.preview_url),mediaType:clean(x.media_type)||'photo',description:clean(x.description),created_at:x.created_at||'',expires_at:x.expires_at||'',isRadar:true,isLive:false,__storyTable:'happyad_stories'};openOwner(ownerOf(seed),storyId(seed),seed);return;}if(d.type==='HAPPYAD_OPEN_STORY_V629'||d.type==='HAPPYAD_OPEN_STORY_V628'){var x=d.detail||{};openOwner(clean(x.owner_id||x.user_id),clean(x.story_id),x.item||null)}if(d.type==='HAPPYAD_CLOSE_STORY_V629'||d.type==='HAPPYAD_CLOSE_STORY_V628')close('message')},true);
+  /* V885 : le dernier cache Story valide est peint avant toute lecture réseau.
+     Le squelette n'est qu'un filet de sécurité très court (<=180 ms). */
+  function scheduleRadarConnectionV869(reason,delay){
+    var run=function(){return refreshRadarCanonicalV792().then(renderRadarHomeV629)};
+    try{var coordinator=window.HappyadConnectionWorkCoordinatorV869;if(coordinator&&typeof coordinator.schedule==='function')return coordinator.schedule('home-radar-refresh-v869',run,{surface:'home',delay:Math.max(50,Number(delay)||120),maxDelay:4000,minGap:8000});}catch(_e){}
+    setTimeout(function(){run().catch(function(){})},Math.max(50,Number(delay)||120));return true;
+  }
+  window.addEventListener('pageshow',function(){if(state.closed)unlock();installCss();restorePublicRoutes();setTimeout(renderRadarHomeV629,30);scheduleRadarConnectionV869('pageshow',90)},true);
+  window.addEventListener('online',function(){radarCanonicalV792.awaitingStable=true;scheduleRadarConnectionV869('online',160)},true);
+  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'||d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){radarCanonicalV792.awaitingStable=true;scheduleRadarConnectionV869('auth',80)}},true);
   /* V631 : le CSS du cercle est présent avant le premier rendu, pas seulement après
      la première ouverture du fullscreen. */
   installCss();restorePublicRoutes();
+  try{var bootStoriesV885=readJson('HAPPYAD_STORIES_CACHE_V1',[]);if(Array.isArray(bootStoriesV885)&&bootStoriesV885.filter(active).length)rememberLastGoodStoriesV885(bootStoriesV885)}catch(_e){}
   radarCanonicalV792.awaitingStable=true;
-  refreshRadarCanonicalV792().then(renderRadarHomeV629);
+  scheduleRadarConnectionV869('boot',70);
   setInterval(refreshRadarAgesV783,1000);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshRadarAgesV783()},true);
-  setTimeout(renderRadarHomeV629,80);setTimeout(renderRadarHomeV629,500);
+  setTimeout(renderRadarHomeV629,20);setTimeout(renderRadarHomeV629,220);
+})();
+
+/* V903 — Ma Story : deux petits boutons séparés, aucun panneau noir parent. */
+(function(){
+  try{
+    var id='haStoryOwnerButtonsV903';
+    var old=document.getElementById('haStoryOwnerButtonsV902');if(old)old.remove();
+    if(document.getElementById(id))return;
+    var st=document.createElement('style');st.id=id;
+    st.textContent=`
+#happyStoryViewerMasterV629.haStoryV629 #ha629Bottom,
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{
+  background:transparent!important;background-image:none!important;
+  border:0!important;outline:0!important;box-shadow:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{
+  position:absolute!important;
+  left:18px!important;right:18px!important;
+  bottom:calc(11px + env(safe-area-inset-bottom))!important;
+  width:auto!important;min-width:0!important;min-height:0!important;
+  transform:none!important;
+  display:flex!important;grid-template-columns:none!important;
+  align-items:center!important;justify-content:space-between!important;
+  gap:0!important;padding:0!important;margin:0!important;
+  border-radius:0!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions::before,
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions::after{display:none!important;content:none!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{
+  width:auto!important;min-width:0!important;min-height:34px!important;
+  padding:6px 9px!important;margin:0!important;
+  display:inline-flex!important;flex-direction:row!important;
+  align-items:center!important;justify-content:center!important;
+  gap:6px!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  border-radius:18px!important;
+  background:rgba(8,12,18,.34)!important;background-image:none!important;
+  color:#fff!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(7px)!important;-webkit-backdrop-filter:blur(7px)!important;
+  font-size:10.5px!important;line-height:1!important;font-weight:800!important;
+  white-space:nowrap!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{
+  display:grid!important;place-items:center!important;
+  width:18px!important;height:18px!important;font-size:18px!important;line-height:1!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{
+  width:17px!important;height:17px!important;stroke-width:2!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct:active{
+  transform:scale(.96)!important;background:rgba(8,12,18,.48)!important;
+}
+/* Ma Story : ne jamais recréer une dalle noire derrière les deux commandes. */
+#happyStoryViewerMasterV629.haStoryV629 .ha629Card:has(.ha629OwnerActions) .ha629ShadeBottom{
+  background:linear-gradient(transparent,rgba(0,0,0,.16),rgba(0,0,0,.30))!important;
+}
+@media(max-width:360px){
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{left:12px!important;right:12px!important;bottom:calc(9px + env(safe-area-inset-bottom))!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{min-height:32px!important;padding:5px 8px!important;gap:5px!important;font-size:10px!important;border-radius:17px!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{width:17px!important;height:17px!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:16px!important;height:16px!important}
+}
+`;
+    document.head.appendChild(st);
+  }catch(_e){}
+})();
+
+
+/* V904 — Ma Story : aucun conteneur visible, deux boutons réellement libres et espacés. */
+(function(){
+  try{
+    var id='haStoryOwnerButtonsV904';
+    ['haStoryOwnerButtonsV903','haStoryOwnerButtonsV902'].forEach(function(x){var n=document.getElementById(x);if(n)n.remove()});
+    if(document.getElementById(id))return;
+    var st=document.createElement('style');st.id=id;
+    st.textContent=`
+#happyStoryViewerMasterV629.haStoryV629 #ha629Bottom{
+  background:transparent!important;background-image:none!important;
+  border:0!important;outline:0!important;box-shadow:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  padding:0!important;margin:0!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions{
+  display:contents!important;
+  background:transparent!important;background-image:none!important;
+  border:0!important;outline:0!important;box-shadow:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  padding:0!important;margin:0!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions::before,
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions::after{display:none!important;content:none!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{
+  position:absolute!important;
+  bottom:calc(12px + env(safe-area-inset-bottom))!important;
+  z-index:13!important;
+  width:auto!important;min-width:0!important;min-height:34px!important;
+  padding:6px 10px!important;margin:0!important;
+  display:inline-flex!important;flex-direction:row!important;
+  align-items:center!important;justify-content:center!important;gap:6px!important;
+  border:1px solid rgba(255,255,255,.18)!important;border-radius:18px!important;
+  background:rgba(8,12,18,.34)!important;background-image:none!important;
+  color:#fff!important;box-shadow:none!important;
+  backdrop-filter:blur(7px)!important;-webkit-backdrop-filter:blur(7px)!important;
+  font-size:10.5px!important;line-height:1!important;font-weight:800!important;
+  white-space:nowrap!important;-webkit-tap-highlight-color:transparent!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 #ha629Activity{left:22px!important;right:auto!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions #ha629Share{right:22px!important;left:auto!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{
+  display:grid!important;place-items:center!important;width:18px!important;height:18px!important;
+  font-size:18px!important;line-height:1!important;
+}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:17px!important;height:17px!important;stroke-width:2!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct:active{transform:scale(.96)!important;background:rgba(8,12,18,.48)!important}
+#happyStoryViewerMasterV629.haStoryV629 .ha629Card:has(.ha629OwnerActions) .ha629ShadeBottom{
+  background:transparent!important;background-image:none!important;opacity:0!important;
+}
+@media(max-width:360px){
+  #happyStoryViewerMasterV629.haStoryV629 #ha629Activity{left:14px!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerActions #ha629Share{right:14px!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct{bottom:calc(10px + env(safe-area-inset-bottom))!important;min-height:32px!important;padding:5px 8px!important;gap:5px!important;font-size:10px!important;border-radius:17px!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct span:first-child{width:17px!important;height:17px!important}
+  #happyStoryViewerMasterV629.haStoryV629 .ha629OwnerAct svg{width:16px!important;height:16px!important}
+}
+`;
+    document.head.appendChild(st);
+  }catch(_e){}
 })();
