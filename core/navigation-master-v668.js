@@ -4,7 +4,7 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V883_CENTRAL_VIDEO_SINGLE_FIRST_OPEN';
+  var MASTER_VERSION='NAV_MASTER_V889_PUBLISH_TAP_SHIELD_MEDIA_SAFE';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=869-connection-phase2';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
@@ -13,6 +13,8 @@
   var SKELETON_ID='happyadAppSkeleton';
   var VIDEO_DIRECT_ID='happyadAppVideoDirect';
   var SKELETON_STYLE_ID='happyadAppSkeletonStyleV625';
+  var PUBLISH_TAP_SHIELD_ID_V889='happyadPublishTapShieldV889';
+  var publishTapShieldStateV889=null;
   var PREFETCH_FLAG='__happyadSoftPrefetchV27';
   var MAIN_TABS_PRELOAD_FLAG='__happyadMainTabsPreloadV594';
   var VIDEO_TARGET_KEY_V594='HAPPYAD_VIDEO_TARGET_POST_V594';
@@ -53,6 +55,7 @@
       '#happyadAppShell.happyadMessageCachePreparingV876 #happyadAppFrame_message{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:none!important;}\n'+
       '#happyadAppShell.happyadMessageCachePreparingWithinShellV876 #happyadAppFrame_message{display:block!important;opacity:0!important;visibility:visible!important;pointer-events:none!important;}\n'+
       '.happyadTapAcceptedV16U{filter:brightness(1.08)!important;transition:filter .12s ease,transform .12s ease!important;}\n'+
+      '#happyadPublishTapShieldV889{position:fixed!important;inset:0!important;z-index:2147483646!important;display:block!important;background:transparent!important;pointer-events:auto!important;touch-action:none!important;overscroll-behavior:none!important;-webkit-tap-highlight-color:transparent!important;}\n'+
       '#happyadAppSkeleton{position:absolute!important;inset:0!important;z-index:7!important;display:none!important;background:linear-gradient(180deg,#050609 0%,#020306 100%)!important;color:#fff!important;overflow:hidden!important;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif!important;pointer-events:auto!important;}\n'+
       '#happyadAppSkeleton.on{display:block!important;}\n'+
       '#happyadAppSkeleton .haSkPage{position:absolute!important;inset:0!important;padding:18px 13px 92px!important;box-sizing:border-box!important;overflow:hidden!important;}\n'+
@@ -152,7 +155,11 @@
       return '<div class="haSkPage" data-page="message">'+top+'<div class="haSkSubtle">Conversations</div><div class="haSkList">'+rows+'</div></div>';
     }
     if(page==='publish'){
-      return '<div class="haSkPage" data-page="publish">'+top+'<div class="haSkPublishBox"></div><div class="haSkPublishBox tall"></div><div class="haSkPublishBox"></div><div class="haSkPublishBox"></div></div>';
+      /* V884 : réponse visuelle immédiate au clic +. Le chargement parent occupe
+         la surface dès le premier cycle, puis disparaît au premier rendu utile
+         de publish.html. Aucun document iframe vide/noir n'est exposé. */
+      var publishTop='<div class="haSkTop"><div class="haSkBack"></div><div class="haSkTitle">Nouvelle publication</div></div>';
+      return '<div class="haSkPage" data-page="publish">'+publishTop+'<div class="haSkSubtle">Chargement…</div><div class="haSkPublishBox"></div><div class="haSkPublishBox tall"></div><div class="haSkPublishBox"></div></div>';
     }
     if(page==='map')return '<div class="haSkPage" data-page="map">'+top+'<div class="haSkMap"></div></div>';
     return '<div class="haSkPage" data-page="'+page+'">'+top+line+'<div class="haSkGrid"><div class="haSkCard"></div><div class="haSkCard"></div><div class="haSkCard"></div><div class="haSkCard"></div></div></div>';
@@ -274,6 +281,28 @@
     if(p==='modules/map.html')return 'map';
     return 'home';
   }
+  /* V886 — Publication utilise une URL canonique unique. Seuls Publier, Story
+     et Live restent publics. Les anciens modes Reel/Carte retombent sur Publier. */
+  function normalizePublishModeV885(mode){
+    mode=String(mode||'').trim().toLowerCase();
+    return (mode==='story'||mode==='live')?mode:'publish';
+  }
+  function publishModeFromRequestV885(url,extra){
+    try{
+      var mode=extra&&String(extra.publishMode||extra.mode||'').trim();
+      if(!mode){var u=new URL(rootUrl(url||'modules/publish.html'),location.href);mode=String(u.searchParams.get('mode')||'');}
+      return normalizePublishModeV885(mode);
+    }catch(_e){return 'publish';}
+  }
+  function deliverPublishModeV885(fr,mode,source){
+    try{
+      if(!fr||!fr.contentWindow)return false;
+      mode=normalizePublishModeV885(mode||fr.getAttribute('data-happyad-publish-mode-v885')||'publish');
+      fr.setAttribute('data-happyad-publish-mode-v885',mode);
+      fr.contentWindow.postMessage({type:'HAPPYAD_PUBLISH_SET_MODE_V885',mode:mode,publishMode:mode,source:String(source||MASTER_VERSION),at:Date.now()},'*');
+      return true;
+    }catch(_e){return false;}
+  }
   function hasPost(url){try{var u=new URL(rootUrl(url),location.href);return !!(u.searchParams.get('post')||u.searchParams.get('id'));}catch(_e){return /[?&](post|id)=/.test(rootUrl(url));}}
   function readProfileJson(k){try{return JSON.parse(localStorage.getItem(k)||'null')||null;}catch(_e){return null;}}
   function validProfileUser(u){
@@ -388,6 +417,51 @@
   function removeLegacyTapShield(){
     try{var sh=document.getElementById('happyadAppTapShield');if(sh&&sh.parentNode)sh.parentNode.removeChild(sh);}catch(_e){}
   }
+  function removePublishTapShieldV889(reason){
+    try{
+      var st=publishTapShieldStateV889;
+      if(st){
+        if(st.safetyTimer)clearTimeout(st.safetyTimer);
+        if(st.releaseTimer)clearTimeout(st.releaseTimer);
+        if(st.onPointerUp)window.removeEventListener('pointerup',st.onPointerUp,true);
+        if(st.onPointerCancel)window.removeEventListener('pointercancel',st.onPointerCancel,true);
+        if(st.onTouchEnd)window.removeEventListener('touchend',st.onTouchEnd,true);
+      }
+      var sh=document.getElementById(PUBLISH_TAP_SHIELD_ID_V889);if(sh&&sh.parentNode)sh.parentNode.removeChild(sh);
+      publishTapShieldStateV889=null;
+      window.__HAPPYAD_PUBLISH_TAP_SHIELD_V889={active:false,reason:String(reason||'remove'),at:Date.now()};
+    }catch(_e){}
+  }
+  function beginPublishTapShieldV889(reason,gestureAlreadyEnded){
+    try{
+      removePublishTapShieldV889('restart');
+      injectSkeletonStyle();
+      var sh=document.createElement('div');sh.id=PUBLISH_TAP_SHIELD_ID_V889;sh.setAttribute('aria-hidden','true');
+      var st={ended:!!gestureAlreadyEnded,releaseRequested:false,releaseTimer:null,safetyTimer:null,onPointerUp:null,onPointerCancel:null,onTouchEnd:null};
+      function swallow(ev){try{if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}}catch(_e){}}
+      ['pointerdown','pointermove','click','dblclick','contextmenu','touchstart','touchmove'].forEach(function(type){sh.addEventListener(type,swallow,{capture:true,passive:false});});
+      function ended(ev){
+        swallow(ev);st.ended=true;
+        if(st.releaseRequested){if(st.releaseTimer)clearTimeout(st.releaseTimer);st.releaseTimer=setTimeout(function(){removePublishTapShieldV889('gesture-ended-ready');},90);}
+      }
+      st.onPointerUp=ended;st.onPointerCancel=ended;st.onTouchEnd=ended;
+      window.addEventListener('pointerup',st.onPointerUp,true);
+      window.addEventListener('pointercancel',st.onPointerCancel,true);
+      window.addEventListener('touchend',st.onTouchEnd,{capture:true,passive:false});
+      (document.body||document.documentElement).appendChild(sh);
+      st.safetyTimer=setTimeout(function(){removePublishTapShieldV889('safety-timeout');},6000);
+      publishTapShieldStateV889=st;
+      window.__HAPPYAD_PUBLISH_TAP_SHIELD_V889={active:true,reason:String(reason||'publish-open'),at:Date.now()};
+    }catch(_e){}
+  }
+  function releasePublishTapShieldV889(reason){
+    try{
+      var st=publishTapShieldStateV889;if(!st)return;st.releaseRequested=true;
+      if(st.ended){if(st.releaseTimer)clearTimeout(st.releaseTimer);st.releaseTimer=setTimeout(function(){removePublishTapShieldV889(reason||'publish-ready');},48);}
+      else{if(st.releaseTimer)clearTimeout(st.releaseTimer);st.releaseTimer=setTimeout(function(){removePublishTapShieldV889((reason||'publish-ready')+'-hold-fallback');},550);}
+    }catch(_e){}
+  }
+
   function beginNavGate(page,url){
     try{
       if(pendingNavTimer){clearTimeout(pendingNavTimer);pendingNavTimer=null;}
@@ -625,6 +699,7 @@
       if(!fr)return;
       try{fr.removeAttribute('inert');fr.setAttribute('aria-hidden','false');}catch(_a){}
       var msg={type:'HAPPYAD_APP_FRAME_VISIBLE',page:page,url:rootUrl(url),source:source||MASTER_VERSION};
+      if(page==='publish'){try{msg.publishMode=normalizePublishModeV885(fr.getAttribute('data-happyad-publish-mode-v885')||'publish');msg.mode=msg.publishMode;}catch(_pm){}}
       /* V756 : Mon profil reçoit un seul signal visible. Le lifecycle interne
          reprend alors ses workers et émet lui-même son événement RESUME, sans
          double rafraîchissement du DOM. */
@@ -1178,6 +1253,7 @@
     else {showVideoDirect(url,false);}
     showLoader(false);
     releaseNavGate('reveal-'+String(source||page||''));
+    if(page==='publish')releasePublishTapShieldV889('publish-revealed-v889');
     /* Audit V757 : Mon profil reçoit un seul HAPPYAD_APP_FRAME_VISIBLE.
        Les anciens maîtres internes rafraîchissent sur chaque signal visible ; le
        second signal à +45 ms donnait l'impression d'un rechargement. */
@@ -1258,6 +1334,19 @@
             pauseFrame(fr,'persistent-preload-ready-v594');
             fr.contentWindow&&fr.contentWindow.postMessage({type:'HAPPYAD_MAIN_TAB_PRELOADED_V594',page:pg},'*');
           }catch(_pre){}
+          return;
+        }
+        /* V885 : publish.html garde toujours le même src. Dès que son document
+           existe, on lui injecte le mode demandé avant sa révélation. */
+        if(pg==='publish'){
+          try{deliverPublishModeV885(fr,fr.getAttribute('data-happyad-publish-mode-v885')||'publish','publish-frame-load-v885');}catch(_publishMode){}
+        }
+        /* V884 : une Publication ouverte par l'utilisateur peut être persistante
+           tout en composant cachée. Son load doit d'abord honorer defer-visible;
+           sinon l'ancien garde-fou des onglets persistants la remettrait en pause
+           et le loader pourrait rester affiché jusqu'au timeout. */
+        if(pg==='publish'&&fr.getAttribute('data-happyad-defer-visible')==='1'){
+          revealFrame(fr,pg,u,'publish-frame-load-ready-v885');
           return;
         }
         if(isPersistentMainPage(pg)&&!fr.classList.contains('on')){
@@ -1405,10 +1494,22 @@
   }
   function loadFrame(page,url,extra){
     extra=extra||{};
+    var requestedPublishModeV885='';
+    if(page==='publish'){
+      requestedPublishModeV885=publishModeFromRequestV885(url,extra);
+      extra.publishMode=requestedPublishModeV885;
+      /* src canonique : Story ne change plus l'URL physique de l'iframe. */
+      url=persistentMainUrl('publish');
+    }
     if(page!=='message')cancelMessageCachePreparationV876('switch-to-'+String(page||'unknown'));
     var root=ensureShell();if(!root)return false;
     if(page==='profile_public')resetVisitorFrameForUrl(url);
     var fr=ensureFrame(page,url);if(!fr)return false;
+    if(page==='publish'){
+      try{fr.setAttribute('data-happyad-publish-mode-v885',requestedPublishModeV885||'publish');}catch(_pmAttr){}
+      /* Frame déjà chaude : le mode change avant la révélation, sans reload. */
+      try{if(frameLooksReady(fr,'publish'))deliverPublishModeV885(fr,requestedPublishModeV885||'publish','publish-reuse-before-reveal-v885');}catch(_pmReady){}
+    }
     var ownerReusableV756=page==='profile'&&ownerProfileFrameReusableV756(fr);
     if(page==='profile'){
       /* V687 : un clic explicite sur le bouton Mon profil prépare Publications
@@ -1468,7 +1569,12 @@
        reste invisible jusqu'au signal peint du profil : aucun écran noir ne peut
        apparaître entre le clic et le squelette interne. */
     var visitorFirstPendingV855R24=visitorPersistent&&(!visitorReady||mustReload);
-    var deferVisible=visitorFirstPendingV855R24||ownerFirstPendingV756||inboxMessageCachePendingV875;
+    /* V884 : Publication n'est jamais révélée avant sa première peinture utile.
+       Le clic est accepté immédiatement et le parent montre son état Chargement,
+       tandis que l'iframe compose hors écran. Dès qu'elle est peinte, elle prend
+       la place du loader sans transition par un écran noir. */
+    var publishFirstPendingV884=page==='publish'&&(mustReload||!frameLooksReady(fr,'publish'));
+    var deferVisible=visitorFirstPendingV855R24||ownerFirstPendingV756||inboxMessageCachePendingV875||publishFirstPendingV884;
     if(visitorPersistent){
       fr.__happyadVisitorOpenRequestedV601=true;
       fr.__happyadVisitorTargetV601={url:rootUrl(url),extra:extra||{}};
@@ -1633,7 +1739,7 @@
     if(page==='message')url=persistentMainUrl('message');
     if(page==='video')url=persistentMainUrl('video');
     if(page==='profile')url=persistentMainUrl('profile');
-    if(page==='publish')url=persistentMainUrl('publish');
+    if(page==='publish'){extra.publishMode=publishModeFromRequestV885(extra.url||url,extra);url=persistentMainUrl('publish');}
     try{releaseNavGate('activate-main-tab-v594');}catch(_g){}
     try{if(window.HappyMedia)window.HappyMedia.pauseAll('switch-main-tab-'+page+'-v594');}catch(_m){}
     var ok=loadFrame(page,url,extra);
@@ -1697,6 +1803,7 @@
   }
   function open(url,extra){
     extra=extra||{};url=rootUrl(url||'index.html');var page=pageOf(url,extra.page);
+    if(page==='publish'){extra.publishMode=publishModeFromRequestV885(url,extra);url=persistentMainUrl('publish');}
     var normalized=normalizeRouteForOpen(page,url);
     if(normalized.invalidPublic){page=normalized.view;url=normalized.url;extra.replace=true;}
     if(page!=='profile_public')destroyVisitorFrameV668('leave-visitor-for-'+String(page||'unknown'));
@@ -1727,12 +1834,14 @@
       try{window.__HAPPYAD_NAV_REPLACED_PENDING_V615__={from:pendingNav,to:{page:page,url:url},t:Date.now()};}catch(_ig){}
       releaseNavGate('replace-pending-target-v615');
     }
+    if(page==='publish'){var publishOpenSourceV889=String(extra&&extra.source||'publish');beginPublishTapShieldV889('open-'+publishOpenSourceV889,/doc-link|frame-link|keyboard|programmatic/i.test(publishOpenSourceV889));}
     beginNavGate(page,url);
     if(page!=='video'||!hasPost(url))clearVideoRouteMemory('open-'+page);
     if(page==='video'&&!hasPost(url))blankVideoFrame('open-video-central');
     try{if(window.HappyMedia)HappyMedia.pauseAll('before-open-'+page);}catch(_e){}
     var ok=loadFrame(page,url,extra);
     if(ok)pushNav(page,url,!!extra.replace);
+    else if(page==='publish')removePublishTapShieldV889('publish-open-failed-v889');
     return ok;
   }
   function openAppPage(page,url){
@@ -1742,6 +1851,7 @@
   }
   function close(reason,replace){
     reason=String(reason||'close');
+    removePublishTapShieldV889('close-'+reason);
     cancelMessageCachePreparationV876('close-'+reason);
     applyVisitorDockLockV854R3(false,'close-'+reason);
     /* V855R25 : libérer immédiatement les couches photo avant le retour Accueil.

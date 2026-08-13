@@ -1498,7 +1498,7 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <button class="nav" type="button" data-happyad-main-nav="profile" aria-label="Mon profil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.7-4.2 3.2-6.4 7.5-6.4s6.8 2.2 7.5 6.4"></path></svg></span><span class="mainDockLabel">Profil</span></button>
 </nav></div>
 <!-- R89 : Story + Chat sont montés avant les gros traitements Accueil. -->
-<script src="core/story-master-v699.js?v=v904-story-owner-free-buttons"></script>
+<script src="core/story-master-v699.js?v=v907r4-fresh-20-progressive"></script>
 <script>try{if(window.HappyStoryV629&&typeof window.HappyStoryV629.renderRadar==='function')window.HappyStoryV629.renderRadar();}catch(_e){}</script>
 <script id="happyad-chat-sticker-living-v791-js" src="core/chat-sticker-living-v791.js?v=855r89-opening-stable"></script>
 <script id="happyad-v855r89-sponsor-first-paint">
@@ -1545,7 +1545,7 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 })();
 </script>
 <script src="core/home-feed-repository-v1.js?v=2-batch-complete"></script>
-<script src="core/home-feed-master-v1.js?v=856-point1-annonce-card"></script>
+<script src="core/home-feed-master-v1.js?v=v907r4r1-continuous-append"></script>
 <script src="core/home-media-loader-v1.js?v=1-single-home-media-owner"></script>
 <script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
 <script src="core/home-actions-master-v1.js?v=869-connection-phase2"></script>
@@ -2488,7 +2488,7 @@ async function happyadLoadHomeCommentsPageV6(postId,reset,options){
   var c=happyadSb();if(!c)return null;
   var st=HAPPYAD_HOME_COMMENT_PAGES_V6[postId]||(HAPPYAD_HOME_COMMENT_PAGES_V6[postId]={offset:0,total:null,hasMore:true,loading:false,requestId:0});
   if(st.loading)return getA(postId);
-  if(reset){st.offset=0;st.total=null;st.hasMore=true;st.requestId=Number(st.requestId||0)+1;}
+  if(reset){st.offset=0;st.total=null;st.hasMore=true;st.field='post_id';st.requestId=Number(st.requestId||0)+1;}
   else if(!st.hasMore)return getA(postId);
   if(!st.requestId)st.requestId=1;
   var requestId=st.requestId;
@@ -2501,9 +2501,10 @@ async function happyadLoadHomeCommentsPageV6(postId,reset,options){
   setA(postId,a);
   if(!hadCache&&String(window.__HAPPYAD_COMMENT_POST_ID_V469||'')===postId)happyadRenderHomeCommentsV468(postId);
   try{
-    var from=reset?0:Number(st.offset||0),to=from+49;
-    var q=await c.from('happyad_content_comments').select('*',{count:'exact'}).eq('post_id',postId).order('created_at',{ascending:false}).range(from,to);
+    var from=reset?0:Number(st.offset||0),to=from+49,field=st.field||'post_id';
+    var q=await c.from('happyad_content_comments').select('*',{count:'exact'}).eq(field,postId).order('created_at',{ascending:false}).range(from,to);
     if(q&&q.error)throw q.error;
+    if(from===0&&field==='post_id'&&!(q.data||[]).length&&Number(q.count||0)===0){try{var qLegacy=await c.from('happyad_content_comments').select('*',{count:'exact'}).eq('content_id',postId).order('created_at',{ascending:false}).range(0,49);if(qLegacy&&!qLegacy.error&&((qLegacy.data||[]).length||Number(qLegacy.count)>0)){q=qLegacy;st.field='content_id';}}catch(_legacy){}}
     var rows=(q&&q.data)||[];
     /* V901 : première peinture dès que les lignes arrivent. Les profils + likes
        se réhydratent ensuite sans bloquer l'affichage ni le scroll. */

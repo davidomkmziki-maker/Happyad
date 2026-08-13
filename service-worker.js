@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v905-base-stable-20260812-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v907r4r1-home-continuous-20260813-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v905-base-stable-20260812',
+  './index.html?v=v907r4r1-home-continuous-20260813',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -34,7 +34,7 @@ var HAPPYAD_APP_SHELL = [
   './core/chat-integration-master-v795.js?v=855r71-chat-writing-smooth',
   './core/marketplace-home-master-v828.js?v=869-connection-phase2',
   './core/home-feed-repository-v1.js?v=2-batch-complete',
-  './core/home-feed-master-v1.js?v=856-point1-annonce-card',
+  './core/home-feed-master-v1.js?v=v907r4r1-continuous-append',
   './core/home-media-loader-v1.js?v=1-single-home-media-owner',
   './core/like-direct-master-v876.js?v=876-like-direct',
   './core/home-actions-master-v1.js?v=869-connection-phase2',
@@ -46,7 +46,7 @@ var HAPPYAD_APP_SHELL = [
   './modules/notification-center.html?v=895-story-repost-return',
   './core/notification-infinite-scroll-master-v700.js?v=869-connection-phase2',
   './modules/assistance.html?v=851r12-ecriture-stable',
-  './modules/video.html?v=883-central-video-single-first-open',
+  './modules/video.html?v=v907r4-infinite-pagination',
   './modules/photo.html?v=876-like-direct',
   './modules/map.html?v=855r54-location-privacy',
   './core/startup-master-v727.js?v=727-startup-unique',
@@ -67,7 +67,7 @@ var HAPPYAD_APP_SHELL = [
   './core/share-master.js?v=915-story-shared-video-loader-zone',
   './core/share-button-bridge.js?v=886-story-share-notification-label',
   './modules/share-center.html?v=915-story-shared-video-loader-zone',
-  './core/story-master-v699.js?v=v904-story-owner-free-buttons',
+  './core/story-master-v699.js?v=v907r4-fresh-20-progressive',
   './core/notification-master-v700.js?v=895-story-repost-return',
   './core/auth-session-master-v598.js?v=877-dock-execution-direct',
   './core/profile-identity-stable-master-v741.js?v=863-home-scroll-priority',

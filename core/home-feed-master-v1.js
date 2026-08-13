@@ -3,9 +3,9 @@
    pagination append-only, identité de carte et orchestration rendu/pagination. */
 (function(){
   'use strict';
-  if(window.HappyHomeFeedV1&&window.HappyHomeFeedV1.version==='V4_ATOMIC_IDLE_FEED')return;
+  if(window.HappyHomeFeedV1&&window.HappyHomeFeedV1.version==='V6_CONTINUOUS_APPEND_FEED')return;
 
-  var VERSION='V4_ATOMIC_IDLE_FEED';
+  var VERSION='V6_CONTINUOUS_APPEND_FEED';
   var MAX_ROWS=120;
   var bridge=null;
   var renderPending=null;
@@ -264,7 +264,12 @@
   function requestRender(options){
     options=options||{};
     var hasCards=!!bcall('hasCards');
-    if(hasCards&&bcall('isScrollActive')&&options.__idleCommitV795!==true)return queueRender(options);
+    /* V907R4R1 — la pagination du bas est strictement append-only. Lorsqu'on est
+       déjà proche de la fin, autoriser uniquement CET append pendant le geste évite
+       le trou « dernière carte -> attente -> nouvelles cartes », sans reconstruire
+       ni déplacer les cartes déjà visibles. Tous les autres rendus restent protégés. */
+    var allowAppendDuringScroll=options.__appendDuringScrollV907R4R1===true;
+    if(hasCards&&bcall('isScrollActive')&&options.__idleCommitV795!==true&&!allowAppendDuringScroll)return queueRender(options);
     return bcall('commitRender',options);
   }
   function renderWhenIdle(reason){return queueRender({feedOnly:true,reason:reason||'home-feed-v2-idle'});}
@@ -315,6 +320,17 @@
     var done=function(){releasePagination(recheck,190);};
     try{requestAnimationFrame(function(){requestAnimationFrame(done);});}catch(_e){setTimeout(done,80);}
   }
+  function feedDistanceToViewportBottom(){
+    try{
+      var list=bcall('getListNode');if(!list)return Infinity;
+      var vh=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,600);
+      return Number(list.getBoundingClientRect().bottom||0)-vh;
+    }catch(_e){return Infinity;}
+  }
+  function isCriticalFeedEnd(){
+    var vh=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,600);
+    return feedDistanceToViewportBottom()<=Math.max(520,Math.min(980,Math.round(vh*.95)));
+  }
 
   async function loadMoreRemote(){
     if(pagination.loading||pagination.done)return false;
@@ -339,10 +355,10 @@
         var rows=(result&&Array.isArray(result.page)&&result.page.length)?result.page:probeRows.slice(0,remotePage);
         if(!rows.length){pagination.done=true;break;}
         var nextCursor=(result&&result.cursor)||cursorFromRows(rows);
-        /* Une réponse réseau peut arriver pendant que le doigt a repris le scroll.
-           Aucune fusion, sérialisation locale ni enrichissement ne commence avant
-           le retour au repos : le réseau n'a jamais priorité sur le geste. */
-        await whenIdle();
+        /* V907R4 : le réseau peut préparer la page suivante pendant le geste.
+           On fusionne seulement les données en mémoire (append-only, donc aucune
+           carte déjà visible ne change de position). Le rendu DOM et les écritures
+           de cache restent différés/protégés pour préserver la fluidité du scroll. */
         if(nextCursor){pagination.cursor=nextCursor;pagination.seeded=true;}
         pagination.nextOffset+=rows.length;
         if(result&&result.done===true)pagination.done=true;
@@ -352,10 +368,15 @@
         var fresh=bcall('mapRows',rows)||rows;
         var merged=appendPage(beforeRows,fresh);
         bcall('setRows',merged);
-        var saved=bcall('saveRows',bcall('getRows')||merged);
-        if(Array.isArray(saved))bcall('setRows',cleanRows(saved));
-        bcall('writeConfirmed',bcall('getRows')||merged);
         var current=bcall('getRows')||[];
+        /* Sérialisation/cache hors geste : ne jamais faire payer JSON/localStorage
+           au scroll qui vient de déclencher le préchargement. */
+        (function(snapshot){
+          whenIdle().then(function(){
+            try{bcall('saveRows',snapshot);}catch(_save){}
+            try{bcall('writeConfirmed',snapshot);}catch(_confirmed){}
+          }).catch(function(){});
+        })(current.slice());
         rawAdded+=current.filter(function(x){return !beforeIds.has(idOf(x));}).length;
         var afterVisible=Number(bcall('visibleTotal')||0);
         visibleAdded=afterVisible>beforeVisible;
@@ -363,9 +384,13 @@
         if(visibleAdded){
           var step=Math.max(1,Number(bcall('getProgressiveStep')||5));
           var currentLimit=Number(bcall('getRenderLimit')||0);
-          bcall('setRenderLimit',Math.min(afterVisible,Math.max(currentLimit+step,beforeVisible+1)));
+          var critical=isCriticalFeedEnd();
+          /* Au bord réel du groupe rendu, ajouter un lot un peu plus large afin que
+             l'utilisateur trouve déjà les cartes suivantes sous son doigt. */
+          var revealStep=critical?Math.max(step,8):step;
+          bcall('setRenderLimit',Math.min(afterVisible,Math.max(currentLimit+revealStep,beforeVisible+1)));
           bcall('invalidateRender');
-          requestRender({feedOnly:true,reason:'pagination-remote-feed-v2'});
+          requestRender({feedOnly:true,reason:'pagination-remote-feed-v2',__appendDuringScrollV907R4R1:critical});
         }
         try{bcall('primeActions',fresh);}catch(_e){}
         try{bcall('enrichFresh',fresh);}catch(_e){}
@@ -382,32 +407,55 @@
     try{
       if(bcall('allowPagination')===false)return;
       if(pagination.cycle){pagination.pending=true;return;}
-      /* Tant qu'une tête distante autoritaire attend le retour en haut, aucune
-         ancienne page du cache ne doit être ajoutée sous les cartes visibles. */
-      if(bcall('hasPendingHead')){
+      /* V907R4 : une nouvelle tête du fil en attente ne bloque plus la pagination
+         du BAS. Elle sera appliquée uniquement quand l'utilisateur revient en haut,
+         tandis que les anciennes publications peuvent continuer à se précharger. */
+      if(bcall('hasPendingHead')&&(window.scrollY||0)<=100&&!bcall('isScrollActive')){
         pagination.pending=true;
-        if((window.scrollY||0)<=100&&!bcall('isScrollActive')){
-          Promise.resolve(bcall('applyPendingHead')).finally(function(){schedulePagination(260);});
-        }else schedulePagination(260);
+        Promise.resolve(bcall('applyPendingHead')).finally(function(){schedulePagination(180);});
         return;
       }
       bcall('maintainWindow');
       var list=bcall('getListNode');if(!list)return;
       var vh=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,600);
       var bottom=list.getBoundingClientRect().bottom;
-      var preloadDistance=Math.max(420,Math.min(620,Math.round(vh*.6)));
+      /* Commencer bien avant la dernière carte : le réseau travaille pendant que
+         l'utilisateur est encore à 1,5–2 écrans de la fin. */
+      var preloadDistance=Math.max(900,Math.min(1800,Math.round(vh*1.8)));
       if(bottom>vh+preloadDistance)return;
+
+      var total=Number(bcall('visibleTotal')||0);
+      var limit=Number(bcall('getRenderLimit')||0);
+      var criticalEnd=bottom<=vh+Math.max(520,Math.min(980,Math.round(vh*.95)));
       if(bcall('isScrollActive')||hasPendingRender()){
-        pagination.pending=true;schedulePagination(180);return;
+        pagination.pending=true;
+        /* V907R4R1 — s'il existe déjà des cartes prêtes en mémoire et que le doigt
+           arrive sur le dernier groupe affiché, les APPENDRE tout de suite. Le View
+           Master possède un fast-path append-only : aucune ancienne carte ne bouge. */
+        if(limit<total&&criticalEnd&&!hasPendingRender()){
+          pagination.cycle=true;
+          var directStep=Math.max(8,Number(bcall('getProgressiveStep')||5));
+          bcall('setRenderLimit',Math.min(total,limit+directStep));
+          bcall('invalidateRender');
+          requestRender({feedOnly:true,reason:'pagination-local-direct-v907r4r1',__appendDuringScrollV907R4R1:true});
+          updatePaginationState();releasePaginationAfterPaint(true);return;
+        }
+        /* S'il n'existe plus de ligne locale à révéler, lancer quand même la requête
+           distante immédiatement. Son résultat pourra aussi être appendu sans trou
+           si l'utilisateur est encore dans la zone critique. */
+        if(limit>=total&&!pagination.loading&&!pagination.done){
+          pagination.cycle=true;
+          Promise.resolve(loadMoreRemote()).then(function(){releasePagination(true,90);}).catch(function(){releasePagination(false,140);});
+        }else schedulePagination(90);
+        return;
       }
 
       pagination.cycle=true;
-      var total=Number(bcall('visibleTotal')||0);
-      var limit=Number(bcall('getRenderLimit')||0);
       if(limit<total){
         var step=Math.max(1,Number(bcall('getProgressiveStep')||5));
-        bcall('setRenderLimit',Math.min(total,limit+step));
-        bcall('invalidateRender');requestRender({feedOnly:true,reason:'pagination-local-feed-v2'});
+        var reveal=criticalEnd?Math.max(step,8):step;
+        bcall('setRenderLimit',Math.min(total,limit+reveal));
+        bcall('invalidateRender');requestRender({feedOnly:true,reason:'pagination-local-feed-v2',__appendDuringScrollV907R4R1:criticalEnd});
         updatePaginationState();releasePaginationAfterPaint(true);return;
       }
       Promise.resolve(loadMoreRemote()).then(function(){releasePagination(true,220);}).catch(function(){releasePagination(false,220);});
@@ -426,7 +474,7 @@
       if(!window.__happyadHomePaginationObserverV694&&'IntersectionObserver' in window){
         window.__happyadHomePaginationObserverV694=new IntersectionObserver(function(entries){
           if(entries.some(function(entry){return entry.isIntersecting;}))maybeLoadMore();
-        },{root:null,rootMargin:'0px 0px 360px 0px',threshold:0});
+        },{root:null,rootMargin:'0px 0px 1800px 0px',threshold:0});
       }
       if(window.__happyadHomePaginationObserverV694){
         if(window.__happyadHomePaginationSentinelNodeV764&&window.__happyadHomePaginationSentinelNodeV764!==sentinel){try{window.__happyadHomePaginationObserverV694.unobserve(window.__happyadHomePaginationSentinelNodeV764);}catch(_e){}}

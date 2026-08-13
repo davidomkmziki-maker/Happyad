@@ -38,6 +38,12 @@
   var radarStableSnapshotV792=[];
   var radarStableSnapshotAtV792=0;
   var radarCanonicalV792={loading:false,promise:null,awaitingStable:false,emptyUid:'',emptyAt:0,emptyCount:0};
+  /* V907R3 : au démarrage, le Radar est réseau-d'abord. On ne peint plus une
+     ancienne liste persistée puis une seconde liste serveur. Le cache local reste
+     utile après le premier commit de la session (retour lecteur, état vu, etc.). */
+  var radarFreshReadyV907R3=false;
+  var radarFreshStartedAtV907R3=0;
+  var radarFreshRetryTimerV907R3=0;
   var STORY_LAST_GOOD_KEY_V885='HAPPYAD_STORIES_LAST_GOOD_V885';
   var radarSkeletonUntilV885=Date.now()+180;
   function rememberRadarStableV792(items){
@@ -67,6 +73,7 @@
   }
   function commitRadarCacheV792(items){
     items=Array.isArray(items)?items.filter(active):[];
+    radarFreshReadyV907R3=true;
     if(items.length)rememberRadarStableV792(items);
     else{radarStableSnapshotV792=[];radarStableSnapshotAtV792=Date.now()}
     try{window.HAPPYAD_STORIES_ITEMS=items;window.__HAPPYAD_STORIES_ITEMS_CACHE=items;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(items.slice(0,320)));if(items.length)rememberLastGoodStoriesV885(items);else clearLastGoodStoriesV885()}catch(_e){}
@@ -212,6 +219,10 @@
 
   function cacheStories(){
     var arr=[];
+    /* V907R3 : aucune restauration visuelle d'une ancienne session avant le
+       premier chargement canonique. Cela évite le nombre Story qui change juste
+       après l'ouverture. */
+    if(!radarFreshReadyV907R3)return [];
     try{if(Array.isArray(window.HAPPYAD_STORIES_ITEMS))arr=arr.concat(window.HAPPYAD_STORIES_ITEMS)}catch(_e){}
     try{var x=readJson('HAPPYAD_STORIES_CACHE_V1',[]);if(Array.isArray(x))arr=arr.concat(x)}catch(_e){}
     try{var lg=lastGoodStoriesV885();if(lg.length)arr=arr.concat(lg)}catch(_e){}
@@ -1507,8 +1518,9 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 
   var RADAR_INITIAL_OWNERS_V788=20;
   var RADAR_APPEND_OWNERS_V788=10;
-  var RADAR_REMOTE_ROWS_V788=80;
-  var radarRemoteV788={loading:false,exhausted:false,promise:null};
+  /* V907R3 : 20 lignes Story maximum au premier lot, puis pages de 20. */
+  var RADAR_REMOTE_ROWS_V788=20;
+  var radarRemoteV788={loading:false,exhausted:false,promise:null,beforeMs:0};
   var radarInitialTopupTimerV788=0;
 
   function radarCachedOwnerCountV788(){
@@ -1538,7 +1550,9 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   function fetchMoreRadarV788(){
     if(radarRemoteV788.exhausted)return Promise.resolve([]);
     if(radarRemoteV788.promise)return radarRemoteV788.promise;
-    var c=sb(),before=oldestRadarCreatedV788();if(!c||!before)return Promise.resolve([]);
+    /* Le curseur vient du lot global serveur, pas d'une éventuelle Story du
+       propriétaire plus ancienne injectée pour garder « Ta story » disponible. */
+    var c=sb(),before=Number(radarRemoteV788.beforeMs||0)||oldestRadarCreatedV788();if(!c||!before)return Promise.resolve([]);
     radarRemoteV788.loading=true;
     radarRemoteV788.promise=(async function(){
       try{
@@ -1546,6 +1560,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
         var res=await q;if(res&&res.error)throw res.error;
         var raw=Array.isArray(res&&res.data)?res.data:[];
         if(raw.length<RADAR_REMOTE_ROWS_V788)radarRemoteV788.exhausted=true;
+        if(raw.length){var nextBefore=0;raw.forEach(function(r){var t=createdOf(r);if(t>0&&(!nextBefore||t<nextBefore))nextBefore=t});if(nextBefore)radarRemoteV788.beforeMs=nextBefore}
         var rows=raw.filter(active).filter(function(r){return !isMutedOwner(ownerOf(r))});
         if(!rows.length)return [];
         var ids=[];rows.forEach(function(r){var id=ownerOf(r);if(id&&ids.indexOf(id)<0)ids.push(id)});
@@ -1565,31 +1580,46 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   async function refreshRadarCanonicalV792(){
     if(radarCanonicalV792.promise)return radarCanonicalV792.promise;
     var c=sb();
-    if(!c){radarCanonicalV792.awaitingStable=true;return cacheStories()}
+    if(!c){radarCanonicalV792.awaitingStable=true;return []}
     radarCanonicalV792.loading=true;radarCanonicalV792.awaitingStable=true;
     radarCanonicalV792.promise=(async function(){
       try{
-        /* V924 point 5 : le maître charge le Radar et les Stories de Mon profil dans
-           le même cycle réseau. La requête propriétaire part en parallèle du Radar afin
-           que Mon profil n'ait plus à relancer sa propre lecture au premier affichage. */
         var ownerUidV924=currentUid();
+        /* V907R3 : lot principal strict de 20 lignes. La lecture propriétaire est
+           parallèle uniquement pour garantir « Ta story »; le commit visible reste
+           plafonné à 20 Stories au total. */
         var radarReqV924=c.from('happyad_stories').select('*').eq('is_active',true).order('created_at',{ascending:false}).limit(RADAR_REMOTE_ROWS_V788);
-        var ownerReqV924=ownerUidV924?c.from('happyad_stories').select('*').eq('user_id',ownerUidV924).eq('is_active',true).order('created_at',{ascending:false}).limit(30):Promise.resolve({data:[],error:null});
+        var ownerReqV924=ownerUidV924?c.from('happyad_stories').select('*').eq('user_id',ownerUidV924).eq('is_active',true).order('created_at',{ascending:false}).limit(RADAR_REMOTE_ROWS_V788):Promise.resolve({data:[],error:null});
         var pairV924=await Promise.all([radarReqV924,ownerReqV924]);
         var res=pairV924[0],ownerResV924=pairV924[1];
         if(res&&res.error)throw res.error;
-        var raw=(Array.isArray(res&&res.data)?res.data:[]).concat(ownerResV924&&!ownerResV924.error&&Array.isArray(ownerResV924.data)?ownerResV924.data:[]),rawSeenV924={},rawUniqueV924=[];
-        raw.forEach(function(r){var id=storyId(r),key=id||ownerOf(r)+'|'+mediaOf(r);if(!key||rawSeenV924[key])return;rawSeenV924[key]=1;rawUniqueV924.push(r)});
-        var rows=rawUniqueV924.filter(active).filter(function(r){return !isMutedOwner(ownerOf(r))});
+        var globalRaw=Array.isArray(res&&res.data)?res.data:[];
+        radarRemoteV788.exhausted=globalRaw.length<RADAR_REMOTE_ROWS_V788;
+        radarRemoteV788.beforeMs=0;
+
+        var ownerRaw=ownerResV924&&!ownerResV924.error&&Array.isArray(ownerResV924.data)?ownerResV924.data:[];
+        var rawSeenV924={},chosen=[];
+        function takeV907R3(r){
+          var id=storyId(r),key=id||ownerOf(r)+'|'+mediaOf(r);
+          if(!key||rawSeenV924[key]||!active(r)||isMutedOwner(ownerOf(r))||chosen.length>=RADAR_REMOTE_ROWS_V788)return;
+          rawSeenV924[key]=1;chosen.push(r);
+        }
+        /* Ta story est prioritaire, puis les plus récentes du lot global. */
+        ownerRaw.filter(active).sort(function(a,b){return createdOf(b)-createdOf(a)}).forEach(takeV907R3);
+        globalRaw.filter(active).sort(function(a,b){return createdOf(b)-createdOf(a)}).forEach(takeV907R3);
+        var rows=chosen;
+        /* Le prochain lot reprend juste après la plus ancienne ligne GLOBALE déjà
+           visible. Les lignes globales évincées du premier lot par « Ta story » ne
+           sont donc jamais sautées. */
+        var chosenKeys={};rows.forEach(function(r){var id=storyId(r),key=id||ownerOf(r)+'|'+mediaOf(r);if(key)chosenKeys[key]=1});
+        var globalSorted=globalRaw.slice().sort(function(a,b){return createdOf(b)-createdOf(a)}),firstOmitted=null;
+        for(var gi=0;gi<globalSorted.length;gi++){var gr=globalSorted[gi],gid=storyId(gr),gkey=gid||ownerOf(gr)+'|'+mediaOf(gr);if(gkey&&!chosenKeys[gkey]){firstOmitted=gr;break}}
+        if(firstOmitted){radarRemoteV788.beforeMs=(createdOf(firstOmitted)||Date.now())+1}
+        else if(globalSorted.length){var oldestGlobal=0;globalSorted.forEach(function(r){var t=createdOf(r);if(t>0&&(!oldestGlobal||t<oldestGlobal))oldestGlobal=t});radarRemoteV788.beforeMs=oldestGlobal}
+
         if(!rows.length){
-          var keep=cacheStories(),uid=currentUid(),now=Date.now(),authStable=false;
-          try{authStable=localStorage.getItem('HAPPYAD_SESSION_ACTIVE')==='1'&&isUuid(uid)}catch(_e){}
-          if(!authStable||keep.length){
-            if(radarCanonicalV792.emptyUid!==uid){radarCanonicalV792.emptyUid=uid;radarCanonicalV792.emptyAt=now;radarCanonicalV792.emptyCount=1}
-            else if(now-radarCanonicalV792.emptyAt>=2500){radarCanonicalV792.emptyAt=now;radarCanonicalV792.emptyCount++}
-            if(!authStable||radarCanonicalV792.emptyCount<2){radarCanonicalV792.awaitingStable=true;return keep}
-          }
-          radarCanonicalV792.awaitingStable=false;radarCanonicalV792.emptyUid='';radarCanonicalV792.emptyAt=0;radarCanonicalV792.emptyCount=0;
+          radarCanonicalV792.awaitingStable=false;
+          radarCanonicalV792.emptyUid='';radarCanonicalV792.emptyAt=0;radarCanonicalV792.emptyCount=0;
           return commitRadarCacheV792([]);
         }
         radarCanonicalV792.emptyUid='';radarCanonicalV792.emptyAt=0;radarCanonicalV792.emptyCount=0;
@@ -1599,15 +1629,14 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
         var remoteSeen={},viewer=currentUid(),storyIds=rows.map(storyId).filter(Boolean);
         if(viewer&&storyIds.length){try{var vr=await c.from('happyad_story_views').select('story_id').eq('viewer_id',viewer).in('story_id',storyIds);if(vr&&!vr.error)(vr.data||[]).forEach(function(x){remoteSeen[clean(x.story_id)]=1})}catch(_e){}}
         var fresh=rows.map(function(r){var item=itemFromRow(r,profiles[ownerOf(r)]||{}),id=storyId(r);if(id&&(remoteSeen[id]||isLocallySeenV787(id))){item.isSeen=true;item.seen=true;item.viewed=true}return item});
-        var oldest=0;fresh.forEach(function(p){var t=createdOf(p);if(t>0&&(!oldest||t<oldest))oldest=t});
-        var older=cacheStories().filter(function(p){var t=createdOf(p);return oldest&&t>0&&t<oldest});
-        var merged=fresh.concat(older),seen={},out=[];
-        merged.forEach(function(p){var id=storyId(p),key=id||ownerOf(p)+'|'+mediaOf(p);if(!key||seen[key]||!active(p))return;seen[key]=1;out.push(p)});
+        fresh.sort(function(a,b){return createdOf(b)-createdOf(a)});
         radarCanonicalV792.awaitingStable=false;
-        return commitRadarCacheV792(out.slice(0,320));
+        return commitRadarCacheV792(fresh.slice(0,RADAR_REMOTE_ROWS_V788));
       }catch(_e){
         radarCanonicalV792.awaitingStable=true;
-        return cacheStories();
+        /* Pas de restauration persistée : si cette session a déjà un lot serveur,
+           on le garde; au boot on reste en attente plutôt que peindre de vieux nombres. */
+        return radarFreshReadyV907R3?cacheStories():[];
       }finally{
         radarCanonicalV792.loading=false;radarCanonicalV792.promise=null;
       }
@@ -1620,7 +1649,12 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     var old=$('homeRadarStoryMasterV629'),oldRow=old&&old.querySelector('.radarRow'),keepScroll=oldRow?oldRow.scrollLeft:0,keepCount=old?Number(old.getAttribute('data-radar-rendered-owners')||0):0;
     var all=cacheStories().filter(active),groups={},me=currentUid();
     all.forEach(function(p){var o=isMineItem(p)&&me?me:ownerOf(p);if(!o)return;if(!groups[o])groups[o]=[];groups[o].push(p)});Object.keys(groups).forEach(function(o){groups[o].sort(function(a,b){return createdOf(a)-createdOf(b)})});
-    var owners=Object.keys(groups).sort(function(a,b){if(a===me&&b!==me)return -1;if(b===me&&a!==me)return 1;var aa=groups[a][groups[a].length-1],bb=groups[b][groups[b].length-1];return createdOf(bb)-createdOf(aa)});
+    function ownerSeenV907R3(owner){if(owner===me)return false;var items=groups[owner]||[];return !!items.length&&items.every(function(p){return !!(p.isSeen||p.seen||p.viewed||isLocallySeenV787(storyId(p)))})}
+    var owners=Object.keys(groups).sort(function(a,b){
+      if(a===me&&b!==me)return -1;if(b===me&&a!==me)return 1;
+      var as=ownerSeenV907R3(a),bs=ownerSeenV907R3(b);if(as!==bs)return as?1:-1;
+      var aa=groups[a][groups[a].length-1],bb=groups[b][groups[b].length-1];return createdOf(bb)-createdOf(aa)
+    });
 
     /* V791 : le RADAR maître est désormais un nœud persistant. Avant, chaque retour
        cache/Supabase supprimait tout le bloc puis le recréait. Le bouton + pouvait donc
@@ -1676,7 +1710,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     var mine=me&&groups[me];
     if(!mine||!mine.length)addNode();else{var staleAdd=row.querySelector('.haStoryAddOnlyV629');if(staleAdd)staleAdd.remove()}
     Array.prototype.slice.call(row.querySelectorAll('.haStoryRadarLoadingV792')).forEach(function(n){n.remove()});
-    if(!owners.length&&(radarCanonicalV792.loading||radarCanonicalV792.awaitingStable)&&Date.now()<radarSkeletonUntilV885){
+    if(!owners.length&&(radarCanonicalV792.loading||radarCanonicalV792.awaitingStable||!radarFreshReadyV907R3)){
       for(var lp=0;lp<2;lp++){var sk=document.createElement('div');sk.className='haStoryRadarUnitV629 haStoryRadarLoadingV792';sk.setAttribute('aria-hidden','true');sk.innerHTML='<div class="radarItem"><div class="radarAvatar"><span class="haStoryRadarPulseV792"></span></div><div class="radarName">&nbsp;</div><div class="radarMeta">&nbsp;</div></div>';row.appendChild(sk)}
     }
     block.setAttribute('data-radar-rendered-owners','0');
@@ -1726,15 +1760,10 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       },true);
     }
     if(keepScroll>0)requestAnimationFrame(function(){try{row.scrollLeft=keepScroll}catch(_e){}});
-    /* Si les 80 lignes initiales appartiennent à moins de 20 comptes, compléter en
-       arrière-plan jusqu'à 20 cercles seulement si d'autres stories actives existent. */
-    if(owners.length<RADAR_INITIAL_OWNERS_V788&&!radarRemoteV788.exhausted){
-      if(radarInitialTopupTimerV788)clearTimeout(radarInitialTopupTimerV788);
-      radarInitialTopupTimerV788=setTimeout(function topup(){
-        radarInitialTopupTimerV788=0;if(radarCachedOwnerCountV788()>=RADAR_INITIAL_OWNERS_V788||radarRemoteV788.exhausted)return;
-        fetchMoreRadarV788().then(function(items){if(!items.length)return;renderRadarHomeV629();if(radarCachedOwnerCountV788()<RADAR_INITIAL_OWNERS_V788&&!radarRemoteV788.exhausted){radarInitialTopupTimerV788=setTimeout(topup,120)}});
-      },700);
-    }
+    /* V907R4 : le premier lot reste STRICTEMENT limité aux 20 Stories récupérées
+       avec l'ouverture. Aucun top-up automatique par nombre de propriétaires : les
+       lots suivants ne partent que lorsque l'utilisateur approche réellement de la
+       fin du rail horizontal. */
     return true
   }
 
@@ -1822,25 +1851,45 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   },true);
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!state.closed&&!state.shareOverlayOpen)close('escape')},true);
   window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_STORY_POST_OPTIMISTIC_V925'){var od=d.detail||{};ingestOptimisticStoryV925(od.story||{},od.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_COMMITTED_V925'){var kd=d.detail||{};commitOptimisticStoryV925(kd.story||{},kd.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_FAILED_V925'){var fd=d.detail||{};failOptimisticStoryV925(fd.temp_id,fd.message);return;}if(d.type==='HAPPYAD_STORY_POST_CREATED_V912'){var cd=d.detail||{},cr=cd.story||{};if(cd.open_after_create===true)openCreatedStoryV914(cr);else ingestCreatedStoryV912(cr);return;}if(d.type==='HAPPYAD_OPEN_EXACT_STORY_NOTIFICATION_V735'){openExactNotificationV735(d.detail||{});return;}if(d.type==='HAPPYAD_STORY_MENTION_REPOST_CREATED_V888'){var md=d.detail||{};ingestCreatedStoryV912(md.story||{});return;}if(d.type==='HAPPYAD_OPEN_SHARED_STORY'){var x=d.detail||{};var seed={id:clean(x.story_id||x.id),story_id:clean(x.story_id||x.id),sourceId:clean(x.story_id||x.id),mode:'story',type:'story',category:'story',creatorId:clean(x.owner_id||x.user_id),user_id:clean(x.owner_id||x.user_id),creatorName:clean(x.author_name||x.creator_name)||'Utilisateur HAPPYAD',mediaUrl:clean(x.media_url||x.preview_url),media_url:clean(x.media_url||x.preview_url),mediaType:clean(x.media_type)||'photo',description:clean(x.description),created_at:x.created_at||'',expires_at:x.expires_at||'',isRadar:true,isLive:false,__storyTable:'happyad_stories'};openOwner(ownerOf(seed),storyId(seed),seed);return;}if(d.type==='HAPPYAD_OPEN_STORY_V629'||d.type==='HAPPYAD_OPEN_STORY_V628'){var x=d.detail||{};openOwner(clean(x.owner_id||x.user_id),clean(x.story_id),x.item||null)}if(d.type==='HAPPYAD_CLOSE_STORY_V629'||d.type==='HAPPYAD_CLOSE_STORY_V628')close('message')},true);
-  /* V885 : le dernier cache Story valide est peint avant toute lecture réseau.
-     Le squelette n'est qu'un filet de sécurité très court (<=180 ms). */
+  /* V907R3 : ouverture réseau-d'abord. Aucun ancien Radar n'est restauré avant
+     la réponse serveur. On lance la lecture dans le même cycle que l'ouverture de
+     la page, avec une petite relance seulement si le client Supabase n'est pas encore prêt. */
+  function resetRadarFreshCycleV907R3(){
+    radarFreshReadyV907R3=false;radarFreshStartedAtV907R3=Date.now();
+    radarStableSnapshotV792=[];radarStableSnapshotAtV792=0;
+    radarRemoteV788.exhausted=false;radarRemoteV788.beforeMs=0;
+    try{window.HAPPYAD_STORIES_ITEMS=[];window.__HAPPYAD_STORIES_ITEMS_CACHE=[]}catch(_e){}
+    radarCanonicalV792.awaitingStable=true;
+  }
+  function loadRadarFreshNowV907R3(reason,attempt){
+    attempt=Math.max(0,Number(attempt)||0);
+    if(attempt===0)resetRadarFreshCycleV907R3();
+    renderRadarHomeV629();
+    if(!sb()){
+      if(attempt<7){if(radarFreshRetryTimerV907R3)clearTimeout(radarFreshRetryTimerV907R3);radarFreshRetryTimerV907R3=setTimeout(function(){loadRadarFreshNowV907R3(reason,attempt+1)},Math.min(1400,100+attempt*180))}
+      return Promise.resolve([]);
+    }
+    return refreshRadarCanonicalV792().then(function(items){renderRadarHomeV629();return items}).catch(function(){renderRadarHomeV629();return []});
+  }
   function scheduleRadarConnectionV869(reason,delay){
     var run=function(){return refreshRadarCanonicalV792().then(renderRadarHomeV629)};
     try{var coordinator=window.HappyadConnectionWorkCoordinatorV869;if(coordinator&&typeof coordinator.schedule==='function')return coordinator.schedule('home-radar-refresh-v869',run,{surface:'home',delay:Math.max(50,Number(delay)||120),maxDelay:4000,minGap:8000});}catch(_e){}
     setTimeout(function(){run().catch(function(){})},Math.max(50,Number(delay)||120));return true;
   }
-  window.addEventListener('pageshow',function(){if(state.closed)unlock();installCss();restorePublicRoutes();setTimeout(renderRadarHomeV629,30);scheduleRadarConnectionV869('pageshow',90)},true);
-  window.addEventListener('online',function(){radarCanonicalV792.awaitingStable=true;scheduleRadarConnectionV869('online',160)},true);
-  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'||d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){radarCanonicalV792.awaitingStable=true;scheduleRadarConnectionV869('auth',80)}},true);
+  window.addEventListener('pageshow',function(e){
+    if(state.closed)unlock();installCss();restorePublicRoutes();
+    /* L'événement pageshow initial arrive souvent juste après le boot déjà lancé :
+       ne pas démarrer deux cycles. Un vrai retour BFCache recharge au contraire le lot. */
+    if(e&&e.persisted)loadRadarFreshNowV907R3('pageshow',0);else if(!radarFreshStartedAtV907R3)loadRadarFreshNowV907R3('pageshow',0);
+  },true);
+  window.addEventListener('online',function(){radarCanonicalV792.awaitingStable=true;if(!radarFreshReadyV907R3)loadRadarFreshNowV907R3('online',1);else scheduleRadarConnectionV869('online',120)},true);
+  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'||d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){loadRadarFreshNowV907R3('auth',0)}},true);
   /* V631 : le CSS du cercle est présent avant le premier rendu, pas seulement après
      la première ouverture du fullscreen. */
   installCss();restorePublicRoutes();
-  try{var bootStoriesV885=readJson('HAPPYAD_STORIES_CACHE_V1',[]);if(Array.isArray(bootStoriesV885)&&bootStoriesV885.filter(active).length)rememberLastGoodStoriesV885(bootStoriesV885)}catch(_e){}
-  radarCanonicalV792.awaitingStable=true;
-  scheduleRadarConnectionV869('boot',70);
+  loadRadarFreshNowV907R3('boot',0);
   setInterval(refreshRadarAgesV783,1000);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshRadarAgesV783()},true);
-  setTimeout(renderRadarHomeV629,20);setTimeout(renderRadarHomeV629,220);
 })();
 
 /* V903 — Ma Story : deux petits boutons séparés, aucun panneau noir parent. */

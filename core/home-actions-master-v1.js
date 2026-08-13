@@ -20,6 +20,9 @@
   var mutations=Object.create(null);
   var refreshTimers=Object.create(null);
   var countTimers=Object.create(null);
+  var commentCountAt=Object.create(null);
+  var commentCountValue=Object.create(null);
+  var commentCountLoads=Object.create(null);
   var likeRetryTimers=Object.create(null);
   var visibleAt=new Map();
   var batchState={key:'',at:0,promise:null};
@@ -183,6 +186,39 @@
     clearTimeout(refreshTimers[id]);refreshTimers[id]=setTimeout(run,Number(delay||180));return true;
   }
 
+  async function exactCommentCount(c,postId,force){
+    var id=String(postId||'');if(!c||!id)return null;
+    var now=Date.now();
+    if(force!==true&&Object.prototype.hasOwnProperty.call(commentCountValue,id)&&now-Number(commentCountAt[id]||0)<12000)return Number(commentCountValue[id]);
+    if(commentCountLoads[id]&&force!==true)return commentCountLoads[id];
+    var task=(async function(){
+      try{
+        var q=await c.from('happyad_content_comments').select('id',{count:'exact',head:true}).eq('post_id',id);
+        if(q&&q.error)throw q.error;
+        var n=Number(q&&q.count);if(!isFinite(n))return null;
+        n=Math.max(0,n);if(n===0){try{var q2=await c.from('happyad_content_comments').select('id',{count:'exact',head:true}).eq('content_id',id);if(q2&&!q2.error&&isFinite(Number(q2.count))&&Number(q2.count)>0)n=Math.max(0,Number(q2.count));}catch(_legacy){}}
+        commentCountValue[id]=n;commentCountAt[id]=Date.now();return n;
+      }catch(_e){return null;}
+    })();
+    commentCountLoads[id]=task;
+    try{return await task;}finally{if(commentCountLoads[id]===task)delete commentCountLoads[id];}
+  }
+  async function exactCommentCountsBatch(c,ids){
+    ids=Array.isArray(ids)?ids.map(String).filter(Boolean):[];var out=Object.create(null),next=0;
+    async function worker(){while(next<ids.length){var id=ids[next++],n=await exactCommentCount(c,id,false);if(n!==null)out[id]=n;}}
+    var workers=[];for(var i=0;i<Math.min(6,ids.length);i++)workers.push(worker());
+    await Promise.all(workers);return out;
+  }
+  function applyExactCommentCount(id,a,n){
+    if(n===null||n===undefined||!isFinite(Number(n)))return a;
+    var exact=Math.max(0,Number(n)||0);
+    /* Une insertion locale optimiste ne doit jamais être écrasée par un count réseau
+       parti juste avant le commit Supabase. Hors mutation, le count table est autoritaire. */
+    a.comments=mutationRecent(id,'comments')?Math.max(Number(a.comments||0),exact):exact;
+    a.__commentsCountExact=true;a.__commentsCountAt=Date.now();
+    return a;
+  }
+
   function ownNum(p,names){
     p=p||{};for(var i=0;i<names.length;i++){var k=names[i];if(Object.prototype.hasOwnProperty.call(p,k)){var v=Number(p[k]);if(isFinite(v))return Math.max(0,v);}}return null;
   }
@@ -230,6 +266,7 @@
         var pr=await c.from('happyad_posts').select('*').eq('id',id).maybeSingle();
         if(pr&&!pr.error&&pr.data)applyPostCounts(a,pr.data,true);
       }catch(_p){}
+      try{applyExactCommentCount(id,a,await exactCommentCount(c,id,opts.force===true));}catch(_cc){}
       if(user&&user.id){
         try{
           var ar=await c.from('happyad_content_actions').select('action_type,liked').eq('post_id',id).eq('user_id',String(user.id)).limit(12);
@@ -259,6 +296,10 @@
       var pr=await c.from('happyad_posts').select('*').in('id',ids);
       if(pr&&!pr.error)(pr.data||[]).forEach(function(p){var id=String(p&&p.id||'');if(byPost[id])applyPostCounts(byPost[id],p,true);});
     }catch(_p){}
+    try{
+      var exactCounts=await exactCommentCountsBatch(c,ids);
+      ids.forEach(function(id){if(byPost[id]&&Object.prototype.hasOwnProperty.call(exactCounts,id))applyExactCommentCount(id,byPost[id],exactCounts[id]);});
+    }catch(_cc){}
     var user=null;try{user=await authUser();}catch(_e){}
     if(user&&user.id){
       try{
@@ -303,7 +344,13 @@
 
   async function syncPostCounts(postId,contentType){
     var c=sb(),id=String(postId||'');if(!c||!id)return;var a=get(id);
-    var patch={likes_count:Number(a.likes||0),comments_count:Number(a.comments||0),saves_count:Number(a.favs||0)};
+    var patch={likes_count:Number(a.likes||0),saves_count:Number(a.favs||0)};
+    /* comments_count n'est plus dérivé d'un cache local potentiellement vide.
+       La table des commentaires est la source de vérité avant toute réécriture du post. */
+    try{
+      var exact=await exactCommentCount(c,id,true);
+      if(exact!==null){a.comments=Math.max(0,Number(exact)||0);a.__commentsCountExact=true;a.__commentsCountAt=Date.now();patch.comments_count=Number(a.comments||0);set(id,preserveLatestCommentDetail(id,a));paintIdsWhenIdle([id]);}
+    }catch(_cc){}
     if(String(contentType||'').toLowerCase()==='video')patch.views_count=Number(a.views||0);
     try{var r=await c.from('happyad_posts').update(patch).eq('id',id);if(r&&r.error)throw r.error;}catch(_e){}
   }
