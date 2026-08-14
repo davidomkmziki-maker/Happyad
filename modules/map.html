@@ -29,7 +29,7 @@
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
 <script src="../core/api.js?v=855r54-location-privacy"></script>
 <script src="../core/location-privacy-master-v855r54.js?v=855r54-location-privacy"></script>
-<script src="../core/return-reset-master-v584.js?v=584"></script>
+<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -305,9 +305,9 @@ initMap();renderPlaces();
   function inFrame(){try{return window.parent&&window.parent!==window;}catch(e){return false;}}
   function clean(url){url=String(url||'').trim();if(url.indexOf('../')===0)url=url.replace(/^\.\.\//,'');if(url.indexOf('./')===0)url=url.replace(/^\.\//,'');return url;}
   function send(url){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:clean(url)},'*');return true;}}catch(e){}return false;}
-  function close(){return false;}
+  function close(){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_NAV_BACK_REQUEST',detail:{source:'map-module-v927'}},'*');return true;}History.prototype.go.call(history,-1);return true;}catch(e){return false;}}
   window.happyadOpenInternalUrlV492=function(url){if(send(url))return true;location.href=url;return true;};
-  window.happyadCloseAppPage=function(){return false;};
+  window.happyadCloseAppPage=close;
   document.addEventListener('click',function(e){
     try{
       if(!inFrame())return;

@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V872_CONVERSATION_OPEN_RETURN';
+  var VERSION='V928_CANONICAL_LAYER_PROFILE_RESUME';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
   var NOTIF_URL='modules/notification-center.html?v=895-story-repost-return';
@@ -15,12 +15,15 @@
   var notificationPrewarmed=false;
   var notificationPendingDetail=null;
   var notificationRevealTimer=0;
+  var notificationSuspendedV927=false;
   var lastStableRoute=null;
-  var photoReturnRoute=null;
-  var profileSettingsHistoryArmed=false;
-  var profileSettingsPopInstalled=false;
-  var messageChatHistoryArmedV872=false;
-  var messageChatPopInstalledV872=false;
+  var NAV_DEPTH_KEY_V927='__happyadNavDepthV927';
+  var LAYER_MARKER_KEY_V927='__happyadInternalLayerV927';
+  var LAYER_DEPTH_KEY_V927='__happyadInternalDepthV927';
+  var layerHistoryV927=Object.create(null);
+  var suspendedLayersV927=Object.create(null);
+  var ignoredLayerPopsV927=0;
+  var preparingMenuV927=false;
 
   function clean(v){return String(v==null?'':v).trim();}
   function now(){return Date.now?Date.now():(new Date()).getTime();}
@@ -92,72 +95,58 @@
     setTimeout(function(){notifyMessageLayout(hidden?'internal-open-v591':'internal-closed-v591');},20);
   }
 
-  function armProfileSettingsHistory(){
-    if(profileSettingsHistoryArmed)return true;
+  function layerDepthV927(value){var n=Number(value&&value[LAYER_DEPTH_KEY_V927]);return isFinite(n)&&n>0?Math.floor(n):0;}
+  function navDepthV927(value){var n=Number(value&&value[NAV_DEPTH_KEY_V927]);return isFinite(n)&&n>=0?Math.floor(n):0;}
+  function layerUsesHistoryV927(id){return !!id&&id!=='photo-central';}
+  function armLayerHistoryV927(id){
+    if(!layerUsesHistoryV927(id))return false;
+    var record=layerHistoryV927[id];if(record&&record.armed)return true;
     try{
-      var base=Object.assign({},history.state||{});
-      base.__happyadProfileSettingsBaseV712=true;
-      History.prototype.replaceState.call(history,base,'',location.href);
-      var active=Object.assign({},base,{__happyadProfileSettingsActiveV712:true,at:now()});
+      var base=Object.assign({},history.state||{}),depth=layerDepthV927(base);
+      if(depth===0){delete base[LAYER_MARKER_KEY_V927];base[LAYER_DEPTH_KEY_V927]=0;History.prototype.replaceState.call(history,base,'',location.href);}
+      var active=Object.assign({},base);
+      active[LAYER_MARKER_KEY_V927]=id;active[LAYER_DEPTH_KEY_V927]=depth+1;active.__happyadInternalAtV927=now();
       History.prototype.pushState.call(history,active,'',location.href);
-      profileSettingsHistoryArmed=true;
-    }catch(_e){profileSettingsHistoryArmed=false;}
-    if(!profileSettingsPopInstalled){
-      profileSettingsPopInstalled=true;
-      try{EventTarget.prototype.addEventListener.call(window,'popstate',function(){
-        if(profileSettingsHistoryArmed&&topLayer()==='profile-settings'){
-          profileSettingsHistoryArmed=false;
-          back('profile-settings');
-        }
-      },true);}catch(_e){}
-    }
-    return profileSettingsHistoryArmed;
+      layerHistoryV927[id]={armed:true,depth:depth+1};
+      return true;
+    }catch(_e){layerHistoryV927[id]={armed:false,depth:0};return false;}
   }
-  function consumeProfileSettingsHistory(){
-    if(!profileSettingsHistoryArmed)return false;
-    profileSettingsHistoryArmed=false;
-    try{History.prototype.go.call(history,-1);return true;}catch(_e){return false;}
+  function consumeLayerHistoryV927(id){
+    var record=layerHistoryV927[id];
+    if(!record||!record.armed||preparingMenuV927)return false;
+    record.armed=false;ignoredLayerPopsV927++;
+    try{History.prototype.go.call(history,-1);return true;}catch(_e){ignoredLayerPopsV927=Math.max(0,ignoredLayerPopsV927-1);return false;}
   }
-
-  /* V872 : la neutralisation V584 reste en place pour les anciens contrôleurs,
-     mais la conversation possède une seule entrée native et contextuelle. Le
-     bouton Android ferme donc le chat au lieu d'oublier sa surface d'origine. */
-  function armMessageChatHistoryV872(){
-    if(messageChatHistoryArmedV872)return true;
-    try{
-      var base=Object.assign({},history.state||{});
-      base.__happyadMessageChatBaseV872=true;
-      delete base.__happyadMessageChatActiveV872;
-      History.prototype.replaceState.call(history,base,'',location.href);
-      History.prototype.pushState.call(history,Object.assign({},base,{__happyadMessageChatActiveV872:true,at:now()}),'',location.href);
-      messageChatHistoryArmedV872=true;
-    }catch(_e){messageChatHistoryArmedV872=false;}
-    if(!messageChatPopInstalledV872){
-      messageChatPopInstalledV872=true;
-      try{EventTarget.prototype.addEventListener.call(window,'popstate',function(){
-        if(messageChatHistoryArmedV872&&topLayer()==='message-chat'){
-          messageChatHistoryArmedV872=false;
-          back('message-chat');
-        }
-      },true);}catch(_e){}
-    }
-    return messageChatHistoryArmedV872;
-  }
-  function consumeMessageChatHistoryV872(){
-    if(!messageChatHistoryArmedV872)return false;
-    messageChatHistoryArmedV872=false;
-    try{History.prototype.go.call(history,-1);return true;}catch(_e){return false;}
-  }
+  try{EventTarget.prototype.addEventListener.call(window,'popstate',function(ev){
+    if(ignoredLayerPopsV927>0){ignoredLayerPopsV927--;return;}
+    var id=topLayer();if(!id)return;
+    var record=layerHistoryV927[id];if(!record||!record.armed)return;
+    var next=ev&&ev.state||{},nextId=clean(next[LAYER_MARKER_KEY_V927]),nextDepth=layerDepthV927(next);
+    if(nextId===id&&nextDepth>=record.depth)return;
+    record.armed=false;
+    back(id,{fromPop:true,source:'android-back-v927'});
+  },true);}catch(_pop){}
 
   function openLayer(id,options){
     id=clean(id)||'internal';
+    if(id==='photo-central')return id;
+    delete suspendedLayersV927[id];
     var idx=layerIndex(id),alreadyTop=idx>=0&&idx===layers.length-1;
     if(options&&typeof options.onBack==='function')handlers[id]=options.onBack;
-    if(id==='message-chat')armMessageChatHistoryV872();
-    if(alreadyTop)return id;
+    if(alreadyTop){
+      /* Une sous-page interne (ex. Paramètres > Langue) peut traiter le premier
+         Retour Android sans fermer son hôte. L'entrée de couche vient alors
+         d'être dépilée : le signal KEEP_OPEN réarme exactement une sentinelle,
+         afin que le Retour suivant ferme encore la bonne couche au lieu de
+         traverser la route B restée dessous. */
+      var currentRecord=layerHistoryV927[id];
+      if(!(options&&options.fromHistory)&&(!currentRecord||!currentRecord.armed))armLayerHistoryV927(id);
+      applyDock();
+      return id;
+    }
     if(idx>=0)layers.splice(idx,1);
     layers.push(id);
-    if(id==='profile-settings')armProfileSettingsHistory();
+    if(!(options&&options.fromHistory))armLayerHistoryV927(id);
     applyDock();
     try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
     return id;
@@ -168,11 +157,37 @@
     var idx=layerIndex(id);
     if(idx<0){delete handlers[id];return false;}
     layers.splice(idx,1);
-    if(id==='profile-settings')consumeProfileSettingsHistory();
-    if(id==='message-chat')consumeMessageChatHistoryV872();
+    consumeLayerHistoryV927(id);
     delete handlers[id];
     applyDock();
     try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_o){}
+    return true;
+  }
+  function suspendLayerV927(id,options){
+    id=clean(id);if(!id)return false;options=options||{};
+    var idx=layerIndex(id);
+    if(idx<0){
+      if(suspendedLayersV927[id]&&typeof options.onResume==='function')suspendedLayersV927[id].onResume=options.onResume;
+      return !!suspendedLayersV927[id];
+    }
+    var savedHandler=handlers[id];layers.splice(idx,1);delete handlers[id];
+    var record=layerHistoryV927[id];if(record){record.armed=false;record.suspended=true;}
+    suspendedLayersV927[id]={handler:savedHandler||null,onResume:typeof options.onResume==='function'?options.onResume:null,depth:Number(record&&record.depth||layerDepthV927(history.state)||1),navDepth:navDepthV927(history.state)};
+    applyDock();
+    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_o){}
+    return true;
+  }
+  function resumeLayerV927(id,options){
+    id=clean(id);if(!id)return false;options=options||{};
+    var saved=suspendedLayersV927[id]||{},idx=layerIndex(id);
+    if(idx<0)layers.push(id);
+    if(typeof options.onBack==='function')handlers[id]=options.onBack;
+    else if(typeof saved.handler==='function')handlers[id]=saved.handler;
+    var depth=layerDepthV927(history.state)||Number(saved.depth||1),onResume=typeof options.onResume==='function'?options.onResume:saved.onResume;
+    layerHistoryV927[id]={armed:true,depth:depth,suspended:false};
+    delete suspendedLayersV927[id];applyDock();
+    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
+    try{if(typeof onResume==='function')onResume({id:id,depth:depth,source:'history-resume-v928'});}catch(_resume){}
     return true;
   }
   function register(id,onBack){id=clean(id);if(id&&typeof onBack==='function')handlers[id]=onBack;return function(){delete handlers[id];};}
@@ -248,13 +263,14 @@
     return el;
   }
   function prewarmNotification(){if(notificationPrewarmed||!document.body)return;notificationPrewarmed=true;prepareNotification();}
-  function revealNotification(detail,reason){
+  function revealNotification(detail,reason,fromHistory){
     detail=detail&&detail.detail?detail.detail:(detail||{});
     clearTimeout(notificationRevealTimer);notificationRevealTimer=0;
     notificationPendingDetail=null;
     var el=notificationShell();
     notificationOpen=true;
-    openLayer('notification');
+    notificationSuspendedV927=false;
+    openLayer('notification',fromHistory?{fromHistory:true}:null);
     document.documentElement.classList.add(NOTIF_CLASS);
     document.body.classList.add(NOTIF_CLASS);
     el.classList.add('on');el.setAttribute('aria-hidden','false');el.removeAttribute('inert');
@@ -301,6 +317,8 @@
     var el=document.getElementById(NOTIF_CENTER_ID);
     if(el){el.classList.remove('on');el.setAttribute('aria-hidden','true');el.setAttribute('inert','');}
     notificationOpen=false;
+    notificationSuspendedV927=false;
+    delete suspendedLayersV927.notification;
     document.documentElement.classList.remove(NOTIF_CLASS);
     document.body.classList.remove(NOTIF_CLASS);
     closeLayer('notification');
@@ -309,49 +327,119 @@
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_NOTIFICATION_CENTER_CLOSED',{detail:{reason:reason||'internal-back-v591',at:now()}}));}catch(_e){}
     return true;
   }
-  function handoffNotification(reason){
+  function suspendNotificationV927(reason){
     if(!notificationOpen){restoreDockAfterNotification(reason||'notification-handoff-already-closed');return false;}
-    var closed=hideNotification(reason||'notification-handoff-v694');
-    restoreDockAfterNotification(reason||'notification-handoff-v694');
-    return closed;
+    clearTimeout(notificationRevealTimer);notificationRevealTimer=0;notificationPendingDetail=null;
+    var el=document.getElementById(NOTIF_CENTER_ID);if(el){el.classList.remove('on');el.setAttribute('aria-hidden','true');el.setAttribute('inert','');}
+    notificationOpen=false;notificationSuspendedV927=true;
+    document.documentElement.classList.remove(NOTIF_CLASS);document.body.classList.remove(NOTIF_CLASS);
+    var idx=layerIndex('notification');if(idx>=0)layers.splice(idx,1);
+    var record=layerHistoryV927.notification;if(record){record.armed=false;record.suspended=true;}
+    suspendedLayersV927.notification={handler:null,depth:Number(record&&record.depth||layerDepthV927(history.state)||1),navDepth:navDepthV927(history.state)};
+    delete handlers.notification;applyDock();
+    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-notification');}catch(_o){}
+    try{window.dispatchEvent(new CustomEvent('HAPPYAD_NOTIFICATION_CENTER_SUSPENDED_V927',{detail:{reason:reason||'notification-handoff-v927',at:now()}}));}catch(_e){}
+    return true;
+  }
+  function handoffNotification(reason){
+    return suspendNotificationV927(reason||'notification-handoff-v927');
+  }
+  function discardLayersAboveDepthV927(depth){
+    preparingMenuV927=true;
+    try{
+      while(layers.length){
+        var id=topLayer(),record=layerHistoryV927[id];
+        if(!record||Number(record.depth||0)<=depth)break;
+        record.armed=false;layers.pop();
+        try{if(typeof handlers[id]==='function')handlers[id]();else postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id,source:'history-discard-v927'});}catch(_e){}
+        delete handlers[id];
+      }
+    }finally{preparingMenuV927=false;}
+  }
+  function restoreHistoryStateV927(value){
+    var id=clean(value&&value[LAYER_MARKER_KEY_V927]);
+    if(id!=='notification'&&suspendedLayersV927[id]){
+      var genericDepth=layerDepthV927(value)||Number(suspendedLayersV927[id].depth||1);
+      discardLayersAboveDepthV927(genericDepth);
+      resumeLayerV927(id);
+      return true;
+    }
+    if(id!=='notification'||!notificationSuspendedV927)return false;
+    var depth=layerDepthV927(value)||1;
+    discardLayersAboveDepthV927(depth);
+    layerHistoryV927.notification={armed:true,depth:depth,suspended:false};
+    delete suspendedLayersV927.notification;
+    revealNotification({source:'history-return-v927'},'history-return-v927',true);
+    return true;
+  }
+  function suspendedHistoryOffsetV927(){
+    /* Une couche suspendue peut déjà être comprise dans __happyadInternalDepthV927
+       (Notification -> publication Accueil) ou se trouver avant une nouvelle
+       route principale (Notification -> Profil -> photo). On ne compte ici que
+       les entrées physiques qui ne sont pas déjà incluses dans la profondeur
+       interne de l'état courant. */
+    var current={};try{current=history.state||{};}catch(_e){}
+    var currentNav=navDepthV927(current),currentInternal=layerDepthV927(current),extra=0;
+    Object.keys(suspendedLayersV927).forEach(function(id){
+      var saved=suspendedLayersV927[id]||{},savedNav=Math.max(0,Number(saved.navDepth)||0),savedDepth=Math.max(1,Number(saved.depth)||1);
+      if(savedNav!==currentNav||currentInternal<savedDepth)extra++;
+    });
+    return extra;
   }
   function openInternalUrl(data){
     var url=clean(data&&data.url);if(!url)return false;
     handoffNotification('notification-content-v591');
-    try{if(window.HappyNavigation&&typeof window.HappyNavigation.open==='function')return window.HappyNavigation.open(url,Object.assign({force:true,source:VERSION},data.extra||{}));}catch(_e){}
-    return false;
+    try{if(window.HappyNavigation&&typeof window.HappyNavigation.open==='function')window.HappyNavigation.open(url,Object.assign({force:true,source:VERSION},data.extra||{}));}catch(_e){}
+    return true;
   }
-  function openHomeComment(data){handoffNotification('notification-comment-v591');setTimeout(function(){try{if(typeof window.happyadOpenHomeCommentFromNotificationV545==='function')window.happyadOpenHomeCommentFromNotificationV545(data||{});}catch(_e){}},20);}
-  function openHomePost(data){handoffNotification('notification-post-v591');setTimeout(function(){try{if(typeof window.happyadOpenHomePostFromNotificationV548==='function')window.happyadOpenHomePostFromNotificationV548(data||{});}catch(_e){}},20);}
+  function openHomeComment(data){handoffNotification('notification-comment-v591');try{if(typeof window.happyadOpenHomeCommentFromNotificationV545==='function')window.happyadOpenHomeCommentFromNotificationV545(data||{});}catch(_e){}}
+  function openHomePost(data){handoffNotification('notification-post-v591');try{if(typeof window.happyadOpenHomePostFromNotificationV548==='function')window.happyadOpenHomePostFromNotificationV548(data||{});}catch(_e){}}
   function returnFromCentralPhoto(){
-    closeLayer('photo-central');
-    var target=photoReturnRoute||lastStableRoute||{page:'home',url:'index.html'};
-    photoReturnRoute=null;
-    try{
-      if(target.page==='home'&&window.HappyNavigation&&typeof window.HappyNavigation.close==='function')return window.HappyNavigation.close('photo-internal-return-v591');
-      if(window.HappyNavigation&&typeof window.HappyNavigation.open==='function')return window.HappyNavigation.open(target.url,{page:target.page,replace:true,force:true,source:'photo-internal-return-v591'});
-    }catch(_e){}
+    /* La centrale Photo est une vraie route, pas une couche. Son bouton Retour
+       dépile donc exactement B, puis A, au lieu de relire une destination mémorisée
+       qui pouvait sauter directement vers l'Accueil. */
+    try{if(window.HappyNavigation&&typeof window.HappyNavigation.back==='function')return window.HappyNavigation.back({source:'photo-internal-return-v927'});}catch(_e){}
     return false;
   }
-  function back(id){
+  function back(id,options){
     id=clean(id)||topLayer();
     if(!id)return false;
     try{if(typeof handlers[id]==='function')return handlers[id]();}catch(_e){}
     if(id==='notification')return hideNotification('notification-button-v591');
     if(id==='photo-central')return returnFromCentralPhoto();
     if(id==='message-chat')return postToFrame('message','HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
-    if(id==='profile-settings')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
-    if(id==='profile-photo')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
-    if(id==='profile-stats-v855')return postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id});
-    return false;
+    if(postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id,source:clean(options&&options.source)||VERSION}))return true;
+    closeLayer(id);
+    return true;
+  }
+
+  function prepareMenuNavigation(reason){
+    preparingMenuV927=true;
+    try{
+      var pending=layers.slice().reverse();
+      pending.forEach(function(id){
+        var record=layerHistoryV927[id];if(record)record.armed=false;
+        try{
+          if(id==='notification')hideNotification(reason||'menu-v927');
+          else if(typeof handlers[id]==='function')handlers[id]();
+          else postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id,source:reason||'menu-v927'});
+        }catch(_e){}
+      });
+      layers.length=0;handlers=Object.create(null);
+      notificationOpen=false;notificationSuspendedV927=false;suspendedLayersV927=Object.create(null);
+      var el=document.getElementById(NOTIF_CENTER_ID);if(el){el.classList.remove('on');el.setAttribute('aria-hidden','true');el.setAttribute('inert','');}
+      document.documentElement.classList.remove(NOTIF_CLASS);document.body&&document.body.classList.remove(NOTIF_CLASS);
+      applyDock();
+    }finally{preparingMenuV927=false;}
+    return true;
   }
 
   window.addEventListener('HAPPYAD_NOTIFICATION_CENTER_REQUEST',function(ev){openNotification(ev&&ev.detail||{});},true);
   window.addEventListener('HAPPYAD_NAV_CHANGED_V586',function(ev){
     var d=ev&&ev.detail||{},page=clean(d.page)||'home',url=clean(d.url)||'index.html';
     if(page==='photo'){
-      if(!photoReturnRoute)photoReturnRoute=lastStableRoute||{page:'home',url:'index.html'};
-      openLayer('photo-central');
+      lastStableRoute={page:page,url:url};
+      applyDock(page);
     }else{
       closeLayer('photo-central');
       /* V855R25 : lorsqu'on quitte un Profil visiteur après avoir ouvert une photo,
@@ -408,7 +496,7 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
-  window.HappyInternalReturnV694={version:VERSION,open:openLayer,close:closeLayer,back:back,register:register,top:topLayer,openNotification:openNotification,closeNotification:hideNotification,returnFromCentralPhoto:returnFromCentralPhoto,applyDock:applyDock};
+  window.HappyInternalReturnV694={version:VERSION,open:openLayer,close:closeLayer,suspend:suspendLayerV927,resume:resumeLayerV927,back:back,register:register,top:topLayer,openNotification:openNotification,closeNotification:hideNotification,returnFromCentralPhoto:returnFromCentralPhoto,prepareMenuNavigation:prepareMenuNavigation,restoreHistoryState:restoreHistoryStateV927,historyOffset:suspendedHistoryOffsetV927,applyDock:applyDock};
   window.HappyInternalReturnV591=window.HappyInternalReturnV694;
   window.HappyInternalReturnV588=window.HappyInternalReturnV694;
   window.HappyInternalReturnV587=window.HappyInternalReturnV694;

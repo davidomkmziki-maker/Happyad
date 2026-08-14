@@ -22,7 +22,6 @@
   var HEADER_DRAG_ID='happyadShareHeaderDragZone';
   var HEIGHT_KEY='HAPPYAD_SHARE_SHEET_HEIGHT_V906';
   var HISTORY_FLAG='__happyadShareCenter';
-  var SHARED_POST_FLAG='__happyadSharedPost';
   var current=null;
   var sourceWindow=null;
   var frameReady=false;
@@ -669,7 +668,13 @@
     bindFrame(fr);return el;
   }
   function sendContext(){if(!current)return;postFrame('HAPPYAD_SHARE_CONTEXT',{post:clone(current),link:shareLink(current),version:VERSION,permission_state:sharePermissionState});sendPermission();}
-  function pushState(){try{var st=Object.assign({},history.state||{});st[HISTORY_FLAG]=true;st.view='share_center';st.ts=Date.now();history.pushState(st,'',location.href);}catch(_e){}}
+  function pushState(){
+    try{
+      var controller=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      if(controller&&typeof controller.open==='function')return controller.open('share-center-v927',{onBack:function(){close('share-return-v927',true);return true;}});
+    }catch(_e){}
+    return false;
+  }
   function open(raw,src){
     var input=raw&&raw.detail?raw.detail:raw||{};
     var provisional=normalize(input);if(!provisional.id)return false;
@@ -698,7 +703,7 @@
     }).catch(function(){if(seq===openSeq&&shareIsOpen()){sharePermissionState='denied';sendPermission();}});
     return true;
   }
-  function close(reason,fromPop){openSeq++;sharePermissionState='pending';var snapshot=sourceMediaSnapshot,closing=clone(current),fromStory=openedFromStory;clearFrameHealthTimer();if(frameResumeTimer){clearTimeout(frameResumeTimer);frameResumeTimer=0;}recoveryInFlight=false;recoveryAttempts=0;externalReturnPending=false;externalLaunchAt=0;var el=document.getElementById(CENTER_ID);if(el){el.classList.remove('on','happyadShareFromStoryV705');el.setAttribute('aria-hidden','true');}document.documentElement.classList.remove('happyadShareOpen','happyadShareFromStoryV705');document.body.classList.remove('happyadShareOpen','happyadShareFromStoryV705');current=null;openedFromStory=false;restoreSourceMedia(snapshot);sourceWindow=null;sourceMediaSnapshot=null;try{document.dispatchEvent(new CustomEvent('happyad:share-closed-v705',{detail:{reason:clean(reason)||'close',fromStory:!!fromStory,context:closing}}))}catch(_e){}return true;}
+  function close(reason,fromPop){openSeq++;sharePermissionState='pending';var snapshot=sourceMediaSnapshot,closing=clone(current),fromStory=openedFromStory;clearFrameHealthTimer();if(frameResumeTimer){clearTimeout(frameResumeTimer);frameResumeTimer=0;}recoveryInFlight=false;recoveryAttempts=0;externalReturnPending=false;externalLaunchAt=0;var el=document.getElementById(CENTER_ID);if(el){el.classList.remove('on','happyadShareFromStoryV705');el.setAttribute('aria-hidden','true');}document.documentElement.classList.remove('happyadShareOpen','happyadShareFromStoryV705');document.body.classList.remove('happyadShareOpen','happyadShareFromStoryV705');current=null;openedFromStory=false;try{var controller=window.HappyInternalReturnV694||window.HappyInternalReturnV591;if(controller&&typeof controller.close==='function')controller.close('share-center-v927');}catch(_return){}restoreSourceMedia(snapshot);sourceWindow=null;sourceMediaSnapshot=null;try{document.dispatchEvent(new CustomEvent('happyad:share-closed-v705',{detail:{reason:clean(reason)||'close',fromStory:!!fromStory,context:closing}}))}catch(_e){}return true;}
   function recordAction(detail){try{var target=sourceWindow&&sourceWindow.postMessage?sourceWindow:window;target.postMessage({type:'HAPPYAD_SHARE_RECORD_ACTION',detail:detail||{}},'*');}catch(_e){}}
   function captureSharedPhotoMessageContextV708(sourceWin){
     var fr=null;
@@ -711,8 +716,9 @@
     try{if(!fr&&window.HappyNavigation&&typeof window.HappyNavigation.activeFrame==='function')fr=window.HappyNavigation.activeFrame();}catch(_e){}
     try{if(!fr)fr=document.querySelector('#happyadAppFrame_message.on[data-happyad-page="message"]');}catch(_e){}
     if(!fr||clean(fr.getAttribute&&fr.getAttribute('data-happyad-page')).toLowerCase()!=='message')return null;
-    var ctx={frame:fr,url:clean(fr.getAttribute('data-happyad-src')||fr.getAttribute('src'))||'modules/message-center.html?mode=inbox&v=783-message-read-story-age',scrollX:0,scrollY:0,at:Date.now()};
+    var ctx={frame:fr,url:clean(fr.getAttribute('data-happyad-src')||fr.getAttribute('src'))||'modules/message-center.html?mode=inbox&v=783-message-read-story-age',scrollX:0,scrollY:0,at:Date.now(),wasVisitorDirect:false};
     try{ctx.scrollX=Number(fr.contentWindow&&fr.contentWindow.scrollX)||0;ctx.scrollY=Number(fr.contentWindow&&fr.contentWindow.scrollY)||0;}catch(_e){}
+    try{ctx.wasVisitorDirect=!!(document.body.classList.contains('happyadVisitorDirectChatOpenV855R77')||fr.classList.contains('happyadVisitorDirectChatFrameV855R77'));}catch(_visitor){}
     try{if(fr.contentWindow)fr.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_CONTEXT_HOLD_V708',detail:{source:'shared-photo',at:ctx.at}},'*');}catch(_e){}
     return ctx;
   }
@@ -729,12 +735,13 @@
         if(!fr||!fr.isConnected)return false;
         var active=null;
         try{active=window.HappyNavigation&&typeof window.HappyNavigation.activeFrame==='function'?window.HappyNavigation.activeFrame():null;}catch(_e){}
-        if(active!==fr&&window.HappyNavigation&&typeof window.HappyNavigation.activateMainTab==='function'){
+        if(active!==fr&&!ctx.wasVisitorDirect&&window.HappyNavigation&&typeof window.HappyNavigation.activateMainTab==='function'){
           window.HappyNavigation.activateMainTab('message',{url:ctx.url,replace:true,force:true,source:'shared-photo-return-v708'});
           return true;
         }
         var root=document.getElementById('happyadAppShell');
         if(root){root.classList.add('on');root.classList.remove('happyadSkeletonOpen');root.setAttribute('aria-hidden','false');root.removeAttribute('inert');}
+        if(ctx.wasVisitorDirect){document.body.classList.add('happyadVisitorDirectChatOpenV855R77');fr.classList.add('happyadVisitorDirectChatFrameV855R77');fr.style.setProperty('z-index','120','important');}
         fr.classList.add('on');fr.setAttribute('aria-hidden','false');fr.removeAttribute('inert');fr.style.removeProperty('opacity');fr.style.removeProperty('visibility');fr.style.removeProperty('pointer-events');
         try{if(fr.contentWindow&&Math.abs((Number(fr.contentWindow.scrollY)||0)-ctx.scrollY)>1)fr.contentWindow.scrollTo(ctx.scrollX,ctx.scrollY);}catch(_e){}
         try{if(fr.contentWindow)fr.contentWindow.postMessage({type:'HAPPYAD_MESSAGE_LAYOUT_REPAIR',detail:{reason:clean(reason)||'shared-photo-return-v708',restoreConversation:true,at:Date.now()}},'*');}catch(_e){}
@@ -768,10 +775,12 @@
     base.messageContext=null;
     base.chatScrollTop=0;
     base.messageLayerWasOpen=false;
+    base.wasVisitorDirect=false;
     try{
       var internalReturn=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
       base.messageLayerWasOpen=!!(internalReturn&&typeof internalReturn.top==='function'&&clean(internalReturn.top())==='message-chat');
     }catch(_layer){}
+    try{base.wasVisitorDirect=!!(document.body.classList.contains('happyadVisitorDirectChatOpenV855R77')||(base.frame&&base.frame.classList.contains('happyadVisitorDirectChatFrameV855R77')));}catch(_visitor){}
     try{
       var w=base.frame&&base.frame.contentWindow;
       var master=w&&w.HappyadMessageMaster;
@@ -809,10 +818,9 @@
   }
   function forceSharedVideoDockVisibleV709(reason){
     try{
-      if(window.HappyInternalReturnV694&&typeof window.HappyInternalReturnV694.close==='function')window.HappyInternalReturnV694.close('message-chat');
-      else if(window.HappyInternalReturnV591&&typeof window.HappyInternalReturnV591.close==='function')window.HappyInternalReturnV591.close('message-chat');
-    }catch(_e){}
-    try{
+      document.body.classList.remove('happyadVisitorDirectChatOpenV855R77');
+      var messageFrame=document.getElementById('happyadAppFrame_message');
+      if(messageFrame){messageFrame.classList.remove('happyadVisitorDirectChatFrameV855R77');messageFrame.style.removeProperty('z-index');messageFrame.style.removeProperty('opacity');messageFrame.style.removeProperty('visibility');}
       document.body.classList.remove('happyadInternalScreenOpenV591','happyadDockAutoHiddenV618','happyadPublishFullscreenV586');
       document.body.classList.add('happyadMainDockVisible','happyadSharedVideoFromMessageV709');
       document.body.setAttribute('data-happyad-main-page','video');
@@ -839,10 +847,12 @@
   function requestSharedVideoReturnV709(reason){
     if(!sharedVideoMessageContext||sharedVideoRestoring)return false;
     clearTimeout(sharedVideoReturnFallbackTimer);sharedVideoReturnFallbackTimer=0;
-    /* V710 : l'historique revient vers l'état Messages, mais la conversation est
-       restaurée immédiatement. On ne laisse plus le rendu attendre le popstate. */
-    if(sharedVideoHistoryArmed){
+    /* V927 : Vidéo est une vraie destination C. Le bouton et Android dépilent
+       la même entrée; la restauration exacte du chat se fait sur popstate. */
+    var videoRouteReady=false;try{videoRouteReady=!!(window.HappyNavigation&&typeof window.HappyNavigation.currentPage==='function'&&window.HappyNavigation.currentPage()==='video');}catch(_route){}
+    if(sharedVideoHistoryArmed&&videoRouteReady){
       try{History.prototype.go.call(history,-1);}catch(_e){}
+      return true;
     }
     return restoreSharedVideoMessageContextV709(reason||'video-back-direct-v711');
   }
@@ -870,17 +880,18 @@
     }catch(_e){return false;}
   }
   function armSharedVideoPhoneBackV709(){
-    sharedVideoHistoryArmed=false;
+    sharedVideoHistoryArmed=true;
     try{
-      var base=Object.assign({},history.state||{});base.__happyadSharedVideoMessageBaseV709=true;base.__happyadSharedVideoMessageAtV709=Date.now();
-      history.replaceState(base,'',location.href);
-      var active=Object.assign({},base,{__happyadSharedVideoActiveV709:true});
-      History.prototype.pushState.call(history,active,'',location.href);
-      sharedVideoHistoryArmed=true;
-    }catch(_e){sharedVideoHistoryArmed=false;}
+      var internalReturn=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      if(sharedVideoMessageContext&&sharedVideoMessageContext.messageLayerWasOpen&&internalReturn&&typeof internalReturn.suspend==='function')internalReturn.suspend('message-chat');
+    }catch(_e){}
     if(!sharedVideoPopInstalled){
       sharedVideoPopInstalled=true;
-      try{EventTarget.prototype.addEventListener.call(window,'popstate',function(){if(sharedVideoMessageContext&&!sharedVideoRestoring)restoreSharedVideoMessageContextV709('phone-back-v709');},true);}catch(_e){}
+      try{EventTarget.prototype.addEventListener.call(window,'popstate',function(ev){
+        if(!sharedVideoMessageContext||sharedVideoRestoring)return;
+        var st=ev&&ev.state||{},marker=clean(st.__happyadInternalLayerV927),view=clean(st.view);
+        if(marker==='message-chat'||(!sharedVideoMessageContext.messageLayerWasOpen&&view==='message'))restoreSharedVideoMessageContextV709('phone-back-v927');
+      },true);}catch(_e){}
     }
     return sharedVideoHistoryArmed;
   }
@@ -897,7 +908,8 @@
     if(ctx.messageLayerWasOpen){
       try{
         var internalReturn=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
-        if(internalReturn&&typeof internalReturn.open==='function'&&(!internalReturn.top||clean(internalReturn.top())!=='message-chat'))internalReturn.open('message-chat');
+        if(internalReturn&&typeof internalReturn.resume==='function')internalReturn.resume('message-chat');
+        else if(internalReturn&&typeof internalReturn.open==='function'&&(!internalReturn.top||clean(internalReturn.top())!=='message-chat'))internalReturn.open('message-chat');
       }catch(_layer){}
     }
 
@@ -920,8 +932,12 @@
         try{if(fr.contentWindow)fr.contentWindow.scrollTo(ctx.scrollX,ctx.scrollY);}catch(_preWindow){}
         try{var preDoc=fr.contentDocument,preChat=preDoc&&preDoc.getElementById('chatBody');if(preChat&&Number.isFinite(ctx.chatScrollTop))preChat.scrollTop=ctx.chatScrollTop;}catch(_preChat){}
         var active=null;try{active=window.HappyNavigation&&typeof window.HappyNavigation.activeFrame==='function'?window.HappyNavigation.activeFrame():null;}catch(_active){}
-        if(active!==fr&&window.HappyNavigation&&typeof window.HappyNavigation.activateMainTab==='function')window.HappyNavigation.activateMainTab('message',{url:ctx.url,replace:true,force:true,source:'shared-video-return-v711'});
+        /* Un chat direct de profil visiteur est une couche au-dessus du profil,
+           pas une nouvelle route Messages. Le pop canonique vient de restaurer
+           le profil B : on remet seulement sa couche chat, sans remplacer B. */
+        if(active!==fr&&!ctx.wasVisitorDirect&&window.HappyNavigation&&typeof window.HappyNavigation.activateMainTab==='function')window.HappyNavigation.activateMainTab('message',{url:ctx.url,replace:true,force:true,source:'shared-video-return-v711'});
         var root=document.getElementById('happyadAppShell');if(root){root.classList.add('on');root.classList.remove('happyadSkeletonOpen');root.setAttribute('aria-hidden','false');root.removeAttribute('inert');}
+        if(ctx.wasVisitorDirect){document.body.classList.add('happyadVisitorDirectChatOpenV855R77');fr.classList.add('happyadVisitorDirectChatFrameV855R77');fr.style.setProperty('z-index','120','important');}
         fr.classList.add('on');fr.setAttribute('aria-hidden','false');fr.removeAttribute('inert');fr.style.removeProperty('opacity');fr.style.removeProperty('visibility');fr.style.removeProperty('pointer-events');
         try{if(fr.contentWindow)fr.contentWindow.scrollTo(ctx.scrollX,ctx.scrollY);}catch(_e){}
         try{var d=fr.contentDocument,chat=d&&d.getElementById('chatBody');if(chat&&Number.isFinite(ctx.chatScrollTop))chat.scrollTop=ctx.chatScrollTop;}catch(_e){}
@@ -935,6 +951,14 @@
       try{var d=ctx.frame&&ctx.frame.contentDocument;if(d&&d.documentElement)d.documentElement.classList.remove('happyadSharedMessageReturnInstantV710');}catch(_e){}
       sharedVideoRestoring=false;
     },620);
+    return true;
+  }
+  function discardSharedVideoMessageContextV927(reason){
+    if(!sharedVideoMessageContext)return false;
+    sharedVideoMessageContext=null;sharedVideoHistoryArmed=false;sharedVideoRestoring=false;
+    clearTimeout(sharedVideoReturnFallbackTimer);sharedVideoReturnFallbackTimer=0;
+    cleanupSharedVideoBackButtonV709();document.body.classList.remove('happyadSharedVideoFromMessageV709');
+    try{window.__HAPPYAD_SHARED_VIDEO_CONTEXT_DISCARDED_V927={reason:clean(reason)||'menu',at:Date.now()};}catch(_e){}
     return true;
   }
   function prepareSharedVideoFromMessageV709(postId,sourceWin){
@@ -1065,11 +1089,14 @@
       try{window.__happyadPhotoReturnSourceV478={id:String(postId),scrollY:window.scrollY||document.documentElement.scrollTop||0,at:Date.now(),el:null,source:'message-v708'};}catch(_e){}
       document.body.classList.add('happyadSharedPhotoFromMessageV708');
     }else{
-      try{if(window.HappyNavigation&&typeof window.HappyNavigation.close==='function')window.HappyNavigation.close('open-shared-photo-v708-non-message',true);}catch(_e){}
+      /* V927 : ne pas remplacer B par l'Accueil pour pouvoir réutiliser le
+         lecteur Photo parent. Le fullscreen devient simplement la couche C ;
+         sa fermeture révèle donc la vraie surface B restée dessous. */
       try{if(typeof window.render==='function')window.render();}catch(_e){}
       var card=null;
       try{card=document.querySelector('[data-post-id="'+css(postId)+'"]');if(card){window.__happyadPhotoReturnSourceV478={id:String(postId),scrollY:window.scrollY||document.documentElement.scrollTop||0,at:Date.now(),el:card};}}catch(_e){}
-      try{var st=Object.assign({},history.state||{});st[SHARED_POST_FLAG]=true;st.view='home_shared_post';st.postId=postId;st.ts=Date.now();history.pushState(st,'',location.href);}catch(_e){}
+      /* V927 : le fullscreen Photo possède sa propre couche canonique. Aucune
+         pseudo-route home_shared_post ne remplace la page courante. */
     }
     setTimeout(function(){
       var opened=false;
@@ -1156,11 +1183,8 @@
     if(document.hidden){hiddenAt=Date.now();frameReady=false;clearFrameHealthTimer();return;}
     if(shareIsOpen())resumeAfterExternal('visibility-visible-'+Math.max(0,Date.now()-hiddenAt));
   },true);
-  window.addEventListener('HAPPYAD_NAV_CHANGED_V586',function(ev){
-    try{
-      var page=clean(ev&&ev.detail&&ev.detail.page).toLowerCase();
-      if(sharedVideoMessageContext&&!sharedVideoRestoring&&page==='message')requestSharedVideoReturnV709('dock-message-v709');
-    }catch(_e){}
+  window.addEventListener('HAPPYAD_MAIN_MENU_NAVIGATION_V927',function(ev){
+    try{if(sharedVideoMessageContext&&!sharedVideoRestoring)discardSharedVideoMessageContextV927('main-menu-'+clean(ev&&ev.detail&&ev.detail.page)+'-v927');}catch(_e){}
   },true);
   window.addEventListener('pageshow',function(){if(shareIsOpen())resumeAfterExternal('pageshow');},true);
   window.addEventListener('focus',function(){if(shareIsOpen())resumeAfterExternal('focus');},true);

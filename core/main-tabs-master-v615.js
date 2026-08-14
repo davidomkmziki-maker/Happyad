@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_MAIN_TABS_MASTER_V615__)return;
   window.__HAPPYAD_MAIN_TABS_MASTER_V615__=true;
 
-  var VERSION='MAIN_TABS_V877_DOCK_EXECUTION_DIRECT';
+  var VERSION='MAIN_TABS_V927_CANONICAL_MENU_RETURN';
   var lastAction='';
   var lastAt=0;
   var pendingMessageContext=null;
@@ -52,6 +52,7 @@
       message_id:clean(detail.message_id||detail.messageId),
       return_to:clean(detail.return_to||detail.returnTo),
       surface:clean(detail.surface),
+      menu:!!detail.menu,
       target:target
     };
   }
@@ -76,7 +77,7 @@
       if(n&&typeof n.activateMainTab==='function')return n.activateMainTab(page,extra);
       if(n&&typeof n.open==='function'){
         var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line',profile:'modules/my-profile.html?v=877-dock-execution-direct',publish:'modules/publish.html'};
-        return n.open(urls[page]||'index.html',{page:page,source:extra.source||VERSION,force:true});
+        return n.open(urls[page]||'index.html',Object.assign({},extra,{page:page,source:extra.source||VERSION,force:true}));
       }
     }catch(_e){}
     return false;
@@ -299,7 +300,7 @@
     try{sessionStorage.setItem(VIDEO_DIRECT_KEY_V855R79,id);sessionStorage.setItem('HAPPYAD_VIDEO_TARGET_POST_V594',id);}catch(_s){}
     try{window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79=id;}catch(_w){}
     var n=nav();
-    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('video','modules/video.html?v=883-central-video-single-first-open');}catch(_pre){}
+    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('video','modules/video.html?v=927-canonical-return');}catch(_pre){}
     var started=Date.now(),preparing=false;
     function fallback(){
       if(seq!==videoDirectSeqV855R79)return false;
@@ -345,7 +346,7 @@
     if(context.mode==='direct'&&context.target)return openDirectMessageSmoothV855R76(context);
     clearDirectBootContextV855R76();
     pendingMessageContext=context;
-    activateDockSurfaceV877('message',{source:context.source||'main-tabs-message-v877'});
+    activateDockSurfaceV877('message',{source:context.source||'main-tabs-message-v877',menu:!!context.menu});
     [0,60,160,360,720].forEach(function(delay){setTimeout(deliverMessageContext,delay);});
     return false;
   }
@@ -377,7 +378,7 @@
   function goHome(){
     var n=nav();
     try{if(n&&typeof n.releaseNavGate==='function')n.releaseNavGate('main-tabs-home-v594');}catch(_g){}
-    try{if(n&&typeof n.close==='function')n.close('main-tabs-home-v594');}catch(_c){}
+    try{if(n&&typeof n.close==='function')n.close('main-tabs-home-v594',{menu:true,source:'main-tabs-home-v927'});}catch(_c){}
     restoreHomeSurface();
     return false;
   }
@@ -400,14 +401,14 @@
     }
     if(name==='home'){clearVideoDirectV855R79();return goHome();}
     rememberHomeScroll();
-    if(name==='video'){clearVideoDirectV855R79();setPublishFullscreen(false);activate('video',{source:'main-tabs-video-v855r79-central'});return false;}
+    if(name==='video'){clearVideoDirectV855R79();setPublishFullscreen(false);activate('video',{source:'main-tabs-video-v855r79-central',menu:true});return false;}
     clearVideoDirectV855R79();
-    if(name==='message'){setPublishFullscreen(false);return openMessage(Object.assign({mode:'inbox',source:'main-tabs-message-v877'},resumeDetail));}
+    if(name==='message'){setPublishFullscreen(false);return openMessage(Object.assign({mode:'inbox',source:'main-tabs-message-v877',menu:true},resumeDetail));}
     if(name==='profile'){
       setPublishFullscreen(false);
-      activateDockSurfaceV877('profile',{source:'main-tabs-profile-v877',url:'modules/my-profile.html?v=877-dock-execution-direct'});return false;
+      activateDockSurfaceV877('profile',{source:'main-tabs-profile-v877',url:'modules/my-profile.html?v=877-dock-execution-direct',menu:true});return false;
     }
-    if(name==='publish'){setPublishFullscreen(true);activate('publish',{source:'main-tabs-publish-v595'});return false;}
+    if(name==='publish'){setPublishFullscreen(true);activate('publish',{source:'main-tabs-publish-v595',menu:true});return false;}
     return false;
   }
   function onDockEvent(ev){

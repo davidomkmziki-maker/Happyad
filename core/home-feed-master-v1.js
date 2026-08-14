@@ -3,9 +3,9 @@
    pagination append-only, identité de carte et orchestration rendu/pagination. */
 (function(){
   'use strict';
-  if(window.HappyHomeFeedV1&&window.HappyHomeFeedV1.version==='V6_CONTINUOUS_APPEND_FEED')return;
+  if(window.HappyHomeFeedV1&&window.HappyHomeFeedV1.version==='V9_AUTO_MORE_CONTINUOUS')return;
 
-  var VERSION='V6_CONTINUOUS_APPEND_FEED';
+  var VERSION='V9_AUTO_MORE_CONTINUOUS';
   var MAX_ROWS=120;
   var bridge=null;
   var renderPending=null;
@@ -18,7 +18,8 @@
     cycle:false,
     pending:false,
     timer:0,
-    nextOffset:0
+    nextOffset:0,
+    retryAt:0
   };
 
   function clean(v){return String(v==null?'':v).trim();}
@@ -237,6 +238,30 @@
       check();
     });
   }
+  /* V922 — attente bornée réservée à la pagination. Si le coordinateur de scroll
+     reste actif plus longtemps que prévu, on ne touche pas au DOM : on libère le
+     cycle et on retente plus tard. Cela évite un loader bloqué sans sacrifier le scroll. */
+  function whenPaginationIdle(maxWait){
+    maxWait=Math.max(700,Number(maxWait)||1600);
+    return new Promise(function(resolve){
+      var started=Date.now(),settled=false;
+      function finish(value){if(settled)return;settled=true;resolve(value);}
+      function check(){
+        if(!bcall('isScrollActive')){finish(true);return;}
+        if(Date.now()-started>=maxWait){finish(false);return;}
+        setTimeout(check,90);
+      }
+      check();
+    });
+  }
+  function withPaginationTimeout(promise,ms){
+    ms=Math.max(5000,Number(ms)||12000);
+    return new Promise(function(resolve,reject){
+      var settled=false;
+      var timer=setTimeout(function(){if(settled)return;settled=true;reject(new Error('HOME_PAGINATION_TIMEOUT'));},ms);
+      Promise.resolve(promise).then(function(value){if(settled)return;settled=true;clearTimeout(timer);resolve(value);},function(error){if(settled)return;settled=true;clearTimeout(timer);reject(error);});
+    });
+  }
   function hasPendingRender(){return !!renderPending;}
   function scheduleRenderFlush(delay){
     clearTimeout(renderTimer);
@@ -278,7 +303,7 @@
     clearTimeout(renderTimer);renderTimer=0;renderPending=null;
     clearTimeout(pagination.timer);
     pagination.cursor=null;pagination.seeded=false;pagination.done=false;pagination.loading=false;
-    pagination.cycle=false;pagination.pending=false;pagination.timer=0;pagination.nextOffset=0;
+    pagination.cycle=false;pagination.pending=false;pagination.timer=0;pagination.nextOffset=0;pagination.retryAt=0;
     updatePaginationState();
   }
   function seedPagination(cursor,done){
@@ -288,19 +313,33 @@
     updatePaginationState();
     return paginationState();
   }
-  function paginationState(){return {cursor:pagination.cursor&&Object.assign({},pagination.cursor),seeded:pagination.seeded,done:pagination.done,loading:pagination.loading,cycle:pagination.cycle,pending:pagination.pending,nextOffset:pagination.nextOffset};}
+  function paginationState(){return {cursor:pagination.cursor&&Object.assign({},pagination.cursor),seeded:pagination.seeded,done:pagination.done,loading:pagination.loading,cycle:pagination.cycle,pending:pagination.pending,nextOffset:pagination.nextOffset,retryAt:pagination.retryAt||0};}
 
+  function paginationLoaderMarkup(){
+    return '<div class="happyadHomeAutoLoaderV921" role="status" aria-live="polite"><i aria-hidden="true"></i><span>Chargement…</span></div>';
+  }
+  function ensurePaginationLoader(sentinel){
+    try{
+      if(!sentinel)return null;
+      var loader=sentinel.querySelector('.happyadHomeAutoLoaderV921');
+      if(!loader){sentinel.innerHTML=paginationLoaderMarkup();loader=sentinel.querySelector('.happyadHomeAutoLoaderV921');}
+      return loader;
+    }catch(_e){return null;}
+  }
   function updatePaginationState(){
     try{
       var sentinel=document.getElementById('happyadHomePaginationSentinelV694');if(!sentinel)return;
+      ensurePaginationLoader(sentinel);
       var total=Number(bcall('visibleTotal')||0);
       var limit=Number(bcall('getRenderLimit')||0);
       var localPending=limit<total;
+      var busy=!!(pagination.loading||pagination.cycle);
       var done=!!(pagination.done&&!localPending&&!pagination.loading);
       sentinel.hidden=done;
-      sentinel.classList.toggle('is-loading',!!pagination.loading);
+      sentinel.classList.toggle('is-loading',busy);
       sentinel.classList.toggle('is-done',done);
-      sentinel.setAttribute('aria-busy',pagination.loading?'true':'false');
+      sentinel.classList.toggle('has-more',!done);
+      sentinel.setAttribute('aria-busy',busy?'true':'false');
       if(window.__happyadHomePaginationObserverV694){
         try{if(done)window.__happyadHomePaginationObserverV694.unobserve(sentinel);else window.__happyadHomePaginationObserverV694.observe(sentinel);}catch(_e){}
       }
@@ -332,7 +371,9 @@
     return feedDistanceToViewportBottom()<=Math.max(520,Math.min(980,Math.round(vh*.95)));
   }
 
-  async function loadMoreRemote(){
+  async function loadMoreRemote(options){
+    options=options||{};
+    var deferReveal=options.deferReveal===true;
     if(pagination.loading||pagination.done)return false;
     if(!bridge)return false;
     pagination.loading=true;updatePaginationState();
@@ -348,7 +389,7 @@
         var beforeVisible=Number(bcall('visibleTotal')||0);
         var beforeRows=bcall('getRows')||[];
         var beforeIds=new Set(beforeRows.map(function(x){return idOf(x);}));
-        var result=await bcall('fetchPage',pagination.cursor,Number(bcall('getRemoteProbe')||21));
+        var result=await withPaginationTimeout(bcall('fetchPage',pagination.cursor,Number(bcall('getRemoteProbe')||21)),12000);
         if(result&&result.error)throw result.error;
         var probeRows=(result&&result.rows)||[];
         var remotePage=Math.max(1,Number(bcall('getRemotePage')||20));
@@ -381,12 +422,13 @@
         var afterVisible=Number(bcall('visibleTotal')||0);
         visibleAdded=afterVisible>beforeVisible;
 
-        if(visibleAdded){
+        if(visibleAdded&&!deferReveal){
           var step=Math.max(1,Number(bcall('getProgressiveStep')||5));
           var currentLimit=Number(bcall('getRenderLimit')||0);
           var critical=isCriticalFeedEnd();
-          /* Au bord réel du groupe rendu, ajouter un lot un peu plus large afin que
-             l'utilisateur trouve déjà les cartes suivantes sous son doigt. */
+          /* Compatibilité : les appels explicites historiques peuvent encore révéler.
+             Le préchargement automatique V921 utilise deferReveal afin de ne jamais
+             modifier le DOM pendant le scroll. */
           var revealStep=critical?Math.max(step,8):step;
           bcall('setRenderLimit',Math.min(afterVisible,Math.max(currentLimit+revealStep,beforeVisible+1)));
           bcall('invalidateRender');
@@ -395,71 +437,100 @@
         try{bcall('primeActions',fresh);}catch(_e){}
         try{bcall('enrichFresh',fresh);}catch(_e){}
       }
-    }catch(e){lastError=e;try{console.warn('home feed master load more',e);}catch(_e){}}
+    }catch(e){
+      lastError=e;
+      pagination.retryAt=Date.now()+1400;
+      try{console.warn('home feed master load more',e);}catch(_e){}
+    }
     finally{
       pagination.loading=false;ensureScrollLoader();updatePaginationState();
-      if(!lastError&&!visibleAdded&&!pagination.done&&rawAdded===0)pagination.pending=true;
+      if(!lastError){pagination.retryAt=0;if(!visibleAdded&&!pagination.done&&rawAdded===0)pagination.pending=true;}
     }
     return visibleAdded;
   }
 
+  function revealAutomaticBatchV921(){
+    try{
+      var total=Number(bcall('visibleTotal')||0);
+      var limit=Number(bcall('getRenderLimit')||0);
+      if(limit>=total)return false;
+      /* V921 — on garde de petits lots (8 cartes maximum par vague) afin que
+         l'ajout DOM reste court. La révélation attend toujours la fin du geste :
+         aucune carte existante n'est reconstruite ou déplacée pendant le scroll. */
+      var step=Math.max(8,Number(bcall('getProgressiveStep')||5));
+      bcall('setRenderLimit',Math.min(total,limit+step));
+      bcall('invalidateRender');
+      requestRender({feedOnly:true,reason:'pagination-auto-batch-v921'});
+      updatePaginationState();
+      return true;
+    }catch(_e){return false;}
+  }
+
+  async function runAutomaticContinuationV921(){
+    if(pagination.loading||pagination.cycle)return false;
+    var waitRetry=Math.max(0,Number(pagination.retryAt||0)-Date.now());
+    if(waitRetry>0){schedulePagination(waitRetry+40);return false;}
+    pagination.pending=false;
+    pagination.cycle=true;updatePaginationState();
+    try{
+      /* Si la page suivante est déjà en mémoire, attendre la fin du geste. L'attente
+         est bornée : si le scroll reste actif, aucun DOM n'est modifié et le cycle
+         est relâché pour une tentative ultérieure. */
+      if(Number(bcall('getRenderLimit')||0)<Number(bcall('visibleTotal')||0)){
+        var localIdle=await whenPaginationIdle(1800);
+        if(!localIdle){releasePagination(false,220);updatePaginationState();schedulePagination(260);return false;}
+        var localShown=revealAutomaticBatchV921();
+        releasePaginationAfterPaint(false);
+        if(localShown)schedulePagination(240);
+        return localShown;
+      }
+      if(pagination.done){releasePagination(false,180);updatePaginationState();return false;}
+
+      /* Le réseau travaille pendant l'approche de la fin, mais deferReveal interdit
+         toute création DOM pendant le geste. Après réponse, l'append attend l'idle. */
+      await loadMoreRemote({deferReveal:true});
+      var remoteIdle=await whenPaginationIdle(1800);
+      if(!remoteIdle){releasePagination(false,220);updatePaginationState();schedulePagination(260);return false;}
+      var shown=revealAutomaticBatchV921();
+      releasePaginationAfterPaint(false);
+      schedulePagination(shown?240:(pagination.retryAt?1450:420));
+      return shown;
+    }catch(_e){
+      pagination.retryAt=Date.now()+1400;
+      releasePagination(false,300);updatePaginationState();
+      schedulePagination(1450);
+      return false;
+    }
+  }
+
+  /* Compatibilité interne avec l'API V920 : il n'existe plus de bouton, mais un
+     ancien appel explicite déclenche exactement le même chemin automatique sûr. */
+  function loadNextBatchManual(){return runAutomaticContinuationV921();}
+
   function maybeLoadMore(){
     try{
-      if(bcall('allowPagination')===false)return;
-      if(pagination.cycle){pagination.pending=true;return;}
-      /* V907R4 : une nouvelle tête du fil en attente ne bloque plus la pagination
-         du BAS. Elle sera appliquée uniquement quand l'utilisateur revient en haut,
-         tandis que les anciennes publications peuvent continuer à se précharger. */
+      /* V921 — chargement continu sans bouton. Le détecteur peut préparer le réseau
+         tôt, mais la révélation des nouvelles cartes attend la fin du geste afin de
+         préserver la fluidité verticale. */
+      if(bcall('allowPagination')===false){pagination.pending=true;schedulePagination(650);return;}
+      if(pagination.cycle||pagination.loading){pagination.pending=true;return;}
       if(bcall('hasPendingHead')&&(window.scrollY||0)<=100&&!bcall('isScrollActive')){
         pagination.pending=true;
         Promise.resolve(bcall('applyPendingHead')).finally(function(){schedulePagination(180);});
         return;
       }
-      bcall('maintainWindow');
       var list=bcall('getListNode');if(!list)return;
       var vh=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,600);
       var bottom=list.getBoundingClientRect().bottom;
-      /* Commencer bien avant la dernière carte : le réseau travaille pendant que
-         l'utilisateur est encore à 1,5–2 écrans de la fin. */
       var preloadDistance=Math.max(900,Math.min(1800,Math.round(vh*1.8)));
       if(bottom>vh+preloadDistance)return;
+      var retryWait=Math.max(0,Number(pagination.retryAt||0)-Date.now());
+      if(retryWait>0){schedulePagination(retryWait+40);return;}
 
-      var total=Number(bcall('visibleTotal')||0);
-      var limit=Number(bcall('getRenderLimit')||0);
-      var criticalEnd=bottom<=vh+Math.max(520,Math.min(980,Math.round(vh*.95)));
-      if(bcall('isScrollActive')||hasPendingRender()){
-        pagination.pending=true;
-        /* V907R4R1 — s'il existe déjà des cartes prêtes en mémoire et que le doigt
-           arrive sur le dernier groupe affiché, les APPENDRE tout de suite. Le View
-           Master possède un fast-path append-only : aucune ancienne carte ne bouge. */
-        if(limit<total&&criticalEnd&&!hasPendingRender()){
-          pagination.cycle=true;
-          var directStep=Math.max(8,Number(bcall('getProgressiveStep')||5));
-          bcall('setRenderLimit',Math.min(total,limit+directStep));
-          bcall('invalidateRender');
-          requestRender({feedOnly:true,reason:'pagination-local-direct-v907r4r1',__appendDuringScrollV907R4R1:true});
-          updatePaginationState();releasePaginationAfterPaint(true);return;
-        }
-        /* S'il n'existe plus de ligne locale à révéler, lancer quand même la requête
-           distante immédiatement. Son résultat pourra aussi être appendu sans trou
-           si l'utilisateur est encore dans la zone critique. */
-        if(limit>=total&&!pagination.loading&&!pagination.done){
-          pagination.cycle=true;
-          Promise.resolve(loadMoreRemote()).then(function(){releasePagination(true,90);}).catch(function(){releasePagination(false,140);});
-        }else schedulePagination(90);
-        return;
-      }
-
-      pagination.cycle=true;
-      if(limit<total){
-        var step=Math.max(1,Number(bcall('getProgressiveStep')||5));
-        var reveal=criticalEnd?Math.max(step,8):step;
-        bcall('setRenderLimit',Math.min(total,limit+reveal));
-        bcall('invalidateRender');requestRender({feedOnly:true,reason:'pagination-local-feed-v2',__appendDuringScrollV907R4R1:criticalEnd});
-        updatePaginationState();releasePaginationAfterPaint(true);return;
-      }
-      Promise.resolve(loadMoreRemote()).then(function(){releasePagination(true,220);}).catch(function(){releasePagination(false,220);});
-    }catch(e){releasePagination(false,180);}
+      updatePaginationState();
+      if(pagination.done&&Number(bcall('getRenderLimit')||0)>=Number(bcall('visibleTotal')||0))return;
+      runAutomaticContinuationV921();
+    }catch(e){releasePagination(false,260);schedulePagination(500);updatePaginationState();}
   }
 
   function ensurePaginationSentinel(){
@@ -467,9 +538,10 @@
       var list=bcall('getListNode');if(!list)return null;
       var sentinel=document.getElementById('happyadHomePaginationSentinelV694');
       if(!sentinel){
-        sentinel=document.createElement('div');sentinel.id='happyadHomePaginationSentinelV694';sentinel.setAttribute('aria-hidden','true');
-        sentinel.className='happyadHomeProgressiveSentinelV764';sentinel.innerHTML='<i aria-hidden="true"></i>';
+        sentinel=document.createElement('div');sentinel.id='happyadHomePaginationSentinelV694';
+        sentinel.className='happyadHomeProgressiveSentinelV764';sentinel.innerHTML=paginationLoaderMarkup();
       }
+      ensurePaginationLoader(sentinel);
       if(sentinel.parentNode!==list||sentinel!==list.lastElementChild)list.appendChild(sentinel);
       if(!window.__happyadHomePaginationObserverV694&&'IntersectionObserver' in window){
         window.__happyadHomePaginationObserverV694=new IntersectionObserver(function(entries){
@@ -488,6 +560,18 @@
     ensurePaginationSentinel();
     if(window.__happyadHomeScrollLoaderBoundV2)return;
     window.__happyadHomeScrollLoaderBoundV2=true;
+    /* IntersectionObserver reste le déclencheur principal. Ce debounce très léger
+       est seulement un filet de sécurité pour les 2e/3e vagues quand le sentinel
+       reste dans la marge de l'observer et ne produit plus de nouvelle transition. */
+    function armAfterScroll(delay){
+      clearTimeout(window.__happyadHomePaginationScrollFallbackTimerV922);
+      window.__happyadHomePaginationScrollFallbackTimerV922=setTimeout(function(){
+        window.__happyadHomePaginationScrollFallbackTimerV922=0;maybeLoadMore();
+      },Math.max(180,Number(delay)||260));
+    }
+    window.addEventListener('scroll',function(){armAfterScroll(280);},{passive:true});
+    window.addEventListener('touchend',function(){armAfterScroll(220);},{passive:true});
+    try{window.addEventListener('scrollend',function(){armAfterScroll(140);},{passive:true});}catch(_e){}
     window.addEventListener('resize',function(){schedulePagination(140);});
     window.addEventListener('pageshow',function(e){if(!e||!e.persisted)return;setTimeout(function(){ensurePaginationSentinel();schedulePagination(140);},120);},{passive:true});
   }
@@ -531,6 +615,7 @@
     releasePagination:releasePagination,
     releasePaginationAfterPaint:releasePaginationAfterPaint,
     loadMoreRemote:loadMoreRemote,
+    loadNextBatchManual:loadNextBatchManual,
     maybeLoadMore:maybeLoadMore,
     ensurePaginationSentinel:ensurePaginationSentinel,
     ensureScrollLoader:ensureScrollLoader

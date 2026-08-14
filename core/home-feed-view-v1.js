@@ -7,7 +7,7 @@
   'use strict';
   if(window.HappyHomeFeedViewV1)return;
 
-  var VERSION='V868_GLOBAL_SCROLL_AWARE';
+  var VERSION='V929_PREPAINT_ANCHOR_NO_DELAY';
   var bridge=null;
   var mode='';
   var items=[];
@@ -95,18 +95,23 @@
   }
   function restoreAnchor(list,anchor,appendOnly){
     if(appendOnly||!anchor||!anchor.id||isScrollActive())return;
-    requestAnimationFrame(function(){
-      try{
-        if(isScrollActive())return;
-        var cards=[].slice.call(list.querySelectorAll('.miniCard[data-post-id]'));
-        var node=cards.find(function(x){return String(x.dataset.feedKey||x.dataset.postId||'')===anchor.id;});
-        if(!node)return;
-        var delta=node.getBoundingClientRect().top-Number(anchor.top||0);
-        var limit=Math.max(1400,(window.innerHeight||700)*2.2);
-        /* Aucune micro-correction : les petits mouvements sont plus visibles qu'utiles. */
-        if(Math.abs(delta)>=24&&Math.abs(delta)<limit&&!isScrollActive())window.scrollBy(0,delta);
-      }catch(_e){}
-    });
+    try{
+      if(isScrollActive())return;
+      var cards=[].slice.call(list.querySelectorAll('.miniCard[data-post-id]'));
+      var node=cards.find(function(x){return String(x.dataset.feedKey||x.dataset.postId||'')===anchor.id;});
+      if(!node)return;
+      var delta=node.getBoundingClientRect().top-Number(anchor.top||0);
+      var limit=Math.max(1400,(window.innerHeight||700)*2.2);
+      /* V929 — le recalage a lieu dans le même cycle que la réconciliation, avant
+         la prochaine peinture. L'ancien requestAnimationFrame montrait d'abord la
+         mauvaise position puis lançait un scrollBy visible une image plus tard. */
+      if(Math.abs(delta)>=1&&Math.abs(delta)<limit&&!isScrollActive()){
+        var root=document.scrollingElement||document.documentElement||document.body;
+        var current=Math.max(0,Number(window.scrollY||window.pageYOffset||(root&&root.scrollTop)||0));
+        if(root)root.scrollTop=Math.max(0,current+delta);
+        else window.scrollTo(0,Math.max(0,current+delta));
+      }
+    }catch(_e){}
   }
 
   function dispose(card){
@@ -178,7 +183,8 @@
           if(!same){
             card.dataset.happyadProgressiveNewV764='1';newPosts.push(item);
             if(oldCard){
-              try{var h=oldCard.getBoundingClientRect().height;if(h>0){card.style.minHeight=Math.round(h)+'px';setTimeout(function(n){return function(){try{n.style.removeProperty('min-height');}catch(_e){}}}(card),900);}}catch(_h){}
+              /* V929 — aucune min-height temporaire retirée 900 ms plus tard :
+                 cette seconde mutation était capable de déplacer tout le fil. */
               try{oldCard.replaceWith(card);}catch(_r){}
               dispose(oldCard);
             }

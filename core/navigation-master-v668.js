@@ -4,10 +4,15 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V889_PUBLISH_TAP_SHIELD_MEDIA_SAFE';
+  var MASTER_VERSION='NAV_MASTER_V928_FULLSCREEN_PROFILE_HANDOFF';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=869-connection-phase2';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
+  var NAV_DEPTH_KEY_V927='__happyadNavDepthV927';
+  var NAV_ENTRY_KEY_V927='__happyadNavEntryV927';
+  var NAV_SOURCE_KEY_V927='__happyadNavSourceV927';
+  var INTERNAL_LAYER_KEY_V927='__happyadInternalLayerV927';
+  var INTERNAL_DEPTH_KEY_V927='__happyadInternalDepthV927';
   var SHELL_ID='happyadAppShell';
   var LOADER_ID='happyadAppMiniLoader';
   var SKELETON_ID='happyadAppSkeleton';
@@ -23,6 +28,10 @@
   var activePage='home';
   var activeUrl='index.html';
   var restoring=false;
+  var navDepthV927=0;
+  var navEntrySeqV927=0;
+  var menuResetV927=null;
+  var bootHadCanonicalV927=false;
   var pendingNav=null;
   var pendingNavTimer=null;
   var NAV_GATE_MS=850;
@@ -31,10 +40,10 @@
     home:'index.html',
     profile:'modules/my-profile.html?v=877-dock-execution-direct',
     profile_public:'modules/visitor-profile.html',
-    video:'modules/video.html?v=883-central-video-single-first-open',
+    video:'modules/video.html?v=927-canonical-return',
     photo:'modules/photo.html',
     message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line',
-    publish:'modules/publish.html',
+    publish:'modules/publish.html?v=927-canonical-return',
     map:'modules/map.html'
   };
 
@@ -578,9 +587,48 @@
       return true;
     }catch(_e){return false;}
   }
-  function state(page,url){var s={};s[NAV_FLAG]=true;s.view=page||'home';s.url=rootUrl(url||pages[page]||'index.html');s.ts=Date.now();return s;}
-  function ensureBaseState(){try{var s=history.state;if(!s||!s[NAV_FLAG])history.replaceState(state('home','index.html'),'',location.href);}catch(_e){}}
+  function nativeReplaceStateV927(value){try{return History.prototype.replaceState.call(history,value,'',location.href);}catch(_e){try{return history.replaceState(value,'',location.href);}catch(_x){}}}
+  function nativePushStateV927(value){try{return History.prototype.pushState.call(history,value,'',location.href);}catch(_e){return false;}}
+  function nativeGoV927(delta){try{return History.prototype.go.call(history,Number(delta)||0);}catch(_e){return false;}}
+  function canonicalDepthV927(value){var n=Number(value&&value[NAV_DEPTH_KEY_V927]);return isFinite(n)&&n>=0?Math.floor(n):-1;}
+  function internalDepthV927(value){var n=Number(value&&value[INTERNAL_DEPTH_KEY_V927]);return isFinite(n)&&n>0?Math.floor(n):0;}
+  function isCanonicalStateV927(value){return !!(value&&value[NAV_FLAG]&&canonicalDepthV927(value)>=0&&value.view);}
+  function state(page,url,meta){
+    meta=meta||{};
+    var s={};s[NAV_FLAG]=true;s.view=page||'home';s.url=rootUrl(url||pages[page]||'index.html');s.ts=Date.now();
+    s[NAV_DEPTH_KEY_V927]=Math.max(0,Number(meta.depth!=null?meta.depth:navDepthV927)||0);
+    s[NAV_ENTRY_KEY_V927]=String(meta.entry||('v927-'+Date.now()+'-'+(++navEntrySeqV927)));
+    s[NAV_SOURCE_KEY_V927]=String(meta.source||MASTER_VERSION);
+    s[INTERNAL_DEPTH_KEY_V927]=0;
+    return s;
+  }
+  function ensureBaseState(){
+    try{
+      var s=history.state;
+      if(isCanonicalStateV927(s)){
+        bootHadCanonicalV927=true;
+        navDepthV927=canonicalDepthV927(s);
+        return s;
+      }
+      bootHadCanonicalV927=false;
+      navDepthV927=0;
+      var home=state('home','index.html',{depth:0,source:'fresh-root-v927'});
+      nativeReplaceStateV927(home);
+      return home;
+    }catch(_e){return null;}
+  }
   function currentNavState(){try{var s=history.state;return s&&s[NAV_FLAG]?s:null;}catch(_e){return null;}}
+  function sameRouteV927(value,page,url){
+    if(!value||!value.view)return false;
+    var fromPage=String(value.view),toPage=String(page||'home');if(fromPage!==toPage)return false;
+    var fromUrl=rootUrl(value.url||pages[fromPage]||'index.html'),toUrl=rootUrl(url||pages[toPage]||'index.html');
+    if(toPage==='profile_public'){
+      var fromUid=profileUidFromUrl(fromUrl),toUid=profileUidFromUrl(toUrl);
+      if(fromUid&&toUid)return fromUid===toUid;
+    }
+    if((toPage==='profile'||toPage==='video'||toPage==='message'||toPage==='publish')&&pathOf(fromUrl)===pathOf(toUrl))return true;
+    return fromUrl===toUrl;
+  }
   function rememberReloadRouteV16ZH(page,url){
     try{
       var nr=normalizeRouteForOpen(page,url);
@@ -592,9 +640,14 @@
     }catch(_e){}
   }
   function readReloadRouteV16ZH(){
+    /* V927 : un nouveau lancement commence toujours sur A (Accueil). Les clés de
+       session anciennes ne recréent plus artificiellement B ou C comme racine.
+       Seul un rechargement d'une véritable entrée canonique peut restaurer sa vue. */
+    if(!bootHadCanonicalV927)return null;
     try{
       var s=currentNavState();
       if(s&&s.view&&String(s.view)!=='home'){var hs=normalizeRouteForOpen(String(s.view),s.url||pages[s.view]||'index.html');if(!hs.invalidPublic)return {view:hs.view,url:hs.url,source:'history-state'};}
+      if(isCanonicalStateV927(s)&&String(s.view)==='home')return null;
     }catch(_hs){}
     try{
       var raw=sessionStorage.getItem(RESTORE_KEY_V16ZH);
@@ -731,11 +784,11 @@
   }
   function persistentMainUrl(page){
     page=String(page||'');
-    if(page==='video')return 'modules/video.html?v=883-central-video-single-first-open';
+    if(page==='video')return 'modules/video.html?v=927-canonical-return';
     if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line';
     if(page==='profile')return 'modules/my-profile.html?v=877-dock-execution-direct';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
-    if(page==='publish')return 'modules/publish.html';
+    if(page==='publish')return 'modules/publish.html?v=927-canonical-return';
     return pages[page]||'index.html';
   }
   function ownerAuthUidHintV855R23(){
@@ -1733,7 +1786,7 @@
   }
   function activateMainTabV594(page,extra){
     extra=extra||{};page=String(page||'').trim();
-    if(page==='home')return close('main-tab-home-v594');
+    if(page==='home')return close('main-tab-home-v594',{menu:!!extra.menu,replace:!!extra.replace,fromPop:!!extra.fromPop,source:extra.source});
     if(!isPersistentMainPage(page))return open(pages[page]||extra.url||'index.html',extra);
     var url=rootUrl(extra.url||persistentMainUrl(page));
     if(page==='message')url=persistentMainUrl('message');
@@ -1744,7 +1797,7 @@
     try{if(window.HappyMedia)window.HappyMedia.pauseAll('switch-main-tab-'+page+'-v594');}catch(_m){}
     var ok=loadFrame(page,url,extra);
     if(ok){
-      pushNav(page,url,!!extra.replace);
+      pushNav(page,url,{replace:!!extra.replace,fromPop:!!extra.fromPop,menu:!!extra.menu,source:extra.source});
       if(page!=='profile'){
         try{setTimeout(function(){postToFrameV594(page,{type:'HAPPYAD_APP_FRAME_VISIBLE',page:page,url:url,source:extra.source||'main-tabs-v594'});},0);}catch(_v){}
       }
@@ -1788,7 +1841,7 @@
       var w=fr.contentWindow,d=fr.contentDocument;if(!w||!d||d.__HAPPYAD_CORE_NAV_V8_BRIDGED__)return;d.__HAPPYAD_CORE_NAV_V8_BRIDGED__=true;
       w.happyadOpenInternalUrlV492=function(url,extra){return open(url,extra||{});};
       w.happyadOpenAppPage=function(p,url){return openAppPage(p,url);};
-      w.happyadCloseAppPage=function(){return false;};
+      w.happyadCloseAppPage=function(){return back({source:'frame-api-'+page+'-v927'});};
       d.addEventListener('click',function(e){
         try{
           var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;
@@ -1798,8 +1851,46 @@
       },true);
     }catch(_e){}
   }
-  function pushNav(page,url,replace){
-    try{history.replaceState(state(page,url),'',location.href);}catch(_e){}
+  function finishMenuResetV927(){
+    var target=menuResetV927;menuResetV927=null;
+    if(!target)return false;
+    navDepthV927=0;
+    nativeReplaceStateV927(state('home','index.html',{depth:0,source:'menu-root-v927'}));
+    if(target.page!=='home'){
+      navDepthV927=1;
+      nativePushStateV927(state(target.page,target.url,{depth:1,source:target.source||'menu-target-v927'}));
+    }
+    return true;
+  }
+  function pushNav(page,url,options){
+    options=options&&typeof options==='object'?options:{replace:!!options};
+    page=String(page||'home');url=rootUrl(url||pages[page]||'index.html');
+    if(options.fromPop)return true;
+    var current=null;try{current=history.state||null;}catch(_e){}
+    var currentDepth=canonicalDepthV927(current);if(currentDepth<0)currentDepth=navDepthV927;
+    if(options.menu){
+      var suspendedOffset=0;
+      try{window.dispatchEvent(new CustomEvent('HAPPYAD_MAIN_MENU_NAVIGATION_V927',{detail:{page:page,url:url,source:String(options.source||'main-menu-v927'),at:Date.now()}}));}catch(_menuEvent){}
+      try{var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;if(internal&&typeof internal.historyOffset==='function')suspendedOffset=Math.max(0,Number(internal.historyOffset())||0);if(internal&&typeof internal.prepareMenuNavigation==='function')internal.prepareMenuNavigation('menu-'+page+'-v927');}catch(_layers){}
+      var activeInternalDepth=internalDepthV927(current);
+      var offset=Math.max(0,currentDepth)+activeInternalDepth+suspendedOffset;
+      menuResetV927={page:page,url:url,source:String(options.source||'main-menu-v927')};
+      if(offset>0){nativeGoV927(-offset);return true;}
+      return finishMenuResetV927();
+    }
+    if(sameRouteV927(current,page,url)){
+      navDepthV927=Math.max(0,currentDepth);
+      if(options.replace)nativeReplaceStateV927(state(page,url,{depth:navDepthV927,source:options.source||'same-route-replace-v927'}));
+      return true;
+    }
+    if(options.replace){
+      navDepthV927=Math.max(0,currentDepth);
+      nativeReplaceStateV927(state(page,url,{depth:navDepthV927,source:options.source||'route-replace-v927'}));
+      return true;
+    }
+    navDepthV927=Math.max(0,currentDepth)+1;
+    nativePushStateV927(state(page,url,{depth:navDepthV927,source:options.source||'route-open-v927'}));
+    return true;
   }
   function open(url,extra){
     extra=extra||{};url=rootUrl(url||'index.html');var page=pageOf(url,extra.page);
@@ -1818,12 +1909,13 @@
         page='profile';
       }else if(__profileUid){
         try{sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_UID',__profileUid);sessionStorage.setItem('HAPPYAD_PROFILE_MASTER_ACTIVE_URL',url);localStorage.setItem('HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID',__profileUid);localStorage.setItem('HAPPYAD_ACTIVE_PROFILE_UID',__profileUid);}catch(_uid){}
-        if(activePage==='profile_public'&&activeUrl&&rootUrl(activeUrl)!==rootUrl(url))extra.replace=true;
+        /* V927 : un autre profil est une vraie destination C. Il ne remplace plus
+           le profil B, afin que Retour fasse C -> B au lieu de sauter vers A. */
       }
     }
     applyVisitorDockLockV854R3(page==='profile_public','open-'+page);
     if(page==='video'&&hasPost(url)&&!extra.__happyadVideoPersistentV594)return openVideoPostV594(url,extra);
-    if(page==='home')return close('open-home',extra.fromPop||extra.replace);
+    if(page==='home')return close('open-home',{fromPop:!!extra.fromPop,replace:!!extra.replace,menu:!!extra.menu,source:extra.source});
     if(page==='profile'||page==='profile_public'){
       clearVideoRouteMemory('open-'+page+'-v656');
       showVideoDirect('',false);
@@ -1840,7 +1932,7 @@
     if(page==='video'&&!hasPost(url))blankVideoFrame('open-video-central');
     try{if(window.HappyMedia)HappyMedia.pauseAll('before-open-'+page);}catch(_e){}
     var ok=loadFrame(page,url,extra);
-    if(ok)pushNav(page,url,!!extra.replace);
+    if(ok)pushNav(page,url,{replace:!!extra.replace,fromPop:!!extra.fromPop,menu:!!extra.menu,source:extra.source});
     else if(page==='publish')removePublishTapShieldV889('publish-open-failed-v889');
     return ok;
   }
@@ -1849,8 +1941,13 @@
     if(!url)url=pages[page]||pages[page==='myProfile'?'profile':page==='visitorProfile'?'profile_public':'']||'index.html';
     return open(url,{page:page});
   }
-  function close(reason,replace){
+  function close(reason,options){
     reason=String(reason||'close');
+    options=options&&typeof options==='object'?options:{replace:options===true,fromPop:options===false};
+    var preserveInternalLayerV928=String(options.preserveInternalLayer||'');
+    /* Un bouton Retour ne fabrique jamais une nouvelle route Accueil. Il dépile
+       l'entrée précédente; seul le menu principal reçoit options.menu=true. */
+    if(!options.fromPop&&!options.menu&&!options.replace&&!options.renderOnly)return back({source:reason});
     removePublishTapShieldV889('close-'+reason);
     cancelMessageCachePreparationV876('close-'+reason);
     applyVisitorDockLockV854R3(false,'close-'+reason);
@@ -1860,8 +1957,8 @@
     try{
       var ir=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
       if(ir&&typeof ir.close==='function'){
-        ir.close('home-photo');
-        ir.close('profile-photo');
+        if(preserveInternalLayerV928!=='home-photo')ir.close('home-photo');
+        if(preserveInternalLayerV928!=='profile-photo')ir.close('profile-photo');
         ir.close('photo-central');
       }
     }catch(_photoLayers){}
@@ -1878,8 +1975,8 @@
       document.body.classList.add('happyadMainDockVisible');
       /* Mettre l'état historique Accueil avant l'événement de navigation : les autres
          maîtres ne peuvent plus relire momentanément l'ancienne route profile_public. */
+      pushNav('home','index.html',{fromPop:!!options.fromPop,menu:!!options.menu,replace:!!options.replace,source:options.source||reason});
       updateState('home','index.html');
-      try{if(replace!==false)history.replaceState(state('home','index.html'),'',location.href);}catch(_h){}
       setNavActive('home','index.html');
       try{
         var ir2=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
@@ -1904,13 +2001,24 @@
     },0);
     return true;
   }
-  function back(){return false;}
+  function back(options){
+    options=options||{};
+    if(menuResetV927)return false;
+    try{
+      var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      var top=internal&&typeof internal.top==='function'?String(internal.top()||''):'';
+      if(top&&typeof internal.back==='function')return internal.back(top,{source:options.source||'navigation-back-v927'});
+    }catch(_internal){}
+    nativeGoV927(-1);
+    return true;
+  }
 
-  /* V584: ancien contrôleur du bouton téléphone supprimé. */
-  function restore(page,url){
+  /* V927 : restauration visuelle pilotée uniquement par l'entrée dépilée. */
+  function restore(page,url,options){
+    options=options||{};
     restoring=true;
     try{
-      if(!page||page==='home')close('pop-home',false);
+      if(!page||page==='home')close('pop-home',{fromPop:true,source:'popstate-v927',preserveInternalLayer:String(options.preserveInternalLayer||'')});
       else open(url||pages[page],{page:page,replace:true,fromPop:true});
     }finally{setTimeout(function(){restoring=false;},0);}
   }
@@ -1981,7 +2089,7 @@
   };
   window.happyadOpenInternalUrlV492=function(url,extra){return window.HappyNavigation.open(url,extra||{});};
   window.happyadOpenAppPage=function(page,url){return window.HappyNavigation.openAppPage(page,url);};
-  window.happyadCloseAppPage=function(){return false;};
+  window.happyadCloseAppPage=function(){return window.HappyNavigation.back({source:'parent-api-v927'});};
 
   try{document.addEventListener('click',function(e){
     try{
@@ -2011,7 +2119,7 @@
       }
       if(d==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_NAV_BACK_REQUEST'){
         ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
-        return false;
+        return back({source:'frame-message-'+String(d.type||d)+'-v927'});
       }
       if(d.type==='HAPPYAD_PROFILE_SWITCH_PAINTED_V601'){
         if(activePage!=='profile_public')return false;
@@ -2028,13 +2136,39 @@
       }
       if(d.type==='HAPPYAD_OPEN_INTERNAL_URL' && d.url){
         ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
-        try{if(window.HappyInternalReturnV587&&typeof window.HappyInternalReturnV587.closeNotification==='function')window.HappyInternalReturnV587.closeNotification('notification-internal-url-v587');}catch(_v587){}
+        try{
+          if(window.HappyNotificationReturnCenter&&typeof window.HappyNotificationReturnCenter.handoff==='function')window.HappyNotificationReturnCenter.handoff('notification-internal-url-v927');
+          else if(window.HappyInternalReturnV587&&typeof window.HappyInternalReturnV587.closeNotification==='function')window.HappyInternalReturnV587.closeNotification('notification-internal-url-fallback-v927');
+        }catch(_v587){}
         return open(d.url,d.extra||{source:'message-open'});
       }
     }catch(_e){}
   },true);}catch(_e){}
 
-  /* V584: ancien contrôleur popstate supprimé. */
+  /* V927 : le navigateur et le bouton Retour Android lisent la même pile que les
+     commandes internes. Une couche superposée conserve la même route : le maître
+     des retours internes la fermera sans que Navigation ne recharge la page. */
+  function onCanonicalPopV927(ev){
+    try{
+      var next=ev&&ev.state;
+      if(menuResetV927){
+        if(isCanonicalStateV927(next)&&canonicalDepthV927(next)===0&&internalDepthV927(next)===0)finishMenuResetV927();
+        return;
+      }
+      if(!isCanonicalStateV927(next))return;
+      navDepthV927=canonicalDepthV927(next);
+      var layerRestored=false;
+      try{var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;if(internal&&typeof internal.restoreHistoryState==='function')layerRestored=!!internal.restoreHistoryState(next);}catch(_internal){}
+      /* Une couche suspendue conserve la route sur laquelle elle est née.
+         Après C -> B (notification, chat...), on restaure donc aussi cette route
+         sous la couche. Sinon B serait visuellement présent mais sa fermeture
+         révélerait encore C au lieu de poursuivre vers A. */
+      var restoredLayerV928=layerRestored?String(next[INTERNAL_LAYER_KEY_V927]||''):'';
+      if(!sameRouteV927(next,activePage,activeUrl))restore(String(next.view||'home'),next.url||pages[next.view]||'index.html',{preserveInternalLayer:restoredLayerV928});
+      if(layerRestored)return;
+    }catch(_e){}
+  }
+  try{EventTarget.prototype.addEventListener.call(window,'popstate',onCanonicalPopV927,true);}catch(_pop){}
 
   function bootHomeSafety(){
     try{
@@ -2061,8 +2195,7 @@
       var url=nr.url;
       if(!pages[page]&&page!=='profile_public')return false;
       prepareBootRestoreShellV16ZJ(page,url);
-      try{history.replaceState(state(page,url),'',location.href);}catch(_st){}
-      try{open(url,{page:page,replace:true,force:true,source:'reload-restore-no-home-v16zj'});}catch(_o){}
+      try{open(url,{page:page,fromPop:r.source==='history-state',force:true,source:r.source==='history-state'?'reload-canonical-v927':'url-entry-v927'});}catch(_o){}
       return true;
     }catch(_e){clearBootRestoreMaskV16ZJ('restore-error');return false;}
   }

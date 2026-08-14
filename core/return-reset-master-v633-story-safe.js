@@ -7,8 +7,10 @@
   var nativeReplace=history.replaceState.bind(history);
   var nativeGo=history.go.bind(history);
 
-  /* Phase V584: no custom back stack is allowed. Openings continue to work,
-     but every old push becomes a replace until the new controller is built. */
+  /* V927 : les anciens routeurs restent isolés. Le maître Navigation canonique
+     utilise explicitement History.prototype afin d'être le seul à pouvoir créer
+     des entrées. Cela évite qu'un vieux module enregistre la page courante comme
+     destination de retour et reconstruise une boucle. */
   try{history.pushState=function(state,title,url){return nativeReplace(state,title,url);};}catch(_e){}
   try{history.back=disabled;}catch(_e){}
   try{history.go=function(delta){if(Number(delta)<0)return false;return nativeGo(delta);};}catch(_e){}
@@ -21,18 +23,32 @@
     };
   }catch(_e){}
 
-  function installDisabledApi(name){
-    try{Object.defineProperty(window,name,{configurable:true,enumerable:true,get:function(){return disabled;},set:function(){}});}catch(_e){try{window[name]=disabled;}catch(_x){}}
+  function canonicalBack(source){
+    try{
+      var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      var top=internal&&typeof internal.top==='function'?String(internal.top()||''):'';
+      if(top&&typeof internal.back==='function')return internal.back(top,{source:source||'legacy-gateway-v927'});
+    }catch(_internal){}
+    try{
+      var nav=window.HappyNavigation;
+      if(nav&&typeof nav.back==='function')return nav.back({source:source||'legacy-gateway-v927'});
+    }catch(_nav){}
+    return false;
   }
-  installDisabledApi('happyadCloseAppPage');
-  installDisabledApi('happyadCloseAppPageChild');
+  function installCanonicalApi(name){
+    try{Object.defineProperty(window,name,{configurable:true,enumerable:true,get:function(){return canonicalBack;},set:function(){}});}catch(_e){try{window[name]=canonicalBack;}catch(_x){}}
+  }
+  installCanonicalApi('happyadCloseAppPage');
+  installCanonicalApi('happyadCloseAppPageChild');
 
-  /* Close/back messages from old modules are swallowed before navigation-master. */
+  /* Les messages historiques sont arrêtés avant les anciens contrôleurs, mais
+     leur intention est transmise une seule fois à la pile canonique. */
   nativeAdd('message',function(ev){
     try{
       var d=ev&&ev.data;
       var type=typeof d==='string'?d:(d&&d.type);
       if(type==='HAPPYAD_CLOSE_APP_PAGE'||type==='HAPPYAD_NAV_BACK_REQUEST'||type==='HAPPYAD_CLOSE_MESSAGE_CENTER'||type==='HAPPYAD_NOTIFICATIONS_CLOSE'){
+        canonicalBack(type+'-v927');
         if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
         if(ev.stopPropagation)ev.stopPropagation();
       }
@@ -63,6 +79,9 @@
     }
     return false;
   }
+  function isProfileIntentV928(el){
+    try{return !!(el&&el.closest&&el.closest('[data-happyad-profile-intent-v928="1"],[data-open-slide-profile],.creatorPill'));}catch(_e){return false;}
+  }
   function purge(root){
     root=root||document;
     try{
@@ -72,15 +91,14 @@
   }
   nativeAdd('DOMContentLoaded',function(){purge(document);try{new MutationObserver(function(ms){ms.forEach(function(m){for(var i=0;i<m.addedNodes.length;i++){var n=m.addedNodes[i];if(n&&n.nodeType===1){if(isReturnNode(n))n.remove();else purge(n);}}});}).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){};},false);
   document.addEventListener('click',function(ev){
-    try{var t=ev.target&&ev.target.closest&&ev.target.closest('button,a');if(isReturnNode(t)){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();return false;}}catch(_e){}
+    try{if(isProfileIntentV928(ev.target))return;var t=ev.target&&ev.target.closest&&ev.target.closest('button,a');if(isReturnNode(t)){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();canonicalBack('legacy-parent-button-v927');return false;}}catch(_e){}
   },true);
 
   function neutralize(){
-    /* V586: seul le retour reste neutralisé. HappyNavigation.close est le contrôleur
-       officiel du bouton Accueil et ne doit plus être écrasé. */
-    try{if(window.HappyNavigation)window.HappyNavigation.back=disabled;}catch(_e){}
-    try{if(window.HappyRouter)window.HappyRouter.back=disabled;}catch(_e){}
-    try{if(window.HappyHistory)window.HappyHistory.back=disabled;}catch(_e){}
+    /* V927 : HappyNavigation.back est désormais l'unique contrôleur officiel.
+       Les façades anciennes délèguent vers lui et ne peuvent plus l'écraser. */
+    try{if(window.HappyRouter)window.HappyRouter.back=canonicalBack;}catch(_e){}
+    try{if(window.HappyHistory)window.HappyHistory.back=canonicalBack;}catch(_e){}
   }
   neutralize();
   var timer=setInterval(neutralize,120);

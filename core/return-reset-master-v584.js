@@ -7,8 +7,8 @@
   var nativeReplace=history.replaceState.bind(history);
   var nativeGo=history.go.bind(history);
 
-  /* Phase V584: no custom back stack is allowed. Openings continue to work,
-     but every old push becomes a replace until the new controller is built. */
+  /* V927 : les piles locales anciennes restent isolées. Dans une iframe, toute
+     intention Retour est transmise au contrôleur canonique du parent. */
   try{history.pushState=function(state,title,url){return nativeReplace(state,title,url);};}catch(_e){}
   try{history.back=disabled;}catch(_e){}
   try{history.go=function(delta){if(Number(delta)<0)return false;return nativeGo(delta);};}catch(_e){}
@@ -21,11 +21,23 @@
     };
   }catch(_e){}
 
-  function installDisabledApi(name){
-    try{Object.defineProperty(window,name,{configurable:true,enumerable:true,get:function(){return disabled;},set:function(){}});}catch(_e){try{window[name]=disabled;}catch(_x){}}
+  function canonicalBack(source){
+    try{
+      var host=window.parent&&window.parent!==window?window.parent:window;
+      var internal=host.HappyInternalReturnV694||host.HappyInternalReturnV591;
+      var top=internal&&typeof internal.top==='function'?String(internal.top()||''):'';
+      if(top&&typeof internal.back==='function')return internal.back(top,{source:source||'child-gateway-v927'});
+      if(host.HappyNavigation&&typeof host.HappyNavigation.back==='function')return host.HappyNavigation.back({source:source||'child-gateway-v927'});
+      if(host!==window&&host.postMessage){host.postMessage({type:'HAPPYAD_NAV_BACK_REQUEST',detail:{source:source||'child-gateway-v927'}},'*');return true;}
+      if(host===window){History.prototype.go.call(history,-1);return true;}
+    }catch(_e){}
+    return false;
   }
-  installDisabledApi('happyadCloseAppPage');
-  installDisabledApi('happyadCloseAppPageChild');
+  function installCanonicalApi(name){
+    try{Object.defineProperty(window,name,{configurable:true,enumerable:true,get:function(){return canonicalBack;},set:function(){}});}catch(_e){try{window[name]=canonicalBack;}catch(_x){}}
+  }
+  installCanonicalApi('happyadCloseAppPage');
+  installCanonicalApi('happyadCloseAppPageChild');
 
   /* Close/back messages from old modules are swallowed before navigation-master. */
   nativeAdd('message',function(ev){
@@ -33,6 +45,7 @@
       var d=ev&&ev.data;
       var type=typeof d==='string'?d:(d&&d.type);
       if(type==='HAPPYAD_CLOSE_APP_PAGE'||type==='HAPPYAD_NAV_BACK_REQUEST'||type==='HAPPYAD_CLOSE_MESSAGE_CENTER'||type==='HAPPYAD_NOTIFICATIONS_CLOSE'){
+        canonicalBack(type+'-child-v927');
         if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
         if(ev.stopPropagation)ev.stopPropagation();
       }
@@ -63,6 +76,9 @@
     }
     return false;
   }
+  function isProfileIntentV928(el){
+    try{return !!(el&&el.closest&&el.closest('[data-happyad-profile-intent-v928="1"],[data-open-slide-profile],.creatorPill'));}catch(_e){return false;}
+  }
   function purge(root){
     root=root||document;
     try{
@@ -72,15 +88,12 @@
   }
   nativeAdd('DOMContentLoaded',function(){purge(document);try{new MutationObserver(function(ms){ms.forEach(function(m){for(var i=0;i<m.addedNodes.length;i++){var n=m.addedNodes[i];if(n&&n.nodeType===1){if(isReturnNode(n))n.remove();else purge(n);}}});}).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){};},false);
   document.addEventListener('click',function(ev){
-    try{var t=ev.target&&ev.target.closest&&ev.target.closest('button,a');if(isReturnNode(t)){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();return false;}}catch(_e){}
+    try{if(isProfileIntentV928(ev.target))return;var t=ev.target&&ev.target.closest&&ev.target.closest('button,a');if(isReturnNode(t)){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();canonicalBack('legacy-child-button-v927');return false;}}catch(_e){}
   },true);
 
   function neutralize(){
-    /* V586: seul le retour reste neutralisé. HappyNavigation.close est le contrôleur
-       officiel du bouton Accueil et ne doit plus être écrasé. */
-    try{if(window.HappyNavigation)window.HappyNavigation.back=disabled;}catch(_e){}
-    try{if(window.HappyRouter)window.HappyRouter.back=disabled;}catch(_e){}
-    try{if(window.HappyHistory)window.HappyHistory.back=disabled;}catch(_e){}
+    try{if(window.HappyRouter)window.HappyRouter.back=canonicalBack;}catch(_e){}
+    try{if(window.HappyHistory)window.HappyHistory.back=canonicalBack;}catch(_e){}
   }
   neutralize();
   var timer=setInterval(neutralize,120);

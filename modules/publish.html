@@ -27,8 +27,8 @@
 </script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
-<script src="../core/return-reset-master-v584.js?v=584"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=855r32-source-unique"></script>
+<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -632,9 +632,12 @@ button:disabled{filter:none;transform:none}
     try{sessionStorage.removeItem('HAPPYAD_HOME_POSTS_LAST_SYNC');}catch(_e){}
     try{
       if(window.parent&&window.parent!==window){
-        try{window.parent.postMessage({type:'HAPPYAD_PUBLISH_SUCCESS_RETURN_HOME',reason:reason,ts:Date.now()},'*');}catch(_pm){}
         try{
-          if(window.parent.HappyNavigation&&typeof window.parent.HappyNavigation.close==='function')window.parent.HappyNavigation.close('publish-success-'+reason);
+          /* V927 : une seule intention de retour. L'ancien couple postMessage +
+             appel direct pouvait dépiler deux pages avant le premier popstate. */
+          if(typeof window.parent.happyadReturnHomeAfterPublishV30==='function')window.parent.happyadReturnHomeAfterPublishV30(reason);
+          else if(window.parent.HappyNavigation&&typeof window.parent.HappyNavigation.back==='function')window.parent.HappyNavigation.back({source:'publish-success-'+reason+'-v927'});
+          else window.parent.postMessage({type:'HAPPYAD_PUBLISH_SUCCESS_RETURN_HOME',reason:reason,ts:Date.now()},'*');
           setTimeout(function(){try{if(typeof window.parent.happyadRefreshHomePostsNow==='function')window.parent.happyadRefreshHomePostsNow('publish-'+reason);}catch(_r){}},120);
           setTimeout(function(){try{if(typeof window.parent.fetchRadarItems==='function')window.parent.fetchRadarItems().then(function(){try{window.parent.renderRadarHome&&window.parent.renderRadarHome();}catch(_rr){}});else if(typeof window.parent.renderRadarHome==='function')window.parent.renderRadarHome();}catch(_radar){}},180);
           return true;
@@ -2098,9 +2101,9 @@ return {source:'story',id:storyId};
   function inFrame(){try{return window.parent&&window.parent!==window;}catch(e){return false;}}
   function clean(url){url=String(url||'').trim();if(url.indexOf('../')===0)url=url.replace(/^\.\.\//,'');if(url.indexOf('./')===0)url=url.replace(/^\.\//,'');return url;}
   function send(url){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:clean(url)},'*');return true;}}catch(e){}return false;}
-  function close(){return false;}
+  function close(){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_NAV_BACK_REQUEST',detail:{source:'publish-module-v927'}},'*');return true;}History.prototype.go.call(history,-1);return true;}catch(e){return false;}}
   window.happyadOpenInternalUrlV492=function(url){if(send(url))return true;location.href=url;return true;};
-  window.happyadCloseAppPage=function(){return false;};
+  window.happyadCloseAppPage=close;
   document.addEventListener('click',function(e){
     try{
       if(!inFrame())return;

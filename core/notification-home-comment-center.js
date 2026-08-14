@@ -10,6 +10,8 @@
   var closingFromPop=false;
   var baseClose=null;
   var currentRequest=null;
+  var POST_LAYER_V927='notification-home-post-v927';
+  var COMMENT_LAYER_V927='notification-home-comment-v927';
 
   function clean(v){return String(v==null?'':v).trim();}
   function cssEscape(v){
@@ -20,6 +22,17 @@
     var next={};
     try{Object.keys(raw||{}).forEach(function(k){next[k]=raw[k];});}catch(_e){}
     return next;
+  }
+  function returnControllerV927(){return window.HappyInternalReturnV694||window.HappyInternalReturnV591||null;}
+  function closePostLayerV927(){try{var c=returnControllerV927();if(c)c.close(POST_LAYER_V927);}catch(_e){}return true;}
+  function ensurePostLayerV927(){try{var c=returnControllerV927();if(c&&typeof c.open==='function')return c.open(POST_LAYER_V927,{onBack:closePostLayerV927});}catch(_e){}return false;}
+  function closeCommentFromReturnV927(){
+    closingFromPop=true;
+    try{if(typeof baseClose==='function')baseClose();}catch(_e){}
+    active=false;currentRequest=null;
+    try{var c=returnControllerV927();if(c)c.close(COMMENT_LAYER_V927);}catch(_e2){}
+    closingFromPop=false;
+    return true;
   }
   function installRouteStyle(){
     if(document.getElementById('happyadNotificationMediaRouteV548Style'))return;
@@ -110,18 +123,8 @@
     return false;
   }
   function pushHistory(detail){
-    try{
-      var next=cloneState(history.state||{});
-      next[HISTORY_FLAG]=true;
-      delete next[POST_HISTORY_FLAG];
-      delete next[NOTIFICATION_HISTORY_FLAG];
-      next.view='home_comment';
-      next.postId=clean(detail.postId||detail.publicationId);
-      next.commentId=clean(detail.commentId||detail.comment_id);
-      next.returnTo='notification_center';
-      next.ts=Date.now();
-      history.pushState(next,'',location.href);
-    }catch(_e){}
+    ensurePostLayerV927();
+    try{var c=returnControllerV927();if(c&&typeof c.open==='function')c.open(COMMENT_LAYER_V927,{onBack:closeCommentFromReturnV927});}catch(_e){}
   }
   function publicationHistoryState(detail){
     detail=detail||{};
@@ -139,25 +142,7 @@
   }
   function keepPublicationVisible(detail,historyAlreadyPopped){
     var next=publicationHistoryState(detail||{});
-    try{
-      /*
-       * Fermeture visuelle normale : remplacer l'étape Commentaires par
-       * une étape Publication. L'historique reste Accueil > Notifications >
-       * Publication ; le prochain Retour du téléphone rouvre Notifications.
-       *
-       * Retour téléphone pendant les commentaires : le navigateur vient déjà
-       * de revenir sur l'étape Notifications. On repousse alors Publication
-       * au-dessus pour obtenir le même parcours sans afficher Notifications.
-       */
-      if(historyAlreadyPopped)history.pushState(next,'',location.href);
-      else if(history.state&&history.state[HISTORY_FLAG])history.replaceState(next,'',location.href);
-      else history.pushState(next,'',location.href);
-    }catch(_e){}
-    try{
-      if(window.HappyNotificationReturnCenter&&typeof window.HappyNotificationReturnCenter.handoff==='function'){
-        window.HappyNotificationReturnCenter.handoff('home-comment-closed-stay-on-post');
-      }
-    }catch(_e){}
+    try{var c=returnControllerV927();if(c)c.close(COMMENT_LAYER_V927);}catch(_e){}
     var postId=clean(next.postId);
     if(postId){
       setTimeout(function(){
@@ -213,7 +198,7 @@
     }catch(_e){}
 
     var next=publicationHistoryState(Object.assign({},detail,{postId:postId,source:'notification-photo-home'}));
-    try{history.pushState(next,'',location.href);}catch(_e){}
+    ensurePostLayerV927();
     scrollToPost(postId,0);
     return true;
   }

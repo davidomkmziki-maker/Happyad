@@ -26,6 +26,9 @@
   }
   function closePublish(reason){
     reason=clean(reason)||'publish-close-v589';
+    /* V927 : la destination n'est plus recalculée depuis une variable locale.
+       La vraie pile conserve B et A, y compris après plusieurs ouvertures. */
+    try{if(window.HappyNavigation&&typeof window.HappyNavigation.back==='function')return window.HappyNavigation.back({source:reason+'-v927'});}catch(_canonical){}
     var route=lastMainRoute||{page:'home',url:'index.html'};
     try{
       if(route.page==='home'){

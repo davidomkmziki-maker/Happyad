@@ -6,7 +6,7 @@
   'use strict';
   if(window.HappyHomeCardRendererV1)return;
 
-  var VERSION='V4_MARKETPLACE_SHARE_ONLY_V857';
+  var VERSION='V5_CANONICAL_AVATAR_EXACT_CROP_V855R33';
   var bridge=null;
 
   function connect(adapter){bridge=adapter||null;return api;}
@@ -23,6 +23,7 @@
     var video=!!call('isVideo',p);
     var owner=call('ownerData',p)||{};
     var name=owner.name||'Utilisateur HAPPYAD';
+    var ownerUid=safeText(owner.id||owner.user_id||p.creatorId||p.creator_id||p.user_id||p.owner_id||p.author_id||'').trim();
     var title=p.title||'Annonce HAPPYAD';
     var rawDesc=safeText(p.desc||p.description||p.caption||'').trim();
     var desc=(rawDesc&&rawDesc!==safeText(title).trim())?rawDesc:'';
@@ -34,10 +35,12 @@
     card.dataset.postId=safeText(p.id||p.post_id||'');
     card.dataset.feedKey=safeText(p.__feedCardKey||('post:'+safeText(p.id||p.post_id||'')));
     card.dataset.happyadMarketplace='1';
+    if(ownerUid)card.dataset.happyadOwnerUid=ownerUid;
     var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':esc(call('initials',name)||'H');
+    var avatarAttrs=(ownerUid?' data-happyad-avatar-uid="'+esc(ownerUid)+'"':'')+' data-happyad-avatar-name="'+esc(name)+'"';
     var ago=call('timeAgo',call('postTimestamp',p))||'';
     var badge=call('badgeHtml',owner.badge)||'';
-    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar">'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div><span class="happyadMarketplaceHomeTagV856">ANNONCE</span></div><div class="miniMedia">'+(video?'<div class="play">▶</div>':'')+'</div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Annonce HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc happyadMarketplaceDescV856">'+esc(desc)+'</div>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="happyadMarketplaceCtaRowV856"><button class="happyadMarketplaceShareOnlyV857" type="button" data-card-act="share" aria-label="Partager l’annonce"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button><button class="happyadMarketplaceCardCtaV856" type="button"><span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div><span class="happyadMarketplaceHomeTagV856">ANNONCE</span></div><div class="miniMedia">'+(video?'<div class="play">▶</div>':'')+'</div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Annonce HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc happyadMarketplaceDescV856">'+esc(desc)+'</div>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="happyadMarketplaceCtaRowV856"><button class="happyadMarketplaceShareOnlyV857" type="button" data-card-act="share" aria-label="Partager l’annonce"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button><button class="happyadMarketplaceCardCtaV856" type="button"><span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
     try{var top=card.querySelector('.miniTop');if(top)top.onclick=function(e){e.preventDefault();e.stopPropagation();return call('openProfile',card.__happyadPost||p);};}catch(_e){}
     var cta=card.querySelector('.happyadMarketplaceCardCtaV856');
     if(cta)cta.onclick=function(e){e.preventDefault();e.stopPropagation();var cp=card.__happyadPost||p;return call('openListing',cp&& (cp.id||cp.post_id),cp);};
@@ -81,6 +84,7 @@
     var video=!!call('isVideo',p);
     var owner=call('ownerData',p)||{};
     var name=owner.name||'Utilisateur HAPPYAD';
+    var ownerUid=safeText(owner.id||owner.user_id||p.creatorId||p.creator_id||p.user_id||p.owner_id||p.author_id||'').trim();
     var title=p.title||'Publication HAPPYAD';
     var rawDesc=safeText(p.desc||p.description||p.caption||'').trim();
     var desc=(rawDesc&&rawDesc!==safeText(title).trim())?rawDesc:'';
@@ -91,8 +95,10 @@
     card.className='miniCard'+(video?' videoCard':'')+(call('isLive',p)?' isLive':'');
     card.dataset.postId=safeText(p.id||'');
     card.dataset.feedKey=safeText(p.__feedCardKey||('post:'+safeText(p.id||'')));
+    if(ownerUid)card.dataset.happyadOwnerUid=ownerUid;
 
     var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':esc(call('initials',name)||'H');
+    var avatarAttrs=(ownerUid?' data-happyad-avatar-uid="'+esc(ownerUid)+'"':'')+' data-happyad-avatar-name="'+esc(name)+'"';
     var ago=call('timeAgo',call('postTimestamp',p))||'';
     var album=!video&&Number(p&&p.__albumCount||0)>1;
 
@@ -104,7 +110,7 @@
     }
 
     var badge=call('badgeHtml',owner.badge)||'';
-    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar">'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia"><div class="play">▶</div></div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Publication HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc">'+esc(desc)+'</div>':'')+(showMore?'<button class="miniSeeMore" type="button">Voir plus</button>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="miniActions"><button class="actionBtn" data-card-act="like"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="comment"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="share"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="repost"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><small>0</small></button><button class="actionBtn fav" data-card-act="fav"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span><small>0</small></button></div>';
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia"><div class="play">▶</div></div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Publication HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc">'+esc(desc)+'</div>':'')+(showMore?'<button class="miniSeeMore" type="button">Voir plus</button>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="miniActions"><button class="actionBtn" data-card-act="like"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="comment"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="share"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="repost"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><small>0</small></button><button class="actionBtn fav" data-card-act="fav"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span><small>0</small></button></div>';
 
     try{
       var top=card.querySelector('.miniTop');

@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_CARD_AUTHOR_AVATAR_MASTER_V742__)return;
   window.__HAPPYAD_CARD_AUTHOR_AVATAR_MASTER_V742__=true;
 
-  var VERSION='CARD_AUTHOR_AVATAR_MASTER_V742_V763_HOME_STABLE';
+  var VERSION='CARD_AUTHOR_AVATAR_MASTER_V855R33_EXACT_USER_CROP';
   var AUTHOR_KEY='HAPPYAD_AUTHOR_PROFILE_CACHE_V1';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var AVATAR_MASTER=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
@@ -109,7 +109,9 @@
     set('creatorId',uid);set('creator_id',uid);set('user_id',uid);
     if(n.name){set('creatorName',n.name);set('creator_name',n.name);set('display_name',n.name);set('full_name',n.name);set('user_name',n.name);}
     if(n.handle){set('handle','@'+n.handle);set('username',n.handle);}
-    if(n.__happyadAvatarKnownV855R32===true||n.avatar){set('avatar',n.avatar||'');set('avatar_url',n.avatar||'');set('creator_avatar',n.avatar||'');set('author_avatar',n.avatar||'');set('user_avatar',n.avatar||'');set('__happyadAvatarKnownV855R32',n.__happyadAvatarKnownV855R32===true);set('__happyadAvatarRevisionV855R32',n.__happyadAvatarRevisionV855R32||'');}
+    /* Une publication ne doit jamais ressusciter son ancienne copie d'avatar.
+       Tant que profiles.avatar_url n'est pas résolu, on garde les initiales. */
+    set('avatar',n.avatar||'');set('avatar_url',n.avatar||'');set('creator_avatar',n.avatar||'');set('author_avatar',n.avatar||'');set('user_avatar',n.avatar||'');set('__happyadAvatarKnownV855R32',n.__happyadAvatarKnownV855R32===true);set('__happyadAvatarRevisionV855R32',n.__happyadAvatarRevisionV855R32||'');
     if(n.badge){set('badge',n.badge);set('user_badge',n.badge);set('userBadge',n.badge);}
     return q;
   }
@@ -152,21 +154,31 @@
   }
   function paintCard(card,p,profile){
     if(!card||!profile)return;
-    var top=card.querySelector('.miniTop'),box=top&&top.querySelector('.avatar'),title=top&&top.querySelector('.creator b');if(!top)return;
+    var tops=Array.prototype.slice.call(card.querySelectorAll('.miniTop'));if(!tops.length)return;
     var uid=profile.id||uidOf(p)||'';
     if(uid&&card.dataset.happyadOwnerUid!==uid)card.dataset.happyadOwnerUid=uid;
-    if(box){
-      var av=publicAvatar(profile.avatar),img=box.querySelector('img');
-      if(av&&!sameImage(img,av)){
-        var next=document.createElement('img');next.alt='';next.src=av;
-        next.onerror=function(){
-          try{if(next.parentNode===box){next.remove();box.textContent=initials(profile.name);box.dataset.avatarFailed='1';}}catch(_e){}
-          if(!card.__happyadAvatarRetryV763){card.__happyadAvatarRetryV763=1;setTimeout(function(){hydrate(false,[card]);},1200);}
-        };
-        box.replaceChildren(next);delete box.dataset.avatarFailed;
-      }else if(!av){if(img)img.remove();var ini=initials(profile.name);if(box.textContent!==ini)box.textContent=ini;delete box.dataset.avatarFailed;}
-    }
-    if(title&&profile.name){var desired=esc(profile.name)+badgeHtml(profile.badge);if(title.innerHTML!==desired)title.innerHTML=desired;}
+    var entry=AVATAR_MASTER&&uid&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(uid);
+    tops.forEach(function(top){
+      var box=top.querySelector('.avatar'),title=top.querySelector('.creator b');
+      if(box){
+        try{box.dataset.happyadAvatarUid=uid;box.dataset.happyadAvatarName=profile.name||'';}catch(_data){}
+        if(entry&&entry.known&&AVATAR_MASTER&&AVATAR_MASTER.paintBox){
+          AVATAR_MASTER.paintBox(box,entry,profile.name);delete box.dataset.avatarFailed;
+        }else{
+          var av=publicAvatar(profile.avatar),img=box.querySelector('img');
+          if(av&&!sameImage(img,av)){
+            var next=document.createElement('img');next.alt='';next.src=av;
+            if(AVATAR_MASTER&&AVATAR_MASTER.styleExactCropImage)AVATAR_MASTER.styleExactCropImage(next);
+            next.onerror=function(){
+              try{if(next.parentNode===box){next.remove();box.textContent=initials(profile.name);box.dataset.avatarFailed='1';}}catch(_e){}
+              if(!card.__happyadAvatarRetryV763){card.__happyadAvatarRetryV763=1;setTimeout(function(){hydrate(false,[card]);},1200);}
+            };
+            box.replaceChildren(next);delete box.dataset.avatarFailed;
+          }else if(!av){if(img)img.remove();var ini=initials(profile.name);if(box.textContent!==ini)box.textContent=ini;delete box.dataset.avatarFailed;}
+        }
+      }
+      if(title&&profile.name){var desired=esc(profile.name)+badgeHtml(profile.badge);if(title.innerHTML!==desired)title.innerHTML=desired;}
+    });
   }
   function cardsFromNode(node){
     var out=[];if(!node||node.nodeType!==1)return out;

@@ -27,7 +27,7 @@
 </script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
 <script src="../core/auth-frame-gate-v596.js?v=596"></script>
-<script src="../core/return-reset-master-v584.js?v=584"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-status-bar-style" content="black"><title>HAPPYAD — Photo</title><style>
@@ -189,7 +189,7 @@
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
 <script src="../core/interaction-privacy-master-v855r52.js?v=855r52-interactions"></script>
 <script src="../core/filtering-privacy-master-v855r55.js?v=855r55-filtering"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=855r32-source-unique"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
 <script src="../core/video-cover-editor-master-v693.js?v=828-marketplace-poster-in-place"></script>
 <script src="../core/post-options-master-v693.js?v=855r67-popup-persistant-confirmation-haut"></script>
 <script id="happyad-no-demo-posts-cleaner-v63">
@@ -1841,9 +1841,9 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
   function inFrame(){try{return window.parent&&window.parent!==window;}catch(e){return false;}}
   function clean(url){url=String(url||'').trim();if(url.indexOf('../')===0)url=url.replace(/^\.\.\//,'');if(url.indexOf('./')===0)url=url.replace(/^\.\//,'');return url;}
   function send(url){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:clean(url)},'*');return true;}}catch(e){}return false;}
-  function close(){return false;}
+  function close(){try{if(inFrame()&&window.parent.postMessage){window.parent.postMessage({type:'HAPPYAD_NAV_BACK_REQUEST',detail:{source:'photo-module-v927'}},'*');return true;}History.prototype.go.call(history,-1);return true;}catch(e){return false;}}
   window.happyadOpenInternalUrlV492=function(url){if(send(url))return true;location.href=url;return true;};
-  window.happyadCloseAppPage=function(){return false;};
+  window.happyadCloseAppPage=close;
   document.addEventListener('click',function(e){
     try{
       if(!inFrame())return;

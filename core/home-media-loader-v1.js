@@ -10,7 +10,7 @@
   'use strict';
   if(window.HappyHomeMediaLoaderV1)return;
 
-  var VERSION='V1';
+  var VERSION='V929_STABLE_MEDIA_GEOMETRY';
   var bridge=null;
   var io=null;
   var ROOT_MARGIN='320px 0px 460px 0px';
@@ -72,19 +72,54 @@
     }catch(_e){return false;}
   }
 
-  function markPhotoReady(card,p,img){
+  function finalizeRatio(box,cls,source){
+    if(!box)return '';
+    try{
+      var done=call('finalizePhotoRatio',box,cls,source);
+      if(done)return done;
+    }catch(_e){}
+    try{
+      cls=/^haPhoto(Tall|Square|Wide|Panorama)$/.test(text(cls))?text(cls):text(box.dataset.happyadRatioLockedV765||'haPhotoTall');
+      box.classList.remove('haPhotoTall','haPhotoSquare','haPhotoWide','haPhotoPanorama','haPhotoRatioPendingV925');
+      box.classList.add(cls,'haPhotoRatioFinalV925');
+      box.dataset.happyadRatioLockedV765=cls;
+      box.dataset.happyadRatioSourceV925=text(source||'loader-fallback');
+      return cls;
+    }catch(_e){return '';}
+  }
+
+  function markPhotoReady(card,box,p,img){
     if(!card)return;
+    var learned='';
+    try{learned=call('learnPhotoRatio',p,img,box)||'';}catch(_e){}
+    if(!learned)finalizeRatio(box,box&&box.dataset&&box.dataset.happyadRatioLockedV765,'decoded-fallback');
     card.dataset.mediaReady='1';
     card.dataset.mediaRetryV764='0';
     try{card.classList.remove('happyadMediaLoadingV764');}catch(_e){}
-    try{call('learnPhotoRatio',p,img);}catch(_e){}
   }
 
   function bindProgressive(card,box,img,primary,fallback,p){
-    if(!card||!box||!img)return;
+    if(!card||!box||!img)return null;
     var triedFallback=false;
-    function ready(){markPhotoReady(card,p,img);}
+    var committed=false;
+    var decoding=false;
+    function commit(){
+      if(committed||!card.isConnected||!box.contains(img))return;
+      committed=true;
+      markPhotoReady(card,box,p,img);
+    }
+    function ready(){
+      if(committed||decoding)return;
+      decoding=true;
+      try{
+        var decoded=typeof img.decode==='function'?img.decode():null;
+        if(decoded&&typeof decoded.then==='function'){decoded.then(commit,commit);return;}
+      }catch(_decode){}
+      commit();
+    }
     function fail(){
+      if(committed)return;
+      decoding=false;
       var current=text(img.currentSrc||img.getAttribute('src')||'');
       if(!triedFallback&&fallback&&fallback!==primary&&current!==fallback){
         triedFallback=true;try{img.src=fallback;return;}catch(_e){}
@@ -105,6 +140,7 @@
     img.addEventListener('load',ready,{once:true});
     img.addEventListener('error',fail);
     if(img.complete&&img.naturalWidth>0)ready();
+    return {ready:ready,fail:fail};
   }
 
   function renderPhoto(card,box,p,primary,fallback){
@@ -112,11 +148,13 @@
     var crop=null;try{crop=call('resolveCrop',p);}catch(_e){}
     try{box.classList.toggle('haPhotoUserCropV613D',!!crop);}catch(_e){}
     try{call('preparePhotoRatio',box,p);}catch(_e){}
+    if(crop)finalizeRatio(box,'haPhotoSquare','user-crop');
     var img=document.createElement('img');
     img.alt='';applyImagePriority(img,card,false);applyCrop(img,p);
     box.replaceChildren(img);
-    bindProgressive(card,box,img,primary,fallback,p);
+    var progressive=bindProgressive(card,box,img,primary,fallback,p);
     img.src=primary||fallback||'';
+    if(progressive&&img.complete&&img.naturalWidth>0)progressive.ready();
   }
 
   async function hydrateAlbum(card,p){
@@ -144,10 +182,28 @@
             var im=document.createElement('img');
             im.alt='';im.loading='eager';im.decoding='async';
             try{im.fetchPriority=priority?'high':'auto';}catch(_fp){}
-            im.onload=function(){media.dataset.albumMediaReadyV772='1';try{call('learnPhotoRatio',it,im);}catch(_r){}};
+            var albumCommitted=false,albumDecoding=false;
+            function commitAlbum(){
+              if(albumCommitted||!media.contains(im))return;
+              albumCommitted=true;
+              var learned='';try{learned=call('learnPhotoRatio',it,im,media)||'';}catch(_r){}
+              if(!learned)finalizeRatio(media,media.dataset.happyadRatioLockedV765,'album-decoded-fallback');
+              media.dataset.albumMediaReadyV772='1';
+            }
+            function readyAlbum(){
+              if(albumCommitted||albumDecoding)return;
+              albumDecoding=true;
+              try{
+                var decoded=typeof im.decode==='function'?im.decode():null;
+                if(decoded&&typeof decoded.then==='function'){decoded.then(commitAlbum,commitAlbum);return;}
+              }catch(_decode){}
+              commitAlbum();
+            }
+            im.onload=readyAlbum;
             im.onerror=function(){media.dataset.albumMediaReadyV772='error';media.innerHTML='<div class="happyadAlbumLoading">Média introuvable</div>';};
             var badge=document.createElement('div');badge.className='happyadAlbumBadge';badge.textContent='▧ '+(i+1);
             media.replaceChildren(im,badge);im.src=url;
+            if(im.complete&&im.naturalWidth>0)readyAlbum();
           }catch(_e){media.dataset.albumMediaReadyV772='error';media.innerHTML='<div class="happyadAlbumLoading">Erreur média</div>';}
         })();
       }

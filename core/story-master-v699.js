@@ -20,6 +20,8 @@
   };
 
   var exactNotificationOpenTokenV735=0;
+  var storyReturnRetryV927=0;
+  var storyReturnArmedV927=false;
 
   var STORY_REPLY_MARKER='\u2063HAPPYAD_STORY_REPLY_V1\u2063';
   var STORY_SHARE_TYPE='story';
@@ -806,6 +808,27 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     box.style.setProperty('visibility','visible','important');
     box.style.setProperty('opacity','1','important');
   }
+  function armStoryReturnV927(){
+    clearTimeout(storyReturnRetryV927);storyReturnRetryV927=0;
+    try{
+      var controller=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      if(controller&&typeof controller.open==='function'){
+        controller.open('story-viewer-v927',{onBack:function(){close('story-return-v927');return true;}});
+        storyReturnArmedV927=true;
+        return true;
+      }
+    }catch(_e){}
+    /* Story est chargée très tôt dans index.html. Si l'utilisateur touche le
+       Radar avant la fin du parsing, attendre brièvement le maître canonique au
+       lieu de laisser cette ouverture sans protection Android. */
+    if(!state.closed)storyReturnRetryV927=setTimeout(armStoryReturnV927,30);
+    return false;
+  }
+  function releaseStoryReturnV927(){
+    clearTimeout(storyReturnRetryV927);storyReturnRetryV927=0;
+    try{var controller=window.HappyInternalReturnV694||window.HappyInternalReturnV591;if(storyReturnArmedV927&&controller&&typeof controller.close==='function')controller.close('story-viewer-v927');}catch(_e){}
+    storyReturnArmedV927=false;
+  }
   function close(reason){
     try{var closingRow=currentRow();if(closingRow&&reason!=='complete'&&reason!=='deleted'&&reason!=='empty'&&reason!=='error')analyticsTrackV728('story_exit',closingRow,{dedupeKey:'v728:story-exit:'+sessionStorage.getItem('HAPPYAD_ANALYTICS_SESSION_V728')+':'+storyId(closingRow)+':'+Math.floor(Date.now()/3000),metadata:{reason:clean(reason)||'close'}})}catch(_ae){}
     state.closed=true;state.openToken++;stopTimer();stopAgeTickerV783();stopMedia();clearStoryPreloadsV793();clearTimeout(state.holdTimer);state.holdTimer=0;clearTimeout(state.composerDismissTimer);state.composerDismissTimer=0;state.composerDismissGuard=false;state.composerDismissGuardUntil=0;state.composerDismissPointerId=null;state.composerViewportBase=0;state.shareOverlayOpen=false;state.shareResumePending=false;state.pointers.clear();resetZoom(false);
@@ -819,6 +842,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       state.box.style.setProperty('opacity','0','important');
     }
     state.paused=false;state.hold=false;state.pinch=false;state.moved=false;state.lastTapAt=0;state.pointerDownAt=0;state.lastPointerType='';
+    releaseStoryReturnV927();
     unlock();
     /* V705 : la fermeture définitive de la Story restaure explicitement le dock principal.
        Le dock reste masqué tant que la Story ou son popup de partage est encore ouvert. */
@@ -1454,7 +1478,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 
   function show(owner,rows,profile,startId){
     var box=ensureViewer();state.owner=owner;state.rows=(rows||[]).filter(active).sort(function(a,b){return createdOf(a)-createdOf(b)});state.profile=profile||{};state.closed=false;state.paused=false;state.openToken++;var ix=0;if(startId){var f=state.rows.findIndex(function(r){return storyId(r)===clean(startId)});if(f>=0)ix=f}else{var cache=cacheStories(),unseen=state.rows.findIndex(function(r){var id=storyId(r),p=cache.find(function(x){return storyId(x)===id});return p&&!p.isSeen&&!p.seen&&!p.viewed});if(unseen>=0)ix=unseen}
-    buildSegments();activateViewerSurface(box);lock();paint(ix);return false
+    buildSegments();activateViewerSurface(box);armStoryReturnV927();lock();paint(ix);return false
   }
 
   /* V785 : une ouverture Story est une session de lecture immuable.
@@ -1509,7 +1533,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
        "shared_post" ne doit JAMAIS être peint comme Story personnelle.
        On affiche seulement le loader pendant la très courte vérification DB. */
     if(cachedTrusted)show(owner,cached,seedProfile,startId||storyId(seed));
-    else{var box=ensureViewer();state.owner=owner;state.rows=[];state.profile=seedProfile;state.closed=false;state.openToken++;activateViewerSurface(box);lock();$('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':esc(initials(seedProfile.full_name));$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML=''}
+    else{var box=ensureViewer();state.owner=owner;state.rows=[];state.profile=seedProfile;state.closed=false;state.openToken++;activateViewerSurface(box);armStoryReturnV927();lock();$('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':esc(initials(seedProfile.full_name));$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML=''}
     var token=state.openToken;
     Promise.all([fetchRows(owner),fetchProfile(owner,seedProfile)]).then(function(res){if(state.closed||token!==state.openToken||state.owner!==owner)return;var rows=res[0],profile=res[1]||seedProfile;if(!rows.length){if(cachedTrusted)return;toast('Aucune story active');close('empty');return}mergeStoryCache(owner,rows,profile);var keep=storyId(currentRow())||startId;if(cachedTrusted)syncVerifiedOwnerV785(owner,rows,profile);else show(owner,rows,profile,keep);setTimeout(renderRadarHomeV629,30)}).catch(function(){if(!cachedTrusted){toast('Story indisponible');close('error')}});
     return false
