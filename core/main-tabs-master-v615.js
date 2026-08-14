@@ -300,7 +300,7 @@
     try{sessionStorage.setItem(VIDEO_DIRECT_KEY_V855R79,id);sessionStorage.setItem('HAPPYAD_VIDEO_TARGET_POST_V594',id);}catch(_s){}
     try{window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79=id;}catch(_w){}
     var n=nav();
-    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('video','modules/video.html?v=927-canonical-return');}catch(_pre){}
+    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('video','modules/video.html?v=931-text-free-more-no-panel');}catch(_pre){}
     var started=Date.now(),preparing=false;
     function fallback(){
       if(seq!==videoDirectSeqV855R79)return false;

@@ -9,7 +9,7 @@
   'use strict';
   if(window.HappyHomeActionsV1)return;
 
-  var VERSION='V869_CONNECTION_SCOPED_REALTIME';
+  var VERSION='V935_VIDEO_VIEWS_PLAY_FORMAT_SAFE';
   var KEY='HAPPYAD_VIDEO_ACTIONS_V1';
   var bridge=null;
   var memory=null;
@@ -118,7 +118,7 @@
 
   function compact(n){
     n=Number(n||0);if(!isFinite(n))n=0;var sign=n<0?'-':'';n=Math.abs(n);
-    function fmt(v,s){var out=(v>=100?Math.floor(v):Math.floor(v*10)/10).toString();return sign+out.replace(/\.0$/,'')+s;}
+    function fmt(v,s){var cut=Math.floor(v*10+1e-7)/10;var out=cut.toFixed(1).replace(/\.0$/,'');return sign+out+s;}
     if(n<1000)return sign+String(Math.floor(n));
     if(n<1000000)return fmt(n/1000,'K');
     if(n<1000000000)return fmt(n/1000000,'M');
@@ -139,7 +139,16 @@
       if(type==='comment'){el.classList.toggle('haCommentsDisabledV63',commentsOff);el.setAttribute('aria-disabled',commentsOff?'true':'false');}
       el.classList.toggle('on',(type==='like'&&a.like)||(type==='fav'&&a.fav)||(type==='repost'&&a.repost));
     });
-    var vb=card.querySelector('.happyadVideoViewsBadge');if(vb)vb.textContent=compact(a.views||0);
+    var vb=card.querySelector('.happyadVideoViewsBadge');
+    if(vb){
+      var viewText=compact(a.views||0),viewCount=vb.querySelector('.happyadVideoViewsCount');
+      if(!viewCount){
+        vb.innerHTML='<svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount"></span>';
+        viewCount=vb.querySelector('.happyadVideoViewsCount');
+      }
+      if(viewCount)viewCount.textContent=viewText;
+      vb.setAttribute('aria-label',viewText+' vues');
+    }
   }
   function register(card,p){
     if(!card||!p||!p.id)return;var id=String(p.id);card.__happyadPost=p;

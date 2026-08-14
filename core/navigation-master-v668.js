@@ -4,7 +4,7 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V928_FULLSCREEN_PROFILE_HANDOFF';
+  var MASTER_VERSION='NAV_MASTER_V936_PUBLISH_OPENING_UNIQUE_READY';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=869-connection-phase2';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
@@ -40,10 +40,10 @@
     home:'index.html',
     profile:'modules/my-profile.html?v=877-dock-execution-direct',
     profile_public:'modules/visitor-profile.html',
-    video:'modules/video.html?v=927-canonical-return',
+    video:'modules/video.html?v=931-text-free-more-no-panel',
     photo:'modules/photo.html',
     message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line',
-    publish:'modules/publish.html?v=927-canonical-return',
+    publish:'modules/publish.html?v=936-opening-unique-ready',
     map:'modules/map.html'
   };
 
@@ -784,11 +784,11 @@
   }
   function persistentMainUrl(page){
     page=String(page||'');
-    if(page==='video')return 'modules/video.html?v=927-canonical-return';
+    if(page==='video')return 'modules/video.html?v=931-text-free-more-no-panel';
     if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line';
     if(page==='profile')return 'modules/my-profile.html?v=877-dock-execution-direct';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
-    if(page==='publish')return 'modules/publish.html?v=927-canonical-return';
+    if(page==='publish')return 'modules/publish.html?v=936-opening-unique-ready';
     return pages[page]||'index.html';
   }
   function ownerAuthUidHintV855R23(){
@@ -1091,6 +1091,13 @@
       if(fr&&fr.getAttribute('data-happyad-first-render-ready-v623')==='1')return true;
       var d=fr&&fr.contentDocument;
       if(!d||!d.body)return false;
+      if(page==='publish'){
+        var publishHtml=d.documentElement;
+        return !!(publishHtml&&(
+          publishHtml.getAttribute('data-happyad-publish-ready-v936')==='1'||
+          publishHtml.getAttribute('data-happyad-publish-failed-v936')==='1'
+        ));
+      }
       if(d.readyState==='loading')return false;
       var txt=String(d.body.innerText||'').replace(/\s+/g,' ').trim().toLowerCase();
       if(!txt&&!(d.images&&d.images.length)&&!d.querySelector('video,.reel,#videoFeed,.videoFeed,.centralVideo,.happyadVideo'))return false;
@@ -1115,7 +1122,7 @@
         return hasBody;
       }
       return true;
-    }catch(_e){return true;}
+    }catch(_e){return page==='publish'?false:true;}
   }
   function shouldHoldSkeleton(fr,page,source){
     try{
@@ -1127,6 +1134,10 @@
       if(page==='message'&&fr.getAttribute('data-happyad-message-cache-prepare-v875')==='1'){
         return !frameLooksReady(fr,'message');
       }
+      /* V936 : Publication n'est jamais exposée sur un simple événement load.
+         Son moteur envoie READY après la pose de tous les gestionnaires. En cas
+         d'échec réel, son écran Réessayer envoie FAILED et devient la surface sûre. */
+      if(page==='publish')return !frameLooksReady(fr,'publish');
       if(elapsed<minSkeletonMs(page))return true;
       if(elapsed<maxSkeletonMs(page)&&!frameLooksReady(fr,page))return true;
     }catch(_e){}
@@ -1310,7 +1321,7 @@
     /* Audit V757 : Mon profil reçoit un seul HAPPYAD_APP_FRAME_VISIBLE.
        Les anciens maîtres internes rafraîchissent sur chaque signal visible ; le
        second signal à +45 ms donnait l'impression d'un rechargement. */
-    if(page!=='profile'){try{setTimeout(function(){resumeFrame(fr,page,url,source||MASTER_VERSION);},45);}catch(_m){}}
+    if(page!=='profile'&&page!=='publish'){try{setTimeout(function(){resumeFrame(fr,page,url,source||MASTER_VERSION);},45);}catch(_m){}}
   }
   function clearVideoRouteMemory(reason){
     try{sessionStorage.removeItem('HAPPYAD_VIDEO_POST_OPEN_V532');}catch(_e){}
@@ -1399,7 +1410,7 @@
            sinon l'ancien garde-fou des onglets persistants la remettrait en pause
            et le loader pourrait rester affiché jusqu'au timeout. */
         if(pg==='publish'&&fr.getAttribute('data-happyad-defer-visible')==='1'){
-          revealFrame(fr,pg,u,'publish-frame-load-ready-v885');
+          if(frameLooksReady(fr,'publish'))revealFrame(fr,pg,u,'publish-frame-load-ready-v936');
           return;
         }
         if(isPersistentMainPage(pg)&&!fr.classList.contains('on')){
@@ -1410,7 +1421,7 @@
         else {
           showLoader(false);
           try{fr.removeAttribute('data-happyad-loading');fr.setAttribute('data-happyad-ready-v594','1');fr.style.opacity='';fr.style.visibility='';}catch(_e){}
-          if(fr.classList.contains('on')){
+          if(fr.classList.contains('on')&&pg!=='publish'){
             try{resumeFrame(fr,pg,u,'frame-load-visible-v625');}catch(_resume){}
           }
         }
@@ -1798,7 +1809,7 @@
     var ok=loadFrame(page,url,extra);
     if(ok){
       pushNav(page,url,{replace:!!extra.replace,fromPop:!!extra.fromPop,menu:!!extra.menu,source:extra.source});
-      if(page!=='profile'){
+      if(page!=='profile'&&page!=='publish'){
         try{setTimeout(function(){postToFrameV594(page,{type:'HAPPYAD_APP_FRAME_VISIBLE',page:page,url:url,source:extra.source||'main-tabs-v594'});},0);}catch(_v){}
       }
     }
@@ -2045,8 +2056,18 @@
          uniquement lorsque son cache (ou son état sans cache) est déjà peint. */
       if(page==='message'&&type!=='HAPPYAD_MESSAGE_CACHE_READY_V875')return false;
       if(page==='video'&&type!=='HAPPYAD_VIDEO_VISUAL_READY_V873'&&type!=='HAPPYAD_VIDEO_TAB_READY_V594'&&type!=='HAPPYAD_VIDEO_READY')return false;
+      if(page==='publish'&&type!=='HAPPYAD_PUBLISH_READY_V936'&&type!=='HAPPYAD_PUBLISH_BOOT_FAILED_V936')return false;
       fr.setAttribute('data-happyad-first-render-ready-v623','1');
       fr.setAttribute('data-happyad-first-render-reason-v623',type||'ready');
+      if(page==='publish'){
+        if(type==='HAPPYAD_PUBLISH_READY_V936'){
+          fr.setAttribute('data-happyad-publish-ready-v936','1');
+          fr.removeAttribute('data-happyad-publish-failed-v936');
+        }else{
+          fr.setAttribute('data-happyad-publish-failed-v936','1');
+          fr.removeAttribute('data-happyad-publish-ready-v936');
+        }
+      }
       if(page==='profile'&&type==='HAPPYAD_PROFILE_SHELL_READY_V877')fr.setAttribute('data-happyad-profile-shell-ready-v877','1');
       if(page==='video'&&fr.__happyadCentralVideoOpeningTokenV873){
         var videoOpeningTokenV873=fr.__happyadCentralVideoOpeningTokenV873;
@@ -2110,11 +2131,28 @@
     try{
       var d=ev&&ev.data;if(!d)return;
       var readyType=String(d&&d.type||'');
+      if(readyType==='HAPPYAD_PUBLISH_RETRY_V936'){
+        var retryFrameV936=frameFromMessageSourceV623(ev&&ev.source);
+        if(retryFrameV936&&String(retryFrameV936.getAttribute('data-happyad-page')||'')==='publish'){
+          try{
+            retryFrameV936.removeAttribute('data-happyad-first-render-ready-v623');
+            retryFrameV936.removeAttribute('data-happyad-publish-ready-v936');
+            retryFrameV936.removeAttribute('data-happyad-publish-failed-v936');
+            retryFrameV936.setAttribute('data-happyad-defer-visible','1');
+            retryFrameV936.setAttribute('data-happyad-skeleton-start',String(Date.now()));
+            retryFrameV936.classList.remove('on');
+            retryFrameV936.style.opacity='0';
+            retryFrameV936.style.visibility='hidden';
+            showSkeleton('publish',retryFrameV936.getAttribute('data-happyad-src')||persistentMainUrl('publish'),true);
+          }catch(_retry){}
+        }
+        return;
+      }
       if(activePage==='profile_public'&&(readyType==='HAPPYAD_VISITOR_PROFILE_NO_DOCK_V854R3'||((readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_PROFILE_READY')&&String(d.mode||'')==='visitor')))applyVisitorDockLockV854R3(true,readyType||'visitor-ready');
       if(readyType==='HAPPYAD_INTERNAL_SCREEN_CLOSE_V591'&&d.detail&&String(d.detail.id||'')==='profile-photo'){
         restoreProfileSurfaceAfterPhotoV656(ev.source,d.detail||{});
       }
-      if(readyType==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V622'||readyType==='HAPPYAD_MESSAGE_CACHE_READY_V875'||readyType==='HAPPYAD_MESSAGE_CENTER_READY'||readyType==='HAPPYAD_PROFILE_SHELL_READY_V877'||readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_VIDEO_VISUAL_READY_V873'||readyType==='HAPPYAD_VIDEO_TAB_READY_V594'||readyType==='HAPPYAD_VIDEO_READY'||readyType==='HAPPYAD_PROFILE_READY'||readyType==='HAPPYAD_PROFILE_ENGINE_READY_V854'){
+      if(readyType==='HAPPYAD_FRAME_BOOTSTRAP_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V623'||readyType==='HAPPYAD_FIRST_RENDER_READY_V622'||readyType==='HAPPYAD_MESSAGE_CACHE_READY_V875'||readyType==='HAPPYAD_MESSAGE_CENTER_READY'||readyType==='HAPPYAD_PROFILE_SHELL_READY_V877'||readyType==='HAPPYAD_PROFILE_VISUAL_READY_V621C'||readyType==='HAPPYAD_VIDEO_VISUAL_READY_V873'||readyType==='HAPPYAD_VIDEO_TAB_READY_V594'||readyType==='HAPPYAD_VIDEO_READY'||readyType==='HAPPYAD_PROFILE_READY'||readyType==='HAPPYAD_PROFILE_ENGINE_READY_V854'||readyType==='HAPPYAD_PUBLISH_READY_V936'||readyType==='HAPPYAD_PUBLISH_BOOT_FAILED_V936'){
         acceptFirstRenderV623(ev,d);
       }
       if(d==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_CLOSE_APP_PAGE'||d.type==='HAPPYAD_NAV_BACK_REQUEST'){

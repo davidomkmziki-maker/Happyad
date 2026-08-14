@@ -388,6 +388,37 @@ html.happyadVideoEmbeddedV613E .reel .timeControls{bottom:0!important}
 .reel .happyadVideoListingCtaV820{position:absolute;left:16px;bottom:132px;z-index:16;min-height:44px;border:0;border-radius:14px;padding:0 16px;background:linear-gradient(135deg,#ff731c,#ff9d31);color:#111;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:1000;box-shadow:0 12px 28px rgba(255,112,20,.25);touch-action:manipulation}
 .reel .happyadVideoListingCtaV820 svg{width:18px;height:18px}.reel.clean .happyadVideoListingCtaV820{opacity:0!important;pointer-events:none!important}
 </style>
+<style id="happyad-v931-video-text-free-css">
+/* V931 — nom, titre et description libres sur la vidéo. Voir plus augmente
+   uniquement la hauteur du texte : aucun panneau, bord, flou ou ombre. */
+.reel .creatorPill,
+.reel .creatorPill .who,
+.reel .creatorPill .who b,
+.reel .info,
+.reel .info .title,
+.reel .info .desc,
+.reel .info .more{
+  text-shadow:none!important;
+}
+.reel .info,
+.reel .info.expanded{
+  right:82px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.reel .info.expanded .desc{
+  max-height:42dvh!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  scrollbar-width:none!important;
+}
+.reel .info.expanded .desc::-webkit-scrollbar{display:none!important}
+</style>
 </head>
 <body>
 <div class="screen">

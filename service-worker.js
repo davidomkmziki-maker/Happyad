@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v929-home-stable-geometry-20260814-1';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v936-publish-opening-unique-ready-20260815-1';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v929-home-stable-geometry-20260814',
+  './index.html?v=v936-publish-opening-unique-ready-20260815',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -37,8 +37,8 @@ var HAPPYAD_APP_SHELL = [
   './core/home-feed-master-v1.js?v=v921-auto-more-fluid',
   './core/home-media-loader-v1.js?v=929-stable-media-geometry',
   './core/like-direct-master-v876.js?v=876-like-direct',
-  './core/home-actions-master-v1.js?v=869-connection-phase2',
-  './core/home-card-renderer-v1.js?v=855r33-exact-user-crop',
+  './core/home-actions-master-v1.js?v=935-video-views-play-format-safe',
+  './core/home-card-renderer-v1.js?v=935-video-views-play-format-safe',
   './core/home-feed-view-v1.js?v=929-prepaint-anchor',
   './core/home-feed-boot-v1.js?v=869-connection-phase2',
   './modules/happyad-chat.html?v=855r71-chat-writing-smooth',
@@ -46,17 +46,17 @@ var HAPPYAD_APP_SHELL = [
   './modules/notification-center.html?v=895-story-repost-return',
   './core/notification-infinite-scroll-master-v700.js?v=869-connection-phase2',
   './modules/assistance.html?v=851r12-ecriture-stable',
-  './modules/video.html?v=927-canonical-return',
+  './modules/video.html?v=931-text-free-more-no-panel',
   './modules/photo.html?v=927-canonical-return',
   './modules/map.html?v=927-canonical-return',
-  './modules/publish.html?v=927-canonical-return',
+  './modules/publish.html?v=936-opening-unique-ready',
   './core/startup-master-v727.js?v=727-startup-unique',
   './core/analytics-master-v731.js?v=855r7-all-video-surfaces',
   './core/global-scroll-coordinator-v868.js?v=869-connection-phase2',
   './core/connection-work-coordinator-v869.js?v=869-connection-phase2',
   './core/return-reset-master-v633-story-safe.js?v=928-profile-intent-gateway',
   './core/return-reset-master-v584.js?v=928-profile-intent-gateway',
-  './core/navigation-master-v668.js?v=928-fullscreen-profile-handoff',
+  './core/navigation-master-v668.js?v=936-publish-opening-unique-ready',
   './core/home-scroll-priority-master-v863.js?v=869-connection-phase2',
   './core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop',
   './core/follow-master-v855r34.js?v=855r34-one-way-follow',
@@ -68,7 +68,7 @@ var HAPPYAD_APP_SHELL = [
   './core/message-presence-app-master-v855r51.js?v=869-connection-phase2',
   './core/interaction-privacy-master-v855r52.js?v=899-story-replies-canonical',
   './core/post-options-master-v693.js?v=855r68-optimisation-finale',
-  './core/share-master.js?v=927-canonical-share-return',
+  './core/share-master.js?v=930-shared-video-single-open',
   './core/share-button-bridge.js?v=886-story-share-notification-label',
   './modules/share-center.html?v=915-story-shared-video-loader-zone',
   './core/story-master-v699.js?v=v927-canonical-story-return',
@@ -80,7 +80,7 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=855r100-home-scroll-physical-stable',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=855r93-home-silent',
-  './core/main-tabs-master-v615.js?v=927-menu-reset-stack',
+  './core/main-tabs-master-v615.js?v=931-video-text-free-route',
   './core/publish-master-v589.js?v=927-publish-canonical-return',
   './core/push-master.js?v=push-v45-voluntary-settings-avatar-v785',
   './core/internal-return-master-v694.js?v=928-suspended-layer-resume',

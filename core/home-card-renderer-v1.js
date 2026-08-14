@@ -6,7 +6,7 @@
   'use strict';
   if(window.HappyHomeCardRendererV1)return;
 
-  var VERSION='V5_CANONICAL_AVATAR_EXACT_CROP_V855R33';
+  var VERSION='V935_VIDEO_VIEWS_PLAY_FORMAT_SAFE';
   var bridge=null;
 
   function connect(adapter){bridge=adapter||null;return api;}
@@ -14,6 +14,10 @@
   function call(name){var fn=b(name);if(!fn)return undefined;return fn.apply(bridge,[].slice.call(arguments,1));}
   function safeText(v){return String(v==null?'':v);}
   function esc(v){var fn=b('esc');if(fn)return fn(v);return safeText(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function videoViewsBadge(v){
+    var value=esc(v==null?'0':v);
+    return '<div class="happyadVideoViewsBadge" aria-label="'+value+' vues"><svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount">'+value+'</span></div>';
+  }
 
 
   function truth(v){return v===true||v===1||/^(true|1|yes|oui|on)$/i.test(safeText(v).trim());}
@@ -132,8 +136,8 @@
       var media=card.querySelector('.miniMedia');
       var a=call('getAction',p.id)||{};
       var views=call('formatViews',(a&&a.views)||p.views_count||p.video_views_count||0)||'0';
-      if(media)media.insertAdjacentHTML('beforeend','<div class="videoHint">Ouvrir vidéo longue</div><div class="happyadVideoViewsBadge">'+esc(views)+'</div>');
-      else card.insertAdjacentHTML('beforeend','<div class="happyadVideoViewsBadge">0</div>');
+      if(media)media.insertAdjacentHTML('beforeend','<div class="videoHint">Ouvrir vidéo longue</div>'+videoViewsBadge(views));
+      else card.insertAdjacentHTML('beforeend',videoViewsBadge('0'));
       card.onclick=function(e){if(e.target&&e.target.closest&&e.target.closest('[data-card-act]'))return;var cp=card.__happyadPost||p;call('openVideo',cp&&cp.id,cp);};
     }else{
       card.onclick=function(e){if(e.target&&e.target.closest&&e.target.closest('[data-card-act]'))return;var cp=card.__happyadPost||p;call('openPhoto',cp&&cp.id,cp);};

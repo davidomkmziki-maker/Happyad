@@ -1127,12 +1127,19 @@
     if(type==='video'){
       var fromMessage=directExternal?false:prepareSharedVideoFromMessageV709(id,sourceWin);
       var url='modules/video.html?post='+encodeURIComponent(id)+(directExternal?'&autoplay=1&from=shared_link&direct=1':'&from=message_share');
-      var opened=false;
+      var opened=false,directAsyncAccepted=false;
       try{
         if(window.HappyNavigation&&typeof window.HappyNavigation.openVideoPost==='function')opened=window.HappyNavigation.openVideoPost(url,{source:directExternal?'shared-direct-video-v714':(fromMessage?'shared-message-video-v709':'shared-video-v709'),postId:id,force:true});
         else if(window.happyadOpenInternalUrlV492)opened=window.happyadOpenInternalUrlV492(url,{source:directExternal?'shared-direct-video-v714':(fromMessage?'shared-message-video-v709':'shared-video-v709'),postId:id,force:true});
-      }catch(_e){opened=false;}
-      if(opened!==false){if(directExternal)releaseDirectVideoBootWhenVisible(url);return opened;}
+        /* V930 — openVideoDirect prépare volontairement la Centrale en arrière-plan
+           et renvoie false pendant cette préparation. L'ancre posée dans la même
+           tâche confirme que la route interne a bien accepté la vidéo : ne pas
+           lancer ensuite location.replace(), qui ouvrirait la même vidéo une
+           deuxième fois. Le véritable fallback reste actif si aucune ancre
+           fraîche n'a été enregistrée. */
+        if(directExternal&&opened===false)directAsyncAccepted=clean(window.__HAPPYAD_VIDEO_DIRECT_ANCHOR_V855R79)===id;
+      }catch(_e){opened=false;directAsyncAccepted=false;}
+      if(opened!==false||directAsyncAccepted){if(directExternal)releaseDirectVideoBootWhenVisible(url);return directAsyncAccepted?true:opened;}
       if(fromMessage){restoreSharedVideoMessageContextV709('video-open-failed-v709');return false;}
       if(directExternal){try{location.replace(url);}catch(_r){location.href=url;}return true;}
       location.href=url;return true;

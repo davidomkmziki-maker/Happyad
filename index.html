@@ -936,9 +936,11 @@ html body #list.homeTimeline .miniMedia:not(.haPhotoUserCropV613D)>img{transform
   stroke:#ff315f!important;
 }
 .happyadVideoViewsBadge{
-  right:10px!important;
+  /* V932 — marge sûre : l’œil et le nombre restent entièrement dans la carte. */
+  right:20px!important;
   bottom:10px!important;
   font-size:12px!important;
+  max-width:calc(100% - 40px)!important;
 }
 @media(max-width:390px){
   .miniTop{height:52px!important;padding:7px 13px!important;gap:9px!important}
@@ -1552,8 +1554,8 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <script src="core/home-feed-master-v1.js?v=v922-auto-more-continuous"></script>
 <script src="core/home-media-loader-v1.js?v=929-stable-media-geometry"></script>
 <script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
-<script src="core/home-actions-master-v1.js?v=869-connection-phase2"></script>
-<script src="core/home-card-renderer-v1.js?v=855r33-exact-user-crop"></script>
+<script src="core/home-actions-master-v1.js?v=935-video-views-play-format-safe"></script>
+<script src="core/home-card-renderer-v1.js?v=935-video-views-play-format-safe"></script>
 <script src="core/home-feed-view-v1.js?v=929-prepaint-anchor"></script>
 <script src="core/home-feed-boot-v1.js?v=869-connection-phase2"></script>
 <script>
@@ -2155,7 +2157,16 @@ async function toggleContentActionSupabase(postId,contentType,actionType,nextVal
 async function toggleContentLikeSupabase(postId,contentType,nextLiked){return toggleContentActionSupabase(postId,contentType,'like',nextLiked)}
 function refreshContentLikeFromSupabase(card,p){if(!card||!p)return;registerLikeCard(card,p);refreshCardAction(card,p.id);loadContentActionsFromSupabase(p.id,isVideo(p)?'video':'photo')}
 function countComments(list){return (list||[]).reduce(function(n,c){return n+1+countComments(c&&c.replies||[]);},0)}
-function happyadCompactCount(n){var m=window.HappyHomeActionsV1;return m&&m.compact?m.compact(n):String(Number(n||0)||0)}
+function happyadCompactCount(n){
+  var m=window.HappyHomeActionsV1;if(m&&m.compact)return m.compact(n);
+  n=Number(n||0);if(!isFinite(n))n=0;var sign=n<0?'-':'';n=Math.abs(n);
+  function fmt(v,s){var cut=Math.floor(v*10+1e-7)/10;var out=cut.toFixed(1).replace(/\.0$/,'');return sign+out+s;}
+  if(n<1000)return sign+String(Math.floor(n));
+  if(n<1000000)return fmt(n/1000,'K');
+  if(n<1000000000)return fmt(n/1000000,'M');
+  if(n<1000000000000)return fmt(n/1000000000,'MD');
+  return fmt(n/1000000000000,'T');
+}
 function happyadFmtViews(n){return happyadCompactCount(n)}
 function refreshCardAction(card,id){var m=window.HappyHomeActionsV1;return m&&m.refreshCard?m.refreshCard(card,id):undefined}
 function happyadResizeCommentComposerV905(input){
@@ -3284,7 +3295,7 @@ function renderHomeVideoPreview(box,p,url){
     box.innerHTML='<img'+happyadHomeMediaAttrsV616(box.closest('.miniCard'))+' src="'+esc(poster)+'" alt="" class="happyadVideoPoster"><div class="play">▶</div>';
     var im=box.querySelector('img');if(im)im.addEventListener('error',function(){happyadRenderVideoFallbackV643(box);},{once:true});
   }else happyadRenderVideoFallbackV643(box);
-  try{var vb=document.createElement('div');vb.className='happyadVideoViewsBadge';var a=(typeof getA==='function')?getA(p&&p.id):{};vb.textContent=(typeof happyadFmtViews==='function')?happyadFmtViews((a&&a.views)||p.views_count||p.video_views_count||0):String((a&&a.views)||p.views_count||p.video_views_count||0);box.appendChild(vb);}catch(_viewsBadge){}
+  try{var vb=document.createElement('div');vb.className='happyadVideoViewsBadge';var a=(typeof getA==='function')?getA(p&&p.id):{};var viewText=(typeof happyadFmtViews==='function')?happyadFmtViews((a&&a.views)||p.views_count||p.video_views_count||0):String((a&&a.views)||p.views_count||p.video_views_count||0);vb.setAttribute('aria-label',viewText+' vues');vb.innerHTML='<svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount">'+esc(viewText)+'</span>';box.appendChild(vb);}catch(_viewsBadge){}
 }
 
 async function happyadMediaUrlForPost(p){
@@ -6382,8 +6393,8 @@ async function saveRemote(id,on){
 </script>
 
 
-<style id="happyad-v335-video-views-pill-inside-fix">
-/* HAPPYAD V335 — badge vues mieux placé et assez large pour 999K / 1M / 1MD */
+<style id="happyad-v935-video-views-play-base">
+/* V935 — compteur vidéo avec Play SVG et largeur réellement adaptative. */
 .happyadVideoViewsBadge{
   position:absolute!important;
   right:18px!important;
@@ -6391,16 +6402,17 @@ async function saveRemote(id,on){
   z-index:12!important;
   display:inline-flex!important;
   align-items:center!important;
-  justify-content:center!important;
-  gap:6px!important;
-  min-width:58px!important;
-  max-width:96px!important;
-  height:34px!important;
-  padding:0 12px!important;
+  justify-content:flex-start!important;
+  gap:5px!important;
+  min-width:0!important;
+  max-width:none!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
   box-sizing:border-box!important;
-  border-radius:999px!important;
-  background:rgba(0,0,0,.58)!important;
-  border:1px solid rgba(255,255,255,.18)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  border:0!important;
   color:#fff!important;
   font-size:15px!important;
   font-weight:1000!important;
@@ -6409,46 +6421,36 @@ async function saveRemote(id,on){
   font-variant-numeric:tabular-nums!important;
   white-space:nowrap!important;
   overflow:visible!important;
-  text-shadow:0 1px 3px rgba(0,0,0,.75)!important;
-  backdrop-filter:blur(8px)!important;
-  -webkit-backdrop-filter:blur(8px)!important;
-}
-.happyadVideoViewsBadge:before{
-  content:""!important;
-  width:18px!important;
-  height:12px!important;
-  flex:0 0 18px!important;
-  border:2px solid currentColor!important;
-  border-radius:50%/60%!important;
-  display:inline-block!important;
-  box-sizing:border-box!important;
-  position:relative!important;
-  filter:none!important;
-}
-.happyadVideoViewsBadge:after{
-  content:""!important;
-  position:absolute!important;
-  left:23px!important;
-  top:50%!important;
-  width:5px!important;
-  height:5px!important;
-  margin:0!important;
-  transform:translate(-50%,-50%)!important;
-  border-radius:50%!important;
-  background:currentColor!important;
+  text-shadow:none!important;
   box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  pointer-events:none!important;
+}
+.happyadVideoViewsPlaySvg{
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 18px!important;
+  display:block!important;
+  fill:currentColor!important;
+  stroke:none!important;
+}
+.happyadVideoViewsCount{
+  display:inline-block!important;
+  line-height:1!important;
+}
+.happyadVideoViewsBadge:before,
+.happyadVideoViewsBadge:after{
+  content:none!important;
+  display:none!important;
 }
 @media(max-width:380px){
   .happyadVideoViewsBadge{
     right:14px!important;
     bottom:16px!important;
-    min-width:54px!important;
-    max-width:90px!important;
-    height:32px!important;
-    padding:0 10px!important;
     font-size:14px!important;
   }
-  .happyadVideoViewsBadge:after{left:21px!important}
+  .happyadVideoViewsPlaySvg{width:18px!important;height:18px!important;flex-basis:18px!important}
 }
 </style>
 
@@ -7896,7 +7898,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=v929-home-stable-geometry-20260814',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=v936-publish-opening-unique-ready-20260815',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -8132,9 +8134,35 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
   margin-bottom:8px!important;
 }
 .happyadVideoViewsBadge{
-  right:10px!important;
+  /* V935 — fond noir léger, compact et automatiquement adapté au nombre. */
+  left:20px!important;
+  right:auto!important;
   bottom:10px!important;
-  font-size:12px!important;
+  width:max-content!important;
+  min-width:0!important;
+  max-width:calc(100% - 40px)!important;
+  height:auto!important;
+  padding:3px 6px!important;
+  gap:4px!important;
+  border-radius:6px!important;
+  background:rgba(0,0,0,.38)!important;
+  border:0!important;
+  color:#fff!important;
+  font-size:14px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.happyadVideoViewsCount{
+  font-size:14px!important;
+  line-height:1!important;
+  text-shadow:none!important;
+}
+.happyadVideoViewsPlaySvg{
+  filter:none!important;
+  -webkit-filter:none!important;
 }
 @media(max-width:390px){
   .hScroller .miniCard,.feedGrid .miniCard{flex-basis:86vw!important}
@@ -10053,11 +10081,11 @@ html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!im
 })();
 </script>
 <script src="core/profile/profile-photo-parent-v854r8.js?v=855r33-exact-user-crop"></script>
-<script src="core/navigation-master-v668.js?v=928-fullscreen-profile-handoff"></script>
+<script src="core/navigation-master-v668.js?v=936-publish-opening-unique-ready"></script>
 <script src="core/auth-session-master-v598.js?v=877-dock-execution-direct"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=863-home-scroll-priority"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection"></script>
-<script src="core/main-tabs-master-v615.js?v=927-menu-reset-stack"></script>
+<script src="core/main-tabs-master-v615.js?v=931-video-text-free-route"></script>
 <style id="happyad-v855r77-visitor-direct-chat-overlay">
 body.happyadVisitorDirectChatOpenV855R77 .bottom.happyadMainDockV585{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body.happyadVisitorDirectChatOpenV855R77 #happyadAppShell{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important}
@@ -10090,7 +10118,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 </style>
 <script src="core/internal-return-master-v694.js?v=928-suspended-layer-resume"></script>
 <script src="core/home-photo-fullscreen-master-v591.js?v=928-profile-handoff"></script>
-<script src="core/share-master.js?v=927-canonical-share-return"></script>
+<script src="core/share-master.js?v=930-shared-video-single-open"></script>
 <script src="core/share-button-bridge.js?v=886-story-share-notification-label"></script>
 <script src="core/share-count-master.js?v=share-count-v567"></script>
 <script src="core/notification-home-comment-center.js?v=927-notification-content-return-stack"></script>
