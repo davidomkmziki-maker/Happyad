@@ -17,7 +17,10 @@
   function stop(e){try{e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}catch(_e){}}
   function alwaysAllowed(t){
     if(!t||!t.closest)return false;
-    return !!t.closest('.haHomeFsBackV591,.haHomeFsClose,.haHomeFsSeeMore,.happyadInternalBackV591,[data-happyad-internal-return],[data-happyad-internal-return-v591],#backButton,#photoFixedBackV587,#photoReturnV591,.messageBack,.chatBack,#messageBackBtn,#notificationBackBtn,.notificationBack,.viewerClose,.draftFullClose,[data-close],[aria-label="Fermer"],[aria-label="Retour"],.tapSound,[data-video-control],.videoControl,.muteBtn,.soundBtn');
+    /* Le profil du créateur reste consultable en invité, mais un bouton d’abonnement
+       éventuellement placé dans la même capsule reste une action privée. */
+    if(t.closest('.happyadVideoFollowV855R34,.haHomeFsFollowV855R34,[data-follow],[data-act="follow"]'))return false;
+    return !!t.closest('.haHomeFsBackV591,.haHomeFsClose,.haHomeFsSeeMore,.happyadInternalBackV591,[data-happyad-internal-return],[data-happyad-internal-return-v591],#backButton,#photoFixedBackV587,#photoReturnV591,.messageBack,.chatBack,#messageBackBtn,#notificationBackBtn,.notificationBack,.viewerClose,.draftFullClose,[data-close],[aria-label="Fermer"],[aria-label="Retour"],.tapSound,[data-video-control],.videoControl,.muteBtn,.soundBtn,.creatorPill,.slideCreator,[data-open-slide-profile],[data-open-comment-profile],.more,.miniSeeMore,[aria-label="Revenir à la page précédente"]');
   }
   function actionable(t){
     if(!t||!t.closest)return null;

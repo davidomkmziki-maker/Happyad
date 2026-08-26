@@ -64,7 +64,7 @@
     try{
       var session=await c.auth.getSession(),user=session&&session.data&&session.data.session&&session.data.session.user;
       if(!user){var result=await c.auth.getUser();user=result&&result.data&&result.data.user;}
-      if(user&&user.id){direct=clean(user.id);try{localStorage.setItem('HAPPYAD_AUTH_UID',direct);}catch(_store){}return direct;}
+      if(user&&user.id){direct=clean(user.id);return direct;}
     }catch(_e){}
     return '';
   }

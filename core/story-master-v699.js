@@ -6,7 +6,7 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V925_PLUS_V892_PORTRAIT_SAFE';
+  var VERSION='STORY_MASTER_V941_AUTH_OWN_STORY_FINAL_FIRST';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,progressAnim:null,progressBaseElapsed:0,
@@ -36,7 +36,12 @@
   function sb(){try{return typeof window.happyadSb==='function'?window.happyadSb():(window.happyadSupabase||null)}catch(_e){return null}}
   function readJson(k,d){try{var x=JSON.parse(localStorage.getItem(k)||'');return x==null?d:x}catch(_e){return d}}
   function readUser(){try{return (window.UserStore&&window.UserStore.data)||readJson('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL',{})||{}}catch(_e){return {}}}
-  function currentUid(){var u=readUser();return clean(u.id||u.user_id||u.uid||localStorage.getItem('HAPPYAD_AUTH_UID'))}
+  function currentUid(){try{var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV595;if(auth&&typeof auth.isReady==='function'&&!auth.isReady())return '';if(auth&&typeof auth.isReady==='function'&&auth.isReady()&&typeof auth.isAuthenticated==='function'&&!auth.isAuthenticated())return '';if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';var direct=clean(localStorage.getItem('HAPPYAD_AUTH_UID'));if(isUuid(direct))return direct;return ''}catch(_e){return ''}}
+  function accountKeyV937(base){try{var iso=window.HappyAccountIsolationV937;if(iso&&typeof iso.key==='function')return iso.key(base,currentUid())}catch(_e){}return clean(base)+':'+(currentUid()||'guest')}
+  function storyCacheKeyV937(){return accountKeyV937('HAPPYAD_STORIES_CACHE_V1')}
+  function storyLastGoodKeyV937(){return accountKeyV937('HAPPYAD_STORIES_LAST_GOOD_V885')}
+  function storySeenKeyV937(){return accountKeyV937('HAPPYAD_HOME_RADAR_SEEN_V1')}
+  function storyHiddenKeyV937(){return accountKeyV937('HAPPYAD_HIDDEN_STORIES_V1')}
   var radarStableSnapshotV792=[];
   var radarStableSnapshotAtV792=0;
   var radarCanonicalV792={loading:false,promise:null,awaitingStable:false,emptyUid:'',emptyAt:0,emptyCount:0};
@@ -46,7 +51,75 @@
   var radarFreshReadyV907R3=false;
   var radarFreshStartedAtV907R3=0;
   var radarFreshRetryTimerV907R3=0;
-  var STORY_LAST_GOOD_KEY_V885='HAPPYAD_STORIES_LAST_GOOD_V885';
+  var storyAccountUidV937=currentUid();
+  var radarAccountGenerationV937=1;
+  /* V941 : pendant une connexion interactive, préparer l'identité propriétaire et
+     l'éventuelle Story AVANT que l'overlay Auth se ferme. Le premier cercle visible
+     après connexion est ainsi directement la Story active, sinon l'avatar du compte. */
+  var ownAuthSeedV941={};
+  var ownAuthWarmV941={uid:'',promise:null,token:0,storyChecked:false};
+  function authUserProfileSeedV941(uid,user){
+    uid=clean(uid);user=user||{};var meta=user.user_metadata||user.raw_user_meta_data||{};var stable={};
+    try{stable=readJson('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:'+uid,{})||{}}catch(_e){}
+    var current=readUser()||{},currentId=clean(current.id||current.user_id||current.uid);if(currentId&&currentId!==uid)current={};
+    function first(){for(var i=0;i<arguments.length;i++){var v=clean(arguments[i]);if(v)return v}return ''}
+    return {id:uid,user_id:uid,uid:uid,full_name:first(current.full_name,current.name,current.display_name,stable.full_name,stable.name,meta.full_name,meta.name),name:first(current.name,current.full_name,current.display_name,stable.name,stable.full_name,meta.name,meta.full_name),username:first(current.username,current.handle,stable.username,stable.handle,meta.username,meta.handle).replace(/^@+/,''),handle:first(current.handle,current.username,stable.handle,stable.username,meta.handle,meta.username).replace(/^@+/,''),avatar_url:first(current.avatar_url,current.avatar,current.photo_url,current.profile_photo,stable.avatar_url,stable.avatar,stable.photo_url,meta.avatar_url,meta.avatar,meta.picture),avatar:first(current.avatar,current.avatar_url,current.photo_url,current.profile_photo,stable.avatar,stable.avatar_url,meta.avatar,meta.avatar_url,meta.picture),badge:first(current.badge,current.user_badge,current.badge_type,stable.badge,stable.user_badge)};
+  }
+  function ownProfileForRenderV941(){
+    var uid=currentUid(),base=readUser()||{},baseId=clean(base.id||base.user_id||base.uid);if(baseId&&uid&&baseId!==uid)base={};
+    if(uid&&clean(ownAuthSeedV941.id||ownAuthSeedV941.user_id||ownAuthSeedV941.uid)===uid)return Object.assign({},ownAuthSeedV941,base,{id:uid,user_id:uid,uid:uid});
+    return base;
+  }
+  function prepareSignedInIdentityV941(uid,user){
+    uid=clean(uid);if(!isUuid(uid))return Promise.resolve({uid:'',story:false});
+    /* finishSignedIn appelle directement ce préchauffage juste après applySession.
+       window.postMessage est asynchrone : changer ici le contexte de compte évite que
+       l'événement SIGNED_IN arrivé quelques ms plus tard annule la requête en cours. */
+    if(storyAccountUidV937!==uid)resetStoryAccountV937(uid);
+    ownAuthSeedV941=authUserProfileSeedV941(uid,user);
+    if(ownAuthWarmV941.uid===uid&&ownAuthWarmV941.promise)return ownAuthWarmV941.promise;
+    var token=++ownAuthWarmV941.token;ownAuthWarmV941.uid=uid;ownAuthWarmV941.storyChecked=false;
+    var cachedOwn=[];try{cachedOwn=cacheStories().filter(function(p){return ownerOf(p)===uid&&active(p)})}catch(_e){}
+    if(cachedOwn.length){
+      /* Le cache du BON UID peut déjà peindre la Story derrière l'overlay de connexion,
+         mais V941 vérifie quand même le serveur avant de fermer Auth : aucune Story
+         supprimée ailleurs ne reste affichée comme vérité finale. */
+      try{var prof=ownProfileForRenderV941();mergeStoryCache(uid,cachedRowsForOwner(uid),prof);renderRadarHomeV629()}catch(_e){}
+    }
+    var c=sb();if(!c){ownAuthWarmV941.storyChecked=true;ownAuthWarmV941.promise=Promise.resolve({uid:uid,story:!!cachedOwn.length,offline:true});return ownAuthWarmV941.promise}
+    ownAuthWarmV941.promise=(async function(){
+      try{
+        var res=await c.from('happyad_stories').select('*').eq('user_id',uid).eq('is_active',true).order('created_at',{ascending:false}).limit(RADAR_REMOTE_ROWS_V788);
+        if(token!==ownAuthWarmV941.token||currentUid()!==uid)return {uid:uid,stale:true};
+        if(res&&res.error)throw res.error;
+        var rows=(Array.isArray(res&&res.data)?res.data:[]).filter(active);
+        ownAuthSeedV941=Object.assign({},ownAuthSeedV941,authUserProfileSeedV941(uid,user));
+        mergeStoryCache(uid,rows,ownProfileForRenderV941());
+        ownAuthWarmV941.storyChecked=true;renderRadarHomeV629();
+        return {uid:uid,story:!!rows.length,cached:false};
+      }catch(_e){ownAuthWarmV941.storyChecked=true;return {uid:uid,story:false,error:true}}
+      finally{if(token===ownAuthWarmV941.token)ownAuthWarmV941.promise=null}
+    })();
+    return ownAuthWarmV941.promise;
+  }
+  function finalizeSignedInIdentityV941(uid,user){
+    uid=clean(uid);if(!isUuid(uid)||currentUid()!==uid)return false;
+    ownAuthSeedV941=Object.assign({},ownAuthSeedV941,authUserProfileSeedV941(uid,user));
+    try{var ownRows=cachedRowsForOwner(uid);mergeStoryCache(uid,ownRows,ownProfileForRenderV941())}catch(_e){}
+    try{renderRadarHomeV629()}catch(_e){}
+    return true;
+  }
+  function resetStoryAccountV937(nextUid){
+    nextUid=clean(nextUid);
+    storyAccountUidV937=nextUid;radarAccountGenerationV937++;
+    ownAuthSeedV941={};ownAuthWarmV941.uid=nextUid;ownAuthWarmV941.promise=null;ownAuthWarmV941.storyChecked=false;ownAuthWarmV941.token++;
+    try{if(radarFreshRetryTimerV907R3)clearTimeout(radarFreshRetryTimerV907R3)}catch(_e){}
+    radarFreshRetryTimerV907R3=0;radarFreshReadyV907R3=false;radarFreshStartedAtV907R3=0;
+    radarStableSnapshotV792=[];radarStableSnapshotAtV792=0;
+    radarCanonicalV792.loading=false;radarCanonicalV792.promise=null;radarCanonicalV792.promiseGeneration=radarAccountGenerationV937;radarCanonicalV792.awaitingStable=true;radarCanonicalV792.emptyUid='';radarCanonicalV792.emptyAt=0;radarCanonicalV792.emptyCount=0;
+    try{window.HAPPYAD_STORIES_ITEMS=[];window.__HAPPYAD_STORIES_ITEMS_CACHE=[];window.__HAPPYAD_CURRENT_STORY_CTX=null;window.__HAPPYAD_STORY_VIEWER_CTX=null}catch(_e){}
+    try{state.owner='';state.rows=[];state.profile={};state.index=0;if(!state.closed)close()}catch(_e){}
+  }
   var radarSkeletonUntilV885=Date.now()+180;
   function rememberRadarStableV792(items){
     try{
@@ -78,20 +151,21 @@
     radarFreshReadyV907R3=true;
     if(items.length)rememberRadarStableV792(items);
     else{radarStableSnapshotV792=[];radarStableSnapshotAtV792=Date.now()}
-    try{window.HAPPYAD_STORIES_ITEMS=items;window.__HAPPYAD_STORIES_ITEMS_CACHE=items;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(items.slice(0,320)));if(items.length)rememberLastGoodStoriesV885(items);else clearLastGoodStoriesV885()}catch(_e){}
+    try{window.HAPPYAD_STORIES_ITEMS=items;window.__HAPPYAD_STORIES_ITEMS_CACHE=items;localStorage.setItem(storyCacheKeyV937(),JSON.stringify(items.slice(0,320)));if(items.length)rememberLastGoodStoriesV885(items);else clearLastGoodStoriesV885()}catch(_e){}
     publishStoryMasterSyncV924(items,'canonical-commit');
     return items;
   }
-  function seenMapV787(){return readJson('HAPPYAD_HOME_RADAR_SEEN_V1',{})||{}}
-  function isLocallySeenV787(id){id=clean(id);return !!(id&&seenMapV787()[id])}
+  function seenMapV787(){return readJson(storySeenKeyV937(),{})||{}}
+  function isLocallySeenV787(id){if(!currentUid())return false;id=clean(id);return !!(id&&seenMapV787()[id])}
   function markSeenLocalV787(row){
+    if(!currentUid())return false;
     var id=storyId(row);if(!id)return false;
-    try{var seen=seenMapV787();seen[id]=Date.now();localStorage.setItem('HAPPYAD_HOME_RADAR_SEEN_V1',JSON.stringify(seen));localStorage.setItem('HAPPYAD_RADAR_REFRESH_NEEDED','1')}catch(_e){}
+    try{var seen=seenMapV787();seen[id]=Date.now();localStorage.setItem(storySeenKeyV937(),JSON.stringify(seen));localStorage.setItem('HAPPYAD_RADAR_REFRESH_NEEDED','1')}catch(_e){}
     try{
       var arr=cacheStories();
       arr.forEach(function(p){if(storyId(p)===id){p.isSeen=true;p.seen=true;p.viewed=true}});
       window.HAPPYAD_STORIES_ITEMS=arr;
-      localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(arr));
+      localStorage.setItem(storyCacheKeyV937(),JSON.stringify(arr));
     }catch(_e){}
     return true;
   }
@@ -170,6 +244,13 @@
   }
   function createdIsoV783(p){var ms=createdOf(p);return ms>0?new Date(ms).toISOString():''}
   function active(p){if(!p)return false;if(p.is_active===false||p.active===false||p.deleted===true)return false;var ex=p.expires_at||p.expiresAt||p.expire_at||p.expired_at;if(ex&&Date.parse(ex)<Date.now())return false;return !!mediaOf(p)}
+  function bootCacheActiveV936(p){
+    if(!active(p))return false;
+    var ex=p&&(p.expires_at||p.expiresAt||p.expire_at||p.expired_at),exMs=timestampMsV783(ex);
+    if(exMs>0)return exMs>Date.now();
+    var cr=createdOf(p);
+    return cr>0&&Date.now()-cr<86400000;
+  }
   function badgeHtml(b){try{return typeof window.badgeMarkHtml==='function'?window.badgeMarkHtml(b):''}catch(_e){return ''}}
   function initials(n){n=clean(n)||'H';return (n[0]||'H').toUpperCase()}
   function ageOf(v){var d=createdOf(v);if(!d)return 'À l’instant';var s=Math.max(0,Math.floor((Date.now()-d)/1000));if(s<60)return s+' s';if(s<3600)return Math.floor(s/60)+' min';if(s<86400)return Math.floor(s/3600)+' h';return Math.floor(s/86400)+' j'}
@@ -208,30 +289,36 @@
   function profileFromItem(p){p=p||{};return {id:ownerOf(p),full_name:clean(p.creatorName||p.user_name||p.display_name||p.title),username:clean(p.username||p.handle).replace(/^@+/,''),avatar_url:clean(p.avatar||p.user_avatar||p.avatar_url),badge:clean(p.badge||p.userBadge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge)}}
 
   function lastGoodStoriesV885(){
-    try{var arr=readJson(STORY_LAST_GOOD_KEY_V885,[]);return Array.isArray(arr)?arr.filter(active):[]}catch(_e){return []}
+    try{var arr=readJson(storyLastGoodKeyV937(),[]);return Array.isArray(arr)?arr.filter(active):[]}catch(_e){return []}
   }
   function rememberLastGoodStoriesV885(items){
     try{
       items=(Array.isArray(items)?items:[]).filter(active);
-      if(items.length)localStorage.setItem(STORY_LAST_GOOD_KEY_V885,JSON.stringify(items.slice(0,320)));
+      if(items.length)localStorage.setItem(storyLastGoodKeyV937(),JSON.stringify(items.slice(0,320)));
       return items;
     }catch(_e){return []}
   }
-  function clearLastGoodStoriesV885(){try{localStorage.removeItem(STORY_LAST_GOOD_KEY_V885)}catch(_e){}}
+  function clearLastGoodStoriesV885(){try{localStorage.removeItem(storyLastGoodKeyV937())}catch(_e){}}
 
   function cacheStories(){
     var arr=[];
-    /* V907R3 : aucune restauration visuelle d'une ancienne session avant le
-       premier chargement canonique. Cela évite le nombre Story qui change juste
-       après l'ouverture. */
-    if(!radarFreshReadyV907R3)return [];
-    try{if(Array.isArray(window.HAPPYAD_STORIES_ITEMS))arr=arr.concat(window.HAPPYAD_STORIES_ITEMS)}catch(_e){}
-    try{var x=readJson('HAPPYAD_STORIES_CACHE_V1',[]);if(Array.isArray(x))arr=arr.concat(x)}catch(_e){}
+    /* V936 : le premier rendu utilise immédiatement le dernier cache Story valide.
+       V907R3 bloquait volontairement tout cache jusqu'à la réponse Supabase, ce qui
+       laissait le Radar sur squelette pendant plusieurs requêtes réseau. Les lignes
+       expirées/inactives restent filtrées localement par active(); Supabase ne fait
+       ensuite qu'une réconciliation silencieuse. */
+    try{if(Array.isArray(window.HAPPYAD_STORIES_ITEMS)&&window.HAPPYAD_STORIES_ITEMS.length)arr=arr.concat(window.HAPPYAD_STORIES_ITEMS)}catch(_e){}
+    try{var x=readJson(storyCacheKeyV937(),[]);if(Array.isArray(x))arr=arr.concat(x)}catch(_e){}
     try{var lg=lastGoodStoriesV885();if(lg.length)arr=arr.concat(lg)}catch(_e){}
     var seen={},out=[];
-    arr.forEach(function(p){var id=storyId(p),key=id||ownerOf(p)+'|'+mediaOf(p);if(!key||seen[key]||!isStory(p)||!active(p)||isMutedOwner(ownerOf(p)))return;if(id&&isLocallySeenV787(id)){p.isSeen=true;p.seen=true;p.viewed=true}seen[key]=1;out.push(p)});
-    /* V792 : ne jamais faire clignoter un cache Story valide pendant un changement
-       de session, un refresh de token ou une réponse Supabase transitoire. */
+    arr.forEach(function(p){var guest=!currentUid();if(guest)p=Object.assign({},p,{isSeen:false,seen:false,viewed:false});var id=storyId(p),key=id||ownerOf(p)+'|'+mediaOf(p),valid=radarFreshReadyV907R3?active(p):bootCacheActiveV936(p);if(!key||seen[key]||!isStory(p)||!valid||isMutedOwner(ownerOf(p)))return;if(id&&isLocallySeenV787(id)){p.isSeen=true;p.seen=true;p.viewed=true}seen[key]=1;out.push(p)});
+    if(!radarFreshReadyV907R3){
+      /* V936 : le nettoyage n'est pas seulement visuel. Les entrées expirées sont
+         réellement retirées des deux caches persistants dès le premier passage. */
+      try{localStorage.setItem(storyCacheKeyV937(),JSON.stringify(out.slice(0,320)));if(out.length)localStorage.setItem(storyLastGoodKeyV937(),JSON.stringify(out.slice(0,320)));else localStorage.removeItem(storyLastGoodKeyV937())}catch(_e){}
+    }
+    /* V792/V936 : pendant une réconciliation, garder aussi le snapshot mémoire de
+       cette même session; ne jamais remplacer un lot valide par un état transitoire. */
     if(out.length)rememberRadarStableV792(out);
     else{var stable=stableRadarSnapshotV792();if(stable.length)out=stable}
     var me=readUser(),uid=currentUid();
@@ -267,7 +354,7 @@
       all.sort(function(a,b){return createdOf(b)-createdOf(a)});
       all=all.slice(0,100);
       window.HAPPYAD_STORIES_ITEMS=all;
-      localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(all));if(all.length)rememberLastGoodStoriesV885(all);
+      localStorage.setItem(storyCacheKeyV937(),JSON.stringify(all));if(all.length)rememberLastGoodStoriesV885(all);
     }catch(_e){}
   }
 
@@ -345,10 +432,11 @@
   function analyticsTrackV728(type,row,extra){try{var api=window.HappyAnalyticsV728;if(!api||typeof api.track!=='function'||!row)return false;var owner=ownerOf(row),viewer=currentUid();if(!owner||owner===viewer)return false;extra=extra||{};return api.track(type,{ownerId:owner,contentId:storyId(row),contentType:'story',source:'story',completed:!!extra.completed,duration:Number(extra.duration||0)||0,dedupeKey:extra.dedupeKey||'',metadata:extra.metadata||{}})}catch(_e){return false}}
   async function markSeen(row){
     var id=storyId(row),owner=ownerOf(row);if(!id)return;
-    /* V787 : l'état vu est enregistré localement AVANT toute attente réseau.
-       Un retour Supabase ne peut donc plus recolorer le cercle comme non vu. */
+    /* V938 : un visiteur sans compte peut regarder les Stories, mais ne crée
+       jamais de vue locale ni serveur. */
+    var viewer=currentUid();if(!viewer)return;
     markSeenLocalV787(row);
-    var viewer=await authUid();if(!viewer)return;
+    viewer=await authUid();if(!viewer)return;
     if(owner===viewer)return;
     var c=sb();if(!c)return;
     try{var now=new Date().toISOString();var q=await c.from('happyad_story_views').select('story_id').eq('story_id',id).eq('viewer_id',viewer).limit(1);if(q&&q.data&&q.data.length)await c.from('happyad_story_views').update({viewed_at:now}).eq('story_id',id).eq('viewer_id',viewer);else await c.from('happyad_story_views').insert({story_id:id,viewer_id:viewer,viewed_at:now})}catch(_e){}
@@ -546,7 +634,13 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 .radarRow .haStoryRadarUnitV629 .radarMeta{max-width:92px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:11px!important}
 .radarRow .haStoryAddMiniV629{position:absolute!important;right:7px!important;top:51px!important;width:25px!important;height:25px!important;border-radius:50%!important;border:3px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:20px!important;font-weight:950!important;line-height:1!important;text-decoration:none!important;z-index:8!important;box-sizing:border-box!important}
 .radarRow .haStoryAddMiniV629:visited{background:#ff8500!important;color:#fff!important;text-decoration:none!important}.radarRow .haStoryAddMiniV629:active,.radarRow .haStoryAddMiniV629.happyadButtonPressedV604{background:#ff8500!important;color:#fff!important;filter:brightness(1.08)!important;translate:0 0!important;scale:.94!important;box-shadow:none!important}
-.radarRow .haStoryAddOnlyV629 .radarAvatar{background:linear-gradient(145deg,#7b2c00,#ff8a00)!important;border-color:#ff9c24!important;color:#fff!important;font-size:40px!important}
+.radarRow .haStoryAddOnlyV629 .radarAvatar{background:transparent!important;border:0!important;color:#fff!important;font-size:22px!important;padding:0!important;box-shadow:none!important;overflow:visible!important}
+.radarRow .haStoryAddOnlyV629 .radarAvatar img,.radarRow .haStoryAddOnlyV629 .radarAvatar .radarInitial{width:100%!important;height:100%!important;border-radius:50%!important;object-fit:cover!important;background:#11151d!important}
+.radarRow .haStoryAddOnlyV629 .radarAvatar.haStoryGuestBubbleV939{position:relative!important;overflow:visible!important;background:radial-gradient(circle at 32% 25%,#91f2ee 0%,#5ed9ea 22%,#5d9bea 48%,#6f70df 70%,#7456cf 88%,#5b45aa 100%)!important;border:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38)!important,inset 0 -12px 24px rgba(48,35,130,.18)!important,0 7px 20px rgba(70,93,210,.20)!important;color:#fff!important}
+.radarRow .haStoryAddOnlyV629 .radarAvatar.haStoryGuestBubbleV939:before{content:""!important;position:absolute!important;left:13px!important;right:13px!important;top:7px!important;height:25px!important;border-radius:50%!important;background:radial-gradient(ellipse at center,rgba(255,255,255,.40) 0%,rgba(255,255,255,.12) 48%,rgba(255,255,255,0) 76%)!important;filter:blur(.7px)!important;pointer-events:none!important}
+.radarRow .haStoryAddOnlyV629 .haStoryGuestOrbFaceV939{position:absolute!important;inset:0!important;border-radius:50%!important;background:radial-gradient(circle at 70% 78%,rgba(116,72,220,.22) 0%,rgba(116,72,220,0) 48%)!important;pointer-events:none!important}
+.radarRow .haStoryAddOnlyV629 .haStoryIdlePlusV936{position:absolute!important;right:-1px!important;bottom:-1px!important;width:23px!important;height:23px!important;border-radius:50%!important;border:3px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:18px!important;font-weight:950!important;line-height:1!important;box-sizing:border-box!important;z-index:3!important}
+.radarRow .haStoryAddOnlyV629 .radarMeta{display:none!important}
 #haStoryActivityModalV629{position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.58)!important;display:flex!important;align-items:flex-end!important;justify-content:center!important;color:#fff!important;font-family:system-ui!important}
 #haStoryActivityModalV629 .haSamCard{width:min(100vw,520px)!important;max-height:72vh!important;overflow:auto!important;background:#0b0f16!important;border-radius:24px 24px 0 0!important;padding:14px 16px calc(18px + env(safe-area-inset-bottom))!important;box-shadow:0 -20px 70px rgba(0,0,0,.5)!important}
 #haStoryMoreModalV629{position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.58)!important;display:flex!important;align-items:flex-end!important;justify-content:center!important;color:#fff!important;font-family:system-ui!important}#haStoryMoreModalV629 .haSmmCard{width:min(100vw,520px)!important;background:#0b0f16!important;border-radius:24px 24px 0 0!important;padding:12px 14px calc(18px + env(safe-area-inset-bottom))!important;box-shadow:0 -20px 70px rgba(0,0,0,.5)!important}.haSmmBtn{width:100%!important;min-height:50px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.08)!important;background:transparent!important;color:#fff!important;text-align:left!important;padding:12px 8px!important;font-size:15px!important;font-weight:850!important}.haSmmBtn.danger{color:#ff6f78!important}.haSmmCancel{text-align:center!important;color:#cbd2de!important}
@@ -1122,14 +1216,14 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     }catch(_e){restoreStoryAfterShare('open-exception');toast('Partage indisponible');return false}
   }
   function refreshCurrentCacheRow(row){
-    try{var arr=cacheStories(),id=storyId(row);arr.forEach(function(p){if(storyId(p)===id){p.description=descOf(row);p.desc=descOf(row);p.is_active=row.is_active!==false}});arr=arr.filter(active);window.HAPPYAD_STORIES_ITEMS=arr;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(arr))}catch(_e){}
+    try{var arr=cacheStories(),id=storyId(row);arr.forEach(function(p){if(storyId(p)===id){p.description=descOf(row);p.desc=descOf(row);p.is_active=row.is_active!==false}});arr=arr.filter(active);window.HAPPYAD_STORIES_ITEMS=arr;localStorage.setItem(storyCacheKeyV937(),JSON.stringify(arr))}catch(_e){}
   }
   async function reportStory(row){
     var c=sb(),reporter=await authUid(),id=storyId(row),owner=ownerOf(row);if(!id||!reporter||reporter===owner)return false;
     var record={post_id:id,reporter_id:reporter,owner_id:owner||null,reason:'story_signalee',details:'Signalement depuis le lecteur Story HAPPYAD',source:'story',status:'pending',created_at:new Date().toISOString()};
     try{if(c){var r=await c.from('happyad_post_reports').insert(record);if(r&&r.error&&String(r.error.code||'')!=='23505')throw r.error}return true}catch(_e){try{var q=readJson('HAPPYAD_STORY_REPORT_OUTBOX_V634',[]);q.push(record);localStorage.setItem('HAPPYAD_STORY_REPORT_OUTBOX_V634',JSON.stringify(q.slice(-80)))}catch(_x){}return false}
   }
-  function muteStoryOwner(row){var owner=ownerOf(row);if(!owner||owner===currentUid())return false;try{var h=mutedOwners();h[owner]=Date.now();localStorage.setItem(mutedKey(),JSON.stringify(h));var arr=cacheStories().filter(function(p){return ownerOf(p)!==owner});window.HAPPYAD_STORIES_ITEMS=arr;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(arr));return true}catch(_e){return false}}
+  function muteStoryOwner(row){var owner=ownerOf(row);if(!owner||owner===currentUid())return false;try{var h=mutedOwners();h[owner]=Date.now();localStorage.setItem(mutedKey(),JSON.stringify(h));var arr=cacheStories().filter(function(p){return ownerOf(p)!==owner});window.HAPPYAD_STORIES_ITEMS=arr;localStorage.setItem(storyCacheKeyV937(),JSON.stringify(arr));return true}catch(_e){return false}}
   function openMore(){
     var row=currentRow();if(!row)return;var old=$('haStoryMoreModalV629');if(old)old.remove();var mine=ownerOf(row)===currentUid();var m=document.createElement('div');m.id='haStoryMoreModalV629';
     m.innerHTML='<div class="haSmmCard">'+(mine?'<button class="haSmmBtn danger" data-act="delete" type="button">Supprimer la story</button>':'<button class="haSmmBtn" data-act="mute" type="button">Désactiver les stories de ce compte</button><button class="haSmmBtn danger" data-act="report" type="button">Signaler cette story</button>')+'<button class="haSmmBtn haSmmCancel" data-act="cancel" type="button">Annuler</button></div>';
@@ -1568,7 +1662,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     /* Les stories ne contiennent que des métadonnées et des URL : garder plusieurs pages
        permet au rail de continuer sans recharger les médias eux-mêmes. */
     out=out.slice(0,320);
-    try{window.HAPPYAD_STORIES_ITEMS=out;window.__HAPPYAD_STORIES_ITEMS_CACHE=out;localStorage.setItem('HAPPYAD_STORIES_CACHE_V1',JSON.stringify(out));if(out.length)rememberLastGoodStoriesV885(out)}catch(_e){}
+    try{window.HAPPYAD_STORIES_ITEMS=out;window.__HAPPYAD_STORIES_ITEMS_CACHE=out;localStorage.setItem(storyCacheKeyV937(),JSON.stringify(out));if(out.length)rememberLastGoodStoriesV885(out)}catch(_e){}
     return items;
   }
   function fetchMoreRadarV788(){
@@ -1602,19 +1696,22 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
 
   async function refreshRadarCanonicalV792(){
-    if(radarCanonicalV792.promise)return radarCanonicalV792.promise;
+    var generationV937=radarAccountGenerationV937;
+    if(radarCanonicalV792.promise&&radarCanonicalV792.promiseGeneration===generationV937)return radarCanonicalV792.promise;
     var c=sb();
     if(!c){radarCanonicalV792.awaitingStable=true;return []}
     radarCanonicalV792.loading=true;radarCanonicalV792.awaitingStable=true;
-    radarCanonicalV792.promise=(async function(){
+    var ownerUidV924=currentUid(),localPromiseV937=null;
+    localPromiseV937=(async function(){
       try{
-        var ownerUidV924=currentUid();
+        function staleAccountCycleV937(){return generationV937!==radarAccountGenerationV937||currentUid()!==ownerUidV924;}
         /* V907R3 : lot principal strict de 20 lignes. La lecture propriétaire est
            parallèle uniquement pour garantir « Ta story »; le commit visible reste
            plafonné à 20 Stories au total. */
         var radarReqV924=c.from('happyad_stories').select('*').eq('is_active',true).order('created_at',{ascending:false}).limit(RADAR_REMOTE_ROWS_V788);
         var ownerReqV924=ownerUidV924?c.from('happyad_stories').select('*').eq('user_id',ownerUidV924).eq('is_active',true).order('created_at',{ascending:false}).limit(RADAR_REMOTE_ROWS_V788):Promise.resolve({data:[],error:null});
         var pairV924=await Promise.all([radarReqV924,ownerReqV924]);
+        if(staleAccountCycleV937())return [];
         var res=pairV924[0],ownerResV924=pairV924[1];
         if(res&&res.error)throw res.error;
         var globalRaw=Array.isArray(res&&res.data)?res.data:[];
@@ -1641,6 +1738,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
         if(firstOmitted){radarRemoteV788.beforeMs=(createdOf(firstOmitted)||Date.now())+1}
         else if(globalSorted.length){var oldestGlobal=0;globalSorted.forEach(function(r){var t=createdOf(r);if(t>0&&(!oldestGlobal||t<oldestGlobal))oldestGlobal=t});radarRemoteV788.beforeMs=oldestGlobal}
 
+        if(staleAccountCycleV937())return [];
         if(!rows.length){
           radarCanonicalV792.awaitingStable=false;
           radarCanonicalV792.emptyUid='';radarCanonicalV792.emptyAt=0;radarCanonicalV792.emptyCount=0;
@@ -1648,24 +1746,33 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
         }
         radarCanonicalV792.emptyUid='';radarCanonicalV792.emptyAt=0;radarCanonicalV792.emptyCount=0;
         var ids=[];rows.forEach(function(r){var id=ownerOf(r);if(id&&ids.indexOf(id)<0)ids.push(id)});
-        var profiles={};
-        if(ids.length){try{var pr=await c.from('profiles').select('id,full_name,username,avatar_url,badge').in('id',ids);if(pr&&!pr.error)(pr.data||[]).forEach(function(x){profiles[clean(x.id)]=x})}catch(_e){}}
-        var remoteSeen={},viewer=currentUid(),storyIds=rows.map(storyId).filter(Boolean);
-        if(viewer&&storyIds.length){try{var vr=await c.from('happyad_story_views').select('story_id').eq('viewer_id',viewer).in('story_id',storyIds);if(vr&&!vr.error)(vr.data||[]).forEach(function(x){remoteSeen[clean(x.story_id)]=1})}catch(_e){}}
+        var profiles={},remoteSeen={},viewer=currentUid(),storyIds=rows.map(storyId).filter(Boolean);
+        /* V936 : profils et état vu partent en parallèle. Le lot Story n'attend plus
+           deux allers-retours successifs avant sa réconciliation canonique. */
+        var profileReqV936=ids.length?c.from('profiles').select('id,full_name,username,avatar_url,badge').in('id',ids):Promise.resolve({data:[],error:null});
+        var seenReqV936=(viewer&&storyIds.length)?c.from('happyad_story_views').select('story_id').eq('viewer_id',viewer).in('story_id',storyIds):Promise.resolve({data:[],error:null});
+        try{
+          var hydrateV936=await Promise.all([profileReqV936,seenReqV936]);
+          if(staleAccountCycleV937())return [];
+          var pr=hydrateV936[0],vr=hydrateV936[1];
+          if(pr&&!pr.error)(pr.data||[]).forEach(function(x){profiles[clean(x.id)]=x});
+          if(vr&&!vr.error)(vr.data||[]).forEach(function(x){remoteSeen[clean(x.story_id)]=1});
+        }catch(_e){}
+        if(staleAccountCycleV937())return [];
         var fresh=rows.map(function(r){var item=itemFromRow(r,profiles[ownerOf(r)]||{}),id=storyId(r);if(id&&(remoteSeen[id]||isLocallySeenV787(id))){item.isSeen=true;item.seen=true;item.viewed=true}return item});
         fresh.sort(function(a,b){return createdOf(b)-createdOf(a)});
         radarCanonicalV792.awaitingStable=false;
         return commitRadarCacheV792(fresh.slice(0,RADAR_REMOTE_ROWS_V788));
       }catch(_e){
+        if(generationV937!==radarAccountGenerationV937||currentUid()!==ownerUidV924)return [];
         radarCanonicalV792.awaitingStable=true;
-        /* Pas de restauration persistée : si cette session a déjà un lot serveur,
-           on le garde; au boot on reste en attente plutôt que peindre de vieux nombres. */
         return radarFreshReadyV907R3?cacheStories():[];
       }finally{
-        radarCanonicalV792.loading=false;radarCanonicalV792.promise=null;
+        if(radarCanonicalV792.promise===localPromiseV937){radarCanonicalV792.loading=false;radarCanonicalV792.promise=null;}
       }
     })();
-    return radarCanonicalV792.promise;
+    radarCanonicalV792.promise=localPromiseV937;radarCanonicalV792.promiseGeneration=generationV937;
+    return localPromiseV937;
   }
 
   function renderRadarHomeV629(){
@@ -1696,10 +1803,17 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     block.setAttribute('data-happyad-story-master','v791');
     function avatarHtml(p,name){var av=clean(p&&(p.avatar||p.user_avatar||p.avatar_url));return av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial">'+esc(initials(name))+'</span>'}
     function addNode(){
-      var w=row.querySelector('.haStoryAddOnlyV629');
-      if(!w){
-        w=document.createElement('div');w.className='haStoryRadarUnitV629 haStoryAddOnlyV629';w.setAttribute('data-radar-static-add','1');
-        w.innerHTML='<a class="radarItem" href="modules/publish.html?mode=story" aria-label="Ajouter une story"><div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Ajouter</div></a>';
+      var w=row.querySelector('.haStoryAddOnlyV629'),meProfile=ownProfileForRenderV941()||{};
+      if(!w){w=document.createElement('div');w.className='haStoryRadarUnitV629 haStoryAddOnlyV629';w.setAttribute('data-radar-static-add','1')}
+      var name=clean(meProfile.name||meProfile.full_name||meProfile.display_name)||'Ta story';
+      var av=clean(meProfile.avatar||meProfile.avatar_url||meProfile.photo_url||meProfile.profile_photo);
+      var guestIdle=true;try{guestIdle=localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1'||!isUuid(clean(localStorage.getItem('HAPPYAD_AUTH_UID')))}catch(_e){guestIdle=true}
+      var sig=[name,av,guestIdle?'guest':'account'].join('|');
+      if(w.getAttribute('data-idle-profile-sig-v936')!==sig){
+        var face=guestIdle?'<span class="haStoryGuestOrbFaceV939" aria-hidden="true"></span>':(av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial">'+esc(initials(name))+'</span>');
+        var avatarClass='radarAvatar haStoryOwnIdleV936'+(guestIdle?' haStoryGuestBubbleV939':'');
+        w.innerHTML='<a class="radarItem" href="modules/publish.html?mode=story" aria-label="Ajouter une story"><div class="'+avatarClass+'">'+face+'<span class="haStoryIdlePlusV936" aria-hidden="true">+</span></div><div class="radarName">Ta story</div></a>';
+        w.setAttribute('data-idle-profile-sig-v936',sig);
       }
       if(row.firstElementChild!==w)row.insertBefore(w,row.firstElementChild);
       return w;
@@ -1732,15 +1846,20 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     function renderedCount(){return Number(block.getAttribute('data-radar-rendered-owners')||0)}
     function appendThrough(target){var from=renderedCount(),to=Math.min(owners.length,target);for(var i=from;i<to;i++)appendOwner(owners[i]);block.setAttribute('data-radar-rendered-owners',String(to));return to}
     var mine=me&&groups[me];
-    if(!mine||!mine.length)addNode();else{var staleAdd=row.querySelector('.haStoryAddOnlyV629');if(staleAdd)staleAdd.remove()}
+    if(me){if(!mine||!mine.length)addNode();else{var staleAdd=row.querySelector('.haStoryAddOnlyV629');if(staleAdd)staleAdd.remove()}}
+    else{addNode()}
     Array.prototype.slice.call(row.querySelectorAll('.haStoryRadarLoadingV792')).forEach(function(n){n.remove()});
-    if(!owners.length&&(radarCanonicalV792.loading||radarCanonicalV792.awaitingStable||!radarFreshReadyV907R3)){
+    /* V936 : le squelette n'est qu'un micro-indicateur de premier démarrage. Il ne
+       doit jamais rester pendant les retries Supabase. Si aucun cache n'existe, on
+       garde « Ta story » stable puis on laisse le rail vide jusqu'à la réponse. */
+    if(!owners.length&&(radarCanonicalV792.loading||radarCanonicalV792.awaitingStable||!radarFreshReadyV907R3)&&Date.now()<radarSkeletonUntilV885){
       for(var lp=0;lp<2;lp++){var sk=document.createElement('div');sk.className='haStoryRadarUnitV629 haStoryRadarLoadingV792';sk.setAttribute('aria-hidden','true');sk.innerHTML='<div class="radarItem"><div class="radarAvatar"><span class="haStoryRadarPulseV792"></span></div><div class="radarName">&nbsp;</div><div class="radarMeta">&nbsp;</div></div>';row.appendChild(sk)}
+      if(!block.__happyadStorySkeletonExpiryV936){block.__happyadStorySkeletonExpiryV936=true;setTimeout(function(){block.__happyadStorySkeletonExpiryV936=false;if(block.isConnected)renderRadarHomeV629()},Math.max(0,radarSkeletonUntilV885-Date.now())+20)}
     }
     block.setAttribute('data-radar-rendered-owners','0');
     var initial=Math.min(owners.length,Math.max(RADAR_INITIAL_OWNERS_V788,keepCount||0));appendThrough(initial);
     Array.prototype.slice.call(row.children).forEach(function(node){var owner=clean(node.getAttribute&&node.getAttribute('data-radar-owner'));if(owner&&!desiredOwners[owner])node.remove()});
-    if((!mine||!mine.length)){var stableAdd=row.querySelector('.haStoryAddOnlyV629');if(stableAdd&&row.firstElementChild!==stableAdd)row.insertBefore(stableAdd,row.firstElementChild)}
+    if((me&&(!mine||!mine.length))||!me){var stableAdd=row.querySelector('.haStoryAddOnlyV629');if(stableAdd&&row.firstElementChild!==stableAdd)row.insertBefore(stableAdd,row.firstElementChild)}
 
     /* V788 : 20 propriétaires sont prêts au premier rendu. Le reste n'ajoute aucun DOM
        tant que l'utilisateur n'approche pas de la fin du rail horizontal. */
@@ -1859,7 +1978,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     window.renderRadarHome=renderRadarHomeV629;
   }
   restorePublicRoutes();
-  window.HappyStoryV629={version:VERSION,openItem:openItem,openOwner:openOwner,openExactNotification:openExactNotificationV735,close:close,pause:pause,resume:resume,restoreAfterShare:restoreStoryAfterShare,isShareOpen:function(){return !!state.shareOverlayOpen},renderRadar:renderRadarHomeV629,refreshRadarData:refreshRadarCanonicalV792,getCachedStories:function(){return cacheStories().filter(active)},routeRadar:routeRadar,openProfile:routeProfile,sendReply:sendStoryReply,ingestSharedPostStory:ingestCreatedStoryV912,ingestMentionedStoryV888:ingestCreatedStoryV912,openCreatedSharedPostStory:openCreatedStoryV914};
+  window.HappyStoryV629={version:VERSION,openItem:openItem,openOwner:openOwner,openExactNotification:openExactNotificationV735,close:close,pause:pause,resume:resume,restoreAfterShare:restoreStoryAfterShare,isShareOpen:function(){return !!state.shareOverlayOpen},renderRadar:renderRadarHomeV629,refreshRadarData:refreshRadarCanonicalV792,getCachedStories:function(){return cacheStories().filter(active)},prepareSignedInIdentityV941:prepareSignedInIdentityV941,finalizeSignedInIdentityV941:finalizeSignedInIdentityV941,routeRadar:routeRadar,openProfile:routeProfile,sendReply:sendStoryReply,ingestSharedPostStory:ingestCreatedStoryV912,ingestMentionedStoryV888:ingestCreatedStoryV912,openCreatedSharedPostStory:openCreatedStoryV914};
   window.HappyStoryV699=window.HappyStoryV629;
   window.HappyStoryV698=window.HappyStoryV629;
   window.HappyStoryV697=window.HappyStoryV629;
@@ -1875,14 +1994,15 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   },true);
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!state.closed&&!state.shareOverlayOpen)close('escape')},true);
   window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_STORY_POST_OPTIMISTIC_V925'){var od=d.detail||{};ingestOptimisticStoryV925(od.story||{},od.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_COMMITTED_V925'){var kd=d.detail||{};commitOptimisticStoryV925(kd.story||{},kd.temp_id);return;}if(d.type==='HAPPYAD_STORY_POST_FAILED_V925'){var fd=d.detail||{};failOptimisticStoryV925(fd.temp_id,fd.message);return;}if(d.type==='HAPPYAD_STORY_POST_CREATED_V912'){var cd=d.detail||{},cr=cd.story||{};if(cd.open_after_create===true)openCreatedStoryV914(cr);else ingestCreatedStoryV912(cr);return;}if(d.type==='HAPPYAD_OPEN_EXACT_STORY_NOTIFICATION_V735'){openExactNotificationV735(d.detail||{});return;}if(d.type==='HAPPYAD_STORY_MENTION_REPOST_CREATED_V888'){var md=d.detail||{};ingestCreatedStoryV912(md.story||{});return;}if(d.type==='HAPPYAD_OPEN_SHARED_STORY'){var x=d.detail||{};var seed={id:clean(x.story_id||x.id),story_id:clean(x.story_id||x.id),sourceId:clean(x.story_id||x.id),mode:'story',type:'story',category:'story',creatorId:clean(x.owner_id||x.user_id),user_id:clean(x.owner_id||x.user_id),creatorName:clean(x.author_name||x.creator_name)||'Utilisateur HAPPYAD',mediaUrl:clean(x.media_url||x.preview_url),media_url:clean(x.media_url||x.preview_url),mediaType:clean(x.media_type)||'photo',description:clean(x.description),created_at:x.created_at||'',expires_at:x.expires_at||'',isRadar:true,isLive:false,__storyTable:'happyad_stories'};openOwner(ownerOf(seed),storyId(seed),seed);return;}if(d.type==='HAPPYAD_OPEN_STORY_V629'||d.type==='HAPPYAD_OPEN_STORY_V628'){var x=d.detail||{};openOwner(clean(x.owner_id||x.user_id),clean(x.story_id),x.item||null)}if(d.type==='HAPPYAD_CLOSE_STORY_V629'||d.type==='HAPPYAD_CLOSE_STORY_V628')close('message')},true);
-  /* V907R3 : ouverture réseau-d'abord. Aucun ancien Radar n'est restauré avant
-     la réponse serveur. On lance la lecture dans le même cycle que l'ouverture de
-     la page, avec une petite relance seulement si le client Supabase n'est pas encore prêt. */
+  /* V936 : ouverture cache-d'abord, réseau en réconciliation. Le cache persistant
+     n'est plus vidé au boot; seules les lignes encore actives (<24 h / expires_at)
+     peuvent être peintes. Cela donne immédiatement jusqu'à 20 propriétaires non lus
+     en priorité, puis Supabase remplace silencieusement le lot. */
   function resetRadarFreshCycleV907R3(){
     radarFreshReadyV907R3=false;radarFreshStartedAtV907R3=Date.now();
     radarStableSnapshotV792=[];radarStableSnapshotAtV792=0;
     radarRemoteV788.exhausted=false;radarRemoteV788.beforeMs=0;
-    try{window.HAPPYAD_STORIES_ITEMS=[];window.__HAPPYAD_STORIES_ITEMS_CACHE=[]}catch(_e){}
+    radarSkeletonUntilV885=Date.now()+(cacheStories().length?0:220);
     radarCanonicalV792.awaitingStable=true;
   }
   function loadRadarFreshNowV907R3(reason,attempt){
@@ -1907,7 +2027,9 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     if(e&&e.persisted)loadRadarFreshNowV907R3('pageshow',0);else if(!radarFreshStartedAtV907R3)loadRadarFreshNowV907R3('pageshow',0);
   },true);
   window.addEventListener('online',function(){radarCanonicalV792.awaitingStable=true;if(!radarFreshReadyV907R3)loadRadarFreshNowV907R3('online',1);else scheduleRadarConnectionV869('online',120)},true);
-  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'||d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){loadRadarFreshNowV907R3('auth',0)}},true);
+  window.addEventListener('message',function(ev){var d=ev&&ev.data;if(!d)return;if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'||d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){var nextUid='',detail=d.detail||{},authEvent=clean(detail.event).toUpperCase();try{if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'&&detail.authenticated!==false){nextUid=clean(detail.user_id||(detail.user&&detail.user.id)||currentUid());if(!isUuid(nextUid))nextUid=''}}catch(_e){}if(nextUid!==storyAccountUidV937)resetStoryAccountV937(nextUid);if(!nextUid){ownAuthSeedV941={};loadRadarFreshNowV907R3('auth-out',0);return;}var warm=prepareSignedInIdentityV941(nextUid,detail.user||null);/* Lors du premier SIGNED_IN interactif, l'overlay Auth est encore ouvert : ne pas
+       lancer un rendu global concurrent. finishSignedIn V941 attend ce warm puis ferme
+       l'overlay. Les autres événements (restore/profile ready) réconcilient normalement. */if(authEvent==='SIGNED_IN'){warm.catch(function(){});return;}warm.then(function(){finalizeSignedInIdentityV941(nextUid,detail.user||null);loadRadarFreshNowV907R3('auth-ready',0)}).catch(function(){loadRadarFreshNowV907R3('auth-ready-error',0)})}},true);
   /* V631 : le CSS du cercle est présent avant le premier rendu, pas seulement après
      la première ouverture du fullscreen. */
   installCss();restorePublicRoutes();

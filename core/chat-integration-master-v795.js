@@ -6,8 +6,8 @@
   if(window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__)return;
   window.__HAPPYAD_CHAT_INTEGRATION_MASTER_V795__=true;
 
-  var VERSION='V851R2_KEYBOARD_ROWS_FROM_V851R1';
-  var CHAT_URL='modules/happyad-chat.html?v=855r71-chat-writing-smooth';
+  var VERSION='V935_MARKET_OWNER_FIRST_PAINT';
+  var CHAT_URL='modules/happyad-chat.html?v=935-owner-first-paint';
   var HOST_ID='happyadChatHostV795';
   var FRAME_ID='happyadChatFrameV795';
   var host=null,frame=null,frameReady=false,pendingMode='ask',pendingContext=null;
@@ -52,7 +52,8 @@
       var item=readJson(keys[i],null);
       if(item&&typeof item==='object')out=Object.assign(out,item);
     }
-    var uid=clean(first(out,['id','user_id','uid','auth_id','auth_user_id','account_uid'],localStorage.getItem('HAPPYAD_AUTH_UID')||''));
+    var authUid=clean(localStorage.getItem('HAPPYAD_AUTH_UID')||'');
+    var uid=authUid||clean(first(out,['id','user_id','uid','auth_id','auth_user_id','account_uid'],''));
     var localAvatar=canonicalAvatar(uid,first(out,['avatar_url','avatar','profile_photo_url','profile_photo','photo_url','image_url'],''));
     return {
       id:uid,user_id:uid,uid:uid,
@@ -281,8 +282,9 @@
     if(frame&&!frame.getAttribute('src')){
       frame.addEventListener('load',function(){
         frameReady=true;
-        host.classList.add('happyadChatFrameReadyV795');
+        sendFastBootstrapV935();
         sendFastListingOpenV850();
+        setTimeout(function(){if(host)host.classList.add('happyadChatFrameReadyV795');},24);
         sendInitialization(pendingMode,pendingContext);
       });
       frame.setAttribute('src',CHAT_URL);
@@ -322,6 +324,27 @@
     try{var saved=JSON.parse(sessionStorage.getItem('HAPPYAD_DIRECT_LISTING_V850')||'null');if(saved&&saved.listing&&Date.now()-Number(saved.at||0)<120000)return clone(saved.listing);}catch(_e){}
     return null;
   }
+  function activeListingsFastV935(){
+    try{
+      var localRows=localPostRows();
+      var merged=mergeListings([],localRows);
+      return newestFirst(merged.map(slimListing).filter(activeListingRow)).slice(0,72);
+    }catch(_e){return [];}
+  }
+  function sendFastBootstrapV935(){
+    if(!frame||!frame.contentWindow)return false;
+    var payload={
+      openSessionId:openSessionId,
+      mode:pendingMode,
+      user:readCurrentUserLocal(),
+      listings:activeListingsFastV935(),
+      context:clone(pendingContext||{}),
+      source:'happyad-host-v935'
+    };
+    try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_FAST_BOOTSTRAP_V935',payload:payload,source:'happyad-host',version:VERSION},location.origin);return true;}catch(_e){
+      try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_FAST_BOOTSTRAP_V935',payload:payload,source:'happyad-host',version:VERSION},'*');return true;}catch(_e2){return false;}
+    }
+  }
   function sendFastListingOpenV850(){
     if(!frame||!frame.contentWindow||pendingMode!=='market')return false;
     var context=clone(pendingContext||{}),id=clean(context.listingId||context.listing_id||'');
@@ -335,11 +358,25 @@
     if(!frame||!frame.contentWindow)return false;
     var requestId=++initializationRequestId;
     var sessionId=openSessionId;
-    var resolved=await Promise.all([resolveCurrentUser(),activeListings(),resolveVerificationState()]);
+    function stillCurrent(){return requestId===initializationRequestId&&sessionId===openSessionId&&frame&&frame.contentWindow;}
+    var userPromise=resolveCurrentUser().then(function(user){
+      if(stillCurrent()){
+        try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_USER',payload:{user:clone(user),resolved:true,openSessionId:sessionId},source:'happyad-host-v935',version:VERSION},location.origin);}catch(_e){try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_USER',payload:{user:clone(user),resolved:true,openSessionId:sessionId},source:'happyad-host-v935',version:VERSION},'*');}catch(_e2){}}
+      }
+      return user;
+    });
+    var listingsPromise=activeListings().then(function(listings){
+      if(stillCurrent()){
+        try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_OFFERS',payload:{listings:clone(listings),replace:true,resolved:true,openSessionId:sessionId,source:'happyad-host-v935'},source:'happyad-host-v935',version:VERSION},location.origin);}catch(_e){try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_SET_OFFERS',payload:{listings:clone(listings),replace:true,resolved:true,openSessionId:sessionId,source:'happyad-host-v935'},source:'happyad-host-v935',version:VERSION},'*');}catch(_e2){}}
+      }
+      return listings;
+    });
+    var verificationPromise=resolveVerificationState();
+    var resolved=await Promise.all([userPromise,listingsPromise,verificationPromise]);
     /* Une initialisation Supabase peut finir après que l'utilisateur a déjà choisi
        Je propose ou Annonces. On utilise donc toujours le mode le plus récent et
        on ignore toute réponse appartenant à une ancienne ouverture. */
-    if(requestId!==initializationRequestId||sessionId!==openSessionId)return false;
+    if(!stillCurrent())return false;
     var user=resolved[0],listings=resolved[1],verification=resolved[2];
     var liveMode=['ask','offer','market'].indexOf(pendingMode)>=0?pendingMode:mode;
     var payload={
@@ -375,6 +412,7 @@
     host.classList.add('happyadChatHostOpenV795');
     host.setAttribute('aria-hidden','false');
     if(frameReady){
+      sendFastBootstrapV935();
       sendFastListingOpenV850();
       sendInitialization(pendingMode,pendingContext);
       try{frame.contentWindow.postMessage({type:'HAPPYAD_CHAT_OPEN_MODE',payload:{mode:pendingMode,openSessionId:openSessionId,context:clone(pendingContext||{})}},location.origin);}catch(_e){}
@@ -516,8 +554,9 @@
     var payload=data.payload||data.detail||{};
     if(data.type==='HAPPYAD_CHAT_READY'){
       frameReady=true;
-      if(host)host.classList.add('happyadChatFrameReadyV795');
+      sendFastBootstrapV935();
       sendFastListingOpenV850();
+      setTimeout(function(){if(host)host.classList.add('happyadChatFrameReadyV795');},24);
       sendInitialization(pendingMode,pendingContext);
     }else if(data.type==='HAPPYAD_CHAT_MODE_CHANGED'){
       if(['ask','offer','market'].indexOf(payload.mode)>=0)pendingMode=payload.mode;

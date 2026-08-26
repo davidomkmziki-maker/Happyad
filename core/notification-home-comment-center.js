@@ -25,7 +25,16 @@
   }
   function returnControllerV927(){return window.HappyInternalReturnV694||window.HappyInternalReturnV591||null;}
   function closePostLayerV927(){try{var c=returnControllerV927();if(c)c.close(POST_LAYER_V927);}catch(_e){}return true;}
-  function ensurePostLayerV927(){try{var c=returnControllerV927();if(c&&typeof c.open==='function')return c.open(POST_LAYER_V927,{onBack:closePostLayerV927});}catch(_e){}return false;}
+  function ensurePostLayerV927(){
+    try{
+      var c=returnControllerV927();
+      /* Cette entrée mémorise Retour vers Notifications, mais la publication
+         reste une vraie surface Accueil : aucun verrou global et aucun masque
+         du dock ne doivent accompagner cette sentinelle d'historique. */
+      if(c&&typeof c.open==='function')return c.open(POST_LAYER_V927,{onBack:closePostLayerV927,passive:true,blocksSurface:false,lockScroll:false});
+    }catch(_e){}
+    return false;
+  }
   function closeCommentFromReturnV927(){
     closingFromPop=true;
     try{if(typeof baseClose==='function')baseClose();}catch(_e){}
@@ -265,7 +274,7 @@
   window.happyadOpenHomeCommentFromNotificationV547=open;
   window.happyadOpenHomePostFromNotificationV548=openPost;
   window.HappyNotificationHomeCommentCenter={
-    version:'V548_VIDEO_CENTER_PHOTO_HOME',
+    version:'V929_NOTIFICATION_POST_PASSIVE_ROUTE',
     open:open,
     openPost:openPost,
     active:function(){return active;},

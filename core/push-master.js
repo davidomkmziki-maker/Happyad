@@ -399,7 +399,7 @@
     function tryFocus(){
       attempts++;
       try{
-        var frame=document.getElementById('happyadMessageCenterFrame');
+        var frame=document.getElementById('happyadAppFrame_message')||document.getElementById('happyadMessageCenterFrame')||document.querySelector('iframe[data-happyad-page="message"]');
         var doc=frame&&frame.contentDocument;
         var input=doc&&doc.getElementById('messageInput');
         var chat=doc&&doc.getElementById('chatView');

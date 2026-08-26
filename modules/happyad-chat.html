@@ -1694,6 +1694,9 @@
       font-size:12px;
     }
     .market-empty:not(.hidden){display:grid}
+    .market-loading-v935{min-height:220px;display:grid;place-items:center;align-content:center;gap:11px;color:var(--muted);font-size:12px;font-weight:850;text-align:center}
+    .market-loading-v935::before{content:"";width:28px;height:28px;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:#3d8bff;animation:marketLoadingSpinV935 .8s linear infinite}
+    @keyframes marketLoadingSpinV935{to{transform:rotate(360deg)}}
     .market-load-more{display:none;width:100%;min-height:46px;margin:14px 0 2px;border:1px solid rgba(75,139,255,.34);border-radius:14px;background:linear-gradient(145deg,rgba(31,78,151,.22),rgba(10,17,27,.90));color:#dce9ff;font-size:11.5px;font-weight:950;cursor:pointer;align-items:center;justify-content:center;gap:8px}
     .market-load-more:not(.hidden){display:flex}
     .market-load-more:disabled{opacity:.62;cursor:wait}
@@ -2465,6 +2468,31 @@
       margin:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;
     }
   </style>
+
+<style id="happyad-market-owner-v934-css">
+  .market-actions.market-owner-row-v934{grid-template-columns:minmax(0,1fr) 48px!important;gap:14px!important;align-items:center!important}
+  .market-actions.market-owner-row-v934 .soft-btn{width:100%!important;min-width:0!important}
+  .market-owner-menu-v933{width:48px!important;min-width:48px!important;max-width:48px!important;height:46px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;justify-self:end!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:14px!important;background:linear-gradient(145deg,#202833,#171d26)!important;color:#f7f9fc!important;font-size:28px!important;font-weight:800!important;line-height:1!important;letter-spacing:0!important;box-shadow:0 7px 18px rgba(0,0,0,.18)!important}
+  .market-owner-menu-v933:active{transform:scale(.96)!important}
+  .market-owner-sheet-backdrop-v933{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.48);display:none;align-items:flex-end;justify-content:center;padding:0 10px env(safe-area-inset-bottom)}
+  .market-owner-sheet-backdrop-v933.show{display:flex}
+  .market-owner-sheet-v933{width:min(100%,520px);max-height:min(78vh,720px);overflow:auto;background:#111720;border:1px solid rgba(255,255,255,.1);border-radius:22px 22px 12px 12px;padding:10px 12px 14px;box-shadow:0 -16px 60px rgba(0,0,0,.45)}
+  .market-owner-sheet-grip-v933{width:42px;height:4px;border-radius:999px;background:#657082;margin:3px auto 11px}
+  .market-owner-sheet-head-v933{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 4px 10px}.market-owner-sheet-head-v933 strong{font-size:13px}.market-owner-sheet-head-v933 button{border:0;background:#252d39;color:#fff;border-radius:50%;width:34px;height:34px;font-size:18px}
+  .market-owner-actions-v933{display:grid;gap:8px}
+  .market-owner-actions-v933 button{width:100%;min-height:50px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(145deg,#1b2430,#171e28);color:#f6f8fb;border-radius:14px;padding:0 14px;display:flex;align-items:center;gap:12px;text-align:left;font-size:12.5px;font-weight:850;box-shadow:0 5px 16px rgba(0,0,0,.12);transition:transform .12s ease,border-color .12s ease,background .12s ease}
+  .market-owner-actions-v933 button:active{transform:scale(.985);background:#202a36}
+  .market-owner-actions-v933 button:disabled{opacity:.55;pointer-events:none}
+  .market-owner-action-icon-v934{width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;background:rgba(92,151,255,.09);color:#86b6ff}
+  .market-owner-action-icon-v934 svg{width:18px;height:18px;display:block}
+  .market-owner-action-label-v934{min-width:0;flex:1}
+  .market-owner-action-chevron-v934{font-size:20px;line-height:1;color:#687487;font-weight:500}
+  .market-owner-actions-v933 button.danger{color:#ff929a;border-color:rgba(255,95,95,.18)}
+  .market-owner-actions-v933 button.danger .market-owner-action-icon-v934{background:rgba(255,91,102,.09);color:#ff929a}
+  .market-owner-stats-v933{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:5px 0 12px}.market-owner-stat-v933{background:#1a222d;border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px}.market-owner-stat-v933 small{display:block;color:#8793a5;font-size:9px;margin-bottom:5px}.market-owner-stat-v933 strong{font-size:15px}
+  .market-owner-detail-actions-v933{display:grid;grid-template-columns:minmax(0,1fr) 48px!important;gap:14px!important}.market-owner-detail-actions-v933 .primary-btn{width:100%}
+  .market-active-mark.paused{color:#ffb06b!important;border-color:rgba(255,154,70,.28)!important;background:rgba(255,154,70,.10)!important}
+</style>
 </head>
 <body>
   <div class="app">
@@ -2902,6 +2930,7 @@
     let offers=[];
     let offersDataSource='none';
     let realOffersReady=Promise.resolve(false);
+    let marketInitialLoadPendingV935=true;
     const resultOfferRegistry=new Map();
     function offerMedia(o){
       if(Array.isArray(o?.media)&&o.media.length)return o.media.map(item=>({...item}));
@@ -3053,7 +3082,11 @@
       if(!row||typeof row!=='object')return null;
       const inactive=firstDefined(row,['is_active','active'],true)===false;
       const status=String(firstDefined(row,['listing_status','status','state','moderation_status'],'active')).toLowerCase();
-      if(inactive||/draft|deleted|removed|rejected|expired|archived|blocked/.test(status))return null;
+      const earlyOwnerUid=String(firstDefined(row,['seller_id','owner_id','user_id','author_id','profile_id','uid'],'')).trim();
+      const currentUid=currentUserUidV933();
+      const ownListing=!!earlyOwnerUid&&!!currentUid&&earlyOwnerUid===currentUid;
+      if(/deleted|removed|rejected|expired|archived|blocked/.test(status)||row.deleted_at)return null;
+      if((inactive||/draft|paused|inactive/.test(status))&&!ownListing)return null;
       if(!rowLooksLikeMarketplaceOffer(row))return null;
 
       const title=String(firstDefined(row,['title','product_name','listing_title','name','caption','headline'],'')).trim();
@@ -3100,7 +3133,9 @@
         showOnHome:firstDefined(row,['marketplace_show_on_home','showOnHome'],false)===true,
         viewsCount:Number(firstDefined(row,['listing_views_count','viewsCount'],0))||0,
         createdAt,
-        status:'active',
+        status:status||'active',
+        listing_status:status||'active',
+        is_active:!(inactive||/paused|inactive|draft/.test(status)),
         dataSource:'happyad-real'
       };
     }
@@ -3254,6 +3289,7 @@
       }catch(_){return []}
     }
     async function loadRealHappyadOffers(){
+      marketInitialLoadPendingV935=true;
       try{
         let normalized=await readInitialOffersFromBridge();
         const covered=new Set(normalized.map(offer=>offer.category));
@@ -3264,6 +3300,7 @@
         if(normalized.length){
           offers=mergeOfferCollections(normalized,[]);
           offersDataSource='happyad-real';
+          marketInitialLoadPendingV935=false;
           marketInitialized=false;
           resultOfferRegistry.clear();
           if(mode==='market')openMarketCenter();
@@ -3271,9 +3308,10 @@
           return true;
         }
       }catch(error){console.warn('HAPPYAD real offers loader',error)}
-      if(offers.length&&offersDataSource==='happyad-real')return true;
+      if(offers.length&&offersDataSource==='happyad-real'){marketInitialLoadPendingV935=false;if(mode==='market')openMarketCenter();return true;}
       offers=[];
       offersDataSource='none';
+      marketInitialLoadPendingV935=false;
       marketInitialized=false;
       resultOfferRegistry.clear();
       if(mode==='market')openMarketCenter();
@@ -3293,6 +3331,105 @@
       embedded:window.parent&&window.parent!==window,
       user:null,verification:null,origin:'*',lastMessageRequest:null
     };
+    let marketIdentityResolvedV935=false;
+    let marketIdentitySessionV935=0;
+    function beginMarketIdentitySessionV935(sessionId){
+      const next=Number(sessionId||0)||0;
+      if(next&&next!==marketIdentitySessionV935){marketIdentitySessionV935=next;marketIdentityResolvedV935=false}
+    }
+
+
+    const MARKET_OWNER_RPC_V933='happyad_manage_my_listing_v933';
+    function currentUserUidV933(){
+      let uid=String(integrationState.user?.id||integrationState.user?.uid||'').trim();
+      if(uid)return uid;
+      try{uid=String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim();if(uid)return uid}catch(_e){}
+      const keys=['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_LOGGED_USER','HAPPYAD_CURRENT_USER','HAPPYAD_USER'];
+      for(const key of keys){
+        try{const raw=localStorage.getItem(key);if(!raw)continue;const value=JSON.parse(raw);uid=String(value?.id||value?.user_id||value?.uid||value?.auth_id||value?.auth_user_id||value?.account_uid||'').trim();if(uid)return uid}catch(_e){}
+      }
+      return '';
+    }
+    function listingOwnerUidV933(offer={}){return String(offer.ownerUid||offer.seller_id||offer.owner_id||offer.user_id||offer.author_id||offer.profile_id||offer.uid||'').trim()}
+    function isOwnListingV933(offer={}){const uid=currentUserUidV933(),owner=listingOwnerUidV933(offer);return !!uid&&!!owner&&uid===owner}
+    function listingPausedV933(offer={}){const status=normalize(offer.listing_status||offer.status||'active');return offer.is_active===false||/^(paused|inactive|unavailable)$/.test(status)}
+    function ownerListingStatusLabelV933(offer={}){return listingPausedV933(offer)?'Indisponible':'Active'}
+    function closeOwnerListingSheetV933(){const back=document.querySelector('#marketOwnerSheetBackdropV933');if(back)back.classList.remove('show')}
+    function ensureOwnerListingSheetV933(){
+      let back=document.querySelector('#marketOwnerSheetBackdropV933');if(back)return back;
+      back=document.createElement('div');back.id='marketOwnerSheetBackdropV933';back.className='market-owner-sheet-backdrop-v933';back.innerHTML='<div class="market-owner-sheet-v933" role="dialog" aria-modal="true"><div class="market-owner-sheet-grip-v933"></div><div class="market-owner-sheet-head-v933"><strong id="marketOwnerSheetTitleV933">Gérer l’annonce</strong><button type="button" id="marketOwnerSheetCloseV933" aria-label="Fermer">×</button></div><div id="marketOwnerSheetBodyV933"></div></div>';
+      document.body.appendChild(back);back.addEventListener('click',e=>{if(e.target===back)closeOwnerListingSheetV933()});back.querySelector('#marketOwnerSheetCloseV933').onclick=closeOwnerListingSheetV933;return back;
+    }
+    function ownerShareListingV933(offer={}){
+      const primary=offerPrimaryMedia(offer)||{};
+      const detail={...offer,id:offer.id,post_id:offer.id,user_id:listingOwnerUidV933(offer),owner_id:listingOwnerUidV933(offer),mode:'marketplace',happyad_marketplace:true,media_type:String(offer.marketplace_cover_type||offer.media_type||primary.type||'photo').includes('video')?'video':'photo',source:'marketplace-owner-v933'};
+      try{if(window.parent&&window.parent!==window&&window.parent.HappyadShareMaster){window.parent.HappyadShareMaster.open(detail,window);return true}}catch(_e){}
+      try{window.parent.postMessage({type:'HAPPYAD_SHARE_OPEN',detail},'*');return true}catch(_e){toast('Partage indisponible pour le moment.');return false}
+    }
+    function broadcastOwnerListingMutationV933(offer,action){
+      const detail={id:String(offer?.id||''),listing_id:String(offer?.id||''),action,status:offer?.listing_status||offer?.status||'',is_active:offer?.is_active!==false,deleted_at:offer?.deleted_at||null,at:Date.now()};
+      try{window.parent.postMessage({type:'HAPPYAD_MARKETPLACE_OWNER_MUTATION_V933',detail},'*')}catch(_e){}
+      try{document.dispatchEvent(new CustomEvent('HAPPYAD_MARKETPLACE_OWNER_MUTATION_V933',{detail}))}catch(_e){}
+    }
+    async function mutateOwnListingV933(offer,action){
+      if(!isOwnListingV933(offer)){toast('Cette action est réservée au propriétaire de l’annonce.');return false}
+      const client=resolveSupabaseClient();if(!client||typeof client.rpc!=='function'){toast('Connexion Supabase indisponible.');return false}
+      const id=String(offer.id||'').trim();if(!id)return false;
+      const response=await client.rpc(MARKET_OWNER_RPC_V933,{p_listing_id:id,p_action:action});
+      if(response?.error){const msg=String(response.error.message||'');if(msg.includes(MARKET_OWNER_RPC_V933)||msg.includes('Could not find the function'))toast('Installe le SQL propriétaire V933 avant cette action.');else toast('HAPPYAD n’a pas pu modifier cette annonce.');throw response.error}
+      const data=Array.isArray(response?.data)?response.data[0]:response?.data||{};
+      if(action==='pause'){offer.listing_status='paused';offer.status='paused';offer.is_active=false}
+      if(action==='activate'){offer.listing_status='active';offer.status='active';offer.is_active=true;offer.deleted_at=null}
+      if(action==='delete'){offer.listing_status='deleted';offer.status='deleted';offer.is_active=false;offer.deleted_at=data.deleted_at||new Date().toISOString()}
+      broadcastOwnerListingMutationV933(offer,action);
+      if(action==='delete'){
+        offers=offers.filter(item=>String(item?.id)!==id);resultOfferRegistry.forEach((value,key)=>{if(String(value?.id)===id)resultOfferRegistry.delete(key)});closeOwnerListingSheetV933();closeModal('detailModal');renderMarketCategories();renderMarketOffers();toast('Annonce supprimée de façon récupérable.');return true
+      }
+      offers.forEach(item=>{if(String(item?.id)===id)Object.assign(item,offer)});
+      renderMarketCategories();renderMarketOffers();
+      if(activeOffer&&String(activeOffer.id)===id){activeOffer={...activeOffer,...offer};document.querySelector('#detailBody').innerHTML=detailHtml(activeOffer);bindDetailActionsV933(activeOffer);renderDetailMedia()}
+      openOwnerListingMenuV933(offer);toast(action==='pause'?'Annonce rendue indisponible.':'Annonce remise disponible.');return true
+    }
+    function ownerModifyListingV933(offer={}){
+      let api=null;try{api=window.parent?.HappyPostOptionsV613E||window.parent?.HappyPostOptionsV613F||window.HappyPostOptionsV613E}catch(_e){}
+      if(api&&(typeof api.editTitleDescription==='function'||typeof api.open==='function')){
+        closeOwnerListingSheetV933();const options={post:{...offer,user_id:listingOwnerUidV933(offer),owner_id:listingOwnerUidV933(offer)},context:'marketplace-owner-v933',onUpdated:detail=>{if(detail?.post){Object.assign(offer,detail.post);offers.forEach(item=>{if(String(item?.id)===String(offer.id))Object.assign(item,offer)});if(activeOffer&&String(activeOffer.id)===String(offer.id)){activeOffer={...activeOffer,...offer};const body=document.querySelector('#detailBody');if(body){body.innerHTML=detailHtml(activeOffer);bindDetailActionsV933(activeOffer);renderDetailMedia()}}renderMarketOffers()}}};if(typeof api.editTitleDescription==='function')api.editTitleDescription(options);else api.open(options);return
+      }
+      toast('Modification du titre et de la description indisponible sur cet écran.');
+    }
+    function ownerListingStatsV933(offer={}){
+      const back=ensureOwnerListingSheetV933(),body=back.querySelector('#marketOwnerSheetBodyV933');back.querySelector('#marketOwnerSheetTitleV933').textContent='Statistiques de l’annonce';
+      body.innerHTML=`<div class="market-owner-stats-v933"><div class="market-owner-stat-v933"><small>Vues</small><strong>${escapeHtml(compactListingViews(offer.viewsCount||offer.listing_views_count||0))}</strong></div><div class="market-owner-stat-v933"><small>Statut</small><strong>${escapeHtml(ownerListingStatusLabelV933(offer))}</strong></div></div><div class="market-owner-actions-v933"><button type="button" data-owner-back-v933>Retour à la gestion</button></div>`;
+      body.querySelector('[data-owner-back-v933]').onclick=()=>openOwnerListingMenuV933(offer);back.classList.add('show');
+    }
+    function openOwnerListingMenuV933(offer={}){
+      if(!isOwnListingV933(offer)){toast('Cette annonce ne t’appartient pas.');return false}
+      const back=ensureOwnerListingSheetV933(),body=back.querySelector('#marketOwnerSheetBodyV933');back.querySelector('#marketOwnerSheetTitleV933').textContent='Gérer mon annonce';
+      const paused=listingPausedV933(offer);
+      body.innerHTML=`<div class="market-owner-actions-v933">
+        <button type="button" data-owner-action-v933="edit"><span class="market-owner-action-icon-v934"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m13.5 6.5 4 4" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="market-owner-action-label-v934">Modifier</span><span class="market-owner-action-chevron-v934">›</span></button>
+        <button type="button" data-owner-action-v933="availability"><span class="market-owner-action-icon-v934"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14v12H5z" stroke="currentColor" stroke-width="1.8"/><path d="M8 7V5h8v2M8 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="market-owner-action-label-v934">${paused?'Remettre disponible':'Rendre indisponible'}</span><span class="market-owner-action-chevron-v934">›</span></button>
+        <button type="button" data-owner-action-v933="boost"><span class="market-owner-action-icon-v934"><svg viewBox="0 0 24 24" fill="none"><path d="m13 3-8 11h6l-1 7 9-12h-6V3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span class="market-owner-action-label-v934">Booster</span><span class="market-owner-action-chevron-v934">›</span></button>
+        <button type="button" data-owner-action-v933="stats"><span class="market-owner-action-icon-v934"><svg viewBox="0 0 24 24" fill="none"><path d="M5 20V11M12 20V4M19 20v-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span><span class="market-owner-action-label-v934">Voir les statistiques</span><span class="market-owner-action-chevron-v934">›</span></button>
+        <button type="button" data-owner-action-v933="share"><span class="market-owner-action-icon-v934"><svg viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="2.3" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="12" r="2.3" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="19" r="2.3" stroke="currentColor" stroke-width="1.8"/><path d="m8 11 7.7-4.5M8 13l7.7 4.5" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="market-owner-action-label-v934">Partager</span><span class="market-owner-action-chevron-v934">›</span></button>
+        <button class="danger" type="button" data-owner-action-v933="delete"><span class="market-owner-action-icon-v934"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="market-owner-action-label-v934">Supprimer</span><span class="market-owner-action-chevron-v934">›</span></button>
+      </div>`;
+      body.querySelectorAll('[data-owner-action-v933]').forEach(button=>button.onclick=async()=>{
+        const action=button.dataset.ownerActionV933;
+        if(action==='edit'){ownerModifyListingV933(offer);return}
+        if(action==='availability'){button.disabled=true;try{await mutateOwnListingV933(offer,paused?'activate':'pause')}catch(_e){}finally{button.disabled=false}return}
+        if(action==='boost'){closeOwnerListingSheetV933();toast('Le Boost n’est pas disponible actuellement.');return}
+        if(action==='stats'){ownerListingStatsV933(offer);return}
+        if(action==='share'){closeOwnerListingSheetV933();ownerShareListingV933(offer);return}
+        if(action==='delete'){if(!confirm('Supprimer cette annonce ? Elle sera retirée mais conservée de façon récupérable.'))return;button.disabled=true;try{await mutateOwnListingV933(offer,'delete')}catch(_e){}finally{button.disabled=false}}
+      });
+      back.classList.add('show');return true
+    }
+    function bindDetailActionsV933(offer={}){
+      const contact=document.querySelector('#contactSeller');if(contact)contact.onclick=()=>{closeModal('detailModal');openHappyadMessage(offer)};
+      const manage=document.querySelector('#manageOwnerListingV933');if(manage)manage.onclick=()=>openOwnerListingMenuV933(offer);
+      const more=document.querySelector('#manageOwnerListingMoreV933');if(more)more.onclick=()=>openOwnerListingMenuV933(offer);
+    }
 
     let mode='ask', requestParts=[], activeSearchId=0, searchSessionId=1;
     const activeSearches=new Map();
@@ -3380,10 +3517,22 @@
       if(countryInput&&!countryInput.value&&country)countryInput.value=country;
       if(cityInput&&!cityInput.value&&city)cityInput.value=city;
     }
-    function setIntegratedUser(user=null){
+    function setIntegratedUser(user=null,options={}){
+      const hadExplicitUser=!!integrationState.user;
+      const wasResolved=marketIdentityResolvedV935;
+      const beforeUid=currentUserUidV933();
       integrationState.user=user&&typeof user==='object'?clonePlain(user):null;
+      const afterUid=currentUserUidV933();
+      if(options?.resolved===true||!!afterUid)marketIdentityResolvedV935=true;
       prefillSellerVerification(integrationState.user);
       document.dispatchEvent(new CustomEvent('HAPPYAD_CHAT_USER_READY',{detail:clonePlain(integrationState.user)}));
+      if(mode==='market'&&(!hadExplicitUser||beforeUid!==afterUid||wasResolved!==marketIdentityResolvedV935)){
+        renderMarketCategories();renderMarketOffers();
+        if(activeOffer){
+          const body=document.querySelector('#detailBody');
+          if(body){body.innerHTML=detailHtml(activeOffer);bindDetailActionsV933(activeOffer);renderDetailMedia()}
+        }
+      }
       return integrationState.user;
     }
 
@@ -3426,8 +3575,9 @@
     }
 
     function initializeFromHappyad(payload={}){
+      beginMarketIdentitySessionV935(payload.openSessionId);
       if(payload.origin)integrationState.origin=payload.origin;
-      if(Object.prototype.hasOwnProperty.call(payload,'user'))setIntegratedUser(payload.user);
+      if(Object.prototype.hasOwnProperty.call(payload,'user'))setIntegratedUser(payload.user,{resolved:true});
       if(Object.prototype.hasOwnProperty.call(payload,'verification'))setIntegratedVerification(payload.verification);
       if(Array.isArray(payload.listings||payload.offers))applyIntegratedOffers(payload.listings||payload.offers,{replace:true});
       if(payload.language&&RESPONSE_TEXT?.[payload.language]){
@@ -3446,10 +3596,23 @@
       const data=event.data||{};
       const payload=data.payload||data.detail||{};
       switch(data.type){
+        case 'HAPPYAD_CHAT_FAST_BOOTSTRAP_V935': {
+          beginMarketIdentitySessionV935(payload.openSessionId);
+          const fastUser=payload.user&&typeof payload.user==='object'?payload.user:null;
+          const fastUid=String(fastUser?.id||fastUser?.user_id||fastUser?.uid||'').trim();
+          if(Object.prototype.hasOwnProperty.call(payload,'user'))setIntegratedUser(fastUser,{resolved:!!fastUid});
+          if(Array.isArray(payload.listings)&&payload.listings.length)applyIntegratedOffers(payload.listings,{replace:true});
+          break;
+        }
         case 'HAPPYAD_CHAT_INIT': initializeFromHappyad(payload); break;
         case 'HAPPYAD_CHAT_SET_OFFERS':
         case 'HAPPYAD_OFFERS_RESPONSE': applyIntegratedOffers(payload.listings||payload.offers||payload,{replace:payload.replace!==false}); break;
-        case 'HAPPYAD_CHAT_SET_USER': setIntegratedUser(payload.user||payload); break;
+        case 'HAPPYAD_CHAT_SET_USER': {
+          beginMarketIdentitySessionV935(payload.openSessionId);
+          const nextUser=Object.prototype.hasOwnProperty.call(payload,'user')?payload.user:payload;
+          setIntegratedUser(nextUser,{resolved:payload.resolved!==false});
+          break;
+        }
         case 'HAPPYAD_CHAT_SET_VERIFICATION': setIntegratedVerification(payload.verification||payload); break;
         case 'HAPPYAD_CHAT_OPEN_MODE':
           if(['ask','offer','market'].includes(payload.mode))setMode(payload.mode,'host');
@@ -5797,7 +5960,7 @@
     }
     function compactListingViews(value){const n=Math.max(0,Number(value)||0);if(n<1000)return String(n);if(n<1000000)return `${Math.floor(n/100)/10}K`;return `${Math.floor(n/100000)/10}M`}
     function listingViewerKey(){
-      const uid=String(integrationState.user?.id||integrationState.user?.uid||'').trim();if(uid)return `user:${uid}`;
+      const uid=currentUserUidV933();if(uid)return `user:${uid}`;
       const key='HAPPYAD_LISTING_VIEWER_KEY_V820';let value='';try{value=localStorage.getItem(key)||''}catch(_){}
       if(value.length<8){value=`device:${Date.now().toString(36)}:${Math.random().toString(36).slice(2,12)}`;try{localStorage.setItem(key,value)}catch(_){}}
       return value;
@@ -5806,6 +5969,7 @@
     const listingViewPromises=new Map();
     async function recordListingView(offer,source='marketplace'){
       const id=String(offer?.id||offer?.post_id||'').trim();if(!id||id==='draft-listing-preview')return Number(offer?.viewsCount||0);
+      if(isOwnListingV933(offer))return Number(offer?.viewsCount||offer?.listing_views_count||0);
       if(listingViewPromises.has(id))return listingViewPromises.get(id);
       const task=(async()=>{
         const client=resolveSupabaseClient();if(!client||typeof client.rpc!=='function')return Number(offer?.viewsCount||0);
@@ -5986,6 +6150,13 @@
       const visible=marketVisibleOffers();
       const activeQuery=String(marketManualSearch||'').trim();
       list.innerHTML='';
+      if(!visible.length&&!activeQuery&&marketInitialLoadPendingV935){
+        empty.classList.add('hidden');
+        if(emptyPublish)emptyPublish.classList.add('hidden');
+        if(loadMore)loadMore.classList.add('hidden');
+        list.innerHTML='<div class="market-loading-v935">Chargement des annonces…</div>';
+        return;
+      }
       empty.classList.toggle('hidden',visible.length>0);
       if(emptyText)emptyText.textContent=activeQuery
         ?`Aucune annonce ne correspond à « ${activeQuery} » dans cette catégorie.`
@@ -6019,23 +6190,24 @@
           <div class="market-card-body">
             <div class="market-card-title-row">
               <h2 class="market-card-title">${escapeHtml(offer.title)}</h2>
-              <span class="market-card-statuses"><span class="market-view-count"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.8"/></svg><span data-listing-view-count="${escapeHtml(String(offer.id))}">${compactListingViews(offer.viewsCount||offer.listing_views_count||0)}</span></span><span class="market-active-mark">Active</span></span>
+              <span class="market-card-statuses"><span class="market-view-count"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.8"/></svg><span data-listing-view-count="${escapeHtml(String(offer.id))}">${compactListingViews(offer.viewsCount||offer.listing_views_count||0)}</span></span><span class="market-active-mark ${listingPausedV933(offer)?'paused':''}">${escapeHtml(ownerListingStatusLabelV933(offer))}</span></span>
             </div>
             <div class="market-card-meta">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" stroke-width="1.8"/></svg>
               <span>${escapeHtml(offer.location)}</span><span>·</span><span class="market-seller-name">${escapeHtml(offer.seller||'Annonceur HAPPYAD')}${listingBadgeMarkup(offer)}</span>
             </div>
             <p class="market-card-desc">${escapeHtml(offer.description||'')}</p>
-            <div class="market-actions">
+            <div class="market-actions ${marketIdentityResolvedV935&&isOwnListingV933(enriched)?'market-owner-row-v934':''}">
               <button class="soft-btn" type="button" data-market-view="${escapeHtml(offerKey)}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.8"/></svg><span>Voir l’annonce</span></button>
-              <button class="primary-btn" type="button" data-market-contact="${escapeHtml(offerKey)}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3h9A2.5 2.5 0 0 1 19 5.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4.5A2.5 2.5 0 0 1 3 12V5.5" stroke="currentColor" stroke-width="1.8"/><path d="M7.5 8h9M7.5 11.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Contacter</span></button>
+              ${!marketIdentityResolvedV935?'<button class="primary-btn market-owner-pending-v935" type="button" disabled aria-label="Vérification du profil"><span>Vérification…</span></button>':(isOwnListingV933(enriched)?'<button class="market-owner-menu-v933" type="button" data-market-owner="'+escapeHtml(offerKey)+'" aria-label="Gérer mon annonce">⋮</button>':'<button class="primary-btn" type="button" data-market-contact="'+escapeHtml(offerKey)+'"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3h9A2.5 2.5 0 0 1 19 5.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4.5A2.5 2.5 0 0 1 3 12V5.5" stroke="currentColor" stroke-width="1.8"/><path d="M7.5 8h9M7.5 11.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Contacter</span></button>')}
             </div>
           </div>`;
         const image=card.querySelector('.market-media img');
         image?.addEventListener('error',()=>{if(primary.type==='video'){prepareListingVideoCover(card,primary,'.market-media img,.market-media video')}else image.src=EMPTY_MEDIA_SVG},{once:true});
         prepareListingVideoCover(card,primary,'.market-media img,.market-media video');
         card.querySelector('[data-market-view]').onclick=()=>openDetail(offerKey);
-        card.querySelector('[data-market-contact]').onclick=()=>openHappyadMessage(enriched);
+        const contactButton=card.querySelector('[data-market-contact]');if(contactButton)contactButton.onclick=()=>openHappyadMessage(enriched);
+        const ownerButton=card.querySelector('[data-market-owner]');if(ownerButton)ownerButton.onclick=()=>openOwnerListingMenuV933(enriched);
         card.dataset.marketOfferKey=offerKey;
         list.appendChild(card);
         observeListingCard(card,enriched,'marketplace');
@@ -9500,12 +9672,12 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
           <div class="detail-info"><small>Vues</small><strong class="detail-views-inline"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.8"/></svg><span data-listing-view-count="${escapeHtml(String(o.id||''))}">${compactListingViews(o.viewsCount||o.listing_views_count||0)}</span></strong></div>
           <div class="detail-info"><small>Catégorie</small><strong>${escapeHtml(o.category)}</strong></div>
           <div class="detail-info"><small>Disponibilité</small><strong>${escapeHtml(o.availability||'Selon l’annonce')}</strong></div>
-          <div class="detail-info"><small>Statut</small><strong>Annonce active · HAPPYAD</strong></div>
+          <div class="detail-info"><small>Statut</small><strong>${escapeHtml(ownerListingStatusLabelV933(o))} · HAPPYAD</strong></div>
           ${categoryDetails.map(([label,value])=>`<div class="detail-info"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`).join('')}
         </div>
         <div class="detail-reasons">${reasons.map(r=>`<span>${escapeHtml(r)}</span>`).join('')}</div>
         <div class="detail-desc">${escapeHtml(o.description)}</div>
-        <div class="sheet-actions sticky-action"><button class="primary-btn" id="contactSeller">Contacter dans Messages HAPPYAD</button></div>`;
+        ${!marketIdentityResolvedV935?'<div class="sheet-actions sticky-action"><button class="primary-btn market-owner-pending-v935" type="button" disabled>Vérification du profil…</button></div>':(isOwnListingV933(o)?'<div class="sheet-actions sticky-action market-owner-detail-actions-v933"><button class="primary-btn" id="manageOwnerListingV933">Gérer mon annonce</button><button class="market-owner-menu-v933" id="manageOwnerListingMoreV933" type="button" aria-label="Options de mon annonce">⋮</button></div>':'<div class="sheet-actions sticky-action"><button class="primary-btn" id="contactSeller">Contacter dans Messages HAPPYAD</button></div>')}`;
     }
     function renderDetailMedia(){
       if(!activeOffer)return;
@@ -9560,7 +9732,7 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
       document.querySelector('#detailMediaPrev').onclick=()=>{detailMediaIndex-=1;renderDetailMedia()};
       document.querySelector('#detailMediaNext').onclick=()=>{detailMediaIndex+=1;renderDetailMedia()};
       document.querySelector('#expandDetailMedia').onclick=()=>openMediaViewer(activeOffer,detailMediaIndex);
-      document.querySelector('#contactSeller').onclick=()=>{closeModal('detailModal');openHappyadMessage(activeOffer)};
+      bindDetailActionsV933(activeOffer);
       recordListingView(activeOffer,'detail');
     }
     function happyadMessagePayload(o){
@@ -9583,6 +9755,7 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
     async function openHappyadMessage(o){
       pauseListingVideos();
       const payload=happyadMessagePayload(o);
+      if(payload.senderUid&&payload.recipientUid&&String(payload.senderUid)===String(payload.recipientUid)){toast('Tu ne peux pas te contacter toi-même. Utilise le menu de gestion de ton annonce.');return false}
       integrationState.lastMessageRequest=clonePlain(payload);
       let bridge=null;
       try{bridge=window.HAPPYAD_MESSAGE_BRIDGE||(window.parent&&window.parent!==window?window.parent.HAPPYAD_MESSAGE_BRIDGE:null)}catch(_){}
@@ -10131,7 +10304,7 @@ J’affiche déjà les résultats disponibles sans lieu précis. Dans quelle vil
     window.HAPPYAD_MESSAGE_BRIDGE_FALLBACK={open:openHappyadMessage,payload:happyadMessagePayload};
 
     /* V811 : publication réelle de toutes les catégories, succès confirmé par Supabase. */
-    window.HAPPYAD_CHAT_VERSION='V821_HOME_MEDIA_ROUTING';
+    window.HAPPYAD_CHAT_VERSION='V935_MARKET_OWNER_FIRST_PAINT';
     window.HAPPYAD_CHAT_STATE=()=>clonePlain({...searchContext,pendingFields:[...(searchContext.pendingFields||[])]});
     window.HAPPYAD_START_FRESH=()=>startFreshConversation(false);
     window.HAPPYAD_CHAT_BRIDGE={

@@ -4,7 +4,7 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V936_PUBLISH_OPENING_UNIQUE_READY';
+  var MASTER_VERSION='NAV_MASTER_V949_POINT3_MESSAGE_DURABLE_REALTIME_CACHE';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=869-connection-phase2';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
@@ -42,7 +42,7 @@
     profile_public:'modules/visitor-profile.html',
     video:'modules/video.html?v=931-text-free-more-no-panel',
     photo:'modules/photo.html',
-    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line',
+    message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=932-message-coherent-durable-realtime',
     publish:'modules/publish.html?v=937-post-mention-notification',
     map:'modules/map.html'
   };
@@ -673,7 +673,7 @@
       if(!key)return null;
       if(key==='video'||key==='videos'||key==='vidéos')return {view:'video',url:'modules/video.html',source:'url'};
       if(key==='photo'||key==='photos')return {view:'photo',url:'modules/photo.html',source:'url'};
-      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=882-conversation-no-white-line',source:'url'};
+      if(key==='message'||key==='messages')return {view:'message',url:'modules/message-center.html?mode=inbox&source=url&v=932-message-coherent-durable-realtime',source:'url'};
       if(key==='profile'||key==='profil'||key==='myprofile')return {view:'profile',url:'modules/my-profile.html',source:'url'};
       if(key==='publish'||key==='publier')return {view:'publish',url:'modules/publish.html',source:'url'};
       if(key==='map'||key==='carte')return {view:'map',url:'modules/map.html',source:'url'};
@@ -785,7 +785,7 @@
   function persistentMainUrl(page){
     page=String(page||'');
     if(page==='video')return 'modules/video.html?v=931-text-free-more-no-panel';
-    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=882-conversation-no-white-line';
+    if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=932-message-coherent-durable-realtime';
     if(page==='profile')return 'modules/my-profile.html?v=877-dock-execution-direct';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
     if(page==='publish')return 'modules/publish.html?v=937-post-mention-notification';

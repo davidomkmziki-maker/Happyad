@@ -26,7 +26,7 @@
 })();
 </script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
-<script src="../core/auth-frame-gate-v596.js?v=596"></script>
+<script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
 <script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
 <script src="../core/mention-render-master-v943.js?v=943-profile-link-uid-safe"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -475,7 +475,7 @@ async function happyadAuthUser(){
   let local={};
   try{local=JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{};}catch(_e){local={}}
   function goodId(v){v=String(v||'').trim();return !!(v&&v.indexOf('guest')!==0&&v.indexOf('logged_out')!==0&&v!=='null'&&v!=='undefined');}
-  function mark(u){try{if(u&&u.id){localStorage.setItem('HAPPYAD_AUTH_UID',String(u.id));localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');localStorage.removeItem('HAPPYAD_FORCE_LOGOUT');localStorage.removeItem('HAPPYAD_FORCE_LOGOUT_UNTIL');}}catch(_e){}return u||null;}
+  function mark(u){try{if(localStorage.getItem('HAPPYAD_FORCE_LOGOUT')==='1'&&Number(localStorage.getItem('HAPPYAD_FORCE_LOGOUT_UNTIL')||0)>Date.now())return null;}catch(_e){}return u||null;}
   if(c&&c.auth){
     try{
       if(c.auth.getSession){
@@ -536,7 +536,7 @@ async function syncPhotoPostCounts(id){
   const c=happyadSb();if(!c||!id)return;try{const a=getA(String(id));let exact=null;try{const q=await c.from('happyad_content_comments').select('id',{count:'exact',head:true}).eq('post_id',String(id));if(q&&!q.error&&isFinite(Number(q.count)))exact=Math.max(0,Number(q.count));if(exact===0){try{const q2=await c.from('happyad_content_comments').select('id',{count:'exact',head:true}).eq('content_id',String(id));if(q2&&!q2.error&&isFinite(Number(q2.count))&&Number(q2.count)>0)exact=Math.max(0,Number(q2.count));}catch(_legacy){}}}catch(_cc){}if(exact!==null){a.comments=exact;setA(String(id),a);refresh();}const patch={likes_count:Number(a.likes||0),saves_count:Number(a.favs||0)};if(exact!==null)patch.comments_count=exact;const r=await c.from('happyad_posts').update(patch).eq('id',String(id));if(r&&r.error)console.warn('photo post counts V678',r.error);}catch(e){console.warn('photo post counts V678',e);}
 }
 async function happyadNotifyMediaAction(){return false;}
-async function togglePhotoActionSupabase(postId,actionType,nextValue){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour enregistrer cette action');const id=String(postId);happyadMarkPhotoLocalMutationV68(id,'actions',2600);if((actionType==='share'||actionType==='repost')&&(actionType==='share'||nextValue)){const gate=window.HappyInteractionPrivacyV855R52;if(!gate||!(await gate.canPost(id,'reposts',true)))throw new Error('Le propriétaire n’autorise pas les partages ou republications.');}if(actionType==='share'){const row={post_id:id,content_id:id,content_type:'photo',action_type:'share',user_id:user.id,liked:true};const ins=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(ins.error)throw ins.error;}else{const safeActionType=(actionType==='fav'?'favorite':actionType);const row={post_id:id,content_id:id,content_type:'photo',action_type:safeActionType,user_id:user.id,liked:!!nextValue};const up=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(up.error)throw up.error;}happyadMarkPhotoLocalMutationV68(id,'actions',2600);happyadSchedulePhotoCountsV68(id);if(nextValue&&(actionType==='like'||actionType==='fav'||actionType==='favorite')){try{happyadNotifyMediaAction(actionType==='like'?'like':'favoris');}catch(_n){}}return getA(id)}
+async function togglePhotoActionSupabase(postId,actionType,nextValue){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connexion requise');const id=String(postId);happyadMarkPhotoLocalMutationV68(id,'actions',2600);if((actionType==='share'||actionType==='repost')&&(actionType==='share'||nextValue)){const gate=window.HappyInteractionPrivacyV855R52;if(!gate||!(await gate.canPost(id,'reposts',true)))throw new Error('Le propriétaire n’autorise pas les partages ou republications.');}if(actionType==='share'){const row={post_id:id,content_id:id,content_type:'photo',action_type:'share',user_id:user.id,liked:true};const ins=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(ins.error)throw ins.error;}else{const safeActionType=(actionType==='fav'?'favorite':actionType);const row={post_id:id,content_id:id,content_type:'photo',action_type:safeActionType,user_id:user.id,liked:!!nextValue};const up=await c.from('happyad_content_actions').upsert(row,{onConflict:'post_id,content_type,action_type,user_id'});if(up.error)throw up.error;}happyadMarkPhotoLocalMutationV68(id,'actions',2600);happyadSchedulePhotoCountsV68(id);if(nextValue&&(actionType==='like'||actionType==='fav'||actionType==='favorite')){try{happyadNotifyMediaAction(actionType==='like'?'like':'favoris');}catch(_n){}}return getA(id)}
 
 
 function happyadPhotoCommentSaveErrorV16ZI(err){var msg=String((err&&err.message)||err||'Erreur inconnue');if(/row-level security|violates row-level|Supabase bloque|RLS|Session Supabase expirée|42501/i.test(msg)){try{if(typeof toast==='function')toast(msg);else console.warn(msg);}catch(_e){console.warn(msg)}return;}alert('Commentaire non enregistré : '+msg);}
@@ -596,7 +596,7 @@ async function happyadInsertContentCommentSafeV16V(c,row){
 
 function happyadFastPhotoCommentAuthorV68(){var local={};try{local=JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{};}catch(_e){}var uid=String(localStorage.getItem('HAPPYAD_AUTH_UID')||local.id||local.user_id||currentAuthId||'').trim();return {id:uid,name:local.name||local.full_name||'Utilisateur HAPPYAD',avatar:local.avatar||local.avatar_url||'',badge:local.badge||'',handle:local.handle||local.username||''};}
 async function resolvePhotoCommentAuthor(){var fast=happyadFastPhotoCommentAuthorV68(),user=null,profile=null;try{user=await happyadAuthUser();}catch(_e){}var uid=String((user&&user.id)||fast.id||'').trim(),c=happyadSb();if(c&&uid){try{var q=await c.from('profiles').select('id,full_name,username,avatar_url,badge').eq('id',uid).maybeSingle();if(q&&!q.error)profile=q.data||null;}catch(_e){}}return {id:uid,name:(profile&&profile.full_name)||fast.name||(user&&user.email)||'Utilisateur HAPPYAD',avatar:(profile&&profile.avatar_url)||fast.avatar||'',badge:(profile&&profile.badge)||fast.badge||'',handle:(profile&&profile.username)||fast.handle||''};}
-async function addPhotoCommentSupabase(postId,text,parentId=null,author=null){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connecte-toi pour commenter');author=author||happyadFastPhotoCommentAuthorV68();const row={post_id:String(postId),content_id:String(postId),content_type:'photo',user_id:user.id,author_name:author.name||user.email||'Utilisateur HAPPYAD',author_avatar:author.avatar||'',author_badge:author.badge||'',text:String(text||'').trim(),parent_id:parentId||null,created_at:new Date().toISOString()};happyadMarkPhotoLocalMutationV68(postId,'comments',2600);await happyadInsertContentCommentSafeV16V(c,row);try{happyadNotifyMediaAction('commentaire',text);}catch(_n){}happyadSchedulePhotoCountsV68(postId);happyadSchedulePhotoRemoteRefreshV68(postId,950);return getA(String(postId))}
+async function addPhotoCommentSupabase(postId,text,parentId=null,author=null){const c=happyadSb();if(!c||!postId)throw new Error('Supabase non chargé');const user=await happyadAuthUser();if(!user)throw new Error('Connexion requise');author=author||happyadFastPhotoCommentAuthorV68();const row={post_id:String(postId),content_id:String(postId),content_type:'photo',user_id:user.id,author_name:author.name||user.email||'Utilisateur HAPPYAD',author_avatar:author.avatar||'',author_badge:author.badge||'',text:String(text||'').trim(),parent_id:parentId||null,created_at:new Date().toISOString()};happyadMarkPhotoLocalMutationV68(postId,'comments',2600);await happyadInsertContentCommentSafeV16V(c,row);try{happyadNotifyMediaAction('commentaire',text);}catch(_n){}happyadSchedulePhotoCountsV68(postId);happyadSchedulePhotoRemoteRefreshV68(postId,950);return getA(String(postId))}
 
 let HAPPYAD_PHOTO_RT_STARTED=false;function startPhotoRealtime(){const c=happyadSb();if(!c||HAPPYAD_PHOTO_RT_STARTED)return;HAPPYAD_PHOTO_RT_STARTED=true;try{c.channel('happyad-photo-actions-global').on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_actions'},p=>{const r=(p&&p.new)||p.old;if(r&&post&&String(r.content_type||'photo')==='photo'&&happyadPhotoRealtimeMatchesActive(r)&&!happyadPhotoMutationRecentV68(r.post_id||r.content_id,'actions'))happyadSchedulePhotoRemoteRefreshV68(r.post_id||r.content_id,120);}).on('postgres_changes',{event:'*',schema:'public',table:'happyad_content_comments'},p=>{const r=(p&&p.new)||p.old;if(r&&post&&happyadPhotoRealtimeMatchesActive(r)&&!happyadPhotoMutationRecentV68(r.post_id||r.content_id,'comments'))happyadSchedulePhotoRemoteRefreshV68(r.post_id||r.content_id,140);}).subscribe();}catch(e){console.warn('photo realtime',e)}}setTimeout(startPhotoRealtime,1000);
 
@@ -1752,8 +1752,8 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
   function acceptUid(id){
     id=String(id||'').trim();
     if(goodId(id)){
+      try{if(localStorage.getItem('HAPPYAD_FORCE_LOGOUT')==='1'&&Number(localStorage.getItem('HAPPYAD_FORCE_LOGOUT_UNTIL')||0)>Date.now())return '';}catch(_e){}
       authUid=id;
-      try{localStorage.setItem('HAPPYAD_AUTH_UID',id);localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');localStorage.removeItem('HAPPYAD_FORCE_LOGOUT');localStorage.removeItem('HAPPYAD_FORCE_LOGOUT_UNTIL');}catch(_e){}
       return id;
     }
     return '';
@@ -1779,13 +1779,13 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
   async function canWrite(){var id=authUid||localUid(); if(id){authUid=id;return true;} id=await refreshAuth(); return !!id;}
   window.happyadGuestViewOnlyCanWrite=canWrite;
   function toast(msg){
-    msg=msg||'Connecte-toi pour utiliser cette action.';
+    msg=msg||'Connexion requise';
     try{if(typeof window.toast==='function'){window.toast(msg);return}}catch(e){}
     try{
       var old=document.getElementById('happyadGuestActionToast'); if(old)old.remove();
       var d=document.createElement('div'); d.id='happyadGuestActionToast'; d.textContent=msg;
-      d.style.cssText='position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:999999;background:rgba(15,18,25,.96);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:10px 14px;font:800 12px system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 10px 28px rgba(0,0,0,.45);max-width:92vw;text-align:center;';
-      document.body.appendChild(d); setTimeout(function(){try{d.remove()}catch(e){}},6000);
+      d.style.cssText='position:fixed;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:999999;width:max-content;max-width:calc(100vw - 32px);background:linear-gradient(145deg,rgba(28,32,43,.97),rgba(11,14,20,.98));color:#fff;border:1px solid rgba(139,156,255,.34);border-radius:999px;padding:10px 17px;font:900 13px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;letter-spacing:.05px;box-shadow:0 12px 34px rgba(0,0,0,.52),0 0 0 1px rgba(255,132,24,.07),inset 0 1px 0 rgba(255,255,255,.09);backdrop-filter:blur(16px) saturate(1.12);-webkit-backdrop-filter:blur(16px) saturate(1.12);white-space:nowrap;text-align:center;';
+      document.body.appendChild(d); setTimeout(function(){try{d.remove()}catch(e){}},2400);
     }catch(e){}
   }
   window.happyadGuestViewOnlyToast=toast;
@@ -1797,7 +1797,7 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
     var n=blockedNode(e.target); if(!n)return;
     if(authUid||localUid())return;
     e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    toast(authReady?'Connecte-toi pour utiliser cette action.':'Compte en vérification...');
+    toast(authReady?'Connexion requise':'Compte en vérification...');
     refreshAuth();
     return false;
   },true);
@@ -1806,7 +1806,7 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
       if(authUid||localUid())return;
       var k=e.key||''; var t=e.target;
       if(k==='Enter' && t && t.closest && t.closest('#commentInput,.commentComposer input,.commentInputBar input')){
-        e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation(); toast(authReady?'Connecte-toi pour commenter.':'Compte en vérification...'); refreshAuth(); return false;
+        e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation(); toast(authReady?'Connexion requise':'Compte en vérification...'); refreshAuth(); return false;
       }
     }catch(_e){}
   },true);
@@ -1814,7 +1814,7 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
     if(authUid||localUid())return;
     var f=e.target; if(f&&f.closest&&f.closest('#commentPanel,.commentPanel')){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();toast();return false;}
   },true);
-  function blockError(){return new Error('Connecte-toi pour utiliser cette action')}
+  function blockError(){return new Error('Connexion requise')}
   function wrapWrite(name){
     try{
       var fn=window[name]; if(typeof fn!=='function'||fn.__happyadGuestWrapped)return;
@@ -1926,7 +1926,7 @@ document.querySelectorAll('.act button').forEach(btn=>btn.onclick=async e=>{e.st
   try{var scanTimerV68=0;new MutationObserver(function(){clearTimeout(scanTimerV68);scanTimerV68=setTimeout(scan,120);}).observe(document.body||document.documentElement,{childList:true,subtree:true});}catch(_e){setInterval(scan,4000);}
 })();
 </script>
-<script src="../core/share-button-bridge.js?v=858-share-touch-instant"></script>
+<script src="../core/share-button-bridge.js?v=938-guest-share-gate"></script>
 <script src="../core/share-count-master.js?v=share-count-v567"></script>
 
 <script id="happyad-photo-internal-return-v587">

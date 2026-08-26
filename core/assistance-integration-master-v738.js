@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757__)return;
   window.__HAPPYAD_ASSISTANCE_OPEN_CLOSE_V757__=true;
 
-  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V851R10_SCROLL_COORDINATOR';
+  var VERSION='HAPPYAD_ASSISTANCE_OPEN_CLOSE_V937_ACCOUNT_ISOLATION';
   var HOST_ID='happyadAssistanceHostV738';
   var FRAME_ID='happyadAssistanceFrameV738';
   var FRAME_URL='modules/assistance.html?v=851r12-ecriture-stable';
@@ -13,13 +13,17 @@
   var lastContext=null,prewarmTimer=0,readyPoll=0,readyPollCount=0,returnRegistered=false;
   var revealTimer=0,openedAt=0;
   var MIN_SKELETON_MS=120;
+  var lastAccountUidV937='';
 
   function clean(v){return String(v==null?'':v).trim()}
-  function localUser(){try{return Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{})}catch(_e){return {}}}
+  function activeUidV937(){try{if(localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1')return '';return clean(localStorage.getItem('HAPPYAD_AUTH_UID'));}catch(_e){return '';}}
+  function localUser(){try{if(!activeUidV937())return {};var u=Object.assign({},JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}')||{});var id=clean(u.id||u.user_id||u.uid);return !id||id===activeUidV937()?u:{};}catch(_e){return {}}}
   function buildContext(detail){
     detail=detail&&typeof detail==='object'?detail:{};
     var user=localUser();
-    var id=clean(detail.uid||user.id||user.user_id||localStorage.getItem('HAPPYAD_AUTH_UID'));
+    var canonical=activeUidV937();
+    var id=clean(canonical&&(detail.uid||user.id||user.user_id||canonical));
+    if(id!==canonical)id=canonical;
     var settings={};
     try{settings=JSON.parse(localStorage.getItem('HAPPYAD_PROFILE_SETTINGS_V712_'+(id||'local'))||'{}')||{}}catch(_e){}
     return {
@@ -177,6 +181,18 @@
     closeTimer=setTimeout(function(){closeTimer=0;finishClose(reason||'close')},120);
     return true;
   }
+  function resetAccountFrameV937(reason){
+    try{if(closeTimer){clearTimeout(closeTimer);closeTimer=0;}}catch(_e){}
+    isOpen=false;isReady=false;readyPollCount=0;stopPoll();stopReveal();
+    lastContext=null;openLockUntil=0;openedAt=0;
+    try{localStorage.removeItem(CONTEXT_KEY);}catch(_e){}
+    try{finishClose(reason||'account-reset-v937');}catch(_e){}
+    if(frame){
+      try{frame.src='about:blank';}catch(_e){}
+      frameStarted=false;
+    }
+    return true;
+  }
   function sameOrigin(event){return !event.origin||event.origin===location.origin}
   window.addEventListener('message',function(event){
     if(!sameOrigin(event))return;
@@ -186,6 +202,17 @@
     if(frame&&event.source&&event.source!==frame.contentWindow)return;
     if(data.type==='HAPPYAD_ASSISTANCE_V757_CLOSE'||data.type==='HAPPYAD_ASSISTANCE_V755_CLOSE')close('assistance-x');
     else if(data.type==='HAPPYAD_ASSISTANCE_V757_READY'||data.type==='HAPPYAD_ASSISTANCE_V755_READY')markReady();
+  },true);
+  try{lastAccountUidV937=activeUidV937();}catch(_e){}
+  window.addEventListener('HAPPYAD_AUTH_STATE_V595',function(event){
+    try{
+      var detail=event&&event.detail||{};
+      var next=detail.authenticated?clean(detail.user_id||detail.user&&detail.user.id||activeUidV937()):'';
+      if(next===lastAccountUidV937)return;
+      lastAccountUidV937=next;
+      resetAccountFrameV937('auth-account-change-v937');
+      if(next)setTimeout(function(){try{prepare();}catch(_e){}},120);
+    }catch(_e){}
   },true);
   window.addEventListener('keydown',function(event){if(isOpen&&event.key==='Escape'){event.preventDefault();close('escape')}},true);
 
@@ -197,7 +224,7 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
-  var api=Object.freeze({version:VERSION+'-V855R34-SKELETON-EVERY-OPEN',open:open,close:close,prepare:prepare,isOpen:function(){return isOpen},isReady:function(){return isReady},context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null}});
+  var api=Object.freeze({version:VERSION+'-V855R34-SKELETON-EVERY-OPEN',open:open,close:close,prepare:prepare,isOpen:function(){return isOpen},isReady:function(){return isReady},context:function(){return lastContext?JSON.parse(JSON.stringify(lastContext)):null},resetAccount:resetAccountFrameV937});
   window.HappyadAssistanceMasterV757=api;
   window.HappyadAssistanceMasterV756=api;
   window.HappyadAssistanceMasterV755=api;

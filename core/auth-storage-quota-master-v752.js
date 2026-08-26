@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_AUTH_STORAGE_QUOTA_MASTER_V752__)return;
   window.__HAPPYAD_AUTH_STORAGE_QUOTA_MASTER_V752__=true;
 
-  var VERSION='HAPPYAD_AUTH_STORAGE_QUOTA_V752_IDB_FALLBACK_V763_HOME_SAFE';
+  var VERSION='HAPPYAD_AUTH_STORAGE_QUOTA_V937_IDB_AUTH_PURGE';
   var DB_NAME='HAPPYAD_AUTH_STORAGE_V752';
   var STORE_NAME='auth';
   var memory={};
@@ -234,13 +234,36 @@
     try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&isAuthKey(k))keys.push(k);}}catch(_e){}
     for(var j=0;j<keys.length;j++){try{var v=localStorage.getItem(keys[j]);if(v!=null)await idbSet(keys[j],v);}catch(_e){}}
   }
+  async function purgeAuthTokensV937(){
+    var keys=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var lk=localStorage.key(i);if(lk&&isAuthKey(lk))keys.push(lk);
+      }
+      keys.forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
+    }catch(_e){}
+    try{Object.keys(memory).forEach(function(k){if(isAuthKey(k))delete memory[k];});}catch(_e){}
+    var db=await openDb();if(!db)return true;
+    return await new Promise(function(resolve){
+      var done=false,finish=function(ok){if(done)return;done=true;resolve(!!ok);};
+      try{
+        var tx=db.transaction(STORE_NAME,'readwrite'),store=tx.objectStore(STORE_NAME),req=store.getAllKeys();
+        req.onsuccess=function(){
+          try{(req.result||[]).forEach(function(k){if(isAuthKey(String(k)))store.delete(k);});}catch(_e){}
+        };
+        req.onerror=function(){finish(false);};
+        tx.oncomplete=function(){finish(true);};tx.onerror=function(){finish(false);};tx.onabort=function(){finish(false);};
+        setTimeout(function(){finish(false);},1200);
+      }catch(_e){finish(false);}
+    });
+  }
   async function recover(reason){
     var result=cleanupTemporary(reason||'manual');
     await migrateAuthTokens();
     return result;
   }
 
-  window.HappyadAuthStorageV752={version:VERSION,storage:storage,recover:recover,cleanup:cleanupTemporary,localBytes:localBytes,canWriteProbe:canWriteProbe,isQuota:isQuota,wrap:wrapSupabase};
+  window.HappyadAuthStorageV752={version:VERSION,storage:storage,recover:recover,purgeAuthTokens:purgeAuthTokensV937,cleanup:cleanupTemporary,localBytes:localBytes,canWriteProbe:canWriteProbe,isQuota:isQuota,wrap:wrapSupabase};
   wrapSupabase();
   var wrapAttempts=0,wrapTimer=setInterval(function(){
     wrapAttempts++;

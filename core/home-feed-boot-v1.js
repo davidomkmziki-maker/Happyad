@@ -37,6 +37,11 @@
     stories:'HAPPYAD_STORIES_CACHE_V1'
   };
 
+  function accountStoryKeyV937(){
+    try{var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV595;if(auth&&typeof auth.isReady==='function'&&!auth.isReady())return 'HAPPYAD_STORIES_CACHE_V1:guest';}catch(_auth){}
+    try{if(typeof window.happyadAccountKeyV937==='function')return window.happyadAccountKeyV937('HAPPYAD_STORIES_CACHE_V1');}catch(_e){}
+    try{var id=localStorage.getItem('HAPPYAD_SESSION_ACTIVE')==='1'?String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim():'';return 'HAPPYAD_STORIES_CACHE_V1:'+(id||'guest');}catch(_e2){return 'HAPPYAD_STORIES_CACHE_V1:guest';}
+  }
   function bcall(name){
     if(!bridge||typeof bridge[name]!=='function')return undefined;
     var args=[].slice.call(arguments,1);
@@ -198,7 +203,7 @@
     clearInitialRetry();
     bcall('setLoading',true);
     try{bcall('seedCache',readBootCache(),remotePage());if(posts().length){saveFastCache(posts());bcall('exposePosts');}}catch(_e){bcall('setPosts',[]);bcall('exposePosts');}
-    try{var stories=readJson('local',KEYS.stories,[]);bcall('setStories',Array.isArray(stories)?stories:[]);}catch(_e){bcall('setStories',[]);}
+    try{var stories=readJson('local',accountStoryKeyV937(),[]);bcall('setStories',Array.isArray(stories)?stories:[]);}catch(_e){bcall('setStories',[]);}
     bcall('resetForBoot');
 
     var beforeKey=String(bcall('postsKey',posts())||'');

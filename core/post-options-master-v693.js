@@ -57,7 +57,7 @@
   }
   async function resolveUid(){
     var fallback=localUid(),c=client();
-    if(c&&c.auth&&c.auth.getUser){try{var r=await Promise.race([c.auth.getUser(),new Promise(function(_,reject){setTimeout(function(){reject(new Error('auth timeout'));},1200);})]);var id=clean(r&&r.data&&r.data.user&&r.data.user.id);if(id){try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(_s){}return id;}}catch(_e){}}
+    if(c&&c.auth&&c.auth.getUser){try{var r=await Promise.race([c.auth.getUser(),new Promise(function(_,reject){setTimeout(function(){reject(new Error('auth timeout'));},1200);})]);var id=clean(r&&r.data&&r.data.user&&r.data.user.id);if(id){return id;}}catch(_e){}}
     return fallback;
   }
 
@@ -209,6 +209,6 @@
   }
 
   ensureStyle();window.addEventListener('HAPPYAD_POST_MUTATED_V613E',function(e){genericMutationHandler(e&&e.detail);});window.addEventListener('message',function(e){var d=e&&e.data;if(d&&d.type==='HAPPYAD_POST_MUTATED_V613E')genericMutationHandler(d.detail);});window.addEventListener('online',retryOutbox);setTimeout(retryOutbox,1800);
-  window.HappyPostOptionsV613E={version:VERSION,open:open,close:closeSheet,retry:retryOutbox,postId:postId,postIds:postIds,ownerId:ownerId,isPrivate:isPrivate,commentsDisabled:commentsDisabled,hideLikeCount:hideLikeCount};window.HappyPostOptionsV613F=window.HappyPostOptionsV613E;window.HappyPostOptionsV613G=window.HappyPostOptionsV613E;
+  window.HappyPostOptionsV613E={version:VERSION,open:open,editTitleDescription:async function(options){options=options||{};var p=options.post||{},id=postId(p);if(!id){toast('Publication introuvable.');return false;}var uid=localUid();if(!uid)uid=await resolveUid();if(!uid||uid!==ownerId(p)){toast('Cette action est réservée au propriétaire.');return false;}openEditor(p,options);return true;},close:closeSheet,retry:retryOutbox,postId:postId,postIds:postIds,ownerId:ownerId,isPrivate:isPrivate,commentsDisabled:commentsDisabled,hideLikeCount:hideLikeCount};window.HappyPostOptionsV613F=window.HappyPostOptionsV613E;window.HappyPostOptionsV613G=window.HappyPostOptionsV613E;
   try{if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('post-options',{file:'core/post-options-master-v693.js',responsibility:'menu unique publication: privé, commentaires, compteur J’aime, édition, mentions, miniature, suppression et signalement',active:true,version:VERSION});}catch(_reg){}
 })();

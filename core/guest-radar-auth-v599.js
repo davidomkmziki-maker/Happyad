@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_GUEST_RADAR_AUTH_V599__)return;
   window.__HAPPYAD_GUEST_RADAR_AUTH_V599__=true;
 
-  var VERSION='GUEST_RADAR_NO_FLASH_V599';
+  var VERSION='GUEST_BROWSE_RADAR_V941_PREMIUM_AUTH';
 
   function clean(v){return String(v==null?'':v).trim();}
   function auth(){return window.HappyAuthSessionV598||window.HappyAuthSessionV597||window.HappyAuthSessionV596||window.HappyAuthSessionV595||null;}
@@ -39,7 +39,7 @@
     block.id='happyadGuestRadarStableV599';
     block.className='radarBlock';
     block.setAttribute('aria-hidden','true');
-    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div></div><div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div>';
+    block.innerHTML='<div class="happyadGuestAuthButtonsV599"><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="login">Connexion</button><button type="button" class="happyadGuestAuthBtnV599" data-happyad-auth-direct-v598="signup">Inscription</button></div>';
     chips.insertAdjacentElement('afterend',block);
     return block;
   }
@@ -49,7 +49,6 @@
     root.classList.toggle('happyadRadarBootGuestV599',!!guest);
     root.classList.toggle('happyadRadarBootUserV599',!guest);
     if(block)block.setAttribute('aria-hidden',guest?'false':'true');
-    if(guest)closeStoryViewers();
   }
   function apply(){setState(isGuest());}
   function boot(){
@@ -65,6 +64,6 @@
   window.HappyGuestRadarV599={version:VERSION,apply:apply,isGuest:isGuest};
   window.HappyGuestRadarV598=window.HappyGuestRadarV599;
   try{
-    if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('guest-radar-auth',{file:'core/guest-radar-auth-v599.js',responsibility:'Radar invité stable sans ancien contenu ni clignotement des boutons',active:true,version:VERSION});
+    if(window.HappyMasterRegistry)window.HappyMasterRegistry.register('guest-radar-auth',{file:'core/guest-radar-auth-v599.js',responsibility:'Navigation invitée : Radar/Stories consultables + accès direct Connexion/Inscription',active:true,version:VERSION});
   }catch(_e){}
 })();

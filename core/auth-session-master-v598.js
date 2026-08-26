@@ -3,11 +3,13 @@
   if(window.__HAPPYAD_AUTH_SESSION_MASTER_V598__)return;
   window.__HAPPYAD_AUTH_SESSION_MASTER_V598__=true;
 
-  var VERSION='AUTH_SESSION_MASTER_V865_CANONICAL_PROFILE_SYNC';
+  var VERSION='AUTH_SESSION_V942_SHORT_GUEST_NOTICE';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var session=null;
   var ready=false;
   var refreshPromise=null;
+  var sessionErrorCountV937=0;
+  var sessionRetryTimerV937=0;
   var profileSyncPromiseV865=null;
   var profileSyncUidV865='';
   var profileSyncLastAtV865=0;
@@ -82,6 +84,21 @@
   window.happyadPasswordRecoveryRedirectV701=happyadPasswordRecoveryRedirectV701;
   try{happyadRecoveryAppOriginV701();}catch(_e){}
   function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v));}
+  function isolationV937(){try{return window.HappyAccountIsolationV937||null;}catch(_e){return null;}}
+  function logoutLockActiveV937(){
+    try{
+      if(localStorage.getItem('HAPPYAD_FORCE_LOGOUT')!=='1')return false;
+      var until=Number(localStorage.getItem('HAPPYAD_FORCE_LOGOUT_UNTIL')||0)||0;
+      return !until||Date.now()<until;
+    }catch(_e){return false;}
+  }
+  function syncBootAuthClassV937(authenticated){
+    try{
+      var root=document.documentElement;if(!root)return;
+      root.classList.toggle('happyadRadarBootUserV599',!!authenticated);
+      root.classList.toggle('happyadRadarBootGuestV599',!authenticated);
+    }catch(_e){}
+  }
   function esc(v){return clean(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function client(){
     try{
@@ -113,8 +130,14 @@
   function forEachFrame(fn){
     try{document.querySelectorAll('#happyadAppShell iframe.happyadAppFrame').forEach(function(fr){try{if(fr.contentWindow)fn(fr.contentWindow,fr);}catch(_e){}});}catch(_e){}
   }
+  function signalFramesSignedOutForSwitchV937(oldId,nextId){
+    if(!oldId||!nextId||oldId===nextId)return;
+    var detail={event:'ACCOUNT_SWITCH_RESET',authenticated:false,user:null,user_id:'',previous_user_id:oldId,next_user_id:nextId,version:VERSION};
+    forEachFrame(function(w){try{w.postMessage({type:'HAPPYAD_AUTH_SIGNED_OUT_V595',detail:detail},'*');}catch(_e){}});
+  }
   function broadcast(eventName){
     var detail=sessionDetail(eventName);
+    syncBootAuthClassV937(detail.authenticated);
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_AUTH_STATE_V595',{detail:detail}));}catch(_e){}
     var type=detail.authenticated?'HAPPYAD_AUTH_SIGNED_IN_V595':'HAPPYAD_AUTH_SIGNED_OUT_V595';
     forEachFrame(function(w){try{w.postMessage({type:type,detail:detail},'*');}catch(_e){}});
@@ -126,7 +149,7 @@
     }catch(_e){}
   }
   var PROFILE_STABLE_PREFIX_V741='HAPPYAD_PROFILE_IDENTITY_STABLE_V741:';
-  var AVATAR_MASTER_V855R32=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
+  function avatarMasterV937(){try{return window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;}catch(_e){return null;}}
   function hasOwnV741(o,k){return !!(o&&Object.prototype.hasOwnProperty.call(o,k));}
   function firstV741(){for(var i=0;i<arguments.length;i++){var v=clean(arguments[i]);if(v)return v;}return '';}
   function readJsonV741(k){try{return JSON.parse(localStorage.getItem(k)||'null')||{};}catch(_e){return {};}}
@@ -144,7 +167,7 @@
   function saveStableV741(u){
     try{
       var uid=clean(u&&u.id||u&&u.user_id);if(!uid)return;
-      if(AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.patchRecord)u=AVATAR_MASTER_V855R32.patchRecord(Object.assign({},u||{}),uid);
+      var avatarMaster=avatarMasterV937();if(avatarMaster&&avatarMaster.patchRecord)u=avatarMaster.patchRecord(Object.assign({},u||{}),uid);
       var old=readStableV741(uid), next=Object.assign({},old,u||{}, {id:uid,user_id:uid,updated_at_local:new Date().toISOString()});
       if(poorNameV741(next.name||next.full_name||next.display_name))delete next.name;
       if(!firstV741(next.avatar,next.avatar_url)&&next.__happyadAvatarKnownV855R32!==true)delete next.avatar;
@@ -155,7 +178,7 @@
     user=user||{};profile=profile||{};
     var meta=user.user_metadata||{};
     var uid=clean(user.id||profile.id);
-    if(AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.primeFromProfile&&hasOwnV741(profile,'avatar_url'))AVATAR_MASTER_V855R32.primeFromProfile(profile,{source:'auth-session-profile-v855r32'});
+    var avatarMaster=avatarMasterV937();if(avatarMaster&&avatarMaster.primeFromProfile&&hasOwnV741(profile,'avatar_url'))avatarMaster.primeFromProfile(profile,{source:'auth-session-profile-v855r32'});
     var current=readCurrentV741(uid), stable=readStableV741(uid);
     var email=firstV741(user.email,current.email,current.contact,stable.email,stable.contact);
     var base=(email?email.split('@')[0]:'happyad')||'happyad';
@@ -167,8 +190,8 @@
     var remoteHandle=firstV741(profile.username,profile.handle).replace(/^@+/,'');
     var keptHandle=firstV741(current.handle,current.username,stable.handle,stable.username,meta.username,meta.handle,base).replace(/^@+/,'');
     var handle=(!poorHandleV741(remoteHandle)?remoteHandle:keptHandle).replace(/\s+/g,'').toLowerCase()||base;
-    var avatarEntry=AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.getEntry&&AVATAR_MASTER_V855R32.getEntry(uid);
-    var avatar=avatarEntry&&avatarEntry.known?(avatarEntry.url||''):'';
+    var avatarEntry=avatarMaster&&avatarMaster.getEntry&&avatarMaster.getEntry(uid);
+    var avatar=avatarEntry&&avatarEntry.known?(avatarEntry.url||''):profileAvatarV741(profile);
     var remoteRole=clean(profile.role).toLowerCase(),keptRole=clean(firstV741(current.role,stable.role,meta.role)).toLowerCase();
     var role=(remoteRole&&!(remoteRole==='user'&&keptRole&&keptRole!=='user'))?remoteRole:(keptRole||remoteRole||'user');
     var remoteBadge=clean(profileBadgeV741(profile)).toLowerCase(),keptBadge=clean(firstV741(current.badge,stable.badge)).toLowerCase();
@@ -186,7 +209,7 @@
       likes:Number(profile.likes!=null?profile.likes:current.likes||stable.likes||0)||0,
       passwordSet:true,contactVerified:!!user.email_confirmed_at
     });
-    if(avatarEntry&&avatarEntry.known&&AVATAR_MASTER_V855R32&&AVATAR_MASTER_V855R32.patchRecord)next=AVATAR_MASTER_V855R32.patchRecord(next,uid);
+    if(avatarEntry&&avatarEntry.known&&avatarMaster&&avatarMaster.patchRecord)next=avatarMaster.patchRecord(next,uid);
     try{
       ['HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL','HAPPYAD_USER','happyad_current_user','HAPPYAD_CURRENT_USER'].forEach(function(k){localStorage.setItem(k,JSON.stringify(next));});
       localStorage.setItem('HAPPYAD_AUTH_UID',next.id);
@@ -251,8 +274,14 @@
   }
   function applySession(next,eventName,options){
     options=options||{};
-    var oldId=actualUser()&&actualUser().id||'';
-    session=next&&next.user&&isUuid(next.user.id)?next:null;
+    var oldId=actualUser()&&actualUser().id||localHintId()||'';
+    var nextSession=next&&next.user&&isUuid(next.user.id)?next:null;
+    var nextId=nextSession&&nextSession.user&&clean(nextSession.user.id)||'';
+    if(oldId!==nextId){
+      if(oldId&&nextId)signalFramesSignedOutForSwitchV937(oldId,nextId);
+      try{var iso=isolationV937();if(iso&&typeof iso.beforeAccountChange==='function')iso.beforeAccountChange(oldId,nextId);}catch(_isolation){}
+    }
+    session=nextSession;
     ready=true;
     var user=actualUser();
     if(user){
@@ -261,26 +290,38 @@
       }else{
         removeLogoutLocks();
         try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','1');localStorage.setItem('HAPPYAD_AUTH_UID',user.id);}catch(_e){}
+        /* V937 : poser immédiatement une identité minimale du BON compte. L'ancien
+           profil a déjà été retiré avant le changement d'UID; aucun écran ne peut
+           donc réutiliser l'identité du compte précédent pendant la requête profils. */
+        try{saveWarmUser(user,options.seed||{});}catch(_warm){}
         if(!options.skipProfileSync)syncWarmProfileV865(user,options.seed||{},{broadcastReady:true}).catch(function(){});
       }
     }else{
+      try{var iso2=isolationV937();if(iso2&&typeof iso2.clearActiveIdentity==='function')iso2.clearActiveIdentity();if(iso2&&typeof iso2.clearPrivateMemory==='function')iso2.clearPrivateMemory();}catch(_isolation2){}
       try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0');localStorage.removeItem('HAPPYAD_AUTH_UID');}catch(_e){}
       profileSyncUidV865='';profileSyncLastAtV865=0;profileSyncResultV865=null;
     }
     var newId=user&&user.id||'';
-    /* Les événements Supabase répétés (INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED)
-       ne rediffusent plus toute l'application si l'UID n'a pas réellement changé.
-       Les parcours qui exigent une diffusion explicite utilisent forceBroadcast. */
-    if(options.forceBroadcast||oldId!==newId)broadcast(eventName||'SESSION');
+    var ev=clean(eventName).toUpperCase();
+    if(options.forceBroadcast||oldId!==newId||(!user&&(ev==='SIGNED_OUT'||ev==='USER_DELETED'||ev==='SESSION_ERROR'||ev==='NO_CLIENT')))broadcast(eventName||'SESSION');
+    else syncBootAuthClassV937(!!user);
     return user;
   }
   async function refresh(force){
     if(refreshPromise&&!force)return refreshPromise;
     refreshPromise=(async function(){
       var c=client();
-      if(!c||!c.auth){ready=true;applySession(null,'NO_CLIENT',{forceBroadcast:false});return null;}
+      if(!c||!c.auth){ready=true;applySession(null,'NO_CLIENT',{forceBroadcast:true});return null;}
       try{
+        if(logoutLockActiveV937()){
+          try{await c.auth.signOut({scope:'local'});}catch(_e){}
+          try{var st=window.HappyadAuthStorageV752;if(st&&typeof st.purgeAuthTokens==='function')await st.purgeAuthTokens();}catch(_purge){}
+          applySession(null,'FORCED_LOGOUT',{forceBroadcast:true});
+          return null;
+        }
         var result=await c.auth.getSession();
+        sessionErrorCountV937=0;
+        if(sessionRetryTimerV937){clearTimeout(sessionRetryTimerV937);sessionRetryTimerV937=0;}
         var s=result&&result.data&&result.data.session||null;
         if(s&&readLoginGuardPendingV855R47()){
           try{await c.auth.signOut();}catch(_e){}
@@ -291,8 +332,20 @@
         applySession(s,'SESSION_REFRESH',{forceBroadcast:!!force});
         return actualUser();
       }catch(_e){
+        sessionErrorCountV937++;
+        /* V937 : une erreur technique ponctuelle de lecture/refresh ne doit jamais
+           transformer un compte valide en invité. Tant qu'un hint local cohérent
+           existe, garder l'état visuel unique et retenter brièvement. Un vrai
+           getSession()=null reste, lui, une déconnexion canonique immédiate. */
+        var hint=localHintId();
+        if(hint&&sessionErrorCountV937<3&&!logoutLockActiveV937()){
+          ready=false;syncBootAuthClassV937(true);
+          if(sessionRetryTimerV937)clearTimeout(sessionRetryTimerV937);
+          sessionRetryTimerV937=setTimeout(function(){sessionRetryTimerV937=0;refresh(true).catch(function(){});},250+sessionErrorCountV937*250);
+          return null;
+        }
         ready=true;
-        applySession(null,'SESSION_ERROR',{forceBroadcast:false});
+        applySession(null,'SESSION_ERROR',{forceBroadcast:true});
         return null;
       }finally{refreshPromise=null;}
     })();
@@ -301,7 +354,7 @@
   function stop(ev){try{if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}}catch(_e){}
   }
   function toast(text){
-    text=clean(text)||'Connecte-toi ou crée un compte';
+    text=clean(text)||'Connexion requise';
     var now=Date.now();
     if(text===lastNoticeText&&now-lastNoticeAt<900)return;
     lastNoticeText=text;lastNoticeAt=now;
@@ -309,8 +362,8 @@
     try{
       var old=document.getElementById('happyadAuthToastV595');if(old)old.remove();
       var d=document.createElement('div');d.id='happyadAuthToastV595';d.textContent=text;
-      d.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:4000005;max-width:90vw;padding:11px 15px;border:1px solid rgba(255,255,255,.30);border-radius:999px;background:rgba(19,22,28,.96);color:#fff;font:850 13px system-ui,-apple-system,Segoe UI,sans-serif;text-align:center;box-shadow:0 16px 44px rgba(0,0,0,.55)';
-      document.body.appendChild(d);setTimeout(function(){try{d.remove();}catch(_e){}},3500);
+      d.style.cssText='position:fixed;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4000005;width:max-content;max-width:calc(100vw - 32px);padding:10px 17px;border:1px solid rgba(145,185,232,.30);border-radius:14px;background:linear-gradient(145deg,rgba(31,45,64,.97),rgba(14,23,36,.985));color:#f8fbff;font:900 13px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;letter-spacing:.05px;text-align:center;white-space:nowrap;box-shadow:0 12px 30px rgba(0,0,0,.48),0 0 0 1px rgba(86,145,204,.05),inset 0 1px 0 rgba(255,255,255,.10);backdrop-filter:blur(16px) saturate(1.08);-webkit-backdrop-filter:blur(16px) saturate(1.08)';
+      document.body.appendChild(d);setTimeout(function(){try{d.remove();}catch(_e){}},2400);
     }catch(_e){}
   }
   function authOpeningActiveV710(){return !!(overlay&&Date.now()<authUnlockAtV710);}
@@ -659,7 +712,10 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
       throw new Error('Le délai de récupération de 30 jours est terminé. Ce compte ne peut plus être récupéré.');
     }
     applySession(s,'SIGNED_IN',{forceBroadcast:false,skipProfileSync:true});
-    await syncWarmProfileV865(user,seed||{},{broadcastReady:false});
+    var storyWarmV941=Promise.resolve(null),storyMasterV941=null;
+    try{storyMasterV941=window.HappyStoryV629||window.HappyStoryV699||null;if(storyMasterV941&&typeof storyMasterV941.prepareSignedInIdentityV941==='function')storyWarmV941=Promise.resolve(storyMasterV941.prepareSignedInIdentityV941(user&&user.id||'',user));}catch(_storyWarm){storyWarmV941=Promise.resolve(null)}
+    await Promise.all([syncWarmProfileV865(user,seed||{},{broadcastReady:false}),storyWarmV941.catch(function(){return null})]);
+    try{if(storyMasterV941&&typeof storyMasterV941.finalizeSignedInIdentityV941==='function')storyMasterV941.finalizeSignedInIdentityV941(user&&user.id||'',user)}catch(_storyFinal){}
     broadcast('SIGNED_IN_READY');
     closeOverlay(true);
     return {recoveredDeletion:!!(lifecycle&&lifecycle.recovered)};
@@ -822,7 +878,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     armAuthOpeningV710(300);
     overlay.classList.add('on');overlay.setAttribute('aria-hidden','false');document.body.classList.add('happyadAuthGateOpenV595');
   }
-  function guestNotice(){toast('Connecte-toi ou crée un compte');return false;}
+  function guestNotice(){toast('Connexion requise');return false;}
   async function requireAuth(intent){
     if(isAuthenticated())return true;
     /* V598 : toutes les actions invité affichent seulement une notification. */
@@ -847,7 +903,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
       var remove=[];
       for(var i=0;i<localStorage.length;i++){
         var k=localStorage.key(i);if(!k)continue;var low=k.toLowerCase();
-        if(low.indexOf('supabase')>-1||low.indexOf('sb-')===0||low.indexOf('auth-token')>-1||low.indexOf('gotrue')>-1||k.indexOf('HAPPYAD_AUTH')===0||k==='HAPPYAD_SESSION_ACTIVE'||k===USER_KEY||k==='HAPPYAD_USER'||k==='HAPPYAD_CURRENT_USER'||k==='happyad_current_user'||k==='HAPPYAD_ACTIVE_PROFILE'||k==='HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID'||k==='HAPPYAD_ACTIVE_PROFILE_UID')remove.push(k);
+        if(low.indexOf('supabase')>-1||low.indexOf('sb-')===0||low.indexOf('auth-token')>-1||low.indexOf('gotrue')>-1||k.indexOf('HAPPYAD_AUTH')===0||k==='HAPPYAD_SESSION_ACTIVE'||k===USER_KEY||k==='HAPPYAD_USER'||k==='HAPPYAD_CURRENT_USER'||k==='happyad_current_user'||k==='HAPPYAD_LOGGED_USER'||k==='HAPPYAD_USER_V1'||k==='HAPPYAD_AUTH_USER'||k==='HAPPYAD_ACTIVE_PROFILE'||k==='HAPPYAD_PUBLIC_PROFILE_ACTIVE_UID'||k==='HAPPYAD_ACTIVE_PROFILE_UID')remove.push(k);
       }
       remove.forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
       localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0');
@@ -860,14 +916,47 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   }
   async function logout(options){
     options=options||{};if(busy)return false;busy=true;
-    var pushTask=null,signOutTask=null;
+    var oldUid=actualUser()&&actualUser().id||localHintId()||'';
+    var pushTask=null,signOutTask=null,accountPurgeTask=null,c=null;
     try{var pushMaster=window.HappyPushMaster;if(pushMaster&&typeof pushMaster.deactivateCurrent==='function')pushTask=Promise.resolve(pushMaster.deactivateCurrent()).catch(function(){});}catch(_pushError){}
-    try{var c=client();if(c&&c.auth&&c.auth.signOut)signOutTask=Promise.resolve(c.auth.signOut({scope:'local'})).catch(function(){});}catch(_signOutError){}
-    clearPrivateAuthStorage();session=null;ready=true;broadcast('SIGNED_OUT');closeOverlay(false);
-    try{var nav=window.HappyNavigation;if(nav&&typeof nav.close==='function')nav.close('auth-logout-v855r68',true);if(nav&&typeof nav.invalidateOwnerProfile==='function')nav.invalidateOwnerProfile('auth-logout-v855r68');}catch(_e){}
-    toast('Déconnecté ✅');busy=false;
-    /* V68 : la navigation ne dépend plus du réseau. Push et signOut terminent silencieusement. */
-    try{Promise.allSettled([pushTask,signOutTask].filter(Boolean)).catch(function(){});}catch(_bg){}
+    try{c=client();if(c&&typeof c.removeAllChannels==='function')c.removeAllChannels();}catch(_channels){}
+    /* V937 : l'interface devient invitée immédiatement, mais les jetons Supabase ne
+       sont plus effacés sous les pieds de signOut. La purge auth IndexedDB arrive
+       après signOut (ou son délai maximal), ce qui supprime la course A -> B. */
+    session=null;ready=true;
+    /* Purge synchrone d'abord (aucune donnée A ne reste peinte), puis broadcast :
+       Messages reçoit SIGNED_OUT et ferme sa base IndexedDB avant la suppression
+       physique de la DB. Cela évite un deleteDatabase bloqué par l'iframe ouverte. */
+    try{
+      var iso=isolationV937();
+      if(iso){
+        if(typeof iso.purgeLocalForUid==='function')iso.purgeLocalForUid(oldUid);
+        if(typeof iso.purgeLegacyPrivate==='function')iso.purgeLegacyPrivate();
+        if(typeof iso.clearActiveIdentity==='function')iso.clearActiveIdentity();
+        if(typeof iso.clearPrivateMemory==='function')iso.clearPrivateMemory();
+      }
+    }catch(_iso){}
+    try{localStorage.setItem('HAPPYAD_SESSION_ACTIVE','0');localStorage.removeItem('HAPPYAD_AUTH_UID');localStorage.setItem('HAPPYAD_FORCE_LOGOUT','1');localStorage.setItem('HAPPYAD_FORCE_LOGOUT_UNTIL',String(Date.now()+5000));localStorage.setItem('HAPPYAD_LOGOUT_LOCK_V1','1');localStorage.setItem('HAPPYAD_LOGOUT_AT_V1',String(Date.now()));if(oldUid)localStorage.setItem('HAPPYAD_LOGOUT_PREVIOUS_UID_V1',oldUid);}catch(_state){}
+    broadcast('SIGNED_OUT');closeOverlay(false);
+    try{
+      var isoAfter=isolationV937();
+      if(isoAfter&&typeof isoAfter.purgeAccount==='function')accountPurgeTask=new Promise(function(resolve){setTimeout(function(){Promise.resolve(isoAfter.purgeAccount(oldUid)).then(resolve,resolve);},60);});
+    }catch(_isoAfter){}
+    try{if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_CLEAR_USER_CACHES_V855R59'});}catch(_sw){}
+    try{var nav=window.HappyNavigation;if(nav&&typeof nav.close==='function')nav.close('auth-logout-v937',true);if(nav&&typeof nav.invalidateOwnerProfile==='function')nav.invalidateOwnerProfile('auth-logout-v937');}catch(_e){}
+    toast('Déconnecté ✅');
+    /* Le push doit avoir une courte fenêtre pour désactiver l'abonnement serveur
+       avec la session A encore valide. L'interface est déjà invitée pendant ce temps. */
+    try{if(pushTask)await Promise.race([Promise.resolve(pushTask),new Promise(function(resolve){setTimeout(resolve,550);})]);}catch(_pushBeforeSignout){}
+    try{if(c&&c.auth&&c.auth.signOut)signOutTask=Promise.resolve(c.auth.signOut({scope:'local'})).catch(function(){});}catch(_signOutError){}
+    try{
+      if(signOutTask)await Promise.race([signOutTask,new Promise(function(resolve){setTimeout(resolve,1800);})]);
+      var storage=window.HappyadAuthStorageV752;if(storage&&typeof storage.purgeAuthTokens==='function')await storage.purgeAuthTokens().catch(function(){});
+    }catch(_authPurge){}
+    clearPrivateAuthStorage();
+    try{if(accountPurgeTask)await Promise.race([accountPurgeTask,new Promise(function(resolve){setTimeout(resolve,1200);})]);}catch(_accountPurgeWait){}
+    try{await Promise.race([Promise.resolve(pushTask),new Promise(function(resolve){setTimeout(resolve,450);})]);}catch(_pushWait){}
+    busy=false;
     return true;
   }
   function isAuthOverlayTarget(target){return !!(target&&target.closest&&target.closest('#happyadAuthGateV595'));}
@@ -897,6 +986,24 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     if(target.closest('[data-card-act],.miniActions,.miniTop,.creator,.avatar,.miniSeeMore,a,button'))return false;
     return !!target.closest('.miniMedia,.happyadAlbumSlide,.haAlbumFullSlide,img');
   }
+  function isGuestPassiveAllowedV938(target){
+    if(!target||!target.closest)return false;
+    /* V938 : sans compte, HAPPYAD reste consultable. Seules les surfaces de
+       lecture/navigation ci-dessous passent le gate central. Les écritures et
+       surfaces privées continuent à passer par guestNotice(). */
+    if(target.closest('#homeSearchBtn,#homeSearchPanel,#happyadSmartSearchV427,.chip'))return true;
+    if(target.closest('.bottom [data-happyad-main-nav="home"],.bottom [data-happyad-main-nav="video"]'))return true;
+    if(target.closest('button.radarItem[data-story-owner],#homeRadarStoryMasterV629 button.radarItem[data-story-owner]'))return true;
+    if(target.closest('.miniTop,.creatorPill,[data-open-slide-profile],[data-open-comment-profile],[data-ha-profile-uid],.happyadMentionLink,[data-happyad-profile-uid]'))return true;
+    if(target.closest('[aria-label="Retour"],[aria-label="Revenir à la page précédente"],[aria-label="Fermer"],[data-happyad-internal-return],[data-happyad-internal-return-v591],.ha629Back,.haHomeFsBackV591,.haHomeFsClose'))return true;
+    /* Le viewer Story lui-même est passif : navigation gauche/droite/zoom est
+       autorisée. Ses boutons Like/Partager/Répondre/Plus ne le sont pas. */
+    if(target.closest('#happyStoryViewerMasterV629')){
+      if(target.closest('#ha629Like,#ha629Share,#ha629ReplyForm,#ha629ReplyInput,#ha629Send,.ha629More,.ha629OwnerActions,.ha629VisitorActions'))return false;
+      return true;
+    }
+    return false;
+  }
   function actionable(target){
     if(!target||!target.closest)return null;
     return target.closest('button,a[href],[role="button"],input[type="button"],input[type="submit"],select,textarea,[data-card-act],[data-act],[data-profile-act],.creatorPill,.miniTop,.radarItem,.mapLite,.seeMore');
@@ -907,6 +1014,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
        sur une surface locale déjà autorisée. Chaque module reconfirme ensuite la
        session canonique avant son travail connecté. */
     if(isCachedMainDockSurfaceV877(target))return;
+    if(isGuestPassiveAllowedV938(target))return;
     var direct=target.closest&&target.closest('[data-happyad-auth-direct-v598]');
     if(direct){
       stop(e);
@@ -928,6 +1036,7 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
   function holdParentPointerDownV710(e){
     var target=e&&e.target;if(!target||isAuthOverlayTarget(target)||isPwaInstallTarget(target)||isAuthenticated())return;
     if(isCachedMainDockSurfaceV877(target))return;
+    if(isGuestPassiveAllowedV938(target))return;
     var direct=target.closest&&target.closest('[data-happyad-auth-direct-v598]');
     if(!direct&&isHomePhotoViewerControl(target))return;
     if(!direct&&isAllowedVideoOpen(target))return;
@@ -956,10 +1065,18 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
 
   function bindAuthState(){
     var c=client();if(!c||!c.auth||typeof c.auth.onAuthStateChange!=='function')return;
-    try{c.auth.onAuthStateChange(function(event,nextSession){applySession(nextSession,event||'AUTH_CHANGE',{forceBroadcast:false});});}catch(_e){}
+    try{c.auth.onAuthStateChange(function(event,nextSession){
+      var ev=clean(event).toUpperCase();
+      if(logoutLockActiveV937()&&nextSession&&nextSession.user){applySession(null,'FORCED_LOGOUT_AUTH_EVENT',{forceBroadcast:true});return;}
+      if(nextSession&&nextSession.user)sessionErrorCountV937=0;
+      applySession(nextSession,event||'AUTH_CHANGE',{forceBroadcast:ev==='SIGNED_OUT'||ev==='USER_DELETED'});
+    });}catch(_e){}
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){ensureOverlay();refresh(false);bindAuthState();},{once:true});
-  else{ensureOverlay();refresh(false);bindAuthState();}
+  /* V937 : Auth démarre avant le rendu des modules. L'overlay attend toujours le DOM,
+     mais la session canonique et son listener ne doivent plus attendre DOMContentLoaded. */
+  refresh(false);bindAuthState();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){ensureOverlay();},{once:true});
+  else ensureOverlay();
 
   window.HappyAuthSessionV598={version:VERSION,isReady:function(){return ready;},isAuthenticated:isAuthenticated,user:actualUser,refresh:refresh,require:requireAuth,open:open,openLogin:openLogin,openSignup:openSignup,openChoice:openChoice,notice:guestNotice,close:closeOverlay,logout:logout,broadcast:broadcast};
   window.HappyAuthSessionV597=window.HappyAuthSessionV598;

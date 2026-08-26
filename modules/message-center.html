@@ -26,7 +26,7 @@
 })();
 </script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
-<script src="../core/auth-frame-gate-v596.js?v=596"></script>
+<script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
 <script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
@@ -3647,10 +3647,14 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V877_MESSAGES_DOCK_EXECUTION_DIRECT';
+      const MASTER_VERSION = 'V932_MESSAGES_COHERENT_DURABLE_REALTIME';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
+      const MESSAGE_REALTIME_JOURNAL_PREFIX_V930 = 'HAPPYAD_MESSAGE_REALTIME_JOURNAL_V930:';
+      const MESSAGE_REALTIME_JOURNAL_TTL_V930 = 7 * 24 * 60 * 60 * 1000;
+      const MESSAGE_REALTIME_JOURNAL_LIMIT_V930 = 120;
+      const replayedRealtimeKeysV930 = new Set();
 
       const byId = id => document.getElementById(id);
       const clean = value => String(value == null ? '' : value).trim();
@@ -3999,6 +4003,7 @@
       let localDb = null;
       let localDbUserId = '';
       let localDbOpenPromise = null;
+      let realtimePersistencePromiseV932 = null;
       let localConversationWriteTimer = 0;
       const localMessageWriteTimers = new Map();
       let localDbGeneration = 0;
@@ -4250,6 +4255,67 @@
           return null;
         });
         return localDbOpenPromise;
+      }
+
+
+      /* V932 — persistance réellement durable des événements Realtime.
+         La version précédente lançait des timers d'écriture à 0 ms puis retournait
+         immédiatement. Ici on attend la transaction IndexedDB avant d'acquitter le
+         journal parent. Un arrêt brutal entre réception et ouverture de Messages ne
+         peut donc plus perdre le dernier message déjà reçu par la page. */
+      function acknowledgeParentRealtimeJournalV932(userId,keys){
+        const id=clean(userId);
+        const acknowledged=new Set((Array.isArray(keys)?keys:[]).map(clean).filter(Boolean));
+        if(!isUuid(id)||!acknowledged.size)return false;
+        try{
+          const storageKey=MESSAGE_REALTIME_JOURNAL_PREFIX_V930+id;
+          const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};
+          const rows=Array.isArray(parsed.rows)?parsed.rows:[];
+          const kept=rows.filter(entry=>!acknowledged.has(clean(entry&&entry.key)));
+          if(kept.length) localStorage.setItem(storageKey,JSON.stringify({version:1,userId:id,savedAt:Date.now(),rows:kept.slice(-MESSAGE_REALTIME_JOURNAL_LIMIT_V930)}));
+          else localStorage.removeItem(storageKey);
+          return true;
+        }catch(_e){return false;}
+      }
+      function persistRealtimeBucketsV932(userId){
+        const ownerId=clean(userId||authUser&&authUser.id);
+        if(!isUuid(ownerId)||!authUser||clean(authUser.id)!==ownerId)return Promise.resolve(false);
+        if(realtimePersistencePromiseV932)return realtimePersistencePromiseV932;
+        const journalKeys=readParentRealtimeJournalV930(ownerId).map(entry=>clean(entry&&entry.key)).filter(Boolean);
+        realtimePersistencePromiseV932=(async function(){
+          const db=await openLocalMessageDb(ownerId).catch(()=>null);
+          if(!db||!authUser||clean(authUser.id)!==ownerId||localDbUserId!==ownerId)return false;
+
+          const conversationRecords=conversations.map(localConversationRecord).filter(record=>record&&record.ownerUserId===ownerId);
+          if(conversationRecords.length){
+            try{localStorage.setItem('HAPPYAD_MESSAGE_INBOX_SNAPSHOT_V875:'+ownerId,JSON.stringify({version:1,ownerUserId:ownerId,savedAt:Date.now(),rows:conversationRecords.slice(0,50)}));}catch(_snapshot){}
+            const conversationsSaved=await persistLocalConversationRecords(conversationRecords,ownerId).catch(()=>false);
+            if(!conversationsSaved)return false;
+          }
+
+          const jobs=[];
+          conversationMessageBuckets.forEach((bucket,key)=>{
+            if(!key||key.indexOf(ownerId+':')!==0||!Array.isArray(bucket)||!bucket.length)return;
+            const conversationId=clean(key.slice(ownerId.length+1));
+            if(!isUuid(conversationId))return;
+            const messageRecords=[];
+            const attachmentRecords=[];
+            bucket.filter(item=>item&&clean(item.conversationId)===conversationId&&!(item.viewOnce&&(item.viewOnceHiddenForMe||isViewOnceTombstoned(item)))).forEach(message=>{
+              const record=localMessageRecord(message);
+              if(!record||record.conversationKey!==key)return;
+              messageRecords.push(record);
+              attachmentRecords.push(...localAttachmentRecords(message,record));
+            });
+            if(messageRecords.length)jobs.push(persistLocalMessageRecords(conversationId,messageRecords,attachmentRecords,ownerId));
+          });
+          if(jobs.length){
+            const results=await Promise.all(jobs.map(job=>Promise.resolve(job).catch(()=>false)));
+            if(results.some(result=>result!==true))return false;
+          }
+          if(journalKeys.length)acknowledgeParentRealtimeJournalV932(ownerId,journalKeys);
+          return true;
+        })().finally(()=>{realtimePersistencePromiseV932=null;});
+        return realtimePersistencePromiseV932;
       }
 
       async function localStoreGetAll(storeName,indexName,key){
@@ -5161,7 +5227,13 @@
       function latestKnownConversationSeq(conversationId,items,state){
         const id = clean(conversationId);
         const safeItems = (items || []).filter(message => message && clean(message.conversationId) === id);
-        return Math.max(latestServerSeq(safeItems),finiteNumber(state && state.lastServerSeq,0));
+        const latest=Math.max(latestServerSeq(safeItems),finiteNumber(state && state.lastServerSeq,0));
+        const incompleteSeq=safeItems.reduce((min,message) => {
+          const metadata=message&&message.metadata&&typeof message.metadata==='object'?message.metadata:{};
+          const seq=finiteNumber(message&&message.serverSeq,0);
+          return metadata.happyad_realtime_seed_v930===true&&seq>0?Math.min(min,seq):min;
+        },Number.POSITIVE_INFINITY);
+        return Number.isFinite(incompleteSeq)?Math.min(latest,Math.max(0,incompleteSeq-1)):latest;
       }
 
       function localConversationRecord(item){
@@ -5482,10 +5554,12 @@
         return true;
       }
 
-      function queuePersistConversations(){
+      function queuePersistConversations(options){
+        options=options&&typeof options==='object'?options:{};
+        const force=options.force===true;
         if(!authUser || !isUuid(authUser.id)) return;
-        if(messageCachePreparingV875()&&!messageFrameVisibleV868())return;
-        if(deferMessageCacheV868('conversations',queuePersistConversations,120)) return;
+        if(!force&&messageCachePreparingV875()&&!messageFrameVisibleV868())return;
+        if(!force&&deferMessageCacheV868('conversations',() => queuePersistConversations(options),120)) return;
         const ownerUserId = clean(authUser.id);
         const records = conversations.map(localConversationRecord).filter(record => record && record.ownerUserId === ownerUserId);
         if(!records.length){
@@ -5499,16 +5573,18 @@
         clearTimeout(localConversationWriteTimer);
         localConversationWriteTimer = setTimeout(() => {
           localConversationWriteTimer = 0;
-          if(deferMessageCacheV868('conversations',queuePersistConversations,80)) return;
+          if(!force&&deferMessageCacheV868('conversations',() => queuePersistConversations(options),80)) return;
           if(!authUser || clean(authUser.id) !== ownerUserId || localDbUserId !== ownerUserId) return;
           persistLocalConversationRecords(records,ownerUserId).catch(error => console.warn('[HAPPYAD V38A1B] conversations cache:',error));
-        },180);
+        },force?0:180);
       }
 
-      function queuePersistMessageBucket(conversationId){
+      function queuePersistMessageBucket(conversationId,options){
+        options=options&&typeof options==='object'?options:{};
+        const force=options.force===true;
         const id = clean(conversationId);
         if(!authUser || !isUuid(authUser.id) || !isUuid(id)) return;
-        if(deferMessageCacheV868('bucket-' + id,() => queuePersistMessageBucket(id),100)) return;
+        if(!force&&deferMessageCacheV868('bucket-' + id,() => queuePersistMessageBucket(id,options),100)) return;
         const ownerUserId = clean(authUser.id);
         const conversationKey = fixedConversationKey(id,ownerUserId);
         if(!conversationKey) return;
@@ -5526,10 +5602,10 @@
         if(previousTimer) clearTimeout(previousTimer);
         const timer = setTimeout(() => {
           localMessageWriteTimers.delete(conversationKey);
-          if(deferMessageCacheV868('bucket-' + id,() => queuePersistMessageBucket(id),80)) return;
+          if(!force&&deferMessageCacheV868('bucket-' + id,() => queuePersistMessageBucket(id,options),80)) return;
           if(!authUser || clean(authUser.id) !== ownerUserId || localDbUserId !== ownerUserId) return;
           persistLocalMessageRecords(id,messageRecords,attachmentRecords,ownerUserId).catch(error => console.warn('[HAPPYAD V38C5] messages cache:',error));
-        },120);
+        },force?0:120);
         localMessageWriteTimers.set(conversationKey,timer);
       }
 
@@ -5933,13 +6009,14 @@
 
       function publishUnreadTotal(total){
         total = Math.max(0,finiteNumber(total,0));
+        const userId=clean(authUser&&authUser.id);
         try{
           if(window.parent && typeof window.parent.happyadRenderMessageUnreadTotal === 'function'){
-            window.parent.happyadRenderMessageUnreadTotal(total);
+            window.parent.happyadRenderMessageUnreadTotal(total,userId);
           }
         }catch(_e){}
         try{
-          window.parent.postMessage({type:'HAPPYAD_MESSAGE_UNREAD_TOTAL',detail:{total}}, '*');
+          window.parent.postMessage({type:'HAPPYAD_MESSAGE_UNREAD_TOTAL',detail:{total,user_id:userId}}, '*');
         }catch(_e){}
         return total;
       }
@@ -10776,6 +10853,34 @@
         return items || [];
       }
 
+      function seedVisiblePreviewMessagesV930(data){
+        const touched=new Set();
+        asArray(data).map(normalizeVisibleConversationPreview).filter(Boolean).forEach(preview => {
+          if(!isUuid(preview.senderId))return;
+          const key=fixedConversationKey(preview.conversationId);
+          const previous=key?(conversationMessageBuckets.get(key)||[]).find(message => message&&(
+            clean(message.id)===preview.messageId||finiteNumber(message.serverSeq,0)===finiteNumber(preview.serverSeq,0)
+          )):null;
+          const metadata=Object.assign({},previous&&previous.metadata||{},preview.metadata||{});
+          if(!previous)metadata.happyad_realtime_seed_v930=true;
+          const normalized=normalizeMessage({
+            id:preview.messageId,conversation_id:preview.conversationId,sender_id:preview.senderId,
+            server_seq:preview.serverSeq,kind:preview.kind,body:preview.body,created_at:preview.createdAt,
+            deleted_for_all:preview.deletedForAll,view_once:preview.viewOnce,
+            view_once_consumed_at:preview.viewOnceConsumedAt,
+            view_once_sender_dismissed_at:preview.viewOnceSenderDismissedAt,
+            metadata
+          },preview.conversationId);
+          if(!normalized)return;
+          if(normalized.deletedForAll)markMessageDeletedForAllLocally(normalized.id,normalized);
+          mergeMessages([normalized],preview.conversationId);
+          syncConversationPreviewFromBucket(preview.conversationId);
+          queuePersistMessageBucket(preview.conversationId,{force:true});
+          touched.add(preview.conversationId);
+        });
+        return touched;
+      }
+
       function currentMessageVisibleInConversationPreview(message){
         if(!message || message.viewOnceHiddenForMe) return false;
         if(message.viewOnce && (message.kind === 'audio' || message.kind === 'photo' || message.kind === 'video')){
@@ -12503,29 +12608,49 @@
         }
 
         try{
-          const results = await Promise.all([
-            rpc('happyad_msg_list_conversations', [
-              {p_limit:PAGE_LIMIT, p_before_last_message_seq:null},
-              {limit:PAGE_LIMIT, before_last_message_seq:null},
-              {}
-            ]),
-            loadConversationDeletionState(),
-            rpc('happyad_msg_list_visible_conversation_previews',[{}]).catch(() => null)
+          const ownerId=clean(authUser&&authUser.id);
+          const deletionPromise=loadConversationDeletionState();
+          const previewsPromise=rpc('happyad_msg_list_visible_conversation_previews',[{}]).catch(() => null);
+          const remoteData=await rpc('happyad_msg_list_conversations', [
+            {p_limit:PAGE_LIMIT, p_before_last_message_seq:null},
+            {limit:PAGE_LIMIT, before_last_message_seq:null},
+            {}
           ]);
-          const remote = asArray(results[0]).map(normalizeConversation).filter(Boolean);
+          const remote = asArray(remoteData).map(normalizeConversation).filter(Boolean);
           conversations = mergeConversationCollections(conversations,remote);
-          if(Array.isArray(results[2])) applyVisibleConversationPreviews(conversations,results[2],{preserveMissing:!!options.silent});
-          const profiles = await fetchProfiles(conversations.map(item => item.targetId),{force:true});
-          conversations.forEach(item => {
-            item.target = targetFromProfile(profiles[item.targetId], item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
-          });
           conversations = mergeConversationCollections([],conversations);
-          await warmConversationPrivacyV855R51(conversations).catch(()=>{});
           syncCurrentReceiptFromConversation();
+          /* Le compteur et l'ordre viennent déjà de la réponse principale. Ils
+             sont peints sans attendre deux autres RPC, les profils ou la confidentialité. */
           renderConversations(searchInput && searchInput.value);
           syncInboxDelivered(conversations);
           refreshUnreadTotal().catch(() => {});
           queuePersistConversations();
+          const profileIds=conversations.map(item => item.targetId);
+          deletionPromise.then(() => {
+            if(!authUser||clean(authUser.id)!==ownerId)return;
+            conversations=mergeConversationCollections([],conversations);
+            renderConversations(searchInput&&searchInput.value);
+            queuePersistConversations();
+          }).catch(()=>{});
+          previewsPromise.then(previews => {
+            if(!authUser||clean(authUser.id)!==ownerId||!Array.isArray(previews))return;
+            applyVisibleConversationPreviews(conversations,previews,{preserveMissing:!!options.silent});
+            seedVisiblePreviewMessagesV930(previews);
+            conversations=mergeConversationCollections([],conversations);
+            renderConversations(searchInput&&searchInput.value);
+            queuePersistConversations();
+          }).catch(()=>{});
+          fetchProfiles(profileIds,{force:true}).then(profiles => {
+            if(!authUser||clean(authUser.id)!==ownerId)return;
+            conversations.forEach(item => {
+              item.target = targetFromProfile(profiles[item.targetId], item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
+            });
+            conversations = mergeConversationCollections([],conversations);
+            renderConversations(searchInput && searchInput.value);
+            queuePersistConversations();
+          }).catch(()=>{});
+          warmConversationPrivacyV855R51(conversations).catch(()=>{});
           return conversations;
         }catch(error){
           if(conversations.length){
@@ -12580,29 +12705,46 @@
           scheduleDeferredChatLoading(conversationKey,'Chargement des messages…',320);
         }
 
-        const queuedTexts = await mergeTextOutboxForConversation(id).catch(() => []);
-        if(!stillActive()) return [];
-        if(queuedTexts.length){
-          renderMessages(memoryBucket.length === 0);
-          syncConversationPreviewFromBucket(id);
-          renderConversations(searchInput && searchInput.value);
-        }
-
-        let cached = [];
-        try{ cached = await readLocalMessages(id); }catch(_e){ cached = []; }
-        if(!stillActive()) return [];
-        localMessageHydratedConversationId = id;
-        if(cached.length){
+        /* Le cache des vrais messages et la file d'envoi sont lus en parallèle.
+           Le premier résultat disponible est peint immédiatement : une file vide
+           ne peut plus retarder l'apparition du dernier message reçu. */
+        const cachedPromise=readLocalMessages(id).catch(() => []);
+        const queuedTextsPromise=mergeTextOutboxForConversation(id).catch(() => []);
+        let cached=[];
+        let queuedTexts=[];
+        const applyCachedRows=rows => {
+          cached=Array.isArray(rows)?rows:[];
+          localMessageHydratedConversationId=id;
+          if(!cached.length)return;
           mergeMessages(cached,id);
-          if(!stillActive()) return [];
-          const cachedBucket = conversationMessageBuckets.get(conversationKey) || [];
-          /* IndexedDB est peint dès sa lecture. Les pièces jointes se réhydratent
-             ensuite sans bloquer les messages texte ni la transition. */
+          if(!stillActive())return;
+          const cachedBucket=conversationMessageBuckets.get(conversationKey)||[];
           syncConversationPreviewFromBucket(id);
-          renderMessages(memoryBucket.length === 0);
-          renderConversations(searchInput && searchInput.value);
+          renderMessages(memoryBucket.length===0);
+          renderConversations(searchInput&&searchInput.value);
           refreshHydratedMediaInBackground(cachedBucket);
-        }else if(!memoryBucket.length){
+        };
+        const applyQueuedRows=rows => {
+          queuedTexts=Array.isArray(rows)?rows:[];
+          if(!queuedTexts.length||!stillActive())return;
+          renderMessages(memoryBucket.length===0);
+          syncConversationPreviewFromBucket(id);
+          renderConversations(searchInput&&searchInput.value);
+        };
+        const firstLocal=await Promise.race([
+          cachedPromise.then(rows => ({kind:'cache',rows})),
+          queuedTextsPromise.then(rows => ({kind:'outbox',rows}))
+        ]);
+        if(!stillActive())return [];
+        if(firstLocal.kind==='cache'){
+          applyCachedRows(firstLocal.rows);
+          applyQueuedRows(await queuedTextsPromise);
+        }else{
+          applyQueuedRows(firstLocal.rows);
+          applyCachedRows(await cachedPromise);
+        }
+        if(!stillActive())return [];
+        if(!cached.length&&!queuedTexts.length&&!memoryBucket.length){
           setChatState('Synchronisation des nouveaux messages…',conversationKey);
         }
 
@@ -12757,6 +12899,7 @@
 
 
       async function openKnownConversation(target,conversationId){
+        if(authUser&&isUuid(authUser.id))replayParentRealtimeJournalV930(authUser.id,{paint:true});
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
@@ -12811,6 +12954,7 @@
       }
 
       async function openExistingConversation(item){
+        if(authUser&&isUuid(authUser.id))replayParentRealtimeJournalV930(authUser.id,{paint:true});
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
@@ -12895,7 +13039,7 @@
           });
         };
         if(!conversations.length)refresh();
-        else scheduleMessageConnectionWorkV869('inbox-return-refresh',refresh,{delay:520,maxDelay:1800,minGap:900});
+        else scheduleMessageConnectionWorkV869('inbox-return-refresh',refresh,{delay:70,maxDelay:450,minGap:500});
       }
       function finishInboxCleanupV872(returnToken){
         if(returnToken!==openToken||activeMessageView!=='inbox')return;
@@ -12930,6 +13074,7 @@
       }
       function showInbox(options){
         options=options&&typeof options==='object'?options:{};
+        if(authUser&&isUuid(authUser.id))replayParentRealtimeJournalV930(authUser.id,{paint:true});
         if(messageFrameVisibleV868()) allowMessageUserPaintV868(520);
         const returnToken=++openToken;
         cancelDeferredChatLoading();
@@ -13004,7 +13149,10 @@
           if(frame && (frame.offsetParent === null || frame.getClientRects().length === 0)) return false;
           if(window.parent && window.parent !== window){
             const center = window.parent.document.getElementById('happyadMessageReturnCenter');
-            if(!center || !center.classList.contains('on') || center.getAttribute('aria-hidden') === 'true') return false;
+            /* Ancienne surcouche facultative. La navigation actuelle utilise
+               directement happyadAppFrame_message : son absence ne doit plus
+               rendre une conversation pourtant visible « illisible ». */
+            if(center&&(!center.classList.contains('on')||center.getAttribute('aria-hidden')==='true'))return false;
           }
         }catch(_e){ return false; }
         return true;
@@ -13065,7 +13213,80 @@
         renderConversations(searchInput && searchInput.value);
       }
 
-      function handleRealtimeMessage(payload){
+      function realtimeEventKeyV930(detail){
+        detail=detail&&typeof detail==='object'?detail:{};
+        const payload=detail.payload&&typeof detail.payload==='object'?detail.payload:{};
+        const row=payload.new&&typeof payload.new==='object'?payload.new:(payload.old||{});
+        return [
+          clean(detail.table),clean(payload.eventType).toUpperCase(),clean(row.conversation_id),
+          clean(row.id||row.message_id||row.client_message_id),finiteNumber(row.server_seq,0),
+          clean(row.edited_at),clean(row.deleted_for_all_at)
+        ].join('|');
+      }
+
+      function readParentRealtimeJournalV930(userId){
+        const id=clean(userId||authUser&&authUser.id);
+        if(!isUuid(id))return [];
+        const storageKey=MESSAGE_REALTIME_JOURNAL_PREFIX_V930+id;
+        try{
+          const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};
+          if(parsed.userId&&clean(parsed.userId)!==id)return [];
+          const cutoff=Date.now()-MESSAGE_REALTIME_JOURNAL_TTL_V930;
+          const rows=(Array.isArray(parsed.rows)?parsed.rows:[]).filter(item => item&&finiteNumber(item.at,0)>=cutoff&&clean(item.table)==='happyad_msg_messages');
+          rows.sort((a,b) => {
+            const at=finiteNumber(a.at,0)-finiteNumber(b.at,0);
+            if(at)return at;
+            const ar=a.payload&&a.payload.new||{};
+            const br=b.payload&&b.payload.new||{};
+            return finiteNumber(ar.server_seq,0)-finiteNumber(br.server_seq,0);
+          });
+          if(rows.length!==(Array.isArray(parsed.rows)?parsed.rows.length:0)){
+            localStorage.setItem(storageKey,JSON.stringify({version:1,userId:id,savedAt:Date.now(),rows:rows.slice(-MESSAGE_REALTIME_JOURNAL_LIMIT_V930)}));
+          }
+          return rows.slice(-MESSAGE_REALTIME_JOURNAL_LIMIT_V930);
+        }catch(_e){return [];}
+      }
+
+      function replayParentRealtimeJournalV930(userId,options){
+        options=options&&typeof options==='object'?options:{};
+        const id=clean(userId||authUser&&authUser.id);
+        if(!isUuid(id)||!authUser||clean(authUser.id)!==id)return 0;
+        let applied=0;
+        readParentRealtimeJournalV930(id).forEach(entry => {
+          const detail={table:entry.table,payload:entry.payload||{},at:finiteNumber(entry.at,0)};
+          const runtimeKey=id+'|'+clean(entry.key||realtimeEventKeyV930(detail));
+          if(!options.force&&replayedRealtimeKeysV930.has(runtimeKey))return;
+          replayedRealtimeKeysV930.add(runtimeKey);
+          handleRealtimeEvent(detail,{localOnly:true,forcePersist:true,paint:options.paint!==false,replay:true});
+          applied++;
+        });
+        return applied;
+      }
+
+      function ensureRealtimeConversationV930(normalized,row){
+        if(!normalized||!authUser||!isUuid(authUser.id))return null;
+        let item=conversations.find(entry => entry&&entry.id===normalized.conversationId)||null;
+        if(item||normalized.senderId===authUser.id||normalized.deletedForAll)return item;
+        const targetId=clean(normalized.senderId);
+        if(!isUuid(targetId))return null;
+        const fallbackTarget={
+          id:targetId,
+          name:clean(row&& (row.sender_name||row.sender_display_name||row.sender_username))||'Utilisateur HAPPYAD',
+          avatar:safeAvatar(row&&(row.sender_avatar||row.sender_avatar_url)),
+          badge:profileBadge(row||{}),
+          status:'Conversation HAPPYAD'
+        };
+        item={
+          id:normalized.conversationId,conversation_id:normalized.conversationId,targetId,
+          lastSeq:0,lastAt:null,unread:0,kind:normalized.kind||'text',body:'',deletedForAll:false,senderId:normalized.senderId,
+          myDelivered:0,myRead:0,targetDelivered:0,targetRead:0,fallbackTarget,target:null,raw:{realtime_placeholder:true}
+        };
+        conversations=mergeConversationCollections(conversations,[item]);
+        return conversations.find(entry => entry&&entry.id===normalized.conversationId)||item;
+      }
+
+      function handleRealtimeMessage(payload,options){
+        options=options&&typeof options==='object'?options:{};
         payload = payload && typeof payload === 'object' ? payload : {};
         const row = payload.new && typeof payload.new === 'object' ? payload.new : (payload.old || {});
         const conversationId = clean(row.conversation_id);
@@ -13073,30 +13294,17 @@
         const normalized = normalizeMessage(row,conversationId);
 
         if(normalized){
+          const conversationKey=fixedConversationKey(conversationId);
+          const previousBucket=conversationKey?(conversationMessageBuckets.get(conversationKey)||[]):[];
+          const knownMessage=previousBucket.find(item => sameMessageIdentity(item,normalized))||null;
+          const alreadyKnown=!!knownMessage;
           const alreadyVisible = conversationId === currentConversationId && messages.some(item => sameMessageIdentity(item,normalized));
-          /* Peinture immédiate du texte/tombstone, puis récupération différentielle
-             enrichie (pièce jointe, états) sans relire l'historique. */
-          if(normalized.deletedForAll) markMessageDeletedForAllLocally(normalized.id,normalized);
-          else mergeMessages([normalized],conversationId);
-          syncConversationPreviewFromBucket(conversationId);
-          queuePersistMessageBucket(conversationId);
-          queuePersistConversations();
-
-          if(conversationId === currentConversationId){
-            /* Un nouveau message ne doit jamais arracher l'utilisateur à la
-               position qu'il est en train de lire. Suivre le bas uniquement si
-               le chat était déjà ancré près du dernier message. */
-            const followIncoming=!alreadyVisible&&!normalized.deletedForAll&&isChatNearBottom(220);
-            renderMessages(followIncoming);
-            renderConversations(searchInput && searchInput.value);
+          let conversationItem=ensureRealtimeConversationV930(normalized,row);
+          const previousLastSeq=finiteNumber(conversationItem&&conversationItem.lastSeq,0);
+          const eventType=clean(payload.eventType).toUpperCase();
+          if(options.localOnly===true&&(!knownMessage||(knownMessage.metadata&&knownMessage.metadata.happyad_realtime_seed_v930===true))){
+            normalized.metadata=Object.assign({},normalized.metadata||{},{happyad_realtime_seed_v930:true});
           }
-
-          scheduleMessageConnectionWorkV869('delta-'+conversationId,() => syncConversationDelta(conversationId,{
-            afterServerSeq:Math.max(0,finiteNumber(normalized.serverSeq,0) - 1),
-            background:conversationId !== currentConversationId,
-            scrollToBottom:false
-          }).catch(() => {}),{delay:170,maxDelay:1300,minGap:350});
-
           const mayReadNow = authUser
             && !normalized.deletedForAll
             && normalized.senderId !== authUser.id
@@ -13104,6 +13312,29 @@
             && conversationId === currentConversationId
             && conversationId === readEligibleConversationId
             && messageCenterVisible();
+          /* Peinture immédiate du texte/tombstone, puis récupération différentielle
+             enrichie (pièce jointe, états) sans relire l'historique. */
+          if(normalized.deletedForAll) markMessageDeletedForAllLocally(normalized.id,normalized);
+          else mergeMessages([normalized],conversationId);
+          syncConversationPreviewFromBucket(conversationId);
+          conversationItem=conversations.find(entry => entry&&entry.id===conversationId)||conversationItem;
+          const advancesConversation=finiteNumber(normalized.serverSeq,0)<=0||previousLastSeq<finiteNumber(normalized.serverSeq,0);
+          if(conversationItem&&eventType==='INSERT'&&!alreadyKnown&&advancesConversation&&authUser&&normalized.senderId!==authUser.id&&!mayReadNow){
+            conversationItem.unread=Math.max(0,finiteNumber(conversationItem.unread,0))+1;
+          }
+          queuePersistMessageBucket(conversationId,{force:options.forcePersist===true});
+          queuePersistConversations({force:options.forcePersist===true});
+          if(options.forcePersist===true&&authUser&&isUuid(authUser.id))persistRealtimeBucketsV932(authUser.id).catch(()=>false);
+
+          if(options.paint!==false&&conversationId === currentConversationId){
+            /* Un nouveau message ne doit jamais arracher l'utilisateur à la
+               position qu'il est en train de lire. Suivre le bas uniquement si
+               le chat était déjà ancré près du dernier message. */
+            const followIncoming=!alreadyVisible&&!normalized.deletedForAll&&isChatNearBottom(220);
+            renderMessages(followIncoming);
+          }
+          if(options.paint!==false)renderConversations(searchInput && searchInput.value);
+
           if(mayReadNow){
             clearTimeout(realtimeReadTimer);
             realtimeReadTimer = setTimeout(() => {
@@ -13114,9 +13345,18 @@
               }).catch(() => {});
             }, 350);
           }
+          if(options.localOnly===true)return normalized;
+
+          scheduleMessageConnectionWorkV869('delta-'+conversationId,() => syncConversationDelta(conversationId,{
+            afterServerSeq:Math.max(0,finiteNumber(normalized.serverSeq,0) - 1),
+            background:conversationId !== currentConversationId,
+            scrollToBottom:false
+          }).catch(() => {}),{delay:170,maxDelay:1300,minGap:350});
         }
+        if(options.localOnly===true)return normalized||null;
         scheduleRealtimeConversationRefresh(260);
         scheduleMessageConnectionWorkV869('unread-total',() => refreshUnreadTotal().catch(() => {}),{delay:260,maxDelay:1700,minGap:700});
+        return normalized||null;
       }
 
       function handleRealtimeBlock(row){
@@ -13131,33 +13371,36 @@
         refreshBlockState(target).catch(() => {});
       }
 
-      function handleRealtimeEvent(detail){
+      function handleRealtimeEvent(detail,options){
+        options=options&&typeof options==='object'?options:{};
         detail = detail && typeof detail === 'object' ? detail : {};
         const table = clean(detail.table);
         const payload = detail.payload && typeof detail.payload === 'object' ? detail.payload : {};
         const row = payload.new && typeof payload.new === 'object' ? payload.new : (payload.old || {});
+        const runtimeUserId=clean(authUser&&authUser.id);
+        if(isUuid(runtimeUserId))replayedRealtimeKeysV930.add(runtimeUserId+'|'+realtimeEventKeyV930(detail));
 
-        /* Le canal parent reste ouvert pour ne perdre aucun événement, mais une
-           frame Messages cachée ne lance ni lecture réseau ni peinture. Le corps
-           d'un nouveau message est seulement fusionné en mémoire : il est donc
-           déjà disponible au clic, puis une seule synchronisation différentielle
-           réconcilie le reste quand la surface redevient visible. */
+        if(table==='happyad_msg_messages'){
+          const hidden=!messageFrameVisibleV868();
+          if(hidden)messageHiddenRealtimeDirtyV869=true;
+          return handleRealtimeMessage(payload,Object.assign({},options,{
+            localOnly:options.localOnly===true||hidden,
+            forcePersist:options.forcePersist===true||hidden,
+            paint:options.paint===true?true:(!hidden&&options.paint!==false)
+          }));
+        }
+
+        /* Les autres tables restent silencieuses quand la frame est cachée. Les
+           messages, eux, ont déjà été fusionnés et persistés ci-dessus. */
         if(!messageFrameVisibleV868()){
           messageHiddenRealtimeDirtyV869=true;
-          if(table==='happyad_msg_messages'){
-            const conversationId=clean(row.conversation_id);
-            const normalized=isUuid(conversationId)?normalizeMessage(row,conversationId):null;
-            if(normalized){mergeMessages([normalized],conversationId);syncConversationPreviewFromBucket(conversationId);}
-          }
           return;
         }
+
+        if(options.localOnly===true)return;
 
         if(table === 'happyad_msg_user_blocks'){
           scheduleMessageConnectionWorkV869('block-state',() => handleRealtimeBlock(row),{delay:120,maxDelay:1200,minGap:500});
-          return;
-        }
-        if(table === 'happyad_msg_messages'){
-          handleRealtimeMessage(payload);
           return;
         }
         if(table === 'happyad_msg_conversation_members'){
@@ -15184,9 +15427,16 @@
               conversations = mergeConversationCollections([],hintedCache);
               renderConversations(searchInput && searchInput.value);
             }
+            /* Les événements arrivés avant le montage de l'iframe complètent le
+               cache avant que le parent ne révèle la surface Messages. */
+            replayParentRealtimeJournalV930(hintedUserId,{force:true,paint:true});
+            /* Ne bloque jamais la peinture : IndexedDB se prépare en parallèle et
+               rend durables les messages reçus même si l'utilisateur ne clique pas. */
+            persistRealtimeBucketsV932(hintedUserId).catch(()=>false);
           }
-          if(!hintedCache.length && !conversations.length) setListState('Aucune conversation enregistrée sur cet appareil.');
-          await signalMessageCacheReadyV875(hintedCache.length?'account-cache':'no-local-cache',hintedCache.length);
+          const earlyConversationCount=conversations.length;
+          if(!earlyConversationCount) setListState('Aucune conversation enregistrée sur cet appareil.');
+          await signalMessageCacheReadyV875(earlyConversationCount?'account-cache':'no-local-cache',earlyConversationCount);
           await waitForMessageVisualCommitV872();
 
           /* Le préchauffage caché s'arrête ici : seulement HTML + cache du même
@@ -15218,6 +15468,12 @@
           requestPersistentMessageStorage().catch(() => false);
           let localShown = !accountChanged && hintedCache.length > 0;
           if(!localShown) localShown = await hydrateInboxFromLocalUser(user.id).catch(() => false);
+          const replayedCount=replayParentRealtimeJournalV930(user.id,{force:true,paint:true});
+          if(replayedCount>0){
+            localShown=true;
+            queuePersistConversations({force:true});
+            persistRealtimeBucketsV932(user.id).catch(()=>false);
+          }
           const cachedIdentity = cachedConnectedIdentity(user.id);
           applyConnectedIdentity(cachedIdentity || null,user,{persist:false,sync:true});
 
@@ -15869,6 +16125,7 @@
       }
       function finishMessageRuntimeResumeV869(){
         if(!messageFrameVisibleV868())return false;
+        replayParentRealtimeJournalV930(authUser&&authUser.id,{paint:true});
         announceMessageRealtimeStartV876();
         subscribeProfileIdentityRealtime();
         startPresenceHeartbeatV855R51();
@@ -16008,6 +16265,7 @@
         handleRealtimeEvent,
         getContext:() => context,
         getConversationId:() => currentConversationId,
+        isConversationReadVisible:() => messageCenterVisible(),
         holdReturnScroll:holdSharedReturnScrollV711,
         isReturnScrollLocked:sharedReturnScrollLockedV711,
         getUser:() => authUser,

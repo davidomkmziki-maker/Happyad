@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V928_CANONICAL_LAYER_PROFILE_RESUME';
+  var VERSION='V929_NOTIFICATION_POST_PASSIVE_ROUTE';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
   var NOTIF_URL='modules/notification-center.html?v=895-story-repost-return';
@@ -22,6 +22,7 @@
   var LAYER_DEPTH_KEY_V927='__happyadInternalDepthV927';
   var layerHistoryV927=Object.create(null);
   var suspendedLayersV927=Object.create(null);
+  var layerPolicyV929=Object.create(null);
   var ignoredLayerPopsV927=0;
   var preparingMenuV927=false;
 
@@ -50,7 +51,34 @@
   }
   function layerIndex(id){id=clean(id);for(var i=layers.length-1;i>=0;i--)if(layers[i]===id)return i;return -1;}
   function topLayer(){return layers.length?layers[layers.length-1]:'';}
-  function hasLayers(){return layers.length>0;}
+  function defaultLayerPolicyV929(id){
+    /* La publication Accueil ouverte depuis Notifications est une destination
+       de retour, pas une fenêtre au-dessus de l'interface. Elle reste dans la
+       pile Android/History mais ne doit ni masquer le dock ni bloquer le scroll
+       de la page visitée ensuite. Le défaut par identifiant protège également
+       une session où l'ancien centre de notifications serait encore en cache. */
+    var passive=clean(id)==='notification-home-post-v927';
+    return {blocksSurface:!passive,lockScroll:!passive};
+  }
+  function normalizeLayerPolicyV929(id,options,saved){
+    options=options&&typeof options==='object'?options:{};
+    var base=saved&&typeof saved==='object'?saved:(layerPolicyV929[id]||defaultLayerPolicyV929(id));
+    var blocks=base.blocksSurface!==false,locks=base.lockScroll!==false;
+    if(options.passive===true){blocks=false;locks=false;}
+    if(options.blocksSurface===true||options.blocksSurface===false)blocks=options.blocksSurface;
+    if(options.lockScroll===true||options.lockScroll===false)locks=options.lockScroll;
+    if(!blocks&&options.lockScroll!==true)locks=false;
+    return {blocksSurface:!!blocks,lockScroll:!!locks};
+  }
+  function layerBlocksSurfaceV929(id){var p=layerPolicyV929[clean(id)]||defaultLayerPolicyV929(id);return p.blocksSurface!==false;}
+  function hasLayers(){for(var i=0;i<layers.length;i++)if(layerBlocksSurfaceV929(layers[i]))return true;return false;}
+  function lockLayerV929(id){
+    var p=layerPolicyV929[clean(id)]||defaultLayerPolicyV929(id);
+    if(p.lockScroll===false){try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_u){}return false;}
+    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
+    return true;
+  }
+  function unlockLayerV929(id){try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+clean(id));}catch(_o){}return true;}
   function forceDockHidden(on){
     var dock=dockElement();
     if(!dock)return;
@@ -132,6 +160,8 @@
     if(id==='photo-central')return id;
     delete suspendedLayersV927[id];
     var idx=layerIndex(id),alreadyTop=idx>=0&&idx===layers.length-1;
+    var previousPolicy=layerPolicyV929[id]||null;
+    layerPolicyV929[id]=normalizeLayerPolicyV929(id,options,previousPolicy);
     if(options&&typeof options.onBack==='function')handlers[id]=options.onBack;
     if(alreadyTop){
       /* Une sous-page interne (ex. Paramètres > Langue) peut traiter le premier
@@ -141,26 +171,33 @@
          traverser la route B restée dessous. */
       var currentRecord=layerHistoryV927[id];
       if(!(options&&options.fromHistory)&&(!currentRecord||!currentRecord.armed))armLayerHistoryV927(id);
+      lockLayerV929(id);
       applyDock();
       return id;
     }
     if(idx>=0)layers.splice(idx,1);
     layers.push(id);
     if(!(options&&options.fromHistory))armLayerHistoryV927(id);
+    lockLayerV929(id);
     applyDock();
-    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
     return id;
   }
   function closeLayer(id){
     id=clean(id);
     if(!id)id=topLayer();
     var idx=layerIndex(id);
-    if(idx<0){delete handlers[id];return false;}
+    if(idx<0){
+      /* Fermeture idempotente : même si une ancienne course a déjà retiré
+         l'entrée de la pile, son propriétaire ne doit garder aucun verrou. */
+      delete handlers[id];delete layerPolicyV929[id];unlockLayerV929(id);
+      return false;
+    }
     layers.splice(idx,1);
     consumeLayerHistoryV927(id);
     delete handlers[id];
+    delete layerPolicyV929[id];
+    unlockLayerV929(id);
     applyDock();
-    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_o){}
     return true;
   }
   function suspendLayerV927(id,options){
@@ -170,11 +207,11 @@
       if(suspendedLayersV927[id]&&typeof options.onResume==='function')suspendedLayersV927[id].onResume=options.onResume;
       return !!suspendedLayersV927[id];
     }
-    var savedHandler=handlers[id];layers.splice(idx,1);delete handlers[id];
+    var savedHandler=handlers[id],savedPolicy=layerPolicyV929[id]||defaultLayerPolicyV929(id);layers.splice(idx,1);delete handlers[id];delete layerPolicyV929[id];
     var record=layerHistoryV927[id];if(record){record.armed=false;record.suspended=true;}
-    suspendedLayersV927[id]={handler:savedHandler||null,onResume:typeof options.onResume==='function'?options.onResume:null,depth:Number(record&&record.depth||layerDepthV927(history.state)||1),navDepth:navDepthV927(history.state)};
+    suspendedLayersV927[id]={handler:savedHandler||null,onResume:typeof options.onResume==='function'?options.onResume:null,depth:Number(record&&record.depth||layerDepthV927(history.state)||1),navDepth:navDepthV927(history.state),policy:savedPolicy};
+    unlockLayerV929(id);
     applyDock();
-    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-'+id);}catch(_o){}
     return true;
   }
   function resumeLayerV927(id,options){
@@ -183,10 +220,10 @@
     if(idx<0)layers.push(id);
     if(typeof options.onBack==='function')handlers[id]=options.onBack;
     else if(typeof saved.handler==='function')handlers[id]=saved.handler;
+    layerPolicyV929[id]=normalizeLayerPolicyV929(id,options,saved.policy||defaultLayerPolicyV929(id));
     var depth=layerDepthV927(history.state)||Number(saved.depth||1),onResume=typeof options.onResume==='function'?options.onResume:saved.onResume;
     layerHistoryV927[id]={armed:true,depth:depth,suspended:false};
-    delete suspendedLayersV927[id];applyDock();
-    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.lock('internal-'+id);}catch(_o){}
+    delete suspendedLayersV927[id];lockLayerV929(id);applyDock();
     try{if(typeof onResume==='function')onResume({id:id,depth:depth,source:'history-resume-v928'});}catch(_resume){}
     return true;
   }
@@ -333,11 +370,11 @@
     var el=document.getElementById(NOTIF_CENTER_ID);if(el){el.classList.remove('on');el.setAttribute('aria-hidden','true');el.setAttribute('inert','');}
     notificationOpen=false;notificationSuspendedV927=true;
     document.documentElement.classList.remove(NOTIF_CLASS);document.body.classList.remove(NOTIF_CLASS);
-    var idx=layerIndex('notification');if(idx>=0)layers.splice(idx,1);
+    var idx=layerIndex('notification'),notificationPolicyV929=layerPolicyV929.notification||defaultLayerPolicyV929('notification');if(idx>=0)layers.splice(idx,1);delete layerPolicyV929.notification;
     var record=layerHistoryV927.notification;if(record){record.armed=false;record.suspended=true;}
-    suspendedLayersV927.notification={handler:null,depth:Number(record&&record.depth||layerDepthV927(history.state)||1),navDepth:navDepthV927(history.state)};
+    suspendedLayersV927.notification={handler:null,depth:Number(record&&record.depth||layerDepthV927(history.state)||1),navDepth:navDepthV927(history.state),policy:notificationPolicyV929};
     delete handlers.notification;applyDock();
-    try{if(window.HappyOverlayMasterV615)window.HappyOverlayMasterV615.unlock('internal-notification');}catch(_o){}
+    unlockLayerV929('notification');
     try{window.dispatchEvent(new CustomEvent('HAPPYAD_NOTIFICATION_CENTER_SUSPENDED_V927',{detail:{reason:reason||'notification-handoff-v927',at:now()}}));}catch(_e){}
     return true;
   }
@@ -352,7 +389,7 @@
         if(!record||Number(record.depth||0)<=depth)break;
         record.armed=false;layers.pop();
         try{if(typeof handlers[id]==='function')handlers[id]();else postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id,source:'history-discard-v927'});}catch(_e){}
-        delete handlers[id];
+        delete handlers[id];delete layerPolicyV929[id];unlockLayerV929(id);
       }
     }finally{preparingMenuV927=false;}
   }
@@ -424,8 +461,12 @@
           else if(typeof handlers[id]==='function')handlers[id]();
           else postToActive('HAPPYAD_INTERNAL_BACK_EXECUTE_V591',{id:id,source:reason||'menu-v927'});
         }catch(_e){}
+        /* Certains hôtes répondent au message de fermeture après le changement
+           de route. La libération idempotente ici empêche qu'un verrou interne
+           survive entre les deux surfaces. */
+        delete layerPolicyV929[id];unlockLayerV929(id);
       });
-      layers.length=0;handlers=Object.create(null);
+      layers.length=0;handlers=Object.create(null);layerPolicyV929=Object.create(null);
       notificationOpen=false;notificationSuspendedV927=false;suspendedLayersV927=Object.create(null);
       var el=document.getElementById(NOTIF_CENTER_ID);if(el){el.classList.remove('on');el.setAttribute('aria-hidden','true');el.setAttribute('inert','');}
       document.documentElement.classList.remove(NOTIF_CLASS);document.body&&document.body.classList.remove(NOTIF_CLASS);

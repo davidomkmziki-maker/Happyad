@@ -123,6 +123,23 @@
     try{var uid=clean(localStorage.getItem('HAPPYAD_AUTH_UID'));if(uid)return uid;}catch(_e){}
     try{var u=JSON.parse(localStorage.getItem('HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL')||'{}');return clean(u&&(u.id||u.user_id||u.uid));}catch(_e){return '';}
   }
+
+  function applyOwnerMutationV933(detail){
+    detail=detail||{};var id=clean(detail.id||detail.listing_id);if(!id)return false;
+    var action=clean(detail.action).toLowerCase(),posts=allPosts(),changed=false;
+    for(var i=posts.length-1;i>=0;i--){
+      if(idOf(posts[i])!==id)continue;
+      if(action==='pause'||action==='delete'){posts.splice(i,1);changed=true;continue;}
+      if(action==='activate'){posts[i].listing_status='active';posts[i].status='active';posts[i].is_active=true;changed=true;}
+    }
+    if(action==='pause'||action==='delete'){
+      try{document.querySelectorAll('[data-post-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]').forEach(function(node){if(node.classList.contains('miniCard')||node.closest&&node.closest('#list'))node.remove();});}catch(_e){}
+    }
+    try{if(changed&&typeof window.happyadSaveHomeFastCache==='function')window.happyadSaveHomeFastCache(posts);}catch(_e){}
+    try{document.querySelectorAll('.happyadAppFrame,iframe').forEach(function(frame){if(frame&&frame.contentWindow)frame.contentWindow.postMessage({type:'HAPPYAD_MARKETPLACE_OWNER_MUTATION_V933',detail:detail},'*');});}catch(_e){}
+    if(action==='activate'){refresh('owner-activate-v933');try{if(typeof window.happyadRefreshHomePostsNow==='function')window.happyadRefreshHomePostsNow('market-owner-activate-v933');}catch(_e){}}
+    return changed;
+  }
   function viewerKey(){
     var uid=currentUid();if(uid)return 'user:'+uid;
     var key='HAPPYAD_LISTING_VIEWER_KEY_V820',value='';try{value=clean(localStorage.getItem(key));}catch(_e){}
@@ -256,7 +273,7 @@
         new MutationObserver(queueFs).observe(fs,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
       }
     }catch(_e){}
-    window.addEventListener('message',function(event){var d=event&&event.data||{};if(d.type!=='HAPPYAD_OPEN_MARKETPLACE_LISTING_V856')return;var id=clean(d.listingId||(d.listing&&idOf(d.listing)));if(id)openListing(id,d.source||'profile-card',d.listing||null);},true);
+    window.addEventListener('message',function(event){var d=event&&event.data||{};if(d.type==='HAPPYAD_MARKETPLACE_OWNER_MUTATION_V933'){applyOwnerMutationV933(d.detail||{});return;}if(d.type!=='HAPPYAD_OPEN_MARKETPLACE_LISTING_V856')return;var id=clean(d.listingId||(d.listing&&idOf(d.listing)));if(id)openListing(id,d.source||'profile-card',d.listing||null);},true);
     document.addEventListener('happyad:marketplace-listing-published',function(){refresh('published');});
     window.addEventListener('HAPPYAD_VIDEO_POSTER_UPDATED_V693',function(){refresh('poster-updated');});
     setInterval(function(){if(!document.hidden)refresh('stability');},60000);

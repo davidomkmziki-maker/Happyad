@@ -51,7 +51,7 @@
 })();
 </script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
 <script src="../core/overlay-scroll-master-v615.js?v=615"></script>
-<script src="../core/auth-frame-gate-v596.js?v=596"></script>
+<script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
 <script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
 <script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
 <meta charset="UTF-8">
@@ -1649,7 +1649,10 @@ button:disabled{filter:none;transform:none}
 const storyId=r.data&&r.data.id?r.data.id:null;
 
 try{
-  const cacheKey='HAPPYAD_STORIES_CACHE_V1';
+  const cacheOwner=String((storyRow.user_id||(user&&user.id)||'')).trim();
+  const activeOwner=localStorage.getItem('HAPPYAD_SESSION_ACTIVE')==='1'?String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim():'';
+  if(!cacheOwner||activeOwner!==cacheOwner)throw new Error('stale-account-story-cache-skip');
+  const cacheKey='HAPPYAD_STORIES_CACHE_V1:'+cacheOwner;
   const nowMs=Date.now();
   const storyKey=String(storyId||('local_story_'+nowMs));
   const cached=JSON.parse(localStorage.getItem(cacheKey)||'[]')||[];

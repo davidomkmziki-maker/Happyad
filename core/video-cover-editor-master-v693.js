@@ -71,7 +71,7 @@
     if(c&&c.auth&&c.auth.getUser){
       try{
         var r=await Promise.race([c.auth.getUser(),new Promise(function(_,reject){setTimeout(function(){reject(new Error('auth timeout'));},1600);})]);
-        var id=clean(r&&r.data&&r.data.user&&r.data.user.id);if(id){try{localStorage.setItem('HAPPYAD_AUTH_UID',id);}catch(_s){}return id;}
+        var id=clean(r&&r.data&&r.data.user&&r.data.user.id);if(id){return id;}
       }catch(_e){}
     }
     return fallback;
