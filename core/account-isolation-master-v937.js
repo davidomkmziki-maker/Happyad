@@ -24,7 +24,7 @@
     'HAPPYAD_STORIES_CACHE_V1:','HAPPYAD_STORIES_LAST_GOOD_V885:','HAPPYAD_HOME_RADAR_SEEN_V1:','HAPPYAD_HIDDEN_STORIES_V1:',
     'HAPPYAD_STORY_LIKES_BY_STORY_V1:','HAPPYAD_STORY_LIKES_BY_STORY_V696_','HAPPYAD_MUTED_STORY_OWNERS_V1_',
     'HAPPYAD_MESSAGE_UNREAD_TOTAL_V931:','HAPPYAD_MESSAGE_REALTIME_JOURNAL_V930:','HAPPYAD_MSG_CONNECTED_PROFILE_V1:',
-    'HAPPYAD_MESSAGE_INBOX_SNAPSHOT_V875:','HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:',
+    'HAPPYAD_MESSAGE_INBOX_SNAPSHOT_V875:','HAPPYAD_MESSAGE_CONNECTED_IDENTITY_V1:','HAPPYAD_MSG_VIEW_ONCE_TOMBSTONES_V966:',
     'happyad-notifications-cache-v1:','HAPPYAD_USER_SETTINGS_V1_','HAPPYAD_USER_SETTINGS_PENDING_V1_','HAPPYAD_SETTINGS_LEGACY_DONE_V1_',
     'HAPPYAD_PROFILE_SETTINGS_V712_','HAPPYAD_PROFILE_AVATAR_STABLE_CACHE_V743:','HAPPYAD_PROFILE_IDENTITY_STABLE_V741:'
   ];
@@ -52,6 +52,10 @@
     }catch(_e){}
   }
   function clearPrivateMemory(){
+    /* V938 : l'état personnel des actions Home vit aussi en RAM. Le localStorage peut
+       déjà avoir été purgé, mais les cartes montées doivent perdre leur couleur avant
+       même le broadcast SIGNED_OUT / changement de compte. Les compteurs publics restent. */
+    try{var homeActions=window.HappyHomeActionsV1;if(homeActions&&typeof homeActions.clearPersonalState==='function')homeActions.clearPersonalState({paint:true,persist:false});}catch(_actions){}
     try{window.HAPPYAD_STORIES_ITEMS=[];}catch(_e){}
     try{window.__HAPPYAD_STORIES_ITEMS_CACHE=[];}catch(_e){}
     try{window.__HAPPYAD_CURRENT_STORY_CTX=null;}catch(_e){}

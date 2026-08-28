@@ -502,6 +502,7 @@ async function happyadAuthUser(){
 
 const HAPPYAD_PHOTO_ACTION_LOADS_V68=Object.create(null);
 const HAPPYAD_PHOTO_ACTION_AT_V68=Object.create(null);
+let HAPPYAD_PHOTO_AUTH_EPOCH_V938=0;
 const HAPPYAD_PHOTO_LOCAL_MUTATION_V68=Object.create(null);
 const HAPPYAD_PHOTO_REMOTE_TIMER_V68=Object.create(null);
 const HAPPYAD_PHOTO_COUNT_TIMER_V68=Object.create(null);
@@ -513,6 +514,7 @@ function happyadSchedulePhotoCountsV68(id){id=String(id||'');if(!id)return;clear
 async function happyadLoadPhotoActionsRawV68(input){
   const id=String((input&&typeof input==='object'?(typeof groupActionId==='function'?groupActionId(input):(input.id||input.post_id)):input)||'').trim();
   const c=happyadSb();if(!id||!c)return getA(id);
+  const authEpochV938=HAPPYAD_PHOTO_AUTH_EPOCH_V938;
   try{
     const user=await happyadAuthUser();
     const keepLike=getPhotoPendingAction(id,'like'),keepFav=getPhotoPendingAction(id,'fav')||getPhotoPendingAction(id,'favorite'),keepRepost=getPhotoPendingAction(id,'repost');
@@ -521,7 +523,7 @@ async function happyadLoadPhotoActionsRawV68(input){
     const cr=await c.from('happyad_content_comments').select('*',{count:'exact'}).eq('post_id',id).order('created_at',{ascending:false}).limit(50);
     const counts={like:0,fav:0,repost:0,share:0},mine={like:false,fav:false,repost:false};
     (ar.data||[]).forEach(function(r){var t=String(r.action_type||'').toLowerCase();if(t==='like'&&r.liked===true)counts.like++;if((t==='fav'||t==='favorite'||t==='save')&&r.liked===true)counts.fav++;if((t==='repost'||t==='republish'||t==='republication')&&r.liked===true)counts.repost++;if(t==='share')counts.share++;if(user&&String(r.user_id)===String(user.id)){if(t==='like')mine.like=!!r.liked;if(t==='fav'||t==='favorite'||t==='save')mine.fav=!!r.liked;if(t==='repost'||t==='republish'||t==='republication')mine.repost=!!r.liked;}});
-    var a=getA(id);var directLike=window.HappyLikeDirectV876&&window.HappyLikeDirectV876.pending?window.HappyLikeDirectV876.pending(id):null;if(directLike){a.likes=Number(directLike.count||0);a.like=!!directLike.on;}else if(keepLike){a.likes=Number(keepLike.count||0);a.like=!!keepLike.on;}else{a.likes=counts.like;a.like=mine.like;}if(keepFav){a.favs=Number(keepFav.count||0);a.fav=!!keepFav.on;}else{a.favs=counts.fav;a.fav=mine.fav;}if(keepRepost){a.reposts=Number(keepRepost.count||0);a.repost=!!keepRepost.on;}else{a.reposts=counts.repost;a.repost=mine.repost;}a.shares=Math.max(Number(a.shares||0),counts.share);if(!cr.error){var visibleRows=(cr.data||[]);try{var filterApi=window.HappyFilteringPrivacyV855R55;if(filterApi&&filterApi.filterComments)visibleRows=await filterApi.filterComments(id,visibleRows,function(r){return r&&(r.text||r.comment_text||r.body)||'';});}catch(_filter){}var exactCount=Number(cr.count);if(!isFinite(exactCount))exactCount=visibleRows.length;a.comments=happyadPhotoMutationRecentV68(id,'comments')?Math.max(Number(a.comments||0),Math.max(0,exactCount)):Math.max(0,exactCount);a.commentsList=mergePhotoPendingComments(id,visibleRows.map(function(r){return {id:r.id,post_id:r.post_id||id,user_id:r.user_id||'',authorId:r.user_id||'',parent_id:r.parent_id||null,parentId:r.parent_id||null,name:r.author_name||r.name||'Utilisateur',author:r.author_name||r.name||'Utilisateur',avatar:r.author_avatar||r.avatar||'',text:r.text||r.comment_text||r.body||'',badge:r.author_badge||r.badge||'',likes:Number(r.likes||0),liked:false,replies:[],created_at:r.created_at||'',updated_at:r.updated_at||''};}));}setA(id,a);refresh();return a;
+    var a=getA(id);var directLike=window.HappyLikeDirectV876&&window.HappyLikeDirectV876.pending?window.HappyLikeDirectV876.pending(id):null;if(directLike){a.likes=Number(directLike.count||0);a.like=!!directLike.on;}else if(keepLike){a.likes=Number(keepLike.count||0);a.like=!!keepLike.on;}else{a.likes=counts.like;a.like=mine.like;}if(keepFav){a.favs=Number(keepFav.count||0);a.fav=!!keepFav.on;}else{a.favs=counts.fav;a.fav=mine.fav;}if(keepRepost){a.reposts=Number(keepRepost.count||0);a.repost=!!keepRepost.on;}else{a.reposts=counts.repost;a.repost=mine.repost;}a.shares=Math.max(Number(a.shares||0),counts.share);if(!cr.error){var visibleRows=(cr.data||[]);try{var filterApi=window.HappyFilteringPrivacyV855R55;if(filterApi&&filterApi.filterComments)visibleRows=await filterApi.filterComments(id,visibleRows,function(r){return r&&(r.text||r.comment_text||r.body)||'';});}catch(_filter){}var exactCount=Number(cr.count);if(!isFinite(exactCount))exactCount=visibleRows.length;a.comments=happyadPhotoMutationRecentV68(id,'comments')?Math.max(Number(a.comments||0),Math.max(0,exactCount)):Math.max(0,exactCount);a.commentsList=mergePhotoPendingComments(id,visibleRows.map(function(r){return {id:r.id,post_id:r.post_id||id,user_id:r.user_id||'',authorId:r.user_id||'',parent_id:r.parent_id||null,parentId:r.parent_id||null,name:r.author_name||r.name||'Utilisateur',author:r.author_name||r.name||'Utilisateur',avatar:r.author_avatar||r.avatar||'',text:r.text||r.comment_text||r.body||'',badge:r.author_badge||r.badge||'',likes:Number(r.likes||0),liked:false,replies:[],created_at:r.created_at||'',updated_at:r.updated_at||''};}));}if(authEpochV938!==HAPPYAD_PHOTO_AUTH_EPOCH_V938)return getA(id);setA(id,a);refresh();return a;
   }catch(e){console.warn('photo actions load V678',e);return getA(id);}
 }
 
@@ -2717,6 +2719,49 @@ html,body,.screen{background:#000!important;}
 })();
 </script>
 
+
+<script id="happyad-v938-photo-auth-action-reset-js">
+(function(){
+  'use strict';
+  if(window.__HAPPYAD_V938_PHOTO_AUTH_ACTION_RESET__)return;
+  window.__HAPPYAD_V938_PHOTO_AUTH_ACTION_RESET__=true;
+  function neutralizeV938(){
+    HAPPYAD_PHOTO_AUTH_EPOCH_V938++;
+    try{Object.keys(HAPPYAD_PHOTO_ACTION_PENDING_LOCKS||{}).forEach(function(k){delete HAPPYAD_PHOTO_ACTION_PENDING_LOCKS[k];});}catch(_e){}
+    try{
+      var all=readActions();
+      Object.keys(all||{}).forEach(function(id){var a=all[id]||{};a.like=false;a.fav=false;a.repost=false;try{delete a.__happyadLikeDirectV876;}catch(_x){}all[id]=a;});
+      saveActions(all);
+    }catch(_s){}
+    try{document.querySelectorAll('[data-act="like"],[data-act="fav"],[data-act="repost"],.slideTopRepost').forEach(function(el){el.classList.remove('on');el.setAttribute&&el.setAttribute('aria-pressed','false');});}catch(_ui){}
+  }
+  async function hydrateCurrentMineFastV939(uid){
+    uid=String(uid||'').trim();var target=null;try{target=post||null;}catch(_e){}
+    var id=String(target&&target.id||target&&target.post_id||'').trim(),epoch=HAPPYAD_PHOTO_AUTH_EPOCH_V938;if(!uid||!id)return false;
+    var c=null;try{c=happyadSb();}catch(_c){}if(!c)return false;
+    try{
+      var r=await c.from('happyad_content_actions').select('action_type,liked').eq('post_id',id).eq('user_id',uid).limit(12);if(r&&r.error)throw r.error;
+      if(epoch!==HAPPYAD_PHOTO_AUTH_EPOCH_V938)return false;
+      var a=getA(id);a.like=false;a.fav=false;a.repost=false;
+      (r&&r.data||[]).forEach(function(row){var t=String(row&&row.action_type||'').toLowerCase();if(t==='like')a.like=!!row.liked;if(t==='fav'||t==='favorite'||t==='save')a.fav=!!row.liked;if(t==='repost'||t==='republish'||t==='republication')a.repost=!!row.liked;});
+      setA(id,a);refresh();return true;
+    }catch(_e){return false;}
+  }
+  function reloadCurrentV938(detail){
+    var target=null;try{target=post||null;}catch(_e){}
+    if(!target)return;var uid=String(detail&&detail.user_id||detail&&detail.user&&detail.user.id||'').trim();
+    if(uid)Promise.resolve(hydrateCurrentMineFastV939(uid)).catch(function(){});
+    setTimeout(function(){try{loadPhotoActionsFromSupabase(target,{force:true}).then(function(){try{refresh();}catch(_r){}}).catch(function(){});}catch(_x){}},260);
+  }
+  window.addEventListener('message',function(ev){
+    try{
+      var d=ev&&ev.data;if(!d)return;
+      if(d.type==='HAPPYAD_AUTH_SIGNED_OUT_V595'){neutralizeV938();return;}
+      if(d.type==='HAPPYAD_AUTH_SIGNED_IN_V595'){neutralizeV938();reloadCurrentV938(d.detail||{});}
+    }catch(_e){}
+  },true);
+})();
+</script>
 
 <!-- HAPPYAD V681 : masque/restaure le dock parent pendant les commentaires Photo -->
 <script src="../core/comment-overlay-client-v681.js?v=681-comment-dock"></script>

@@ -3671,7 +3671,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V965_POINT3_MESSAGE_AVATAR_STABLE';
+      const MASTER_VERSION = 'V966_POINT2_VIEW_ONCE_PERSISTENT_HIDE';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -4067,6 +4067,8 @@
       const mediaObjectUrls = new Map();
       const viewOnceTombstones = new Set();
       let viewOnceTombstonesUserId = '';
+      const VIEW_ONCE_TOMBSTONE_MIRROR_PREFIX = 'HAPPYAD_MSG_VIEW_ONCE_TOMBSTONES_V966:';
+      const VIEW_ONCE_TOMBSTONE_MIRROR_LIMIT = 1200;
       let persistentStorageRequested = false;
 
       /* V38A1C : une clé canonique immuable par compte + conversation.
@@ -4840,12 +4842,56 @@
         return false;
       }
 
+      function viewOnceTombstoneMirrorKey(ownerUserId){
+        const ownerId = clean(ownerUserId || authUser && authUser.id);
+        return isUuid(ownerId) ? VIEW_ONCE_TOMBSTONE_MIRROR_PREFIX + ownerId : '';
+      }
+
+      function loadViewOnceTombstoneMirrorSync(ownerUserId){
+        const ownerId = clean(ownerUserId || authUser && authUser.id);
+        const key = viewOnceTombstoneMirrorKey(ownerId);
+        if(!key) return 0;
+        let data = null;
+        try{ data = JSON.parse(localStorage.getItem(key) || 'null'); }catch(_e){ data = null; }
+        const ids = Array.isArray(data && data.ids) ? data.ids : [];
+        let added = 0;
+        ids.forEach(value => {
+          const id = clean(typeof value === 'string' ? value : value && value.id);
+          if(isUuid(id) && !viewOnceTombstones.has(id)){ viewOnceTombstones.add(id); added++; }
+        });
+        return added;
+      }
+
+      function rememberViewOnceTombstoneSync(messageOrId,ownerUserId){
+        const ownerId = clean(ownerUserId || authUser && authUser.id);
+        const id = clean(typeof messageOrId === 'string' ? messageOrId : messageOrId && (messageOrId.id || messageOrId.message_id));
+        const key = viewOnceTombstoneMirrorKey(ownerId);
+        if(!key || !isUuid(id)) return false;
+        viewOnceTombstones.add(id);
+        viewOnceTombstonesUserId = ownerId;
+        try{
+          let data = null;
+          try{ data = JSON.parse(localStorage.getItem(key) || 'null'); }catch(_parse){ data = null; }
+          const previous = Array.isArray(data && data.ids) ? data.ids : [];
+          const ids = [id];
+          previous.forEach(value => {
+            const candidate = clean(typeof value === 'string' ? value : value && value.id);
+            if(isUuid(candidate) && candidate !== id && ids.length < VIEW_ONCE_TOMBSTONE_MIRROR_LIMIT) ids.push(candidate);
+          });
+          localStorage.setItem(key,JSON.stringify({version:1,ownerUserId:ownerId,savedAt:Date.now(),ids}));
+          return true;
+        }catch(_e){ return false; }
+      }
+
       async function loadViewOnceTombstones(ownerUserId){
         const ownerId = clean(ownerUserId || authUser && authUser.id);
         if(!isUuid(ownerId)) return viewOnceTombstones;
         if(viewOnceTombstonesUserId === ownerId) return viewOnceTombstones;
         viewOnceTombstones.clear();
         viewOnceTombstonesUserId = ownerId;
+        /* V966 : miroir synchrone d'abord. Si Android ferme la page juste après
+           consommation, la bulle reste déjà interdite avant l'ouverture d'IndexedDB. */
+        loadViewOnceTombstoneMirrorSync(ownerId);
         const rows = await localStoreGetAll('view_once_tombstones').catch(() => []);
         rows.forEach(row => {
           const id = clean(row && row.id);
@@ -4865,8 +4911,9 @@
         const conversationId = clean(message.conversationId || message.conversation_id);
         const ownerId = clean(authUser && authUser.id);
         if(!id || !isUuid(conversationId) || !isUuid(ownerId)) return false;
-        viewOnceTombstones.add(id);
-        viewOnceTombstonesUserId = ownerId;
+        /* V966 : cette écriture locale est volontairement synchrone avant tout await.
+           Elle survit à un retour Inbox, un refresh ou une fermeture immédiate. */
+        rememberViewOnceTombstoneSync(id,ownerId);
         const db = await openLocalMessageDb(ownerId);
         if(!db || localDbUserId !== ownerId) return false;
         const tx = db.transaction('view_once_tombstones','readwrite');
@@ -5443,7 +5490,7 @@
 
       function localMessageRecord(message){
         if(!message || !isUuid(message.conversationId) || !isUuid(message.senderId)) return null;
-        if(message.viewOnce && (message.viewOnceHiddenForMe || isViewOnceTombstoned(message))) return null;
+        if(message.viewOnce && (message.viewOnceHiddenForMe || message.viewOnceStatePending || isViewOnceTombstoned(message))) return null;
         const cacheKey = localMessageCacheKey(message);
         const once = !!message.viewOnce;
         const safeBody = once ? ({photo:'Photo',video:'Vidéo',audio:'Audio',text:'Texte'}[message.kind] || '') : String(message.body == null ? '' : message.body);
@@ -5556,6 +5603,9 @@
           message_id:row.message_id || row.id,
           attachments:list,
           mediaDownloadState:expectsLocalMedia ? 'checking' : '',
+          /* V966 : une vue unique issue du cache disque n'est jamais autorisée à
+             se repeindre seule. Son état est confirmé par Supabase à l'ouverture. */
+          viewOnceStatePending:!!row.viewOnce && !row.pending && !row.failed,
           audioUrl:'',photoUrl:'',videoUrl:'',fileUrl:'',
           raw:{local_cache:true}
         });
@@ -5688,7 +5738,7 @@
         const ownerUserId = clean(authUser.id);
         const conversationKey = fixedConversationKey(id,ownerUserId);
         if(!conversationKey) return;
-        const bucket = (conversationMessageBuckets.get(conversationKey) || []).filter(item => item && clean(item.conversationId) === id && !(item.viewOnce && (item.viewOnceHiddenForMe || isViewOnceTombstoned(item))));
+        const bucket = (conversationMessageBuckets.get(conversationKey) || []).filter(item => item && clean(item.conversationId) === id && !(item.viewOnce && (item.viewOnceHiddenForMe || item.viewOnceStatePending || isViewOnceTombstoned(item))));
         if(!bucket.length && localMessageHydratedConversationId !== id) return;
         const messageRecords = [];
         const attachmentRecords = [];
@@ -7873,6 +7923,7 @@
         message.viewOnceConsumedAt = row.consumed_at || row.view_once_consumed_at || '';
         message.viewOnceRecipientDismissedAt = row.recipient_dismissed_at || row.dismissed_at || '';
         message.viewOnceSenderDismissedAt = row.sender_dismissed_at || '';
+        message.viewOnceStatePending = false;
         const mine = !!(authUser && clean(message.senderId) === clean(authUser.id));
         const transitionPending = viewOnceTransitionIds.has(id);
         const activeRecipientViewer = !mine && (
@@ -7913,14 +7964,17 @@
       async function hydrateViewOnceStates(items, conversationId){
         const id = clean(conversationId || currentConversationId);
         if(!isUuid(id)) return items || [];
+        let authoritativeStateLoaded = false;
         try{
           const data = await rpc('happyad_msg_list_view_once_states',[
             {p_conversation_id:id},
             {conversation_id:id}
           ]);
+          authoritativeStateLoaded = true;
           asArray(data).forEach(applyViewOnceStateRow);
         }catch(_error){
-          /* Le ZIP reste compatible pendant le déploiement progressif des SQL 5G1 à 5G3. */
+          /* V966 : en cas d'échec réseau, une vue unique d'état inconnu reste
+             volontairement masquée au lieu de ressusciter une bulle consommée. */
         }
         (items || []).forEach(message => {
           if(!message || !message.viewOnce) return;
@@ -7932,7 +7986,8 @@
               || (activeViewOnceVideo && clean(activeViewOnceVideo.messageId) === id)
               || (activeViewOnceAudio && clean(activeViewOnceAudio.messageId) === id)
             ));
-          if(!preserveTransition){
+          if(authoritativeStateLoaded) message.viewOnceStatePending = false;
+          if(!preserveTransition && !message.viewOnceStatePending){
             message.viewOnceHiddenForMe = mine
               ? !!message.viewOnceSenderDismissedAt
               : !!(message.viewOnceConsumedAt || message.viewOnceRecipientDismissedAt);
@@ -7969,10 +8024,14 @@
         if(!message) return;
         const id = clean(message.id);
         if(id) viewOnceTransitionIds.add(id);
+        /* V966 : l'état logique disparaît AVANT l'animation. Ainsi, quitter Messages
+           pendant les 740 ms ne peut plus reconstruire la bulle au prochain montage. */
+        message.viewOnceHiddenForMe = true;
+        writeViewOnceTombstone(message).catch(() => false);
+        syncConversationPreviewFromBucket(clean(message.conversationId || message.conversation_id));
         const wrap = findMessageWrap(message.id);
         if(wrap) wrap.classList.add('once-dust');
         setTimeout(async () => {
-          message.viewOnceHiddenForMe = true;
           if(id) viewOnceTransitionIds.delete(id);
           await purgeViewOnceMessageLocally(message,{render:true}).catch(() => false);
         },740);
@@ -11168,6 +11227,7 @@
 
       function currentMessageVisibleInConversationPreview(message){
         if(!message || message.viewOnceHiddenForMe) return false;
+        if(message.viewOnce && (message.viewOnceStatePending || isViewOnceTombstoned(message))) return false;
         if(message.viewOnce && (message.kind === 'audio' || message.kind === 'photo' || message.kind === 'video')){
           const mine = !!(authUser && clean(message.senderId) === clean(authUser.id));
           if(mine && message.viewOnceSenderDismissedAt) return false;
@@ -11686,6 +11746,17 @@
         if(specialText.sharedPost) normalizedMetadata = Object.assign({},normalizedMetadata,{shared_post:specialText.sharedPost,source:'happyad-shared-post'});
         if(specialText.sharedStory) normalizedMetadata = Object.assign({},normalizedMetadata,{shared_story:specialText.sharedStory,source:'happyad-shared-story'});
         if(specialText.storyReply) normalizedMetadata = Object.assign({},normalizedMetadata,{story_reply:specialText.storyReply,source:'happyad-story-reply'});
+        const normalizedViewOnce = boolValue(row.view_once || row.is_view_once);
+        const normalizedViewOnceConsumedAt = row.view_once_consumed_at || row.consumed_at || '';
+        const normalizedViewOnceRecipientDismissedAt = row.view_once_recipient_dismissed_at || row.recipient_dismissed_at || row.dismissed_at || '';
+        const normalizedViewOnceSenderDismissedAt = row.view_once_sender_dismissed_at || row.sender_dismissed_at || '';
+        const viewOnceStateColumnsKnown = [
+          'view_once_consumed_at','consumed_at','view_once_recipient_dismissed_at','recipient_dismissed_at','dismissed_at','view_once_sender_dismissed_at','sender_dismissed_at'
+        ].some(key => Object.prototype.hasOwnProperty.call(row,key));
+        const normalizedViewOnceMine = !!(authUser && clean(senderId) === clean(authUser.id));
+        const normalizedViewOnceHidden = normalizedViewOnce ? (normalizedViewOnceMine
+          ? !!normalizedViewOnceSenderDismissedAt
+          : !!(normalizedViewOnceConsumedAt || normalizedViewOnceRecipientDismissedAt)) : false;
         return {
           id,
           message_id:id,
@@ -11694,11 +11765,14 @@
           senderId,
           clientId,
           kind:messageKind,
-          viewOnce:boolValue(row.view_once || row.is_view_once),
-          viewOnceConsumedAt:row.view_once_consumed_at || row.consumed_at || '',
-          viewOnceRecipientDismissedAt:row.view_once_recipient_dismissed_at || row.recipient_dismissed_at || row.dismissed_at || '',
-          viewOnceSenderDismissedAt:row.view_once_sender_dismissed_at || row.sender_dismissed_at || '',
-          viewOnceHiddenForMe:false,
+          viewOnce:normalizedViewOnce,
+          viewOnceConsumedAt:normalizedViewOnceConsumedAt,
+          viewOnceRecipientDismissedAt:normalizedViewOnceRecipientDismissedAt,
+          viewOnceSenderDismissedAt:normalizedViewOnceSenderDismissedAt,
+          viewOnceHiddenForMe:normalizedViewOnceHidden,
+          /* Si le RPC messages ne transporte pas les colonnes d'état, la vue unique
+             reste fail-closed jusqu'à happyad_msg_list_view_once_states. */
+          viewOnceStatePending:normalizedViewOnce && !viewOnceStateColumnsKnown && !row.pending && !row.failed,
           body:specialText.body,
           sharedStory:specialText.sharedStory || objectValue(normalizedMetadata.shared_story),
           sharedPost:specialText.sharedPost || objectValue(normalizedMetadata.shared_post),
@@ -12027,7 +12101,7 @@
         const activeItems = messages.filter(message => message && clean(message.conversationId) === activeConversationId);
         storeConversationBucket(activeConversationId,activeItems);
         const bucket = conversationMessageBuckets.get(expectedConversationKey) || [];
-        const visibleMessages = bucket.filter(message => message && !message.viewOnceHiddenForMe);
+        const visibleMessages = bucket.filter(message => message && !(message.viewOnce && (message.viewOnceHiddenForMe || message.viewOnceStatePending || isViewOnceTombstoned(message))));
         messages = bucket.slice();
         const contentSignature = messageContentSignature(visibleMessages,activeConversationId);
         if(contentSignature === lastMessageContentSignature && chatBody.querySelector('.msg[data-message-id]')){
@@ -13036,6 +13110,18 @@
           applyCachedRows(await cachedPromise);
         }
         if(!stillActive())return [];
+        /* V966 : les vues uniques venant de RAM/IndexedDB sont fail-closed jusqu'à
+           confirmation de leur état. Cette vérification n'est faite que si nécessaire. */
+        const preSyncBucket = conversationMessageBuckets.get(conversationKey) || [];
+        if(preSyncBucket.some(message => message && message.viewOnce && message.viewOnceStatePending)){
+          await hydrateViewOnceStates(preSyncBucket,id).catch(() => preSyncBucket);
+          if(!stillActive()) return [];
+          messages = (conversationMessageBuckets.get(conversationKey) || []).slice();
+          lastMessageContentSignature = '';
+          renderMessages(false);
+          syncConversationPreviewFromBucket(id);
+          renderConversations(searchInput && searchInput.value);
+        }
         if(!cached.length&&!queuedTexts.length&&!memoryBucket.length){
           setChatState('Synchronisation des nouveaux messages…',conversationKey);
         }

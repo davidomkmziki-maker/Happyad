@@ -6,7 +6,7 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V941_AUTH_OWN_STORY_FINAL_FIRST';
+  var VERSION='STORY_MASTER_V942_VISIBLE_RADAR_MEDIA_PRELOAD';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,progressAnim:null,progressBaseElapsed:0,
@@ -111,7 +111,7 @@
   }
   function resetStoryAccountV937(nextUid){
     nextUid=clean(nextUid);
-    storyAccountUidV937=nextUid;radarAccountGenerationV937++;
+    storyAccountUidV937=nextUid;radarAccountGenerationV937++;try{clearRadarVisiblePreloadsV942()}catch(_e){}
     ownAuthSeedV941={};ownAuthWarmV941.uid=nextUid;ownAuthWarmV941.promise=null;ownAuthWarmV941.storyChecked=false;ownAuthWarmV941.token++;
     try{if(radarFreshRetryTimerV907R3)clearTimeout(radarFreshRetryTimerV907R3)}catch(_e){}
     radarFreshRetryTimerV907R3=0;radarFreshReadyV907R3=false;radarFreshStartedAtV907R3=0;
@@ -1280,6 +1280,63 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     },90);
   }
 
+  /* V942 : préchauffage AVANT ouverture, strictement limité aux cercles Story
+     réellement visibles à l'écran. Ce pool est séparé du préchargement V793 du
+     lecteur afin qu'un scroll du Radar ne perturbe jamais suivant/précédent.
+     Une seule Story par cercle est préparée : exactement celle que le clic ouvrira. */
+  var radarVisiblePreloadsV942=new Map(),radarVisibleObserverV942=null;
+  function radarPreloadKeyV942(row){return storyId(row)+'|'+typeOf(row)+'|'+mediaOf(row)}
+  function disposeRadarVisiblePreloadV942(key){
+    key=clean(key);if(!key)return;var item=radarVisiblePreloadsV942.get(key);if(!item)return;radarVisiblePreloadsV942.delete(key);
+    try{
+      if(item.node&&item.kind==='video'){try{item.node.pause()}catch(_e){}try{item.node.removeAttribute('src');item.node.load()}catch(_e){}}
+      else if(item.node&&item.kind==='photo'&&!item.ready){try{item.node.src=''}catch(_e){}}
+    }catch(_e){}
+    try{if(item.button&&item.button.__happyadRadarPreloadKeyV942===key)item.button.__happyadRadarPreloadKeyV942=''}catch(_e){}
+  }
+  function clearRadarVisiblePreloadsV942(){
+    try{Array.from(radarVisiblePreloadsV942.keys()).forEach(disposeRadarVisiblePreloadV942)}catch(_e){}
+    try{if(radarVisibleObserverV942)radarVisibleObserverV942.disconnect()}catch(_e){}radarVisibleObserverV942=null;
+  }
+  function radarSeedForButtonV942(btn){
+    if(!btn)return null;var owner=clean(btn.dataset&&btn.dataset.storyOwner),sid=clean(btn.dataset&&btn.dataset.storyId);if(!owner)return null;
+    var arr=cacheStories();return arr.find(function(p){return ownerOf(p)===owner&&(!sid||storyId(p)===sid)})||arr.find(function(p){return ownerOf(p)===owner})||null;
+  }
+  function preloadVisibleRadarButtonV942(btn){
+    if(!btn||!btn.isConnected)return false;var row=radarSeedForButtonV942(btn);if(!row||!active(row))return false;
+    var url=mediaOf(row),kind=typeOf(row),key=radarPreloadKeyV942(row);if(!url||!key)return false;
+    var previous=clean(btn.__happyadRadarPreloadKeyV942);if(previous&&previous!==key)disposeRadarVisiblePreloadV942(previous);
+    if(radarVisiblePreloadsV942.has(key)){btn.__happyadRadarPreloadKeyV942=key;return true}
+    try{
+      if(kind==='photo'){
+        var img=new Image(),entry={kind:'photo',node:img,button:btn,ready:false,at:Date.now()};img.decoding='async';try{img.fetchPriority='high'}catch(_e){};
+        img.onload=function(){entry.ready=true};img.onerror=function(){entry.ready=false};radarVisiblePreloadsV942.set(key,entry);btn.__happyadRadarPreloadKeyV942=key;img.src=url;
+        if(img.complete&&img.naturalWidth)entry.ready=true;else if(typeof img.decode==='function')img.decode().then(function(){entry.ready=true}).catch(function(){});
+      }else{
+        var v=document.createElement('video'),entryV={kind:'video',node:v,button:btn,ready:false,at:Date.now()};v.preload='auto';v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+        var readyV=function(){entryV.ready=true};v.addEventListener('loadeddata',readyV,{once:true});v.addEventListener('canplay',readyV,{once:true});radarVisiblePreloadsV942.set(key,entryV);btn.__happyadRadarPreloadKeyV942=key;v.src=url;try{v.load()}catch(_e){}
+      }
+      return true;
+    }catch(_e){disposeRadarVisiblePreloadV942(key);return false}
+  }
+  function releaseRadarButtonV942(btn){var key=clean(btn&&btn.__happyadRadarPreloadKeyV942);if(key)disposeRadarVisiblePreloadV942(key)}
+  function refreshRadarVisiblePreloadsV942(block,row){
+    if(!block||!row||!block.isConnected||!row.isConnected)return;
+    if(typeof IntersectionObserver!=='function'){
+      /* Secours anciens navigateurs : mesurer uniquement après le rendu, jamais
+         précharger tout le lot. */
+      requestAnimationFrame(function(){
+        var rr=row.getBoundingClientRect(),vw=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0),vh=Math.max(document.documentElement.clientHeight||0,window.innerHeight||0);
+        row.querySelectorAll('button.radarItem[data-story-owner]').forEach(function(btn){var r=btn.getBoundingClientRect(),visible=r.right>Math.max(0,rr.left)&&r.left<Math.min(vw,rr.right)&&r.bottom>Math.max(0,rr.top)&&r.top<Math.min(vh,rr.bottom);if(visible)preloadVisibleRadarButtonV942(btn);else releaseRadarButtonV942(btn)})
+      });return;
+    }
+    if(!radarVisibleObserverV942){
+      radarVisibleObserverV942=new IntersectionObserver(function(entries){entries.forEach(function(entry){var btn=entry.target;if(entry.isIntersecting&&entry.intersectionRatio>=0.22)preloadVisibleRadarButtonV942(btn);else releaseRadarButtonV942(btn)})},{root:null,rootMargin:'0px',threshold:[0,0.22,0.6]});
+    }
+    var live=new Set();row.querySelectorAll('button.radarItem[data-story-owner]').forEach(function(btn){live.add(btn);if(!btn.__happyadRadarObservedV942){btn.__happyadRadarObservedV942=true;radarVisibleObserverV942.observe(btn)}});
+    Array.from(radarVisiblePreloadsV942.entries()).forEach(function(pair){var item=pair[1];if(!item||!item.button||!item.button.isConnected||!live.has(item.button))disposeRadarVisiblePreloadV942(pair[0])});
+  }
+
   function mapSharedGroupPostV913(raw){
     raw=raw||{};var mapped=raw;
     try{if(typeof window.mapHappyPost==='function')mapped=Object.assign({},window.mapHappyPost(raw),raw)}catch(_e){mapped=raw}
@@ -1902,7 +1959,8 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
         openOwner(owner,sid,seed);
       },true);
     }
-    if(keepScroll>0)requestAnimationFrame(function(){try{row.scrollLeft=keepScroll}catch(_e){}});
+    if(keepScroll>0)requestAnimationFrame(function(){try{row.scrollLeft=keepScroll}catch(_e){}refreshRadarVisiblePreloadsV942(block,row)});
+    else requestAnimationFrame(function(){refreshRadarVisiblePreloadsV942(block,row)});
     /* V907R4 : le premier lot reste STRICTEMENT limité aux 20 Stories récupérées
        avec l'ouverture. Aucun top-up automatique par nombre de propriétaires : les
        lots suivants ne partent que lorsque l'utilisateur approche réellement de la

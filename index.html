@@ -480,7 +480,7 @@ html body #list.homeTimeline .miniMedia:not(.haPhotoUserCropV613D)>img{transform
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
 <script id="happyad-auth-storage-quota-master-v752" src="core/auth-storage-quota-master-v752.js?v=937-idb-auth-purge"></script>
-<script src="core/account-isolation-master-v937.js?v=937-strict-uid"></script>
+<script src="core/account-isolation-master-v937.js?v=938-action-memory-reset"></script>
 <script src="core/auth-session-master-v598.js?v=964-message-identity-stable"></script>
 <script src="core/message-privacy-master-v855r51.js?v=855r53-account-discovery"></script>
 <script src="core/account-discovery-privacy-v855r53.js?v=855r53-account-discovery"></script>
@@ -1509,7 +1509,7 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <button class="nav" type="button" data-happyad-main-nav="profile" aria-label="Mon profil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.7-4.2 3.2-6.4 7.5-6.4s6.8 2.2 7.5 6.4"></path></svg></span><span class="mainDockLabel">Profil</span></button>
 </nav></div>
 <!-- R89 : Story + Chat sont montés avant les gros traitements Accueil. -->
-<script src="core/story-master-v699.js?v=941-auth-own-story-final-first"></script>
+<script src="core/story-master-v699.js?v=942-visible-radar-media-preload"></script>
 <script>try{if(window.HappyStoryV629&&typeof window.HappyStoryV629.renderRadar==='function')window.HappyStoryV629.renderRadar();}catch(_e){}</script>
 <script id="happyad-chat-sticker-living-v791-js" src="core/chat-sticker-living-v791.js?v=855r89-opening-stable"></script>
 <script id="happyad-v855r89-sponsor-first-paint">
@@ -1561,7 +1561,7 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <script src="core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
 <script src="core/home-media-loader-v1.js?v=929-stable-media-geometry"></script>
 <script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
-<script src="core/home-actions-master-v1.js?v=935-video-views-play-format-safe"></script>
+<script src="core/home-actions-master-v1.js?v=939-auth-action-fast-restore"></script>
 <script src="core/home-card-renderer-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
 <script src="core/home-feed-view-v1.js?v=929-prepaint-anchor"></script>
 <script src="core/home-feed-boot-v1.js?v=937-account-story-cache"></script>
@@ -7956,7 +7956,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=v965-message-avatar-stable-20260828',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=v969-visible-radar-story-preload-20260828',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -10176,11 +10176,11 @@ html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!im
 })();
 </script>
 <script src="core/profile/profile-photo-parent-v854r8.js?v=855r33-exact-user-crop"></script>
-<script src="core/navigation-master-v668.js?v=965-message-avatar-stable"></script>
+<script src="core/navigation-master-v668.js?v=966-view-once-persistent-hide"></script>
 <script src="core/auth-session-master-v598.js?v=964-message-identity-stable"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=937-auth-single-authority"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection"></script>
-<script src="core/main-tabs-master-v615.js?v=965-message-avatar-stable"></script>
+<script src="core/main-tabs-master-v615.js?v=966-view-once-persistent-hide"></script>
 <style id="happyad-v855r77-visitor-direct-chat-overlay">
 body.happyadVisitorDirectChatOpenV855R77 .bottom.happyadMainDockV585{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body.happyadVisitorDirectChatOpenV855R77 #happyadAppShell{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important}

@@ -76,7 +76,7 @@
     try{
       if(n&&typeof n.activateMainTab==='function')return n.activateMainTab(page,extra);
       if(n&&typeof n.open==='function'){
-        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=965-message-avatar-stable',profile:'modules/my-profile.html?v=877-dock-execution-direct',publish:'modules/publish.html'};
+        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide',profile:'modules/my-profile.html?v=877-dock-execution-direct',publish:'modules/publish.html'};
         return n.open(urls[page]||'index.html',Object.assign({},extra,{page:page,source:extra.source||VERSION,force:true}));
       }
     }catch(_e){}
@@ -214,7 +214,7 @@
     saveDirectBootContextV855R76(context);
     showVisitorDirectOpeningV872(context);
     var n=nav();
-    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=visitor-direct-chat&v=965-message-avatar-stable');}catch(_pre){}
+    try{if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=visitor-direct-chat&v=966-view-once-persistent-hide');}catch(_pre){}
     var started=Date.now(),done=false;
     function prepare(){
       if(done||openSeq!==visitorDirectChatSeqV872)return;
@@ -257,7 +257,7 @@
       /* Si Messages n'est pas encore chaud, on démarre sa frame en arrière-plan.
          Le Profil visiteur reste à l'écran jusqu'à ce que la vue directe sache
          se peindre. */
-      if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=v738-assistance&v=965-message-avatar-stable');
+      if(n&&typeof n.preloadFrame==='function')n.preloadFrame('message','modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide');
     }catch(_pre){}
     var started=Date.now(),done=false;
     function reveal(){
