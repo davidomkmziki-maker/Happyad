@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_AUTH_SESSION_MASTER_V598__)return;
   window.__HAPPYAD_AUTH_SESSION_MASTER_V598__=true;
 
-  var VERSION='AUTH_SESSION_V942_SHORT_GUEST_NOTICE';
+  var VERSION='AUTH_SESSION_V964_STABLE_CONNECTED_STATE';
   var USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
   var session=null;
   var ready=false;
@@ -124,8 +124,13 @@
   function isAuthenticated(){if(isLoginGuardPendingV855R47())return false;var u=actualUser();if(u&&u.id)return true;return !ready&&!!localHintId();}
   function sessionDetail(eventName){
     var u=actualUser();
-    var authenticated=!!u&&!isLoginGuardPendingV855R47();
-    return {event:eventName||'',authenticated:authenticated,user:authenticated?(u||null):null,user_id:authenticated&&u&&u.id||'',pending_second_step:!!u&&!authenticated,version:VERSION};
+    /* V964 : pendant le très court démarrage de getSession(), un UUID local déjà
+       validé par la session précédente reste un indice connecté. FRAME_READY ne
+       doit jamais transformer cet intervalle en faux SIGNED_OUT pour Messages. */
+    var hintedId=!u&&!ready&&!isLoginGuardPendingV855R47()?localHintId():'';
+    var effectiveUser=u||(hintedId?{id:hintedId,user_metadata:{},happyad_provisional_session_v964:true}:null);
+    var authenticated=!!effectiveUser&&!isLoginGuardPendingV855R47();
+    return {event:eventName||'',authenticated:authenticated,user:authenticated?effectiveUser:null,user_id:authenticated&&effectiveUser&&effectiveUser.id||'',pending_second_step:!!u&&!authenticated,provisional:!!(authenticated&&!u),version:VERSION};
   }
   function forEachFrame(fn){
     try{document.querySelectorAll('#happyadAppShell iframe.happyadAppFrame').forEach(function(fr){try{if(fr.contentWindow)fn(fr.contentWindow,fr);}catch(_e){}});}catch(_e){}
@@ -308,10 +313,24 @@
     return user;
   }
   async function refresh(force){
-    if(refreshPromise&&!force)return refreshPromise;
+    /* Une seule lecture canonique à la fois : deux refresh concurrents pouvaient
+       appliquer leurs résultats dans l'ordre inverse pendant une reprise réseau. */
+    if(refreshPromise)return refreshPromise;
     refreshPromise=(async function(){
       var c=client();
-      if(!c||!c.auth){ready=true;applySession(null,'NO_CLIENT',{forceBroadcast:true});return null;}
+      if(!c||!c.auth){
+        /* Le chargement différé du client (CDN/WebView) n'est pas une déconnexion. */
+        var memoryUser=actualUser(),clientHint=localHintId();
+        if((memoryUser||clientHint)&&!logoutLockActiveV937()){
+          sessionErrorCountV937++;
+          ready=!!memoryUser;syncBootAuthClassV937(true);
+          if(sessionRetryTimerV937)clearTimeout(sessionRetryTimerV937);
+          var clientRetryDelay=Math.min(30000,Math.max(500,500*Math.pow(2,Math.min(6,sessionErrorCountV937-1))));
+          sessionRetryTimerV937=setTimeout(function(){sessionRetryTimerV937=0;refresh(true).catch(function(){});},clientRetryDelay);
+          return memoryUser||(clientHint?{id:clientHint,user_metadata:{},happyad_provisional_session_v964:true}:null);
+        }
+        ready=true;applySession(null,'NO_CLIENT',{forceBroadcast:true});return null;
+      }
       try{
         if(logoutLockActiveV937()){
           try{await c.auth.signOut({scope:'local'});}catch(_e){}
@@ -320,6 +339,7 @@
           return null;
         }
         var result=await c.auth.getSession();
+        if(result&&result.error)throw result.error;
         sessionErrorCountV937=0;
         if(sessionRetryTimerV937){clearTimeout(sessionRetryTimerV937);sessionRetryTimerV937=0;}
         var s=result&&result.data&&result.data.session||null;
@@ -333,16 +353,19 @@
         return actualUser();
       }catch(_e){
         sessionErrorCountV937++;
-        /* V937 : une erreur technique ponctuelle de lecture/refresh ne doit jamais
-           transformer un compte valide en invité. Tant qu'un hint local cohérent
-           existe, garder l'état visuel unique et retenter brièvement. Un vrai
-           getSession()=null reste, lui, une déconnexion canonique immédiate. */
+        /* V964 : une erreur technique n'est jamais une preuve de déconnexion.
+           Tant qu'un utilisateur en mémoire ou un hint local cohérent existe,
+           conserver l'état connecté et retenter avec un délai borné. Seuls un
+           getSession() réussi avec session=null, SIGNED_OUT et USER_DELETED ont
+           le droit de fermer la session. */
         var hint=localHintId();
-        if(hint&&sessionErrorCountV937<3&&!logoutLockActiveV937()){
-          ready=false;syncBootAuthClassV937(true);
+        var keptUser=actualUser();
+        if((keptUser||hint)&&!logoutLockActiveV937()){
+          ready=!!keptUser;syncBootAuthClassV937(true);
           if(sessionRetryTimerV937)clearTimeout(sessionRetryTimerV937);
-          sessionRetryTimerV937=setTimeout(function(){sessionRetryTimerV937=0;refresh(true).catch(function(){});},250+sessionErrorCountV937*250);
-          return null;
+          var retryDelay=Math.min(30000,Math.max(500,500*Math.pow(2,Math.min(6,sessionErrorCountV937-1))));
+          sessionRetryTimerV937=setTimeout(function(){sessionRetryTimerV937=0;refresh(true).catch(function(){});},retryDelay);
+          return keptUser||(hint?{id:hint,user_metadata:{},happyad_provisional_session_v964:true}:null);
         }
         ready=true;
         applySession(null,'SESSION_ERROR',{forceBroadcast:true});
@@ -1068,13 +1091,29 @@ body.happyadAuthGateOpenV595 #happyadMainDockV585{pointer-events:none!important}
     try{c.auth.onAuthStateChange(function(event,nextSession){
       var ev=clean(event).toUpperCase();
       if(logoutLockActiveV937()&&nextSession&&nextSession.user){applySession(null,'FORCED_LOGOUT_AUTH_EVENT',{forceBroadcast:true});return;}
+      if(ev==='SIGNED_OUT'||ev==='USER_DELETED'){
+        if(sessionRetryTimerV937){clearTimeout(sessionRetryTimerV937);sessionRetryTimerV937=0;}
+        sessionErrorCountV937=0;
+      }
       if(nextSession&&nextSession.user)sessionErrorCountV937=0;
+      /* TOKEN_REFRESHED/USER_UPDATED peuvent arriver sans objet session pendant
+         une reprise réseau. Ce vide transitoire ne vaut pas SIGNED_OUT. */
+      if((!nextSession||!nextSession.user)&&ev!=='SIGNED_OUT'&&ev!=='USER_DELETED'&&(actualUser()||localHintId())){
+        if(sessionRetryTimerV937)clearTimeout(sessionRetryTimerV937);
+        sessionRetryTimerV937=setTimeout(function(){sessionRetryTimerV937=0;refresh(false).catch(function(){});},120);
+        return;
+      }
       applySession(nextSession,event||'AUTH_CHANGE',{forceBroadcast:ev==='SIGNED_OUT'||ev==='USER_DELETED'});
     });}catch(_e){}
   }
   /* V937 : Auth démarre avant le rendu des modules. L'overlay attend toujours le DOM,
      mais la session canonique et son listener ne doivent plus attendre DOMContentLoaded. */
   refresh(false);bindAuthState();
+  window.addEventListener('online',function(){
+    if(!(actualUser()||localHintId())||logoutLockActiveV937())return;
+    if(sessionRetryTimerV937){clearTimeout(sessionRetryTimerV937);sessionRetryTimerV937=0;}
+    refresh(false).catch(function(){});
+  },{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){ensureOverlay();},{once:true});
   else ensureOverlay();
 

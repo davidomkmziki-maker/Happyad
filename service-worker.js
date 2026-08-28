@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v962-glass-auth-cards-v943-20260826';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v965-message-avatar-stable-20260828';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v947-new-card-native-ratio-20260815',
+  './index.html?v=v965-message-avatar-stable-20260828',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -43,7 +43,7 @@ var HAPPYAD_APP_SHELL = [
   './core/home-feed-view-v1.js?v=929-prepaint-anchor',
   './core/home-feed-boot-v1.js?v=937-account-story-cache',
   './modules/happyad-chat.html?v=935-owner-first-paint',
-  './modules/message-center.html?mode=inbox&source=v738-assistance&v=932-message-coherent-durable-realtime',
+  './modules/message-center.html?mode=inbox&source=v738-assistance&v=965-message-avatar-stable',
   './modules/notification-center.html?v=895-story-repost-return',
   './core/notification-infinite-scroll-master-v700.js?v=869-connection-phase2',
   './modules/assistance.html?v=851r12-ecriture-stable',
@@ -57,7 +57,7 @@ var HAPPYAD_APP_SHELL = [
   './core/connection-work-coordinator-v869.js?v=869-connection-phase2',
   './core/return-reset-master-v633-story-safe.js?v=928-profile-intent-gateway',
   './core/return-reset-master-v584.js?v=928-profile-intent-gateway',
-  './core/navigation-master-v668.js?v=950-point3-message-coherent-durable-realtime',
+  './core/navigation-master-v668.js?v=965-message-avatar-stable',
   './core/home-scroll-priority-master-v863.js?v=869-connection-phase2',
   './core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop',
   './core/follow-master-v855r34.js?v=937-auth-single-authority',
@@ -75,14 +75,14 @@ var HAPPYAD_APP_SHELL = [
   './modules/share-center.html?v=915-story-shared-video-loader-zone',
   './core/story-master-v699.js?v=940-guest-tastory-visible',
   './core/notification-master-v700.js?v=937-post-mention-notification',
-  './core/auth-session-master-v598.js?v=943-glass-auth-cards',
+  './core/auth-session-master-v598.js?v=964-message-identity-stable',
   './core/profile-identity-stable-master-v741.js?v=937-auth-single-authority',
   './core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection',
   './core/card-author-avatar-master-v742.js?v=855r33-exact-user-crop',
   './core/home-scroll-prepaint-master-v696.js?v=855r100-home-scroll-physical-stable',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=855r93-home-silent',
-  './core/main-tabs-master-v615.js?v=938-guest-home-video',
+  './core/main-tabs-master-v615.js?v=965-message-avatar-stable',
   './core/guest-radar-auth-v599.js?v=940-guest-auth-rainbow',
   './core/auth-frame-gate-v596.js?v=938-guest-passive',
   './core/publish-master-v589.js?v=927-publish-canonical-return',

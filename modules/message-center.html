@@ -478,10 +478,32 @@
       letter-spacing:-.4px;
       position:relative;
       overflow:visible;
+      contain:size layout;
       box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
       user-select:none;
     }
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
+    /* V965 : la géométrie et le masque ne doivent jamais dépendre du onload.
+       L'image reste hors du calcul de taille de la grille dès son insertion ;
+       le halo story peut, lui, continuer à dépasser du conteneur. */
+    .avatar img{
+      position:absolute!important;
+      inset:0!important;
+      z-index:1;
+      display:block;
+      width:100%!important;
+      height:100%!important;
+      min-width:0!important;
+      min-height:0!important;
+      max-width:100%!important;
+      max-height:100%!important;
+      aspect-ratio:1/1;
+      object-fit:cover!important;
+      object-position:center center!important;
+      border-radius:50%!important;
+      clip-path:circle(50% at 50% 50%);
+      transform:none!important;
+      pointer-events:none;
+    }
     .row .avatar.has-photo{
       font-size:0;
       line-height:0;
@@ -683,9 +705,10 @@
 	      color:#fff;
 	      font-weight:900;
 	      position:relative;
+	      contain:size layout;
 	      box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);
 	    }
-	    .chat-avatar img{position:absolute;inset:0;z-index:1;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;border-radius:50%!important;clip-path:circle(50% at 50% 50%);aspect-ratio:1/1}
+	    .chat-avatar img{position:absolute!important;inset:0!important;z-index:1;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;object-position:center center!important;border-radius:50%!important;clip-path:circle(50% at 50% 50%);aspect-ratio:1/1;transform:none!important;pointer-events:none}
     .chat-title{min-width:0;flex:1 1 auto;overflow:hidden}
     .chat-name{
       font-size:18px;
@@ -3235,6 +3258,7 @@
 <link id="happyad-message-assistance-shortcut-v738-css" rel="stylesheet" href="../core/message-assistance-shortcut-v738.css?v=738-visible">
   <style id="happyad-v775-message-composer-stable-css">
     /* V775 — le compositeur reste ancré au bas et grandit uniquement vers le haut. */
+    #chatView > #chatBody,
     #chatView .composer-shell,
     #chatView .composer,
     #chatView #messageInput{
@@ -3647,7 +3671,7 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V932_MESSAGES_COHERENT_DURABLE_REALTIME';
+      const MASTER_VERSION = 'V965_POINT3_MESSAGE_AVATAR_STABLE';
       const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
       const PAGE_LIMIT = 50;
@@ -4058,6 +4082,67 @@
         return isUuid(ownerId) && isUuid(id) ? ownerId + ':' + id : '';
       }
 
+      /* V963 POINT 1 — une nouvelle ouverture est toujours ancrée sur le
+         dernier message réellement disponible. Cet ancrage est temporaire :
+         le premier geste manuel rend immédiatement la priorité à l'utilisateur. */
+      let conversationLatestOpenPinV963 = null;
+      let conversationLatestOpenTimersV963 = [];
+
+      function clearConversationLatestOpenTimersV963(){
+        conversationLatestOpenTimersV963.forEach(timer => clearTimeout(timer));
+        conversationLatestOpenTimersV963 = [];
+      }
+
+      function beginConversationLatestOpenV963(conversationId,token){
+        const id = clean(conversationId);
+        const key = fixedConversationKey(id);
+        clearConversationLatestOpenTimersV963();
+        if(!isUuid(id) || !key){ conversationLatestOpenPinV963 = null; return false; }
+        /* Une retenue de scroll ne concerne que le retour vers la même conversation.
+           Elle ne peut pas survivre à une nouvelle ouverture et battre le point 1. */
+        try{ sharedReturnScrollLockV711 = null; }catch(_e){}
+        conversationLatestOpenPinV963 = {key,token:token == null ? openToken : token,startedAt:Date.now()};
+        return true;
+      }
+
+      function conversationLatestOpenActiveV963(conversationId,token){
+        const pin = conversationLatestOpenPinV963;
+        const id = clean(conversationId || currentConversationId);
+        if(!pin || !isUuid(id)) return false;
+        if(token != null && pin.token !== token) return false;
+        return pin.token === openToken &&
+          pin.key === fixedConversationKey(id) &&
+          pin.key === activeConversationViewKey &&
+          clean(currentConversationId) === id &&
+          activeMessageView === 'chat';
+      }
+
+      function cancelConversationLatestOpenV963(){
+        clearConversationLatestOpenTimersV963();
+        conversationLatestOpenPinV963 = null;
+      }
+
+      function settleConversationLatestOpenV963(conversationId,token){
+        const id = clean(conversationId);
+        if(!conversationLatestOpenActiveV963(id,token)) return false;
+        const pin = conversationLatestOpenPinV963;
+        clearConversationLatestOpenTimersV963();
+        const apply = () => {
+          if(conversationLatestOpenPinV963 !== pin || !conversationLatestOpenActiveV963(id,token)) return;
+          scrollChatToLatest();
+        };
+        [0,45,120,260,520].forEach(delay => {
+          conversationLatestOpenTimersV963.push(setTimeout(apply,delay));
+        });
+        conversationLatestOpenTimersV963.push(setTimeout(() => {
+          if(conversationLatestOpenPinV963 !== pin) return;
+          apply();
+          conversationLatestOpenPinV963 = null;
+          conversationLatestOpenTimersV963 = [];
+        },760));
+        return true;
+      }
+
       function conversationViewIsActive(conversationId,token,viewKey,generation){
         const id = clean(conversationId);
         const key = clean(viewKey || fixedConversationKey(id));
@@ -4116,6 +4201,8 @@
           chatBody.dataset.conversationKey = key;
           chatBody.dataset.conversationGeneration = String(activeConversationGeneration);
         }
+        if(options.forceLatestOnOpen===true) beginConversationLatestOpenV963(id,token);
+        else if(conversationLatestOpenPinV963 && conversationLatestOpenPinV963.key !== key) cancelConversationLatestOpenV963();
         if(bucket.length && options.visualFirst===true){
           /* Le premier cycle peint uniquement la destination du clic. La liste locale
              complète sera construite après que le navigateur l'a présentée. */
@@ -5240,8 +5327,12 @@
         if(!item || !isUuid(item.id) || !isUuid(item.targetId)) return null;
         const rawTarget = item.target && typeof item.target === 'object' ? item.target : null;
         const rawFallback = item.fallbackTarget && typeof item.fallbackTarget === 'object' ? item.fallbackTarget : {};
-        const fallback = sanitizeCachedProfileForTargetV759(rawFallback,item.targetId);
-        const target = rawTarget ? sanitizeCachedProfileForTargetV759(rawTarget,item.targetId) : null;
+        /* V964 : la copie locale ne peut jamais mémoriser une régression d'identité.
+           Une réponse momentanément vide complète l'identité connue, elle ne la remplace pas. */
+        const rememberedTarget = profileMap.get(item.targetId) || {};
+        const fallback = sanitizeCachedProfileForTargetV759(mergeProfileIdentity(rawFallback,rawTarget || {},rememberedTarget),item.targetId);
+        const targetIdentity = sanitizeCachedProfileForTargetV759(mergeProfileIdentity(rawTarget || {},rawFallback,rememberedTarget),item.targetId);
+        const target = Object.keys(targetIdentity).length ? targetIdentity : null;
         return {
           ownerUserId:clean(authUser && authUser.id),
           conversationKey:fixedConversationKey(item.id),
@@ -5477,8 +5568,17 @@
           if(!item || !isUuid(item.id)) return;
           const previous = map.get(item.id) || {};
           const targetId = clean(item.targetId || previous.targetId);
-          const mergedFallback = sanitizeCachedProfileForTargetV759(Object.assign({},previous.fallbackTarget || {},item.fallbackTarget || {}),targetId);
-          const mergedTarget = sanitizeCachedProfileForTargetV759(item.target || previous.target || {},targetId);
+          /* V964 : fusion qualitative par UID. Les champs vides ou génériques d'un
+             RPC de reprise ne peuvent plus effacer le vrai nom/photo déjà en RAM,
+             dans IndexedDB ou dans profileMap. Une nouvelle valeur réelle garde
+             néanmoins la priorité afin qu'un profil modifié se mette à jour. */
+          const rememberedTarget = profileMap.get(targetId) || {};
+          const mergedFallback = sanitizeCachedProfileForTargetV759(mergeProfileIdentity(
+            item.fallbackTarget || {},item.target || {},previous.fallbackTarget || {},previous.target || {},rememberedTarget
+          ),targetId);
+          const mergedTarget = sanitizeCachedProfileForTargetV759(mergeProfileIdentity(
+            item.target || {},item.fallbackTarget || {},previous.target || {},previous.fallbackTarget || {},rememberedTarget
+          ),targetId);
           map.set(item.id,Object.assign({},previous,item,{
             fallbackTarget:mergedFallback,
             target:Object.keys(mergedTarget).length ? mergedTarget : null
@@ -6286,6 +6386,7 @@
       }
 
       function beginManualMessageScrollV851R5(){
+        cancelConversationLatestOpenV963();
         happyadManualScrollActiveV851R5 = true;
         happyadManualScrollUntilV851R5 = Date.now() + 1100;
         messageChatPinnedV775 = false;
@@ -9179,11 +9280,22 @@
         return normalizeAvatarUrl(value);
       }
 
-      function profileName(profile){
+      function profileNameCandidateV964(profile){
         profile = profile && typeof profile === 'object' ? profile : {};
         const nested = profile.profile || profile.user || profile.author || profile.creator || profile.owner || {};
         return clean(profile.full_name || profile.display_name || profile.name || profile.username || profile.handle ||
-          nested.full_name || nested.display_name || nested.name || nested.username || nested.handle) || 'Utilisateur HAPPYAD';
+          nested.full_name || nested.display_name || nested.name || nested.username || nested.handle);
+      }
+
+      function reliableProfileNameV964(value){
+        const name = clean(value).toLowerCase();
+        return !!name && name !== 'utilisateur' && name !== 'utilisateur happyad' &&
+          name !== 'happyad' && name !== 'compte happyad' &&
+          !name.includes('aucun compte') && !name.includes('chargement profil');
+      }
+
+      function profileName(profile){
+        return profileNameCandidateV964(profile) || 'Utilisateur HAPPYAD';
       }
 
       function profileAvatar(profile){
@@ -9379,34 +9491,196 @@
         element.removeAttribute('aria-hidden');
       }
 
+      /* V965 : le profil canonique est conservé, mais son image est décodée hors
+         DOM puis engagée en une seule opération. Une reconstruction de liste ne
+         peut donc plus exposer la taille naturelle de la photo ni repasser par
+         un état intermédiaire lorsque cette URL a déjà été décodée. */
+      const decodedAvatarUrlsV965 = new Set();
+      const avatarPreloadPromisesV965 = new Map();
+      let avatarRenderSerialV965 = 0;
+
+      function rememberDecodedAvatarV965(url){
+        url = safeAvatar(url);
+        if(!url) return '';
+        if(decodedAvatarUrlsV965.has(url)) decodedAvatarUrlsV965.delete(url);
+        decodedAvatarUrlsV965.add(url);
+        while(decodedAvatarUrlsV965.size > 256){
+          const oldest = decodedAvatarUrlsV965.values().next();
+          if(oldest.done) break;
+          decodedAvatarUrlsV965.delete(oldest.value);
+        }
+        return url;
+      }
+
+      function preloadAvatarV965(url){
+        url = safeAvatar(url);
+        if(!url) return Promise.reject(new Error('Avatar absent'));
+        if(decodedAvatarUrlsV965.has(url)) return Promise.resolve(url);
+        if(avatarPreloadPromisesV965.has(url)) return avatarPreloadPromisesV965.get(url);
+        const loading = new Promise((resolve,reject) => {
+          const loader = new Image();
+          let settled = false;
+          const fail = () => {
+            if(settled) return;
+            settled = true;
+            reject(new Error('Avatar illisible'));
+          };
+          const ready = () => {
+            if(settled) return;
+            settled = true;
+            const decoded = typeof loader.decode === 'function' ? loader.decode().catch(() => {}) : Promise.resolve();
+            Promise.resolve(decoded).then(() => resolve(rememberDecodedAvatarV965(url)));
+          };
+          loader.referrerPolicy = 'no-referrer';
+          loader.decoding = 'async';
+          loader.onload = ready;
+          loader.onerror = fail;
+          loader.src = url;
+          if(loader.complete && loader.naturalWidth > 0) Promise.resolve().then(ready);
+        });
+        const promise = loading.finally(() => {
+          if(avatarPreloadPromisesV965.get(url) === promise) avatarPreloadPromisesV965.delete(url);
+        });
+        avatarPreloadPromisesV965.set(url,promise);
+        return promise;
+      }
+
+      function showAvatarInitialsV965(element,name){
+        if(!element) return;
+        element.classList.remove('has-photo');
+        element.replaceChildren(document.createTextNode(initials(name)));
+      }
+
+      function commitAvatarV965(element,name,url,token){
+        if(!element || clean(element.dataset.happyadAvatarRequestV965) !== clean(token) ||
+           clean(element.dataset.happyadAvatarUrlV965) !== url) return false;
+        const renderedName = clean(element.dataset.happyadAvatarNameV965) || clean(name);
+        const img = document.createElement('img');
+        img.alt = renderedName || 'Profil';
+        img.referrerPolicy = 'no-referrer';
+        img.decoding = 'async';
+        img.draggable = false;
+        img.dataset.happyadAvatarUrlV965 = url;
+        img.onload = function(){ rememberDecodedAvatarV965(url); };
+        img.onerror = function(){
+          if(clean(element.dataset.happyadAvatarUrlV965) !== url) return;
+          delete element.dataset.happyadAvatarLoadingV965;
+          showAvatarInitialsV965(element,clean(element.dataset.happyadAvatarNameV965) || renderedName);
+        };
+        img.src = url;
+        element.classList.add('has-photo');
+        element.replaceChildren(img);
+        delete element.dataset.happyadAvatarLoadingV965;
+        return true;
+      }
+
       function setAvatar(element, name, avatar){
         if(!element) return;
         const url = safeAvatar(avatar);
-        element.innerHTML = '';
-        element.classList.remove('has-photo');
-        if(url){
-          if(messageCachePreparingV875()&&!messageFrameVisibleV868()){
-            element.textContent = initials(name);
-            element.dataset.happyadDeferredAvatarV876 = url;
-            element.dataset.happyadDeferredAvatarNameV876 = clean(name);
-            return;
-          }
-          delete element.dataset.happyadDeferredAvatarV876;
-          delete element.dataset.happyadDeferredAvatarNameV876;
-          const img = document.createElement('img');
-          img.src = url;
-          img.alt = clean(name) || 'Profil';
-          img.referrerPolicy = 'no-referrer';
-          img.onload = function(){ element.classList.add('has-photo'); };
-          img.onerror = function(){
-            element.classList.remove('has-photo');
-            element.innerHTML = '';
-            element.textContent = initials(name);
-          };
-          element.appendChild(img);
+        element.dataset.happyadAvatarNameV965 = clean(name);
+        const currentUrl = clean(element.dataset.happyadAvatarUrlV965);
+        const currentImage = element.querySelector('img');
+        if(url && currentUrl === url && currentImage && element.classList.contains('has-photo')){
+          currentImage.alt = clean(name) || 'Profil';
+          if(currentImage.complete && currentImage.naturalWidth > 0) rememberDecodedAvatarV965(url);
           return;
         }
-        element.textContent = initials(name);
+        if(url && currentUrl === url && element.dataset.happyadAvatarLoadingV965 === '1'){
+          if(!currentImage) showAvatarInitialsV965(element,name);
+          return;
+        }
+
+        const token = String(++avatarRenderSerialV965);
+        element.dataset.happyadAvatarRequestV965 = token;
+        element.dataset.happyadAvatarUrlV965 = url;
+        delete element.dataset.happyadAvatarLoadingV965;
+        if(!url){
+          delete element.dataset.happyadDeferredAvatarV876;
+          delete element.dataset.happyadDeferredAvatarNameV876;
+          showAvatarInitialsV965(element,name);
+          return;
+        }
+        if(messageCachePreparingV875()&&!messageFrameVisibleV868()){
+          showAvatarInitialsV965(element,name);
+          element.dataset.happyadDeferredAvatarV876 = url;
+          element.dataset.happyadDeferredAvatarNameV876 = clean(name);
+          return;
+        }
+        delete element.dataset.happyadDeferredAvatarV876;
+        delete element.dataset.happyadDeferredAvatarNameV876;
+        if(decodedAvatarUrlsV965.has(url)){
+          commitAvatarV965(element,name,url,token);
+          return;
+        }
+        showAvatarInitialsV965(element,name);
+        element.dataset.happyadAvatarLoadingV965 = '1';
+        preloadAvatarV965(url).then(() => {
+          commitAvatarV965(element,name,url,token);
+        }).catch(() => {
+          if(clean(element.dataset.happyadAvatarRequestV965) !== token) return;
+          delete element.dataset.happyadAvatarLoadingV965;
+          showAvatarInitialsV965(element,clean(element.dataset.happyadAvatarNameV965) || name);
+        });
+      }
+
+      function commitConnectedAvatarV965(name,url,token){
+        if(!currentUserPhoto || !currentUserAvatar ||
+           clean(currentUserPhoto.dataset.happyadAvatarRequestV965) !== clean(token) ||
+           clean(currentUserPhoto.dataset.happyadAvatar) !== url) return false;
+        currentUserPhoto.alt = clean(name) || 'Photo profil';
+        currentUserPhoto.referrerPolicy = 'no-referrer';
+        currentUserPhoto.decoding = 'async';
+        currentUserPhoto.onload = function(){ rememberDecodedAvatarV965(url); };
+        currentUserPhoto.onerror = function(){
+          if(clean(currentUserPhoto.dataset.happyadAvatar) !== url) return;
+          currentUserAvatar.classList.remove('has-photo');
+          currentUserPhoto.removeAttribute('src');
+          delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
+        };
+        currentUserPhoto.src = url;
+        currentUserAvatar.classList.add('has-photo');
+        delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
+        return true;
+      }
+
+      function setConnectedAvatarV965(name,avatar,forceVisible){
+        if(!currentUserPhoto || !currentUserAvatar) return;
+        const url = safeAvatar(avatar);
+        const previous = clean(currentUserPhoto.dataset.happyadAvatar);
+        if(url && previous === url && currentUserAvatar.classList.contains('has-photo') &&
+           currentUserPhoto.getAttribute('src')){
+          if(currentUserPhoto.complete && currentUserPhoto.naturalWidth > 0) rememberDecodedAvatarV965(url);
+          return;
+        }
+        if(url && previous === url && currentUserPhoto.dataset.happyadAvatarLoadingV965 === '1') return;
+        const token = String(++avatarRenderSerialV965);
+        currentUserPhoto.dataset.happyadAvatarRequestV965 = token;
+        currentUserPhoto.dataset.happyadAvatar = url;
+        delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
+        currentUserAvatar.classList.remove('has-photo');
+        currentUserPhoto.removeAttribute('src');
+        if(!url){
+          delete currentUserPhoto.dataset.happyadDeferredSrcV876;
+          return;
+        }
+        if(forceVisible !== true && messageCachePreparingV875()&&!messageFrameVisibleV868()){
+          currentUserPhoto.dataset.happyadDeferredSrcV876 = url;
+          return;
+        }
+        delete currentUserPhoto.dataset.happyadDeferredSrcV876;
+        if(decodedAvatarUrlsV965.has(url)){
+          commitConnectedAvatarV965(name,url,token);
+          return;
+        }
+        currentUserPhoto.dataset.happyadAvatarLoadingV965 = '1';
+        preloadAvatarV965(url).then(() => {
+          commitConnectedAvatarV965(name,url,token);
+        }).catch(() => {
+          if(clean(currentUserPhoto.dataset.happyadAvatarRequestV965) !== token) return;
+          delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
+          currentUserAvatar.classList.remove('has-photo');
+          currentUserPhoto.removeAttribute('src');
+        });
       }
       function hydrateDeferredMessageAvatarsV876(){
         if(!messageFrameVisibleV868())return false;
@@ -9419,7 +9693,7 @@
           if(currentUserPhoto&&currentUserPhoto.dataset.happyadDeferredSrcV876){
             const own=clean(currentUserPhoto.dataset.happyadDeferredSrcV876);
             delete currentUserPhoto.dataset.happyadDeferredSrcV876;
-            if(own)currentUserPhoto.src=own;
+            if(own)setConnectedAvatarV965(connectedUserName&&connectedUserName.textContent,own,true);
           }
           return true;
         }catch(_e){return false;}
@@ -9728,7 +10002,7 @@
         let username = '';
         sources.forEach(source => {
           if(!id){ const candidateId = connectedProfileId(source); if(isUuid(candidateId)) id = candidateId; }
-          if(!name){ const candidateName = profileName(source); if(candidateName && candidateName !== 'Utilisateur HAPPYAD') name = candidateName; }
+          if(!name){ const candidateName = profileNameCandidateV964(source); if(reliableProfileNameV964(candidateName)) name = candidateName; }
           if(!avatar) avatar = profileAvatar(source);
           if(!badge) badge = profileBadge(source);
           if(!username) username = clean(source.username || source.handle);
@@ -9895,18 +10169,31 @@
         };
       }
 
+      function stableConversationTargetV964(item){
+        item = item && typeof item === 'object' ? item : {};
+        const id = clean(item.targetId || connectedProfileId(item.target) || connectedProfileId(item.fallbackTarget));
+        if(!isUuid(id)) return null;
+        const stable = mergeProfileIdentity(
+          item.target || {},item.fallbackTarget || {},profileMap.get(id) || {},{id:id,user_id:id}
+        );
+        return targetFromProfile(stable,{id:id,user_id:id}) || {
+          id:id,user_id:id,name:'Utilisateur HAPPYAD',avatar:'',badge:'',status:'Conversation HAPPYAD'
+        };
+      }
+
       function normalizeTarget(raw){
         raw = raw && typeof raw === 'object' ? raw : {};
         const id = clean(raw.id || raw.user_id || raw.target_id);
         if(!isUuid(id)) return null;
-        const avatar = safeAvatar(raw.avatar || raw.avatar_url || raw.photo || raw.photo_url);
+        const stable = mergeProfileIdentity(raw,profileMap.get(id),cachedProfileIdentity(id));
+        const avatar = profileAvatar(stable);
         return {
           id,
           user_id:id,
-          name:clean(raw.name || raw.full_name || raw.display_name || raw.username || raw.handle) || 'Utilisateur HAPPYAD',
+          name:profileName(stable),
           avatar:avatarIsConnectedFallbackV759(avatar,id) ? '' : avatar,
-          badge:badgeForTargetV761(raw,id),
-          status:clean(raw.status || raw.presence) || 'Conversation HAPPYAD'
+          badge:badgeForTargetV761(stable,id),
+          status:clean(stable.status || stable.presence || profileHandle(stable)) || 'Conversation HAPPYAD'
         };
       }
 
@@ -10156,9 +10443,7 @@
         const output = [];
         (conversations || []).forEach(item => {
           if(!item || isConversationDeletedForMe(item)) return;
-          const rawTarget = item.target || item.fallbackTarget || {};
-          const source = Object.assign({id:item.targetId,user_id:item.targetId,name:'Utilisateur HAPPYAD'},rawTarget);
-          const target = normalizeTarget(source) || targetFromProfile(source,source);
+          const target = stableConversationTargetV964(item);
           const targetId = clean(target && target.id || item.targetId);
           if(!target || personSelectorIsExcluded(targetId) || seen.has(targetId)) return;
           seen.add(targetId);
@@ -11041,8 +11326,7 @@
 
       function conversationContentSignature(items,needle){
         return JSON.stringify([clean(needle),...(items || []).map(item => {
-          const rawTarget = item.target || item.fallbackTarget || {};
-          const target = targetFromProfile({},rawTarget) || rawTarget;
+          const target = stableConversationTargetV964(item) || {};
           return [item.id,item.targetId,clean(target.name),safeAvatar(target.avatar),clean(target.badge),clean(target.status),
             finiteNumber(item.previewResolved ? item.previewSeq : item.lastSeq,0),item.previewResolved ? item.previewAt : item.lastAt,
             item.previewResolved ? item.previewSenderId : item.senderId,messagePreview(item),!!item.previewDeletedForAll,!!item.previewViewOnce];
@@ -11118,8 +11402,7 @@
         const filtered = conversations.filter(item => !isConversationDeletedForMe(item)).filter(item => {
           const isRequest=messageRequestIdsV855R55.has(clean(item&&item.id));
           if(messageRequestModeV855R55==='requests'?!isRequest:isRequest)return false;
-          const rawTarget = item.target || item.fallbackTarget || {};
-          const target = targetFromProfile({},rawTarget) || rawTarget;
+          const target = stableConversationTargetV964(item) || {};
           return !needle || [target.name, target.status, messagePreview(item)].some(value => clean(value).toLowerCase().includes(needle));
         });
         const contentSignature = conversationContentSignature(filtered,needle);
@@ -11136,8 +11419,7 @@
         }
         const fragment = document.createDocumentFragment();
         filtered.forEach((item, index) => {
-          const rawTarget = item.target || item.fallbackTarget || {id:item.targetId,name:'Utilisateur HAPPYAD'};
-          const target = targetFromProfile({},rawTarget) || rawTarget;
+          const target = stableConversationTargetV964(item) || {id:item.targetId,name:'Utilisateur HAPPYAD',avatar:'',badge:''};
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'row' + (item.unread > 0 ? ' unread' : '');
@@ -11739,6 +12021,7 @@
         const expectedConversationKey = fixedConversationKey(activeConversationId);
         if(!isUuid(activeConversationId) || !expectedConversationKey || activeConversationViewKey !== expectedConversationKey) return;
         if(clean(chatBody.dataset.conversationKey) !== expectedConversationKey) return;
+        if(conversationLatestOpenActiveV963(activeConversationId)) scrollToBottom = true;
         /* La liste active reste la vérité de l'interface (envoi optimiste,
            suppression, édition). Elle est recopiée dans le seau fixe avant rendu. */
         const activeItems = messages.filter(message => message && clean(message.conversationId) === activeConversationId);
@@ -11914,11 +12197,20 @@
               const image = document.createElement('img');
               image.className = 'photo-message-image';
               image.alt = 'Photo envoyée';
-              image.src = url;
               image.referrerPolicy = 'no-referrer';
+              const keepLatestAfterPhotoLayoutV963 = () => {
+                if(clean(currentConversationId) !== activeConversationId || activeMessageView !== 'chat') return;
+                if(conversationLatestOpenActiveV963(activeConversationId) ||
+                  (messageChatPinnedV775 && !happyadManualScrollActiveV851R5 && Date.now() >= happyadManualScrollUntilV851R5)){
+                  scrollChatToLatest();
+                }
+              };
+              image.addEventListener('load',keepLatestAfterPhotoLayoutV963,{once:true});
               image.addEventListener('error',() => {
                 button.innerHTML = '<span class="photo-message-placeholder">Photo inaccessible</span>';
+                keepLatestAfterPhotoLayoutV963();
               },{once:true});
+              image.src = url;
               button.appendChild(image);
             }else if(mine){
               button.classList.add('media-sender-preview');
@@ -12846,6 +13138,7 @@
       }
 
       async function openTarget(target){
+        cancelConversationLatestOpenV963();
         clearActiveMediaDraft();
         clearStickerDraft();
         clearComposerContext(false);
@@ -12889,16 +13182,21 @@
         chatOpenedAt = Date.now();
         currentReceipt = {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
         mergeReceiptSnapshot(receiptSnapshot(opened.row || {}));
-        activateConversationView(currentConversationId,token);
+        activateConversationView(currentConversationId,token,{forceLatestOnOpen:true});
         startPresencePollingV855R51();
         touchOwnPresenceV855R51(false);
         refreshBlockState(verifiedTarget.id).catch(() => {});
         if(token !== openToken) return;
-        await loadMessages(currentConversationId, token);
+        try{
+          await loadMessages(currentConversationId, token);
+        }finally{
+          settleConversationLatestOpenV963(currentConversationId,token);
+        }
       }
 
 
       async function openKnownConversation(target,conversationId){
+        cancelConversationLatestOpenV963();
         if(authUser&&isUuid(authUser.id))replayParentRealtimeJournalV930(authUser.id,{paint:true});
         clearActiveMediaDraft();
         clearStickerDraft();
@@ -12925,7 +13223,7 @@
           : {myDelivered:0,myRead:0,targetDelivered:0,targetRead:0};
 
         displayDirect(target);
-        const activation=activateConversationView(id,token,{visualFirst:true});
+        const activation=activateConversationView(id,token,{visualFirst:true,forceLatestOnOpen:true});
         const memoryPainted=await commitConversationVisualFirstV872(id,token,activation);
         if(token !== openToken)return;
         loadMessagePrivacyV855R51(target.id,false).then(privacy => {
@@ -12950,10 +13248,15 @@
         }).catch(() => {});
 
         if(token !== openToken) return;
-        await loadMessages(id,token,{memoryAlreadyPainted:memoryPainted});
+        try{
+          await loadMessages(id,token,{memoryAlreadyPainted:memoryPainted});
+        }finally{
+          settleConversationLatestOpenV963(id,token);
+        }
       }
 
       async function openExistingConversation(item){
+        cancelConversationLatestOpenV963();
         if(authUser&&isUuid(authUser.id))replayParentRealtimeJournalV930(authUser.id,{paint:true});
         clearActiveMediaDraft();
         clearStickerDraft();
@@ -12968,7 +13271,7 @@
         readEligibleConversationId = currentConversationId;
         chatOpenedAt = Date.now();
         currentReceipt = {myDelivered:item.myDelivered || 0,myRead:item.myRead || 0,targetDelivered:item.targetDelivered || 0,targetRead:item.targetRead || 0};
-        currentTarget = targetFromProfile({},item.target || item.fallbackTarget) || item.target || item.fallbackTarget;
+        currentTarget = stableConversationTargetV964(item) || item.target || item.fallbackTarget;
         context = {
           context_id:'conversation:' + item.id,
           source:'conversation-list',
@@ -12977,7 +13280,7 @@
           target:currentTarget
         };
         displayDirect(currentTarget);
-        const activation=activateConversationView(currentConversationId,token,{visualFirst:true});
+        const activation=activateConversationView(currentConversationId,token,{visualFirst:true,forceLatestOnOpen:true});
         const memoryPainted=await commitConversationVisualFirstV872(currentConversationId,token,activation);
         if(token !== openToken)return;
 
@@ -13020,6 +13323,7 @@
             showToast(error.message);
           }
         });
+        settleConversationLatestOpenV963(currentConversationId,token);
       }
 
       let inboxCleanupTimerV872=0;
@@ -13074,6 +13378,7 @@
       }
       function showInbox(options){
         options=options&&typeof options==='object'?options:{};
+        cancelConversationLatestOpenV963();
         if(authUser&&isUuid(authUser.id))replayParentRealtimeJournalV930(authUser.id,{paint:true});
         if(messageFrameVisibleV868()) allowMessageUserPaintV868(520);
         const returnToken=++openToken;
@@ -13330,7 +13635,7 @@
             /* Un nouveau message ne doit jamais arracher l'utilisateur à la
                position qu'il est en train de lire. Suivre le bas uniquement si
                le chat était déjà ancré près du dernier message. */
-            const followIncoming=!alreadyVisible&&!normalized.deletedForAll&&isChatNearBottom(220);
+            const followIncoming=!alreadyVisible&&!normalized.deletedForAll&&messageChatPinnedV775&&chatNearBottom(220);
             renderMessages(followIncoming);
           }
           if(options.paint!==false)renderConversations(searchInput && searchInput.value);
@@ -15265,24 +15570,7 @@
           const value = initials(identity.name);
           if(currentUserInitials.textContent !== value) currentUserInitials.textContent = value;
         }
-        if(currentUserPhoto){
-          const previousAvatar = clean(currentUserPhoto.dataset.happyadAvatar);
-          if(previousAvatar !== identity.avatar || !currentUserAvatar.classList.contains('has-photo')){
-            currentUserPhoto.dataset.happyadAvatar = identity.avatar;
-            currentUserPhoto.onload = function(){ if(currentUserAvatar) currentUserAvatar.classList.add('has-photo'); };
-            currentUserPhoto.onerror = function(){
-              if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
-              currentUserPhoto.removeAttribute('src');
-            };
-            if(identity.avatar&&messageCachePreparingV875()&&!messageFrameVisibleV868())currentUserPhoto.dataset.happyadDeferredSrcV876=identity.avatar;
-            else if(identity.avatar) currentUserPhoto.src = identity.avatar;
-            else{
-              delete currentUserPhoto.dataset.happyadDeferredSrcV876;
-              currentUserPhoto.removeAttribute('src');
-              if(currentUserAvatar) currentUserAvatar.classList.remove('has-photo');
-            }
-          }
-        }
+        setConnectedAvatarV965(identity.name,identity.avatar,false);
         setBadge(currentUserBadge,identity.badge);
         connectedIdentitySignature = signature;
         if(options.persist === true) persistConnectedIdentity(identity);
@@ -16085,6 +16373,7 @@
         return authRecoveryPromiseV595;
       }
       function applySignedOutV595(){
+        cancelConversationLatestOpenV963();
         authUser = null;
         authProfile = null;
         stopProfileIdentityRealtimeV869();
@@ -16105,6 +16394,20 @@
         if(listView){listView.classList.remove('hidden');listView.setAttribute('aria-hidden','false');}
         if(chatView){chatView.classList.add('hidden');chatView.setAttribute('aria-hidden','true');}
         setListState('Connecte-toi pour ouvrir Messages.');
+      }
+
+      function signedOutIsCanonicalV964(detail){
+        detail = detail && typeof detail === 'object' ? detail : {};
+        const eventName = clean(detail.event).toUpperCase();
+        if(['SIGNED_OUT','USER_DELETED','ACCOUNT_SWITCH_RESET','ACCOUNT_ISOLATION_RESET','FORCED_LOGOUT','FORCED_LOGOUT_AUTH_EVENT','LOGIN_GUARD_FAILED','LOGIN_GUARD_CANCELLED'].includes(eventName)) return true;
+        /* Une vraie fermeture réussie retire d'abord le hint local. S'il est encore
+           présent, un signal non terminal reçu pendant FRAME_READY/refresh est périmé. */
+        if(cachedSessionUserId()) return false;
+        try{
+          const parentAuth = window.parent && window.parent !== window && (window.parent.HappyAuthSessionV598 || window.parent.HappyAuthSessionV595);
+          if(parentAuth && typeof parentAuth.isAuthenticated === 'function' && parentAuth.isAuthenticated()) return false;
+        }catch(_e){}
+        return true;
       }
 
       function suspendMessageRuntimeV869(){
@@ -16224,7 +16527,10 @@
           }
         }
         else if(data.type === 'HAPPYAD_AUTH_SIGNED_IN_V595') recoverAuthenticatedSessionV595(data.detail || {});
-        else if(data.type === 'HAPPYAD_AUTH_SIGNED_OUT_V595') applySignedOutV595();
+        else if(data.type === 'HAPPYAD_AUTH_SIGNED_OUT_V595'){
+          if(signedOutIsCanonicalV964(data.detail)) applySignedOutV595();
+          else if(messageFrameVisibleV868()) scheduleSilentReconnectSync(80);
+        }
         else if(data.type === 'HAPPYAD_PROFILE_AVATAR_RECOVERED_V743' || data.type === 'HAPPYAD_PROFILE_IDENTITY_V746') refreshConnectedIdentitySoon(20);
       }, true);
 
