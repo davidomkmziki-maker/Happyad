@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v975-p1-module-lifecycle-registry-20260829';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v979-last-design-master-20260829';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v975-p1-module-lifecycle-registry-20260829',
+  './index.html?v=v979-last-design-master-20260829',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -37,9 +37,10 @@ var HAPPYAD_APP_SHELL = [
   './core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue',
   './core/home-media-loader-v1.js?v=929-stable-media-geometry',
   './core/like-direct-master-v876.js?v=876-like-direct',
-  './core/home-actions-master-v1.js?v=939-auth-action-fast-restore',
+  './core/home-actions-master-v1.js?v=978-favorite-count-contract',
+  './core/actions-layout-master-v979.css?v=979-last-design-master',
   './core/mention-render-master-v943.js?v=944-photo-profile-handoff',
-  './core/home-card-renderer-v1.js?v=937r2-multi-mention-fullscreen-blue',
+  './core/home-card-renderer-v1.js?v=978-favorite-count-contract',
   './core/home-feed-view-v1.js?v=929-prepaint-anchor',
   './core/home-feed-boot-v1.js?v=937-account-story-cache',
   './core/master-registry.js?v=974-p1-module-lifecycle-registry',
@@ -49,8 +50,8 @@ var HAPPYAD_APP_SHELL = [
   './modules/notification-center.html?v=974-p1-module-lifecycle-registry',
   './core/notification-infinite-scroll-master-v700.js?v=869-connection-phase2',
   './modules/assistance.html?v=974-p1-module-lifecycle-registry',
-  './modules/video.html?v=974-p1-module-lifecycle-registry',
-  './modules/photo.html?v=974-p1-module-lifecycle-registry',
+  './modules/video.html?v=979-last-design-master',
+  './modules/photo.html?v=979-last-design-master',
   './modules/map.html?v=974-p1-module-lifecycle-registry',
   './modules/publish.html?v=974-p1-module-lifecycle-registry',
   './modules/live.html?v=974-p1-module-lifecycle-registry',

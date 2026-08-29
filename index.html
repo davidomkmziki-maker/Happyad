@@ -2,6 +2,9 @@
 <!-- HAPPYAD V885: Stories last-good immediate + skeleton <=180ms -->
 <!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r90-home-card-single-design | 855r91-radar-add-persistent -->
 <!DOCTYPE html><html lang="fr"><head>
+<!-- HAPPYAD V979 : préchargement + première peinture du dernier design pour éviter tout flash ancien -->
+<link rel="preload" as="style" href="core/actions-layout-master-v979.css?v=979-last-design-master">
+<link id="happyad-actions-layout-master-v979-prepaint" rel="stylesheet" href="core/actions-layout-master-v979.css?v=979-last-design-master">
 <style id="happyad-v631-story-radar-first-paint">
 /* V631 — taille ronde finale dès le premier rendu et clic réarmé après fermeture. */
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629{
@@ -1562,8 +1565,8 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <script src="core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
 <script src="core/home-media-loader-v1.js?v=929-stable-media-geometry"></script>
 <script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
-<script src="core/home-actions-master-v1.js?v=939-auth-action-fast-restore"></script>
-<script src="core/home-card-renderer-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
+<script src="core/home-actions-master-v1.js?v=978-favorite-count-contract"></script>
+<script src="core/home-card-renderer-v1.js?v=978-favorite-count-contract"></script>
 <script src="core/home-feed-view-v1.js?v=929-prepaint-anchor"></script>
 <script src="core/home-feed-boot-v1.js?v=937-account-story-cache"></script>
 <script>
@@ -3696,7 +3699,7 @@ function happyadInstallAlbumOneByOneScrollV472(track,dots){
   }catch(e){console.warn('album native scroll',e)}
 }
 function happyadAlbumActionHtmlV772(){
-  return '<div class="miniActions"><button class="actionBtn" data-card-act="like"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="comment"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="share"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="repost"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><small>0</small></button><button class="actionBtn fav" data-card-act="fav"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span><small>0</small></button></div>';
+  return '<div class="miniActions"><button class="actionBtn" data-card-act="like"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="comment"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="share"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="repost"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><small>0</small></button><button class="actionBtn fav" data-card-act="fav"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span></button></div>';
 }
 /* V942 — contexte canonique des mentions pour une publication groupée.
    Certains anciens caches/groupeurs conservaient la description de chaque slide mais
@@ -3760,13 +3763,20 @@ function happyadPrepareAlbumShellV772(card,p){
     var dotHtml='';
     items.forEach(function(it,i){
       it=it||p;
-      slides+='<div class="haAlbumFullSlide" data-album-index="'+i+'" data-album-post-id="'+esc(String((it&&it.id)||p.id||''))+'"><div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia haAlbumSingleMedia" data-album-media-index="'+i+'"><div class="happyadAlbumLoading">Chargement...</div><div class="happyadAlbumBadge">▧ '+(i+1)+'</div></div>'+happyadAlbumBodyHtmlV772(p,it)+'</div></div>';
+      /* V976 — chaque média d'une publication groupée garde sa propre ligne d'actions
+         DANS la carte. Toutes ces lignes restent reliées au même post d'action (p.id),
+         donc un like/commentaire/partage/repost/favori est peint simultanément sur
+         toutes les cartes du groupe par HappyHomeActionsV1.refreshCard(). */
+      slides+='<div class="haAlbumFullSlide" data-album-index="'+i+'" data-album-post-id="'+esc(String((it&&it.id)||p.id||''))+'"><div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia haAlbumSingleMedia" data-album-media-index="'+i+'"><div class="happyadAlbumLoading">Chargement...</div><div class="happyadAlbumBadge">▧ '+(i+1)+'</div></div>'+happyadAlbumBodyHtmlV772(p,it)+happyadAlbumActionHtmlV772()+'</div></div>';
       dotHtml+='<span'+(i===0?' class="on"':'')+'></span>';
     });
     card.__happyadPost=p;
     if(ownerUid)card.dataset.happyadOwnerUid=ownerUid;
     card.classList.add('haAlbumFullPagerCard','haAlbumStructureStableV772');
-    card.innerHTML='<div class="haAlbumFullScroller"><div class="haAlbumFullTrack">'+slides+'</div></div><div class="haAlbumFixedBar">'+happyadAlbumActionHtmlV772()+'</div><div class="haAlbumFullDots">'+dotHtml+'</div>';
+    /* V976 — suppression de la barre d'actions commune extérieure. Les actions sont
+       désormais présentes dans chaque miniCardFrame du groupe et synchronisées par
+       le même état canonique d'actions. */
+    card.innerHTML='<div class="haAlbumFullScroller"><div class="haAlbumFullTrack">'+slides+'</div></div><div class="haAlbumFullDots">'+dotHtml+'</div>';
     card.dataset.happyadAlbumShellV772='1';
     var track=card.querySelector('.haAlbumFullTrack');
     var dots=card.querySelector('.haAlbumFullDots');
@@ -7700,7 +7710,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
         /* La barre est construite une seule fois par ouverture. Le glissement entre
            les photos ne change jamais l'identifiant, les compteurs ni les handlers. */
         acts.dataset.happyadAlbumActionId=albumActionId;
-        acts.innerHTML='<button class="haHomeFsAct" data-card-act="like" type="button" aria-label="J’aime"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="comment" type="button" aria-label="Commentaires"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="share" type="button" aria-label="Partager"><span class="haFsSvg"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="repost" type="button" aria-label="Republier"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="fav" type="button" aria-label="Favoris"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></span><small>0</small></button>';
+        acts.innerHTML='<button class="haHomeFsAct" data-card-act="like" type="button" aria-label="J’aime"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="comment" type="button" aria-label="Commentaires"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="share" type="button" aria-label="Partager"><span class="haFsSvg"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="repost" type="button" aria-label="Republier"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg></span><small>0</small></button><button class="haHomeFsAct" data-card-act="fav" type="button" aria-label="Favoris"><span class="haFsSvg"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></span></button>';
         acts.onclick=function(e){e.stopPropagation();};
         try{if(typeof primeCardActionFromPost==='function')primeCardActionFromPost(albumActionPost);}catch(_prime){}
         if(typeof registerLikeCard==='function')registerLikeCard(acts,albumActionPost);
@@ -7957,7 +7967,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=v975-p1-module-lifecycle-registry-20260829',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=v978-actions-compact-master-20260829',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -10853,7 +10863,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 </script>
 
-<script>window.HAPPYAD_PUBLIC_VERSION="V946_HORIZONTAL_FIT_GUARD";</script>
+<script>window.HAPPYAD_PUBLIC_VERSION="V979_LAST_DESIGN_MASTER";</script>
 <style id="happyad-v595-action-counters-stable">
 #list.homeTimeline .miniActions,.feedGrid .miniActions,.hScroller .miniActions{
   display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
@@ -11041,9 +11051,6 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 
 
 <script id="happyad-video-cover-editor-bridge-v693" src="core/video-cover-editor-master-v693.js?v=972-p1-single-client"></script>
-
-<!-- HAPPYAD V678 : actions et compteurs globaux stables -->
-<link id="happyad-actions-layout-master-v678" rel="stylesheet" href="core/actions-layout-master-v678.css?v=678-actions-counts">
 
 <script id="happyad-analytics-master-v731" src="core/analytics-master-v731.js?v=972-p1-single-client"></script>
 <script id="happyad-assistance-integration-master-v738-js" src="core/assistance-integration-master-v738.js?v=937-account-isolation"></script>
@@ -11617,4 +11624,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 }
 </style>
 
+
+<!-- HAPPYAD V979 : MASTER FINAL — dernier design chargé en dernier -->
+<link id="happyad-actions-layout-master-v979" rel="stylesheet" href="core/actions-layout-master-v979.css?v=979-last-design-master">
 </body></html>

@@ -235,7 +235,7 @@
   .photoSlide .slideSide{left:4px!important;right:4px!important;gap:0!important;}
 }
 
-/* HAPPYAD V976 — hiérarchie visuelle actions + albums groupés synchronisés.
+/* HAPPYAD V977 — hiérarchie visuelle canonique actions + albums groupés synchronisés.
    But : rapprocher la densité d'une interface sociale mature sans modifier la logique.
    - actions visibles plus lisibles, zone tactile >=44px ;
    - auteur de carte légèrement plus compact/cohérent ;
@@ -355,4 +355,18 @@
   #list.homeTimeline .miniTop .avatar{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;flex-basis:34px!important;}
   #list.homeTimeline .miniTop .creator b{font-size:14.5px!important;}
   #list.homeTimeline .miniTop .creator span,#list.homeTimeline .miniTop .miniPostDate{font-size:11px!important;}
+}
+
+
+/* HAPPYAD V977 — CONTRAT FINAL FAVORIS / DESIGN CANONIQUE
+   Ce bloc est volontairement le dernier du master : il interdit à un ancien rendu
+   de réafficher un compteur Favoris sur une carte ou sur une surface Photo.
+   La Centrale vidéo conserve son compteur Favoris dans modules/video.html. */
+#list.homeTimeline .miniActions [data-card-act="fav"] small,
+.feedGrid .miniActions [data-card-act="fav"] small,
+.hScroller .miniActions [data-card-act="fav"] small,
+.homeTimeline .miniActions [data-card-act="fav"] small,
+#happyadHomePhotoFullscreen .haHomeFsActions [data-card-act="fav"] small,
+.photoSlide .slideSide .act[data-act="fav"] > span:not(.haLineIcon){
+  display:none!important;
 }

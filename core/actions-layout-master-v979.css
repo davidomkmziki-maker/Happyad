@@ -235,7 +235,7 @@
   .photoSlide .slideSide{left:4px!important;right:4px!important;gap:0!important;}
 }
 
-/* HAPPYAD V976 — hiérarchie visuelle actions + albums groupés synchronisés.
+/* HAPPYAD V977 — hiérarchie visuelle canonique actions + albums groupés synchronisés.
    But : rapprocher la densité d'une interface sociale mature sans modifier la logique.
    - actions visibles plus lisibles, zone tactile >=44px ;
    - auteur de carte légèrement plus compact/cohérent ;
@@ -356,3 +356,266 @@
   #list.homeTimeline .miniTop .creator b{font-size:14.5px!important;}
   #list.homeTimeline .miniTop .creator span,#list.homeTimeline .miniTop .miniPostDate{font-size:11px!important;}
 }
+
+
+/* HAPPYAD V977 — CONTRAT FINAL FAVORIS / DESIGN CANONIQUE
+   Ce bloc est volontairement le dernier du master : il interdit à un ancien rendu
+   de réafficher un compteur Favoris sur une carte ou sur une surface Photo.
+   La Centrale vidéo conserve son compteur Favoris dans modules/video.html. */
+#list.homeTimeline .miniActions [data-card-act="fav"] small,
+.feedGrid .miniActions [data-card-act="fav"] small,
+.hScroller .miniActions [data-card-act="fav"] small,
+.homeTimeline .miniActions [data-card-act="fav"] small,
+#happyadHomePhotoFullscreen .haHomeFsActions [data-card-act="fav"] small,
+.photoSlide .slideSide .act[data-act="fav"] > span:not(.haLineIcon){
+  display:none!important;
+}
+
+
+/* HAPPYAD V978 — MASTER COMPACT ACTIONS (référence visuelle : captures Instagram fournies)
+   Ce bloc DOIT rester le dernier du fichier. Il ne change aucune logique d'action :
+   seulement taille visible, densité, alignement et zones tactiles.
+   Les cibles tactiles restent confortables tandis que le dessin visible est plus compact. */
+:root{
+  --ha978-card-icon:24px;
+  --ha978-fs-icon:25px;
+  --ha978-photo-icon:24px;
+  --ha978-count:13px;
+  --ha978-touch:42px;
+}
+
+/* Cartes Accueil + albums groupés : densité proche du feed Instagram. */
+#list.homeTimeline .miniActions,
+.feedGrid .miniActions,
+.hScroller .miniActions,
+.homeTimeline .miniActions,
+#list.homeTimeline .haAlbumFullPagerCard .haAlbumFullSlide .miniActions{
+  min-height:44px!important;
+  padding:1px clamp(8px,2.2vw,14px) 3px!important;
+  gap:clamp(1px,.7vw,5px)!important;
+}
+#list.homeTimeline .miniActions .actionBtn,
+.feedGrid .miniActions .actionBtn,
+.hScroller .miniActions .actionBtn,
+.homeTimeline .miniActions .actionBtn,
+#list.homeTimeline .haAlbumFullPagerCard .haAlbumFullSlide .miniActions .actionBtn{
+  min-height:var(--ha978-touch)!important;
+  height:var(--ha978-touch)!important;
+  gap:4px!important;
+  padding:0 1px!important;
+}
+#list.homeTimeline .miniActions .haLineIcon,
+.feedGrid .miniActions .haLineIcon,
+.hScroller .miniActions .haLineIcon,
+.homeTimeline .miniActions .haLineIcon,
+#list.homeTimeline .miniActions .haLineIcon svg,
+.feedGrid .miniActions .haLineIcon svg,
+.hScroller .miniActions .haLineIcon svg,
+.homeTimeline .miniActions .haLineIcon svg{
+  width:var(--ha978-card-icon)!important;
+  height:var(--ha978-card-icon)!important;
+  flex:0 0 var(--ha978-card-icon)!important;
+}
+#list.homeTimeline .miniActions .actionBtn small,
+.feedGrid .miniActions .actionBtn small,
+.hScroller .miniActions .actionBtn small,
+.homeTimeline .miniActions .actionBtn small{
+  font-size:var(--ha978-count)!important;
+  line-height:1!important;
+  font-weight:800!important;
+  max-width:3.5em!important;
+}
+
+/* Anciennes cartes profil éventuelles : même échelle canonique. */
+.profilePost .profileActions{
+  min-height:44px!important;
+  gap:clamp(1px,.7vw,5px)!important;
+}
+.profilePost .profileActions [data-profile-act]{
+  min-height:var(--ha978-touch)!important;
+  height:var(--ha978-touch)!important;
+  gap:4px!important;
+  padding:0 1px!important;
+}
+.profilePost .profileActions .haLineIcon,
+.profilePost .profileActions .haLineIcon svg{
+  width:var(--ha978-card-icon)!important;
+  height:var(--ha978-card-icon)!important;
+  flex:0 0 var(--ha978-card-icon)!important;
+}
+.profilePost .profileActions [data-profile-act] small{
+  font-size:var(--ha978-count)!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+
+/* Fullscreen photo (Accueil + profils) : compact, sans perdre la zone tactile. */
+#happyadHomePhotoFullscreen .haHomeFsActions{
+  gap:clamp(1px,1vw,8px)!important;
+}
+#happyadHomePhotoFullscreen .haHomeFsAct{
+  min-height:var(--ha978-touch)!important;
+  height:var(--ha978-touch)!important;
+  gap:4px!important;
+  padding:0 1px!important;
+}
+#happyadHomePhotoFullscreen .haHomeFsAct .haFsSvg,
+#happyadHomePhotoFullscreen .haHomeFsAct .haFsSvg svg{
+  width:var(--ha978-fs-icon)!important;
+  height:var(--ha978-fs-icon)!important;
+  flex:0 0 var(--ha978-fs-icon)!important;
+}
+#happyadHomePhotoFullscreen .haHomeFsAct small{
+  font-size:var(--ha978-count)!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+#happyadHomePhotoFullscreen:not(.happyadProfileFsActions) .haHomeFsCaption,
+#happyadHomePhotoFullscreen.happyadProfileFsActions .haHomeFsCaption{
+  bottom:calc(49px + env(safe-area-inset-bottom,0px))!important;
+}
+
+/* Centrale Photo : ligne compacte proche du feed Instagram. */
+.photoSlide .slideSide{
+  gap:clamp(1px,.8vw,6px)!important;
+  padding-left:clamp(12px,4vw,24px)!important;
+  padding-right:clamp(12px,4vw,24px)!important;
+}
+.photoSlide .slideSide .act{
+  min-height:var(--ha978-touch)!important;
+  height:var(--ha978-touch)!important;
+  gap:4px!important;
+}
+.photoSlide .slideSide .act .haLineIcon,
+.photoSlide .slideSide .act .haLineIcon svg{
+  width:var(--ha978-photo-icon)!important;
+  height:var(--ha978-photo-icon)!important;
+  flex:0 0 var(--ha978-photo-icon)!important;
+}
+.photoSlide .slideSide .act span:not(.haLineIcon){
+  font-size:var(--ha978-count)!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+
+/* Règle FAVORIS V977 conservée : aucune carte/photo n'affiche le compteur favoris. */
+#list.homeTimeline .miniActions [data-card-act="fav"] small,
+.feedGrid .miniActions [data-card-act="fav"] small,
+.hScroller .miniActions [data-card-act="fav"] small,
+.homeTimeline .miniActions [data-card-act="fav"] small,
+#happyadHomePhotoFullscreen .haHomeFsActions [data-card-act="fav"] small,
+#happyadHomePhotoFullscreen .haHomeFsActions [data-profile-fs-act="fav"] small,
+.profilePost .profileActions [data-profile-act="fav"] small,
+.photoSlide .slideSide .act[data-act="fav"] > span:not(.haLineIcon){display:none!important;}
+
+@media(max-width:350px){
+  :root{--ha978-card-icon:22px;--ha978-fs-icon:23px;--ha978-photo-icon:22px;--ha978-count:12px;--ha978-touch:40px;}
+}
+
+/* HAPPYAD V979 — AUTORITÉ VISUELLE FINALE
+   Ce bloc est volontairement le dernier du master.
+   Objectifs :
+   1) le dernier design reste visible dès le premier rendu ;
+   2) aucune ancienne barre/carte d'album ne dépasse autour de la carte active ;
+   3) les actions de carte conservent exactement l'échelle compacte V978. */
+:root{
+  --ha979-card-icon:24px;
+  --ha979-count:13px;
+  --ha979-touch:42px;
+}
+
+/* L'ancien conteneur extérieur d'un album ne doit jamais redevenir une carte visible. */
+html body #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772{
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+  overflow:hidden!important;
+}
+html body #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFixedBar{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+/* Une seule carte complète à la fois : aucune tranche de l'ancienne/voisine ne reste visible. */
+html body #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullScroller{
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  contain:paint!important;
+}
+html body #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullTrack{
+  width:100%!important;
+  max-width:100%!important;
+  gap:0!important;
+  column-gap:0!important;
+  padding:0!important;
+  margin:0!important;
+  scroll-padding:0!important;
+}
+html body #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullSlide{
+  flex:0 0 100%!important;
+  width:100%!important;
+  min-width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  scroll-snap-align:start!important;
+  box-sizing:border-box!important;
+}
+html body #list.homeTimeline > .haAlbumFullPagerCard.haAlbumStructureStableV772 .haAlbumFullSlide .miniCardFrame{
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+
+/* Échelle canonique des actions de carte : référence pour toutes les autres surfaces. */
+html body #list.homeTimeline .miniActions .actionBtn,
+html body .feedGrid .miniActions .actionBtn,
+html body .hScroller .miniActions .actionBtn,
+html body .homeTimeline .miniActions .actionBtn{
+  min-height:var(--ha979-touch)!important;
+  height:var(--ha979-touch)!important;
+  padding:0 1px!important;
+  gap:4px!important;
+  transform:none!important;
+}
+html body #list.homeTimeline .miniActions .haLineIcon,
+html body #list.homeTimeline .miniActions .haLineIcon svg,
+html body .feedGrid .miniActions .haLineIcon,
+html body .feedGrid .miniActions .haLineIcon svg,
+html body .hScroller .miniActions .haLineIcon,
+html body .hScroller .miniActions .haLineIcon svg,
+html body .homeTimeline .miniActions .haLineIcon,
+html body .homeTimeline .miniActions .haLineIcon svg{
+  width:var(--ha979-card-icon)!important;
+  height:var(--ha979-card-icon)!important;
+  flex:0 0 var(--ha979-card-icon)!important;
+}
+html body #list.homeTimeline .miniActions .actionBtn small,
+html body .feedGrid .miniActions .actionBtn small,
+html body .hScroller .miniActions .actionBtn small,
+html body .homeTimeline .miniActions .actionBtn small{
+  font-size:var(--ha979-count)!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+/* Favoris : aucune carte/photo ne réaffiche un ancien compteur. */
+html body #list.homeTimeline .miniActions [data-card-act="fav"] small,
+html body .feedGrid .miniActions [data-card-act="fav"] small,
+html body .hScroller .miniActions [data-card-act="fav"] small,
+html body .homeTimeline .miniActions [data-card-act="fav"] small,
+html body #happyadHomePhotoFullscreen .haHomeFsActions [data-card-act="fav"] small,
+html body #happyadHomePhotoFullscreen .haHomeFsActions [data-profile-fs-act="fav"] small,
+html body .profilePost .profileActions [data-profile-act="fav"] small,
+html body .photoSlide .slideSide .act[data-act="fav"] > span:not(.haLineIcon){
+  display:none!important;
+}
+@media(max-width:350px){
+  :root{--ha979-card-icon:22px;--ha979-count:12px;--ha979-touch:40px;}
+}
+

@@ -2703,5 +2703,85 @@ function pauseOne(v,manual){
 }
 </style>
 
+
+<style id="happyad-v979-video-actions-compact-master">
+/* HAPPYAD V979 — Centrale vidéo.
+   Même échelle visible que les cartes : icône 24px, compteur 13px.
+   La pile est volontairement plus basse que V978 et aucun ancien fond ne peut revenir. */
+.reel .side{
+  right:10px!important;
+  top:47%!important;
+  bottom:auto!important;
+  transform:none!important;
+  gap:6px!important;
+  align-content:start!important;
+}
+html.happyadVideoEmbeddedV613E .reel .side{
+  right:10px!important;top:47%!important;bottom:auto!important;transform:none!important;gap:6px!important;
+}
+.reel .side .act{
+  min-width:42px!important;
+  min-height:0!important;
+  text-align:center!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  text-shadow:0 1px 4px rgba(0,0,0,.92)!important;
+}
+.reel .side .act button{
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  padding:0!important;
+  margin:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.reel .side .act .haLineIcon,
+.reel .side .act .haLineIcon svg{
+  width:24px!important;
+  height:24px!important;
+  flex:0 0 24px!important;
+}
+.reel .side .act .actCount{
+  font-size:13px!important;
+  line-height:1!important;
+  margin-top:1px!important;
+  font-weight:800!important;
+}
+.reel .side .haPostMoreActV613F{min-width:42px!important;min-height:42px!important;}
+.reel .side .haPostMoreActV613F button,
+.reel .side .haPostMoreV613E{
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+.reel .side .haPostMoreActV613F button svg,
+.reel .side .haPostMoreV613E .haPostMoreIconV80{width:24px!important;height:24px!important;}
+/* Favoris garde son compteur uniquement ici, conformément au contrat V977. */
+.reel .side .act[data-act="fav"] .actCount{display:block!important;}
+@media(max-height:720px){
+  .reel .side,html.happyadVideoEmbeddedV613E .reel .side{top:44%!important;bottom:auto!important;right:8px!important;gap:5px!important;}
+  .reel .side .act button,.reel .side .haPostMoreActV613F button,.reel .side .haPostMoreV613E{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;}
+  .reel .side .act .haLineIcon,.reel .side .act .haLineIcon svg,.reel .side .haPostMoreActV613F button svg{width:24px!important;height:24px!important;flex-basis:24px!important;}
+  .reel .side .act .actCount{font-size:13px!important;}
+}
+/* Verrou final : aucun ancien fond d'action ne peut réapparaître. */
+.reel .side .act,.reel .side .act button,.reel .side .haPostMoreActV613F,.reel .side .haPostMoreActV613F button{
+  background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+
+@media(max-width:350px){
+  .reel .side .act .haLineIcon,.reel .side .act .haLineIcon svg,.reel .side .haPostMoreActV613F button svg{width:22px!important;height:22px!important;flex-basis:22px!important;}
+  .reel .side .act .actCount{font-size:12px!important;}
+}
+</style>
 </body>
 </html>

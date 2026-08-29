@@ -218,7 +218,7 @@
       var type=el.dataset.cardAct;
       var val=type==='like'?a.likes:type==='comment'?(a.comments!==undefined?a.comments:countComments(a.commentsList||[])):type==='share'?a.shares:type==='repost'?a.reposts:a.favs;
       var small=el.querySelector('small');
-      if(small){small.textContent=compact(val||0);small.style.display=(type==='like'&&hideLikes)?'none':'';}
+      if(small){small.textContent=compact(val||0);small.style.display=(type==='fav'||(type==='like'&&hideLikes))?'none':'';}
       if(type==='comment'){el.classList.toggle('haCommentsDisabledV63',commentsOff);el.setAttribute('aria-disabled',commentsOff?'true':'false');}
       el.classList.toggle('on',(type==='like'&&a.like)||(type==='fav'&&a.fav)||(type==='repost'&&a.repost));
     });
