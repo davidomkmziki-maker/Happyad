@@ -201,7 +201,7 @@
             }
             im.onload=readyAlbum;
             im.onerror=function(){media.dataset.albumMediaReadyV772='error';media.innerHTML='<div class="happyadAlbumLoading">Média introuvable</div>';};
-            var badge=document.createElement('div');badge.className='happyadAlbumBadge';badge.textContent='▧ '+(i+1);
+            var badge=document.createElement('div');badge.className='happyadAlbumBadge';badge.setAttribute('aria-label','Photo groupée '+(i+1));badge.innerHTML='<svg class="happyadAlbumStackIconV982" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="14" height="14" rx="2"></rect><path d="M8 3h10a3 3 0 0 1 3 3v10"></path></svg><b>'+(i+1)+'</b>';
             media.replaceChildren(im,badge);im.src=url;
             if(im.complete&&im.naturalWidth>0)readyAlbum();
           }catch(_e){media.dataset.albumMediaReadyV772='error';media.innerHTML='<div class="happyadAlbumLoading">Erreur média</div>';}

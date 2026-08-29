@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v979-last-design-master-20260829';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v982-grouped-photo-badge-20260829';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v979-last-design-master-20260829',
+  './index.html?v=v982-grouped-photo-badge-20260829',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -35,10 +35,11 @@ var HAPPYAD_APP_SHELL = [
   './core/marketplace-home-master-v828.js?v=933-market-owner-actions',
   './core/home-feed-repository-v1.js?v=2-batch-complete',
   './core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue',
-  './core/home-media-loader-v1.js?v=929-stable-media-geometry',
+  './core/home-media-loader-v1.js?v=982-grouped-photo-badge',
   './core/like-direct-master-v876.js?v=876-like-direct',
   './core/home-actions-master-v1.js?v=978-favorite-count-contract',
-  './core/actions-layout-master-v979.css?v=979-last-design-master',
+  './core/actions-layout-master-v982.css?v=982-grouped-photo-badge',
+  './core/home-card-layout-master-v982.css?v=982-grouped-photo-badge',
   './core/mention-render-master-v943.js?v=944-photo-profile-handoff',
   './core/home-card-renderer-v1.js?v=978-favorite-count-contract',
   './core/home-feed-view-v1.js?v=929-prepaint-anchor',

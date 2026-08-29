@@ -3,8 +3,10 @@
 <!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r90-home-card-single-design | 855r91-radar-add-persistent -->
 <!DOCTYPE html><html lang="fr"><head>
 <!-- HAPPYAD V979 : préchargement + première peinture du dernier design pour éviter tout flash ancien -->
-<link rel="preload" as="style" href="core/actions-layout-master-v979.css?v=979-last-design-master">
-<link id="happyad-actions-layout-master-v979-prepaint" rel="stylesheet" href="core/actions-layout-master-v979.css?v=979-last-design-master">
+<link rel="preload" as="style" href="core/actions-layout-master-v982.css?v=982-grouped-photo-badge">
+<link id="happyad-actions-layout-master-v982-prepaint" rel="stylesheet" href="core/actions-layout-master-v982.css?v=982-grouped-photo-badge">
+<link rel="preload" as="style" href="core/home-card-layout-master-v982.css?v=982-grouped-photo-badge">
+<link id="happyad-home-card-layout-master-v982-prepaint" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=982-grouped-photo-badge">
 <style id="happyad-v631-story-radar-first-paint">
 /* V631 — taille ronde finale dès le premier rendu et clic réarmé après fermeture. */
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629{
@@ -1563,7 +1565,7 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <script src="core/follow-master-v855r34.js?v=972-p1-single-client"></script>
 <script src="core/home-feed-repository-v1.js?v=2-batch-complete"></script>
 <script src="core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
-<script src="core/home-media-loader-v1.js?v=929-stable-media-geometry"></script>
+<script src="core/home-media-loader-v1.js?v=982-grouped-photo-badge"></script>
 <script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
 <script src="core/home-actions-master-v1.js?v=978-favorite-count-contract"></script>
 <script src="core/home-card-renderer-v1.js?v=978-favorite-count-contract"></script>
@@ -3310,9 +3312,15 @@ function happyadRenderVideoFallbackV643(box){
 }
 function renderHomeVideoPreview(box,p,url){
   const poster=happyadVideoPosterUrl(p,url);
+  try{happyadApplyCardFitV981(box,p);}catch(_fit0){}
   if(poster){
     box.innerHTML='<img'+happyadHomeMediaAttrsV616(box.closest('.miniCard'))+' src="'+esc(poster)+'" alt="" class="happyadVideoPoster"><div class="play">▶</div>';
-    var im=box.querySelector('img');if(im)im.addEventListener('error',function(){happyadRenderVideoFallbackV643(box);},{once:true});
+    var im=box.querySelector('img');
+    if(im){
+      im.addEventListener('load',function(){try{happyadApplyCardFitV981(box,p,im.naturalWidth,im.naturalHeight);}catch(_fit){}},{once:true});
+      im.addEventListener('error',function(){happyadRenderVideoFallbackV643(box);},{once:true});
+      if(im.complete&&im.naturalWidth)try{happyadApplyCardFitV981(box,p,im.naturalWidth,im.naturalHeight);}catch(_fit2){}
+    }
   }else happyadRenderVideoFallbackV643(box);
   try{var vb=document.createElement('div');vb.className='happyadVideoViewsBadge';var a=(typeof getA==='function')?getA(p&&p.id):{};var viewText=(typeof happyadFmtViews==='function')?happyadFmtViews((a&&a.views)||p.views_count||p.video_views_count||0):String((a&&a.views)||p.views_count||p.video_views_count||0);vb.setAttribute('aria-label',viewText+' vues');vb.innerHTML='<svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount">'+esc(viewText)+'</span>';box.appendChild(vb);}catch(_viewsBadge){}
 }
@@ -3428,16 +3436,36 @@ function happyadFinalizeHomePhotoRatioV925(box,cls,source){
     return cls;
   }catch(_e){return '';}
 }
+/* HAPPYAD V981 — format de carte unique 4:5.
+   Le ratio du média ne change plus la géométrie de la carte. Il sert seulement à
+   décider du fit : média réellement plus haut que 4:5 = cover/cadrage ; sinon
+   contain sur fond noir. */
+function happyadApplyCardFitV981(box,p,w,h){
+  try{
+    if(!box)return '';
+    p=p||{};
+    w=Number(w||p.media_width||p.natural_width||p.width||0);
+    h=Number(h||p.media_height||p.natural_height||p.height||0);
+    var r=Number(p.aspect_ratio||0);
+    if(!(r>0)&&w>0&&h>0)r=w/h;
+    var tall=!!(r>0&&r<0.8);
+    box.classList.toggle('haCardTallCropV981',tall);
+    box.classList.toggle('haCardContainV981',!tall);
+    if(r>0)box.dataset.happyadCardAspectV981=String(r);
+    return tall?'cover':'contain';
+  }catch(_e){return '';}
+}
 function happyadPrepareHomePhotoRatioV765(box,p){
   try{
     if(!box)return 'haPhotoTall';
     var known=happyadKnownHomePhotoRatioV925(p),cls=known||'haPhotoTall';
-    box.classList.remove('haPhotoTall','haPhotoSquare','haPhotoWide','haPhotoPanorama','haPhotoRatioPendingV925','haPhotoRatioFinalV925','haPhotoGeometryLockedV929','haPhotoGeometryMismatchV929');
+    box.classList.remove('haPhotoTall','haPhotoSquare','haPhotoWide','haPhotoPanorama','haPhotoRatioPendingV925','haPhotoRatioFinalV925','haPhotoGeometryLockedV929','haPhotoGeometryMismatchV929','haCardTallCropV981','haCardContainV981');
     box.classList.add(cls,known?'haPhotoRatioFinalV925':'haPhotoRatioPendingV925');
     if(!known)box.classList.add('haPhotoGeometryLockedV929');
     box.dataset.happyadRatioLockedV765=cls;
     box.dataset.happyadRatioSourceV925=known?'known':'pending';
     box.dataset.happyadRatioGeometryLockedV929=known?'0':'1';
+    happyadApplyCardFitV981(box,p);
     try{delete box.dataset.happyadNaturalRatioV929;}catch(_clear){}
     return cls;
   }catch(_e){return 'haPhotoTall';}
@@ -3462,6 +3490,7 @@ function happyadLearnHomePhotoRatioV765(p,img,box){
       happyadScheduleHomeRatioSaveV765();
     }
     var target=box||((img.closest&&img.closest('.miniMedia,.haAlbumSingleMedia'))||img.parentElement);
+    happyadApplyCardFitV981(target,p,w,h);
     var finalCls=naturalCls;
     try{if(typeof happyadResolveCardCropV855R90==='function'&&happyadResolveCardCropV855R90(p))finalCls='haPhotoSquare';}catch(_crop){}
     return happyadFinalizeHomePhotoRatioV925(target,finalCls,'decoded');
@@ -3749,7 +3778,7 @@ function happyadPrepareAlbumShellV772(card,p){
     var items=(p&&p.__albumItems)||[];
     if(!items.length)items=[p];
     if(items.length<=1)return null;
-    if(card.dataset.happyadAlbumShellV772==='1'){
+    if(card.dataset.happyadAlbumShellV981==='1'){
       card.__happyadPost=p;
       return {items:items,track:card.querySelector('.haAlbumFullTrack'),dots:card.querySelector('.haAlbumFullDots')};
     }
@@ -3763,21 +3792,17 @@ function happyadPrepareAlbumShellV772(card,p){
     var dotHtml='';
     items.forEach(function(it,i){
       it=it||p;
-      /* V976 — chaque média d'une publication groupée garde sa propre ligne d'actions
-         DANS la carte. Toutes ces lignes restent reliées au même post d'action (p.id),
-         donc un like/commentaire/partage/repost/favori est peint simultanément sur
-         toutes les cartes du groupe par HappyHomeActionsV1.refreshCard(). */
-      slides+='<div class="haAlbumFullSlide" data-album-index="'+i+'" data-album-post-id="'+esc(String((it&&it.id)||p.id||''))+'"><div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia haAlbumSingleMedia" data-album-media-index="'+i+'"><div class="happyadAlbumLoading">Chargement...</div><div class="happyadAlbumBadge">▧ '+(i+1)+'</div></div>'+happyadAlbumBodyHtmlV772(p,it)+happyadAlbumActionHtmlV772()+'</div></div>';
+      slides+='<div class="haAlbumFullSlide" data-album-index="'+i+'" data-album-post-id="'+esc(String((it&&it.id)||p.id||''))+'"><div class="miniMedia haAlbumSingleMedia" data-album-media-index="'+i+'"><div class="happyadAlbumLoading">Chargement...</div><div class="happyadAlbumBadge" aria-label="Photo groupée '+(i+1)+'"><svg class="happyadAlbumStackIconV982" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="14" height="14" rx="2"></rect><path d="M8 3h10a3 3 0 0 1 3 3v10"></path></svg><b>'+(i+1)+'</b></div></div></div>';
       dotHtml+='<span'+(i===0?' class="on"':'')+'></span>';
     });
     card.__happyadPost=p;
     if(ownerUid)card.dataset.happyadOwnerUid=ownerUid;
-    card.classList.add('haAlbumFullPagerCard','haAlbumStructureStableV772');
-    /* V976 — suppression de la barre d'actions commune extérieure. Les actions sont
-       désormais présentes dans chaque miniCardFrame du groupe et synchronisées par
-       le même état canonique d'actions. */
-    card.innerHTML='<div class="haAlbumFullScroller"><div class="haAlbumFullTrack">'+slides+'</div></div><div class="haAlbumFullDots">'+dotHtml+'</div>';
+    card.classList.add('haAlbumFullPagerCard','haAlbumStructureStableV772','haAlbumSingleCardV981');
+    /* V981 : un groupe = UNE carte. Seul le viewport média glisse horizontalement.
+       Header, description et actions restent uniques et ne changent jamais de taille. */
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="haAlbumMediaViewportV981"><div class="haAlbumFullTrack">'+slides+'</div></div>'+happyadAlbumBodyHtmlV772(p,p)+happyadAlbumActionHtmlV772()+'</div><div class="haAlbumFullDots">'+dotHtml+'</div>';
     card.dataset.happyadAlbumShellV772='1';
+    card.dataset.happyadAlbumShellV981='1';
     var track=card.querySelector('.haAlbumFullTrack');
     var dots=card.querySelector('.haAlbumFullDots');
     [].slice.call(card.querySelectorAll('.haAlbumSingleMedia')).forEach(function(media,i){
@@ -3785,9 +3810,14 @@ function happyadPrepareAlbumShellV772(card,p){
     });
     if(track&&!track.__haAlbumDotsBoundV772){
       track.__haAlbumDotsBoundV772=true;
-      /* R72 : un seul propriétaire du suivi horizontal. L'ancien bloc calculait
-         deux fois la diapositive active sur chaque événement scroll. */
       try{happyadInstallAlbumOneByOneScrollV472(track,dots);}catch(_oneByOne){}
+      /* V981 : un glissement horizontal ne doit jamais être interprété comme un clic
+         d'ouverture fullscreen au relâchement. */
+      try{
+        var haSwipeStartX=0,haSwipeStartY=0;
+        track.addEventListener('touchstart',function(ev){var q=ev.touches&&ev.touches[0];if(q){haSwipeStartX=q.clientX;haSwipeStartY=q.clientY;}},{passive:true});
+        track.addEventListener('touchend',function(ev){var q=ev.changedTouches&&ev.changedTouches[0];if(!q)return;var dx=q.clientX-haSwipeStartX,dy=q.clientY-haSwipeStartY;if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)){track.__haAlbumSwipeUntilV472=Date.now()+360;}},{passive:true});
+      }catch(_swipeGuard){}
     }
     if(!card.__haAlbumDelegatedClicksV772){
       card.__haAlbumDelegatedClicksV772=true;
@@ -3805,10 +3835,8 @@ function happyadPrepareAlbumShellV772(card,p){
           if(!d)return false;
           var on=d.dataset.expanded==='1';
           d.dataset.expanded=on?'0':'1';
-          var slideForMention=more.closest('.haAlbumFullSlide');
-          var mentionIndex=Number(slideForMention&&slideForMention.getAttribute('data-album-index')||0)||0;
-          var mentionPost=currentItems[mentionIndex]||current;
-          mentionPost=happyadAlbumMentionContextV942(current,mentionPost,currentItems);
+          var activeIndex=Math.max(0,Math.min(currentItems.length-1,Number(track&&track.__haAlbumCurrentIndexV472||0)||0));
+          var mentionPost=happyadAlbumMentionContextV942(current,currentItems[activeIndex]||current,currentItems);
           d.innerHTML=happyadMentionHtmlV937R1(on?d.dataset.albumDescShort:d.dataset.albumDescFull,mentionPost);
           more.textContent=on?'Voir plus':'Réduire';
           card.classList.toggle('haAlbumExpandedV772',!on);
@@ -3820,12 +3848,13 @@ function happyadPrepareAlbumShellV772(card,p){
         e.preventDefault();e.stopPropagation();
         var idx=Number(slide.dataset.albumIndex||0)||0;
         var pid=slide.dataset.albumPostId||((currentItems[idx]||{}).id)||current.id;
-        if(typeof happyadOpenHomePhotoFullscreen==='function')happyadOpenHomePhotoFullscreen(pid,current);
+        var fsPost=Object.assign({},current,{__albumItems:currentItems,__startAlbumIndex:idx});
+        if(typeof happyadOpenHomePhotoFullscreen==='function')happyadOpenHomePhotoFullscreen(pid,fsPost);
         return false;
       },true);
     }
     return {items:items,track:track,dots:dots};
-  }catch(e){console.warn('album stable shell',e);return null;}
+  }catch(e){console.warn('album V981 single card shell',e);return null;}
 }
 /* HOME MEDIA LOADER V1 — hydratation, voisins album et IntersectionObserver
    sortis de index.html. Les anciens noms restent comme adaptateurs de compatibilité. */
@@ -10863,7 +10892,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 </script>
 
-<script>window.HAPPYAD_PUBLIC_VERSION="V979_LAST_DESIGN_MASTER";</script>
+<script>window.HAPPYAD_PUBLIC_VERSION="V982_GROUPED_PHOTO_BADGE_MASTER";</script>
 <style id="happyad-v595-action-counters-stable">
 #list.homeTimeline .miniActions,.feedGrid .miniActions,.hScroller .miniActions{
   display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
@@ -11626,5 +11655,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 
 
 <!-- HAPPYAD V979 : MASTER FINAL — dernier design chargé en dernier -->
-<link id="happyad-actions-layout-master-v979" rel="stylesheet" href="core/actions-layout-master-v979.css?v=979-last-design-master">
+<link id="happyad-actions-layout-master-v982" rel="stylesheet" href="core/actions-layout-master-v982.css?v=982-grouped-photo-badge">
+<!-- HAPPYAD V982 : carte unique + indicateur groupe chargé en dernier -->
+<link id="happyad-home-card-layout-master-v982" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=982-grouped-photo-badge">
 </body></html>
