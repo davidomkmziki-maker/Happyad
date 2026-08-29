@@ -26,11 +26,11 @@
   document.addEventListener('DOMContentLoaded',function(){check('dom-ready');},{once:true});
   setTimeout(function(){check('safety');},700);
 })();
-</script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
-<script src="../core/overlay-scroll-master-v615.js?v=615"></script>
+</script><script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script>
+<script src="../core/overlay-scroll-master-v662.js?v=905-p1-single-overlay-master"></script>
 <script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
-<script src="../core/mention-render-master-v943.js?v=943-profile-link-uid-safe"></script>
-<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
+<script src="../core/mention-render-master-v943.js?v=944-photo-profile-handoff"></script>
+<script src="../core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical"></script>
 <script id="happyad-v493-top-level-module-redirect">
 (function(){
   if(window.__HAPPYAD_V493_TOP_LEVEL_MODULE_REDIRECT__)return;
@@ -270,13 +270,14 @@
 </script>
 <script src="../core/like-direct-master-v876.js?v=876-like-direct"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
-<script>window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";</script>
-<script src="../core/interaction-privacy-master-v855r52.js?v=855r52-interactions"></script>
+<script src="../core/supabase-config-master-v973.js?v=973-p1-central-config"></script>
+<script src="../core/supabase-client-master-v972.js?v=973-p1-central-config"></script>
+<script src="../core/interaction-privacy-master-v855r52.js?v=972-p1-single-client"></script>
 <script src="../core/filtering-privacy-master-v855r55.js?v=855r55-filtering"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
-<script src="../core/follow-master-v855r34.js?v=855r34-one-way-follow"></script>
-<script src="../core/video-cover-editor-master-v693.js?v=828-marketplace-poster-in-place"></script>
-<script src="../core/post-options-master-v693.js?v=855r67-popup-persistant-confirmation-haut"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=972-p1-single-client"></script>
+<script src="../core/follow-master-v855r34.js?v=972-p1-single-client"></script>
+<script src="../core/video-cover-editor-master-v693.js?v=972-p1-single-client"></script>
+<script src="../core/post-options-master-v693.js?v=972-p1-single-client"></script>
 
 
 <style id="happyad-v5-avatar-circle-display-fix">
@@ -484,18 +485,7 @@ window.addEventListener('message',function(ev){
 
 
 function happyadSb(){
-  if(window.happyadSupabase)return window.happyadSupabase;
-  try{
-    if(window.parent&&window.parent!==window){
-      if(window.parent.happyadSupabase){window.happyadSupabase=window.parent.happyadSupabase;return window.happyadSupabase;}
-      if(typeof window.parent.happyadSb==='function'){
-        try{window.happyadSupabase=window.parent.happyadSb()||null;if(window.happyadSupabase)return window.happyadSupabase;}catch(_shared){}
-      }
-      if(!window.supabase&&window.parent.supabase)window.supabase=window.parent.supabase;
-    }
-  }catch(_parent){}
-  if(window.supabase&&window.supabase.createClient){window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});return window.happyadSupabase;}
-  return null;
+  try{return window.HappySupabaseClientMasterV972?window.HappySupabaseClientMasterV972.get():window.happyadSupabase||null;}catch(_e){return null;}
 }
 
 function happyadVideoUrlLooksVideo(u){return /\.(mp4|webm|mov|m4v|3gp)(\?|#|$)/i.test(String(u||''));}
@@ -604,7 +594,7 @@ function happyadVideoStoragePublicUrl(path){
       if(pub&&pub.data&&pub.data.publicUrl)return pub.data.publicUrl;
     }
   }catch(e){}
-  const base=String(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+  const base=String(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
   return base+'/storage/v1/object/public/happyad-media/'+encodeURI(path);
 }
 function happyadVideoNormalizeMediaSrc(src,p){
@@ -2031,10 +2021,10 @@ $('commentList').onclick=e=>{const prof=e.target.closest('[data-comment-profile]
 <script id="happyad-v77-video-profile-supabase-sync">
 (function(){
   const USER_KEY='HAPPYAD_CENTRAL_USER_V10_CLEAN_STATS_FULL';
-  const URL=window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co';
-  const KEY=window.HAPPYAD_SUPABASE_KEY||'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
+  const URL=window.HAPPYAD_SUPABASE_URL||'';
+  const KEY=window.HAPPYAD_SUPABASE_KEY||'';
   let sb=null;
-  function client(){if(sb)return sb;try{if(typeof happyadSb==='function'){sb=happyadSb();if(sb)return sb;}}catch(_shared){}if(window.supabase&&window.supabase.createClient){sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});return sb;}return null;}
+  function client(){if(sb)return sb;try{if(typeof happyadSb==='function'){sb=happyadSb();if(sb)return sb;}if(window.HappySupabaseClientMasterV972&&window.HappySupabaseClientMasterV972.get){sb=window.HappySupabaseClientMasterV972.get();if(sb)return sb;}}catch(_shared){}return null;}
   function normBadge(v){v=String(v||'aucun').toLowerCase();if(v==='bleu'||v==='blue')return 'bleu';if(v==='violet'||v==='jaune'||v==='yellow')return 'violet';return 'aucun';}
   async function syncProfile(){
     const c=client(); if(!c) return;
@@ -2698,7 +2688,7 @@ function pauseOne(v,manual){
 <script src="../core/button-state-master-v604.js?v=604"></script>
 <!-- HAPPYAD V681 : masque/restaure le dock parent pendant les commentaires Vidéo -->
 <script src="../core/comment-overlay-client-v681.js?v=681-comment-dock"></script>
-<script id="happyad-analytics-master-v731" src="../core/analytics-master-v731.js?v=855r7-all-video-surfaces"></script>
+<script id="happyad-analytics-master-v731" src="../core/analytics-master-v731.js?v=972-p1-single-client"></script>
 
 <!-- HAPPYAD V944 — taille finale unique des titres de publication en Centrale vidéo -->
 <style id="happyad-v944-video-publication-title-compact">

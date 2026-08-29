@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_HOME_PHOTO_FULLSCREEN_MASTER_V591__)return;
   window.__HAPPYAD_HOME_PHOTO_FULLSCREEN_MASTER_V591__=true;
 
-  var VERSION='V928_HOME_PHOTO_PROFILE_HANDOFF';
+  var VERSION='V932_PROFILE_FULLSCREEN_HANDOFF_POINTER_RELEASE';
   var LAYER_ID='home-photo';
   var localObserver=null;
   var handoffBusyV928=false;
@@ -36,6 +36,23 @@
       box.removeAttribute('data-happyad-route-suspended-v928');
     }catch(_e){}
   }
+  var resumeShieldTimerV930=0;
+  function armResumeInputShieldV930(){
+    try{
+      var old=document.getElementById('happyadPhotoProfileReturnShieldV930');
+      if(old)old.remove();
+      var shield=document.createElement('div');
+      shield.id='happyadPhotoProfileReturnShieldV930';
+      shield.setAttribute('aria-hidden','true');
+      shield.style.cssText='position:fixed!important;inset:0!important;z-index:2147483647!important;background:transparent!important;pointer-events:auto!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;';
+      var swallow=function(e){try{if(e&&e.cancelable)e.preventDefault();if(e)e.stopPropagation();if(e&&e.stopImmediatePropagation)e.stopImmediatePropagation();}catch(_e){}};
+      ['pointerdown','pointerup','click','touchstart','touchmove','touchend'].forEach(function(type){shield.addEventListener(type,swallow,{capture:true,passive:false});});
+      (document.body||document.documentElement).appendChild(shield);
+      clearTimeout(resumeShieldTimerV930);
+      resumeShieldTimerV930=setTimeout(function(){resumeShieldTimerV930=0;try{shield.remove();}catch(_e){}},360);
+      return true;
+    }catch(_e){return false;}
+  }
   function resumeLocalV928(){
     var box=document.getElementById('happyadHomePhotoFullscreen');
     if(!box)return false;
@@ -45,7 +62,23 @@
       box.setAttribute('aria-hidden','false');
       document.body.classList.add('haHomePhotoFsLock');
     }catch(_e){}
+    /* V932 : si ce fullscreen provenait de Mon profil/Profil visiteur, son bridge
+       avait verrouille #happyadAppShell pendant l'affichage photo. Le verrou est
+       volontairement retire pendant le handoff vers un profil visiteur, puis
+       reinstalle uniquement quand le fullscreen revient au premier plan. */
+    try{
+      if(box.getAttribute('data-happyad-profile-underlay-suspended-v932')==='1'){
+        var bridge=window.HappyProfilePhotoFullscreenV854R8||window.HappyProfilePhotoBridgeV854R8;
+        if(bridge&&typeof bridge.lock==='function')bridge.lock();
+        box.removeAttribute('data-happyad-profile-underlay-suspended-v932');
+      }
+    }catch(_profileRelock){}
     ensureLocalBack();forceDock(true);
+    /* V930 : le clic Retour qui ferme le profil visiteur ne doit jamais tomber
+       sur un élément de la page source (ex. cercle Story du profil) pendant le
+       même geste tactile. Un bouclier transparent très court absorbe uniquement
+       la fin de ce geste, puis disparaît automatiquement. */
+    armResumeInputShieldV930();
     return true;
   }
   function suspendForRouteV928(){
@@ -61,6 +94,21 @@
       box.style.setProperty('pointer-events','none','important');
       document.body.classList.remove('haHomePhotoFsLock');
     }catch(_e){}
+    /* V932 : cas specifique d'un fullscreen cree depuis un profil. Le bridge
+       profile-photo-parent verrouille tout le shell avec pointer-events:none afin
+       que la page situee sous la photo ne capte rien. Lorsque la photo est
+       suspendue pour ouvrir C = Profil visiteur, ce verrou ne doit surtout pas
+       rester sur le shell, sinon le bouton Retour de C est visible mais ne recoit
+       aucun clic. Le bouton Retour telephone fonctionnait car il ne depend pas des
+       pointer events : c'etait le signal qui permettait d'isoler la cause. */
+    try{
+      var shell=document.getElementById('happyadAppShell');
+      var bridge=window.HappyProfilePhotoFullscreenV854R8||window.HappyProfilePhotoBridgeV854R8;
+      if(shell&&shell.getAttribute('data-profile-photo-underlay-v854r8')==='1'&&bridge&&typeof bridge.unlock==='function'){
+        box.setAttribute('data-happyad-profile-underlay-suspended-v932','1');
+        bridge.unlock();
+      }
+    }catch(_profileUnlock){}
     forceDock(false);
     return {entry:beforeEntry};
   }

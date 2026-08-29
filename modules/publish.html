@@ -49,11 +49,13 @@
     }catch(_e){}
   },7000);
 })();
-</script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
-<script src="../core/overlay-scroll-master-v615.js?v=615"></script>
+</script><script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script>
+<script src="../core/overlay-scroll-master-v662.js?v=905-p1-single-overlay-master"></script>
 <script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
-<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
+<script src="../core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical"></script>
+<script src="../core/supabase-config-master-v973.js?v=973-p1-central-config"></script>
+<script src="../core/supabase-client-master-v972.js?v=973-p1-central-config"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=972-p1-single-client"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#000000">
@@ -303,8 +305,6 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
 })();
 </script>
 <script>
-window.HAPPYAD_SUPABASE_URL="https://txjjyhupbejgjcianrmr.supabase.co";
-window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
 /* V936 — L'interface Publication ne dépend plus d'un CDN bloquant avant son
    premier rendu. Dans l'application, elle réutilise le SDK/client du parent.
    En ouverture autonome seulement, le SDK est chargé de façon asynchrone. */
@@ -335,18 +335,8 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
   function resolveClient(){
     adoptParent();
     if(window.happyadSupabase)return window.happyadSupabase;
-    if(window.supabase&&typeof window.supabase.createClient==='function'){
-      try{
-        /* En ouverture autonome, conserver le stockage Auth protégé avant la
-           création du client que le SDK asynchrone vient de rendre disponible. */
-        if(window.HappyadAuthStorageV752&&typeof window.HappyadAuthStorageV752.wrap==='function')window.HappyadAuthStorageV752.wrap();
-        window.happyadSupabase=window.supabase.createClient(
-          window.HAPPYAD_SUPABASE_URL,
-          window.HAPPYAD_SUPABASE_KEY,
-          {auth:{persistSession:true,autoRefreshToken:true}}
-        );
-        return window.happyadSupabase;
-      }catch(_e){}
+    if(window.HappySupabaseClientMasterV972&&typeof window.HappySupabaseClientMasterV972.get==='function'){
+      try{return window.HappySupabaseClientMasterV972.get();}catch(_e){}
     }
     return null;
   }
@@ -382,7 +372,7 @@ window.HAPPYAD_SUPABASE_KEY="sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD";
 })();
 </script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
-<script src="../core/interaction-privacy-master-v855r52.js?v=855r52-interactions"></script>
+<script src="../core/interaction-privacy-master-v855r52.js?v=972-p1-single-client"></script>
 
 <style id="happyad-v589-publish-white-buttons">
 /* V589 — boutons Publication blancs, sans orange ni violet. */
@@ -1410,12 +1400,7 @@ button:disabled{filter:none;transform:none}
   function renderPublishModeUI(){updateSummary();renderStoryMentionUI();}
 
   function happySb(){
-    if(window.happyadSupabase)return window.happyadSupabase;
-    if(window.supabase&&window.supabase.createClient){
-      window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-      return window.happyadSupabase;
-    }
-    return null;
+    try{return window.HappySupabaseClientMasterV972?window.HappySupabaseClientMasterV972.get():window.happyadSupabase||null;}catch(_e){return null;}
   }
   function profileAvatarMaster(){return window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;}
   function canonicalProfileAvatar(uid,fallback){var m=profileAvatarMaster(),id=String(uid||'').trim();if(m&&id){var e=m.getEntry&&m.getEntry(id);if(e&&e.known)return String(e.url||'').trim();if(m.resolve)m.resolve(id).catch(function(){});return '';}return String(fallback||'').trim();}

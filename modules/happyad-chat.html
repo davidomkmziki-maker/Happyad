@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#050911" />
   <title>HAPPYAD — Chat Intelligence V50 · Résultats avant précision V849</title>
+  <script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script>
   <style>
     :root{
       --bg:#07090d;--panel:#0f131b;--panel2:#151a24;--field:#0b0f15;
@@ -3215,14 +3216,7 @@
         if(window.parent&&window.parent!==window){
           if(typeof window.parent.happyadSb==='function')candidates.push(window.parent.happyadSb());
           candidates.push(window.parent.happyadSupabase,window.parent.HAPPYAD_SUPABASE,window.parent.supabaseClient,window.parent.__supabaseClient);
-          if(window.parent.supabase&&typeof window.parent.supabase.createClient==='function'&&window.parent.HAPPYAD_SUPABASE_URL&&window.parent.HAPPYAD_SUPABASE_KEY){
-            window.parent.happyadSupabase=window.parent.happyadSupabase||window.parent.supabase.createClient(
-              window.parent.HAPPYAD_SUPABASE_URL,
-              window.parent.HAPPYAD_SUPABASE_KEY,
-              {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-            );
-            candidates.push(window.parent.happyadSupabase);
-          }
+          if(window.parent.HappySupabaseClientMasterV972&&typeof window.parent.HappySupabaseClientMasterV972.get==='function')candidates.push(window.parent.HappySupabaseClientMasterV972.get());
         }
       }catch(_){}
       return candidates.find(candidate=>candidate&&typeof candidate.from==='function'&&typeof candidate.rpc==='function')||null;

@@ -38,7 +38,7 @@
     if(v.indexOf('/')<0&&!/\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i.test(v))return '';
     var path=v.replace(/^\/+/, '').replace(/^happyad-media\//,'');
     try{var c=client();if(c&&c.storage&&c.storage.from){var r=c.storage.from('happyad-media').getPublicUrl(path);if(r&&r.data&&r.data.publicUrl)return r.data.publicUrl;}}catch(_e){}
-    var base=clean(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+    var base=clean(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
     return base+'/storage/v1/object/public/happyad-media/'+encodeURI(path);
   }
   function stable(uid){return uid?json('HAPPYAD_PROFILE_IDENTITY_STABLE_V741:'+uid,{}):{};}

@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 if(window.HappyProfilePhotoFullscreenV854R8)return;
-var VERSION='V854R8_PROFILE_PHOTO_FULLSCREEN_ZERO_DELAY';
+var VERSION='V854R8_PROFILE_PHOTO_FULLSCREEN_V932_HANDOFF';
 var active={rows:[],target:null,postId:'',expires:0,source:'',sourceWindow:null,opening:false};
 var originalFinder=typeof window.happyadFindHomePhotoPostV466==='function'?window.happyadFindHomePhotoPostV466:null;
 var boxObserver=null,openTimer=0;
@@ -141,6 +141,6 @@ window.addEventListener('message',function(e){
 },true);
 window.addEventListener('HAPPYAD_PROFILE_AVATAR_UPDATED_V855R32',function(event){var d=event&&event.detail||{},uid=clean(d.uid);if(!uid||d.known!==true)return;function patch(p){return ownerOf(p)===uid&&AVATAR_MASTER&&AVATAR_MASTER.patchRecord?AVATAR_MASTER.patchRecord(p,uid):p;}active.rows=(active.rows||[]).map(patch);if(active.target)active.target=patch(active.target);try{var av=box()&&box().querySelector('.haHomeFsAvatar'),ae=AVATAR_MASTER&&AVATAR_MASTER.getEntry&&AVATAR_MASTER.getEntry(uid);if(av&&clean(av.dataset.happyadAvatarUid)===uid&&ae&&ae.known&&AVATAR_MASTER&&AVATAR_MASTER.paintBox)AVATAR_MASTER.paintBox(av,ae,av.dataset.happyadAvatarName||'H');}catch(_e){}},true);
 installFinder();
-window.HappyProfilePhotoFullscreenV854R8={version:VERSION,open:function(payload){return openFast(payload,null);},openFast:function(payload){return openFast(payload,null);},update:update,find:findProfilePost,state:active,unlock:unlockSurface};
+window.HappyProfilePhotoFullscreenV854R8={version:VERSION,open:function(payload){return openFast(payload,null);},openFast:function(payload){return openFast(payload,null);},update:update,find:findProfilePost,state:active,lock:lockSurface,unlock:unlockSurface};
 window.HappyProfilePhotoBridgeV854R8=window.HappyProfilePhotoFullscreenV854R8;
 })();

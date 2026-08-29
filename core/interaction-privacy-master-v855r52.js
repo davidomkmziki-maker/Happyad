@@ -10,10 +10,7 @@ function client(){
     if(typeof window.happyadSb==='function'){var a=window.happyadSb();if(a&&a.rpc)return a;}
     if(window.happyadSupabase&&window.happyadSupabase.rpc)return window.happyadSupabase;
     if(window.supabaseClient&&window.supabaseClient.rpc)return window.supabaseClient;
-    if(window.supabase&&window.supabase.createClient&&window.HAPPYAD_SUPABASE_URL&&window.HAPPYAD_SUPABASE_KEY){
-      window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-      return window.happyadSupabase;
-    }
+    if(window.HappySupabaseClientMasterV972&&typeof window.HappySupabaseClientMasterV972.get==='function')return window.HappySupabaseClientMasterV972.get();
   }catch(_e){}
   return null;
 }

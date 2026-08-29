@@ -328,14 +328,13 @@
         }
       }catch(_e3){}
       try{
-        if(target.supabase&&target.supabase.createClient&&target.HAPPYAD_SUPABASE_URL&&target.HAPPYAD_SUPABASE_KEY){
-          target.happyadSupabase=target.supabase.createClient(
-            target.HAPPYAD_SUPABASE_URL,
-            target.HAPPYAD_SUPABASE_KEY,
-            {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-          );
-          activeClient=target.happyadSupabase;
-          return activeClient;
+        if(typeof target.happyadSb==='function'){
+          var canonical=target.happyadSb();
+          if(canonical&&canonical.from&&canonical.auth){activeClient=canonical;return activeClient;}
+        }
+        if(target.HappySupabaseClientMasterV972&&typeof target.HappySupabaseClientMasterV972.get==='function'){
+          var viaMaster=target.HappySupabaseClientMasterV972.get();
+          if(viaMaster&&viaMaster.from&&viaMaster.auth){activeClient=viaMaster;return activeClient;}
         }
       }catch(_e4){}
     }

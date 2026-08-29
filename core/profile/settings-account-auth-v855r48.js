@@ -113,16 +113,12 @@
     for(var j=0;j<hosts.length;j++){
       var owner=hosts[j];
       try{
-        if(owner.supabase&&owner.supabase.createClient&&owner.HAPPYAD_SUPABASE_URL&&owner.HAPPYAD_SUPABASE_KEY){
-          owner.happyadSupabase=owner.supabase.createClient(
-            owner.HAPPYAD_SUPABASE_URL,
-            owner.HAPPYAD_SUPABASE_KEY,
-            {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-          );
-          activeClient=owner.happyadSupabase;
-          return activeClient;
+        var master=owner.HappySupabaseClientMasterV972;
+        if(master&&typeof master.get==='function'){
+          var canonical=master.get();
+          if(canonical&&canonical.auth){activeClient=canonical;return canonical;}
         }
-      }catch(_create){}
+      }catch(_canonical){}
     }
     throw failure("SERVICE_UNAVAILABLE","La connexion Supabase est indisponible.");
   }

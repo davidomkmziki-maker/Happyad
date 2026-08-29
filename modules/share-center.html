@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="fr">
-<head><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
-<script src="../core/overlay-scroll-master-v615.js?v=615"></script>
+<head><script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script>
+<script src="../core/overlay-scroll-master-v662.js?v=905-p1-single-overlay-master"></script>
 <script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
-<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
+<script src="../core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical"></script>
+<script src="../core/supabase-config-master-v973.js?v=973-p1-central-config"></script>
+<script src="../core/supabase-client-master-v972.js?v=973-p1-central-config"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=972-p1-single-client"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#151a21">
@@ -228,7 +230,7 @@
     let src=firstMediaValueV913(value);if(!src)return '';
     if(/^(?:https?:\/\/|data:|blob:)/i.test(src))return src;
     src=src.replace(/^\/+/, '').replace(/^happyad-media\//i,'');
-    let base='https://txjjyhupbejgjcianrmr.supabase.co';
+    let base=clean(window.HAPPYAD_SUPABASE_URL||'');
     try{base=clean(parent&&parent.HAPPYAD_SUPABASE_URL)||base;}catch(_e){}
     return base.replace(/\/+$/,'')+'/storage/v1/object/public/happyad-media/'+encodeURI(src);
   }

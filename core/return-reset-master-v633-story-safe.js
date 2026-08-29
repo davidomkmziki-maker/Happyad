@@ -25,14 +25,17 @@
 
   function canonicalBack(source){
     try{
-      var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+      /* P1.04 : un seul moteur parent/enfant. Dans une surface embarquée,
+         l'intention Retour est toujours remise au contrôleur canonique du parent;
+         dans le shell principal, elle reste locale. */
+      var host=window.parent&&window.parent!==window?window.parent:window;
+      var internal=host.HappyInternalReturnV694||host.HappyInternalReturnV591;
       var top=internal&&typeof internal.top==='function'?String(internal.top()||''):'';
-      if(top&&typeof internal.back==='function')return internal.back(top,{source:source||'legacy-gateway-v927'});
-    }catch(_internal){}
-    try{
-      var nav=window.HappyNavigation;
-      if(nav&&typeof nav.back==='function')return nav.back({source:source||'legacy-gateway-v927'});
-    }catch(_nav){}
+      if(top&&typeof internal.back==='function')return internal.back(top,{source:source||'canonical-return-v929'});
+      if(host.HappyNavigation&&typeof host.HappyNavigation.back==='function')return host.HappyNavigation.back({source:source||'canonical-return-v929'});
+      if(host!==window&&host.postMessage){host.postMessage({type:'HAPPYAD_NAV_BACK_REQUEST',detail:{source:source||'canonical-return-v929'}},'*');return true;}
+      if(host===window){History.prototype.go.call(history,-1);return true;}
+    }catch(_e){}
     return false;
   }
   function installCanonicalApi(name){
@@ -48,7 +51,7 @@
       var d=ev&&ev.data;
       var type=typeof d==='string'?d:(d&&d.type);
       if(type==='HAPPYAD_CLOSE_APP_PAGE'||type==='HAPPYAD_NAV_BACK_REQUEST'||type==='HAPPYAD_CLOSE_MESSAGE_CENTER'||type==='HAPPYAD_NOTIFICATIONS_CLOSE'){
-        canonicalBack(type+'-v927');
+        canonicalBack(type+'-canonical-v929');
         if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
         if(ev.stopPropagation)ev.stopPropagation();
       }
@@ -91,7 +94,7 @@
   }
   nativeAdd('DOMContentLoaded',function(){purge(document);try{new MutationObserver(function(ms){ms.forEach(function(m){for(var i=0;i<m.addedNodes.length;i++){var n=m.addedNodes[i];if(n&&n.nodeType===1){if(isReturnNode(n))n.remove();else purge(n);}}});}).observe(document.documentElement,{childList:true,subtree:true});}catch(_e){};},false);
   document.addEventListener('click',function(ev){
-    try{if(isProfileIntentV928(ev.target))return;var t=ev.target&&ev.target.closest&&ev.target.closest('button,a');if(isReturnNode(t)){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();canonicalBack('legacy-parent-button-v927');return false;}}catch(_e){}
+    try{if(isProfileIntentV928(ev.target))return;var t=ev.target&&ev.target.closest&&ev.target.closest('button,a');if(isReturnNode(t)){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();canonicalBack('legacy-button-canonical-v929');return false;}}catch(_e){}
   },true);
 
   function neutralize(){

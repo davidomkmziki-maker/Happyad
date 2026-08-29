@@ -257,14 +257,7 @@
       if(typeof window.happyadSb==='function')return window.happyadSb();
       if(window.happyadSupabase)return window.happyadSupabase;
       if(window.supabaseClient)return window.supabaseClient;
-      if(window.supabase&&typeof window.supabase.createClient==='function'){
-        window.happyadSupabase=window.supabase.createClient(
-          window.HAPPYAD_SUPABASE_URL,
-          window.HAPPYAD_SUPABASE_KEY,
-          {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-        );
-        return window.happyadSupabase;
-      }
+      if(window.HappySupabaseClientMasterV972&&typeof window.HappySupabaseClientMasterV972.get==='function')return window.HappySupabaseClientMasterV972.get();
     }catch(_e){}
     return null;
   }

@@ -389,25 +389,41 @@
       return {status:'active',row:q.data};
     }catch(_e){return {status:'error',row:null}}
   }
+  function openExactNotificationShellV971(detail,id){
+    detail=detail||{};id=clean(id||detail.story_id||detail.id);if(!id)return false;
+    var cached=cacheStories().find(function(p){return storyId(p)===id&&active(p)&&storyIdentityKnownV917(p)})||null;
+    var owner=clean(detail.owner_id||detail.user_id)||(cached&&ownerOf(cached))||'';
+    if(cached&&owner){show(owner,[rowFromItem(cached)],profileFromItem(cached),id);return true;}
+    if(!owner)return false;
+    var box=ensureViewer(),seedProfile={id:owner,full_name:clean(detail.author_name)||'Story',avatar_url:clean(detail.author_avatar),badge:clean(detail.badge)};
+    state.owner=owner;state.rows=[];state.profile=seedProfile;state.closed=false;state.paused=false;state.openToken++;
+    activateViewerSurface(box);armStoryReturnV927();lock();
+    $('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':esc(initials(seedProfile.full_name));$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML='';
+    return true;
+  }
   async function openExactNotificationV735(detail){
     detail=detail||{};var id=clean(detail.story_id||detail.id),token=++exactNotificationOpenTokenV735;
     if(!id){toast('Story introuvable.');return false}
 
+    /* V971 : le clic Notification ouvre la surface Story immédiatement. La
+       vérification Supabase reste la vérité, mais elle ne bloque plus le premier
+       rendu ni l'animation d'ouverture. */
+    openExactNotificationShellV971(detail,id);
     var exact=await fetchExactStoryV735(id);
     if(token!==exactNotificationOpenTokenV735)return false;
 
     if(exact.status==='expired'||exact.status==='missing'){
-      toast('Cette story a expiré.');
+      toast('Cette story a expiré.');if(!state.closed&&(state.rows.length===0||storyId(currentRow())===id))close('notification-expired-v971');
       return false;
     }
     if(exact.status!=='active'||!exact.row){
-      toast('Story indisponible. Réessayez.');
+      toast('Story indisponible. Réessayez.');if(!state.closed&&(state.rows.length===0||storyId(currentRow())===id))close('notification-error-v971');
       return false;
     }
 
     var row=exact.row,owner=ownerOf(row)||clean(detail.owner_id||detail.user_id);
     if(!owner||storyId(row)!==id||exactStoryExpiredV735(row)){
-      toast('Cette story a expiré.');
+      toast('Cette story a expiré.');if(!state.closed&&(state.rows.length===0||storyId(currentRow())===id))close('notification-invalid-v971');
       return false;
     }
 
@@ -417,15 +433,12 @@
       mediaUrl:mediaOf(row),media_url:mediaOf(row),mediaType:typeOf(row),description:descOf(row),
       created_at:row.created_at||'',expires_at:row.expires_at||'',isRadar:true,isLive:false,__storyTable:'happyad_stories'
     };
-    var profile=await fetchProfile(owner,profileFromItem(seed));
-    if(token!==exactNotificationOpenTokenV735)return false;
-    if(exactStoryExpiredV735(row)){
-      toast('Cette story a expiré.');
-      return false;
-    }
-
-    mergeStoryCache(owner,[row],profile||{});
-    show(owner,[row],profile||profileFromItem(seed),id);
+    var seedProfile=profileFromItem(seed);
+    /* Le média exact est maintenant affiché dès la réponse Story. Le profil peut
+       être enrichi ensuite sans retenir l'ouverture du lecteur. */
+    mergeStoryCache(owner,[row],seedProfile||{});
+    show(owner,[row],seedProfile||{},id);
+    fetchProfile(owner,seedProfile).then(function(profile){if(token!==exactNotificationOpenTokenV735||state.closed||state.owner!==owner)return;mergeStoryCache(owner,[row],profile||seedProfile||{});syncVerifiedOwnerV785(owner,[row],profile||seedProfile||{});}).catch(function(){});
     return true;
   }
   async function authUid(){try{if(typeof window.happyadAuthUser==='function'){var u=await window.happyadAuthUser();if(u&&u.id)return clean(u.id)}}catch(_e){}return currentUid()}
@@ -1368,7 +1381,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     var src=firstSharedMediaV915(value);if(!src)return '';
     if(/^(?:https?:\/\/|data:|blob:)/i.test(src))return src;
     src=src.replace(/^\/+/, '').replace(/^happyad-media\//i,'');
-    var base='https://txjjyhupbejgjcianrmr.supabase.co';try{base=clean(window.HAPPYAD_SUPABASE_URL)||base}catch(_e){}
+    var base='';try{base=clean(window.HAPPYAD_SUPABASE_URL)}catch(_e){}
     return base.replace(/\/+$/,'')+'/storage/v1/object/public/happyad-media/'+encodeURI(src)
   }
   function sharedPostPlayableMediaV915(p,video){

@@ -110,7 +110,7 @@
     src=clean(src);if(!src)return '';
     if(/^https?:\/\//i.test(src)||/^blob:/i.test(src)||/^data:/i.test(src))return src;
     src=src.replace(/^\/+/, '').replace(/^happyad-media\//,'');
-    var base=clean(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+    var base=clean(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
     return base+'/storage/v1/object/public/happyad-media/'+encodeURI(src);
   }
   function normalizeHandle(v){v=clean(v).replace(/^@+/,'');return v?('@'+v):'';}

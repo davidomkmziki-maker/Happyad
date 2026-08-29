@@ -3,10 +3,10 @@
   if(window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__)return;
   window.__HAPPYAD_INTERNAL_RETURN_MASTER_V694__=true;
 
-  var VERSION='V929_NOTIFICATION_POST_PASSIVE_ROUTE';
+  var VERSION='V930_PHOTO_PROFILE_EXACT_RETURN';
   var NOTIF_CENTER_ID='happyadNotificationReturnCenter';
   var NOTIF_FRAME_ID='happyadNotificationCenterFrame';
-  var NOTIF_URL='modules/notification-center.html?v=895-story-repost-return';
+  var NOTIF_URL='modules/notification-center.html?v=971-story-notification-fast';
   var NOTIF_CLASS='happyadNotificationInternalV591';
   var layers=[];
   var handlers=Object.create(null);
@@ -488,8 +488,16 @@
          Elles forçaient alors le dock inférieur à rester caché alors que l'Accueil
          était déjà visible. On les ferme dans le même cycle de navigation. */
       if(page!=='profile'&&page!=='profile_public'){
-        closeLayer('home-photo');
-        closeLayer('profile-photo');
+        /* V930 : lors de C -> B, restoreHistoryStateV927() a déjà restauré la
+           couche fullscreen indiquée par l'entrée History dépilée. Si B est
+           l'Accueil + home-photo, ne pas refermer cette couche au moment où
+           Navigation repeint l'Accueil : sinon on retombe sur la simple carte
+           publication au lieu du fullscreen exact. Une navigation normale vers
+           l'Accueil n'a pas ce marqueur actif et continue de fermer les couches. */
+        var historyLayerV930='';
+        try{historyLayerV930=clean((history.state||{})[LAYER_MARKER_KEY_V927]);}catch(_historyLayer){}
+        if(!(page==='home'&&historyLayerV930==='home-photo'&&layerIndex('home-photo')>=0))closeLayer('home-photo');
+        if(!(page==='home'&&historyLayerV930==='profile-photo'&&layerIndex('profile-photo')>=0))closeLayer('profile-photo');
       }
       if(page!=='profile')closeLayer('profile-stats-v855');
       if(page!=='publish')lastStableRoute={page:page,url:url};

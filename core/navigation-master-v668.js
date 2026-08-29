@@ -4,7 +4,7 @@
   window.__HAPPYAD_NAVIGATION_MASTER_V668__=true;
   window.__HAPPYAD_NAVIGATION_MASTER_V656__=true;
 
-  var MASTER_VERSION='NAV_MASTER_V965_POINT3_MESSAGE_AVATAR_STABLE';
+  var MASTER_VERSION='NAV_MASTER_V931_VISITOR_PROFILE_ROUTE_BACK';
   var VISITOR_PROFILE_PRELOAD_URL_V601='modules/visitor-profile.html?deferred=1&v=869-connection-phase2';
   var VISITOR_PROFILE_MESSAGE_V601='HAPPYAD_PROFILE_SHOW_V601';
   var NAV_FLAG='__happyadCoreNavV10';
@@ -520,7 +520,7 @@
     if(!path)return '';
     if(/^https?:\/\//i.test(path)||/^blob:/i.test(path)||/^data:/i.test(path))return path;
     path=path.replace(/^\/+/, '').replace(/^happyad-media\//,'');
-    var base=String(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+    var base=String(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
     return base+'/storage/v1/object/public/happyad-media/'+encodeURI(path);
   }
   function videoMediaFromPost(p){
@@ -2015,11 +2015,18 @@
   function back(options){
     options=options||{};
     if(menuResetV927)return false;
-    try{
-      var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
-      var top=internal&&typeof internal.top==='function'?String(internal.top()||''):'';
-      if(top&&typeof internal.back==='function')return internal.back(top,{source:options.source||'navigation-back-v927'});
-    }catch(_internal){}
+    /* V931 : le bouton Retour propre au Profil visiteur ferme toujours la vraie
+       route profile_public C avant de rendre les couches internes suspendues de B.
+       Cas critique : Mon profil -> fullscreen photo -> mention -> Profil visiteur.
+       Une couche photo héritée/stale ne doit jamais voler ce premier Retour. */
+    var routeBackFromVisitorV931=(activePage==='profile_public'&&String(options.source||'').indexOf('profile-back-v854')===0);
+    if(!routeBackFromVisitorV931){
+      try{
+        var internal=window.HappyInternalReturnV694||window.HappyInternalReturnV591;
+        var top=internal&&typeof internal.top==='function'?String(internal.top()||''):'';
+        if(top&&typeof internal.back==='function')return internal.back(top,{source:options.source||'navigation-back-v927'});
+      }catch(_internal){}
+    }
     nativeGoV927(-1);
     return true;
   }

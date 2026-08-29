@@ -138,7 +138,7 @@
     var src=clean(value);if(!src)return '';
     if(/^https?:\/\//i.test(src)||/^data:/i.test(src)||/^blob:/i.test(src))return src;
     src=src.replace(/^\/+/, '').replace(/^happyad-media\//i,'');
-    var base=clean(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+    var base=clean(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
     return base+'/storage/v1/object/public/happyad-media/'+encodeURI(src);
   }
   function firstMediaValueV878(value){
@@ -232,8 +232,8 @@
     /* Deep link externe: le SDK Supabase peut ne pas etre pret dans le premier cycle.
        Une lecture REST exacte evite d'ouvrir un fullscreen vide. */
     try{
-      var base=clean(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
-      var key=clean(window.HAPPYAD_SUPABASE_KEY||'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD');
+      var base=clean(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
+      var key=clean(window.HAPPYAD_SUPABASE_KEY||'');
       if(base&&key&&typeof fetch==='function'){
         var ac=typeof AbortController!=='undefined'?new AbortController():null;
         var timer=setTimeout(function(){try{if(ac)ac.abort();}catch(_e){}},2200);

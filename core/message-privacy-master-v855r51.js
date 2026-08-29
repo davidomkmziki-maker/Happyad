@@ -9,10 +9,8 @@ function client(){
   try{
     if(window.happyadSupabase&&window.happyadSupabase.rpc)return window.happyadSupabase;
     if(window.supabaseClient&&window.supabaseClient.rpc)return window.supabaseClient;
-    if(window.supabase&&window.supabase.createClient&&window.HAPPYAD_SUPABASE_URL&&window.HAPPYAD_SUPABASE_KEY){
-      window.happyadSupabase=window.supabase.createClient(window.HAPPYAD_SUPABASE_URL,window.HAPPYAD_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-      return window.happyadSupabase;
-    }
+    if(typeof window.happyadSb==='function'){var shared=window.happyadSb();if(shared&&shared.rpc)return shared;}
+    if(window.HappySupabaseClientMasterV972&&typeof window.HappySupabaseClientMasterV972.get==='function')return window.HappySupabaseClientMasterV972.get();
   }catch(_e){}
   return null;
 }

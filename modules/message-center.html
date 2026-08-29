@@ -24,14 +24,14 @@
   document.addEventListener('DOMContentLoaded',function(){check('dom-ready');},{once:true});
   setTimeout(function(){check('safety');},700);
 })();
-</script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script><script src="../core/module-lifecycle-master-v614.js?v=614"></script>
-<script src="../core/overlay-scroll-master-v615.js?v=615"></script>
+</script><script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script><script src="../core/global-scroll-coordinator-v868.js?v=869-connection-phase2"></script><script src="../core/connection-work-coordinator-v869.js?v=869-connection-phase2"></script>
+<script src="../core/overlay-scroll-master-v662.js?v=905-p1-single-overlay-master"></script>
 <script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
-<script src="../core/return-reset-master-v584.js?v=928-profile-intent-gateway"></script>
+<script src="../core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>HappyAD - Messages V877</title>
-  <script>window.HAPPYAD_SUPABASE_URL='https://txjjyhupbejgjcianrmr.supabase.co';window.HAPPYAD_SUPABASE_KEY='sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';</script>
+  <script src="../core/supabase-config-master-v973.js?v=973-p1-central-config"></script>
   <script id="happyad-message-supabase-fast-bridge-v874">
     (function(){
       'use strict';
@@ -72,9 +72,10 @@
       adoptParent();
     })();
   </script>
-  <script src="../core/profile-avatar-master-v855r32.js?v=855r33-exact-user-crop"></script>
+  <script src="../core/supabase-client-master-v972.js?v=973-p1-central-config"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=972-p1-single-client"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
-  <script src="../core/message-privacy-master-v855r51.js?v=855r53-account-discovery"></script>
+  <script src="../core/message-privacy-master-v855r51.js?v=972-p1-single-client"></script>
   <script src="../core/filtering-privacy-master-v855r55.js?v=855r55-filtering"></script>
   <script>
     (function(){
@@ -3671,10 +3672,17 @@
       if(window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__) return;
       window.__HAPPYAD_MESSAGE_MASTER_V38A1_INDEXEDDB_CACHE_FIRST__ = true;
 
-      const MASTER_VERSION = 'V966_POINT2_VIEW_ONCE_PERSISTENT_HIDE';
-      const SUPABASE_URL = 'https://txjjyhupbejgjcianrmr.supabase.co';
-      const SUPABASE_KEY = 'sb_publishable_35EsjCOhZtaPtoZwdyAYOw_KaqlSKHD';
+      const MASTER_VERSION = 'V968_M0_HISTORY_25';
+      const SUPABASE_URL = String(window.HAPPYAD_SUPABASE_URL||'').trim();
+      const SUPABASE_KEY = String(window.HAPPYAD_SUPABASE_KEY||'').trim();
       const PAGE_LIMIT = 50;
+      /* M0 historique : lots volontairement plus petits pour préserver la fluidité
+         sur téléphone et réseau moyen/faible. Le rattrapage récent garde son contrat
+         séparé ; seuls les messages ANCIENS chargés au scroll haut utilisent 25. */
+      const MESSAGE_HISTORY_PAGE_LIMIT_V968 = 25;
+      /* V969 — ouverture : peindre d'abord une fenêtre locale utile au lieu de
+         montrer uniquement le dernier preview puis de reconstruire la conversation. */
+      const MESSAGE_OPEN_RECENT_LIMIT_V969 = 11;
       const MESSAGE_REALTIME_JOURNAL_PREFIX_V930 = 'HAPPYAD_MESSAGE_REALTIME_JOURNAL_V930:';
       const MESSAGE_REALTIME_JOURNAL_TTL_V930 = 7 * 24 * 60 * 60 * 1000;
       const MESSAGE_REALTIME_JOURNAL_LIMIT_V930 = 120;
@@ -4078,10 +4086,109 @@
       let activeConversationViewKey = '';
       let activeConversationGeneration = 0;
 
+      /* M0.01 / V968 — état d'historique strictement isolé par compte + conversation.
+         Ce curseur n'est jamais le lastServerSeq du rattrapage récent. */
+      const messageHistoryStatesV968 = new Map();
+      let messageHistoryScrollTimerV968 = 0;
+
       function fixedConversationKey(conversationId,ownerUserId){
         const ownerId = clean(ownerUserId || authUser && authUser.id);
         const id = clean(conversationId);
         return isUuid(ownerId) && isUuid(id) ? ownerId + ':' + id : '';
+      }
+
+      function earliestServerSeqV968(items,conversationId){
+        const id=clean(conversationId);
+        return (items||[]).reduce((min,item)=>{
+          if(!item||clean(item.conversationId)!==id)return min;
+          const seq=Math.max(0,finiteNumber(item.serverSeq,0));
+          return seq>0?Math.min(min,seq):min;
+        },Number.POSITIVE_INFINITY);
+      }
+
+      function getMessageHistoryStateV968(conversationId,ownerUserId){
+        const id=clean(conversationId);
+        const key=fixedConversationKey(id,ownerUserId);
+        if(!key)return null;
+        let state=messageHistoryStatesV968.get(key);
+        if(!state){
+          state={
+            key:key,conversationId:id,
+            oldestServerSeq:0,olderLoading:false,olderExhausted:false,
+            generation:0,requestId:0,retryAfter:0,lastLoadedAt:0
+          };
+          messageHistoryStatesV968.set(key,state);
+        }
+        return state;
+      }
+
+      function syncMessageHistoryStateFromBucketV968(conversationId,items){
+        const id=clean(conversationId);
+        const state=getMessageHistoryStateV968(id);
+        if(!state)return null;
+        const oldest=earliestServerSeqV968(items,id);
+        if(Number.isFinite(oldest)){
+          state.oldestServerSeq=state.oldestServerSeq>0?Math.min(state.oldestServerSeq,oldest):oldest;
+          if(state.oldestServerSeq<=1)state.olderExhausted=true;
+        }
+        return state;
+      }
+
+      function applyPersistedMessageHistoryStateV968(conversationId,persisted){
+        const id=clean(conversationId);
+        const state=getMessageHistoryStateV968(id);
+        if(!state||!persisted||typeof persisted!=='object')return state;
+        const persistedOldest=Math.max(0,finiteNumber(persisted.historyOldestServerSeq,0));
+        if(persistedOldest>0){
+          state.oldestServerSeq=state.oldestServerSeq>0?Math.min(state.oldestServerSeq,persistedOldest):persistedOldest;
+        }
+        if(persisted.historyExhausted===true)state.olderExhausted=true;
+        return state;
+      }
+
+      function captureMessageHistoryAnchorV968(){
+        if(!chatBody)return null;
+        const bodyRect=chatBody.getBoundingClientRect();
+        const wraps=Array.from(chatBody.querySelectorAll('.msg[data-message-id]'));
+        let anchor=null;
+        for(const wrap of wraps){
+          const rect=wrap.getBoundingClientRect();
+          if(rect.bottom>=bodyRect.top+1){anchor=wrap;break;}
+        }
+        if(!anchor&&wraps.length)anchor=wraps[0];
+        return {
+          messageId:clean(anchor&&anchor.dataset.messageId),
+          offset:anchor?anchor.getBoundingClientRect().top-bodyRect.top:0,
+          scrollTop:chatBody.scrollTop,
+          scrollHeight:chatBody.scrollHeight
+        };
+      }
+
+      function restoreMessageHistoryAnchorV968(anchor,conversationId,viewKey,generation){
+        if(!anchor||!chatBody)return false;
+        const id=clean(conversationId);
+        const key=clean(viewKey);
+        const apply=()=>{
+          if(!conversationViewIsActive(id,null,key,generation)||!chatBody)return;
+          let restored=false;
+          if(anchor.messageId){
+            const wrap=findMessageWrap(anchor.messageId);
+            if(wrap){
+              const bodyRect=chatBody.getBoundingClientRect();
+              const nextOffset=wrap.getBoundingClientRect().top-bodyRect.top;
+              chatBody.scrollTop=Math.max(0,chatBody.scrollTop+(nextOffset-anchor.offset));
+              restored=true;
+            }
+          }
+          if(!restored){
+            const delta=Math.max(0,chatBody.scrollHeight-anchor.scrollHeight);
+            chatBody.scrollTop=Math.max(0,anchor.scrollTop+delta);
+          }
+          messageChatPinnedV775=false;
+        };
+        try{requestAnimationFrame(()=>{apply();requestAnimationFrame(apply);});}catch(_e){setTimeout(apply,0);}
+        setTimeout(apply,80);
+        return true;
       }
 
       /* V963 POINT 1 — une nouvelle ouverture est toujours ancrée sur le
@@ -4133,7 +4240,10 @@
           if(conversationLatestOpenPinV963 !== pin || !conversationLatestOpenActiveV963(id,token)) return;
           scrollChatToLatest();
         };
-        [0,45,120,260,520].forEach(delay => {
+        /* M0.02 / V967 : garder l'ancre récente pendant la stabilisation courte
+           (médias/cache/compositeur). Le premier geste manuel annule toujours ce pin
+           via beginManualMessageScrollV851R5(), donc aucune lutte avec l'utilisateur. */
+        [0,45,120,260,520,900,1400,2200].forEach(delay => {
           conversationLatestOpenTimersV963.push(setTimeout(apply,delay));
         });
         conversationLatestOpenTimersV963.push(setTimeout(() => {
@@ -4141,7 +4251,7 @@
           apply();
           conversationLatestOpenPinV963 = null;
           conversationLatestOpenTimersV963 = [];
-        },760));
+        },2600));
         return true;
       }
 
@@ -4166,6 +4276,7 @@
           return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
         });
         conversationMessageBuckets.set(key,safeItems);
+        syncMessageHistoryStateFromBucketV968(id,safeItems);
         if(activeConversationViewKey === key && clean(currentConversationId) === id) messages = safeItems.slice();
         return safeItems;
       }
@@ -4194,6 +4305,12 @@
         cancelDeferredChatLoading();
         activeConversationViewKey = key;
         activeConversationGeneration += 1;
+        const historyStateV968=getMessageHistoryStateV968(id);
+        if(historyStateV968){
+          historyStateV968.generation=activeConversationGeneration;
+          historyStateV968.olderLoading=false;
+          historyStateV968.requestId+=1; /* invalide une réponse d'une ancienne vue */
+        }
         messagesConversationId = id;
         const bucket = (conversationMessageBuckets.get(key) || []).filter(item => item && clean(item.conversationId) === id);
         messages = bucket.slice();
@@ -5349,6 +5466,13 @@
           conversationId:id,
           ownerUserId:ownerId
         });
+        const historyStateV968=getMessageHistoryStateV968(id,ownerId);
+        if(historyStateV968&&historyStateV968.oldestServerSeq>0){
+          next.historyOldestServerSeq=historyStateV968.oldestServerSeq;
+          next.historyExhausted=historyStateV968.olderExhausted===true;
+          next.historyPageSize=MESSAGE_HISTORY_PAGE_LIMIT_V968;
+          next.historyUpdatedAt=next.historyUpdatedAt||new Date().toISOString();
+        }
         next.lastServerSeq = Math.max(0,finiteNumber(previous.lastServerSeq,0),finiteNumber(next.lastServerSeq,0));
         const db = await openLocalMessageDb(ownerId);
         if(!db || localDbUserId !== ownerId || !authUser || clean(authUser.id) !== ownerId) return false;
@@ -5368,6 +5492,25 @@
           return metadata.happyad_realtime_seed_v930===true&&seq>0?Math.min(min,seq):min;
         },Number.POSITIVE_INFINITY);
         return Number.isFinite(incompleteSeq)?Math.min(latest,Math.max(0,incompleteSeq-1)):latest;
+      }
+
+      /* M0.02 / V967 — la conversation doit s'ouvrir sur la vraie extrémité récente.
+         L'état sync IndexedDB peut être plus avancé que les bulles réellement présentes
+         localement (cache partiel, nettoyage média, fermeture pendant une écriture).
+         Dans ce cas il ne doit jamais servir de curseur et faire croire que la fin est
+         complète. La séquence annoncée par la conversation/preview devient la preuve
+         qu'il manque encore une portion récente à récupérer. */
+      function expectedConversationTailSeqV967(conversationId){
+        const id=clean(conversationId);
+        if(!isUuid(id))return 0;
+        const item=conversations.find(row=>row&&clean(row.id)===id)||null;
+        const meta=clean(currentConversationId)===id&&currentConversationMeta&&typeof currentConversationMeta==='object'
+          ? currentConversationMeta:{};
+        return Math.max(
+          finiteNumber(item&&item.lastSeq,0),
+          finiteNumber(item&&item.previewSeq,0),
+          firstFinite(meta,['last_seq','last_message_seq','lastServerSeq','last_server_seq','preview_seq'],0)
+        );
       }
 
       function localConversationRecord(item){
@@ -5691,7 +5834,8 @@
         messageRecords.forEach(record => messageStore.put(record));
         attachmentRecords.forEach(record => attachmentStore.put(record));
         const batchMaxSeq = messageRecords.reduce((max,item) => Math.max(max,finiteNumber(item.serverSeq,0)),0);
-        tx.objectStore('sync_state').put(Object.assign({},previousState,{
+        const historyStateV968=getMessageHistoryStateV968(conversationId,ownerId);
+        const syncRecordV968=Object.assign({},previousState,{
           key:stateKey,
           conversationKey:fixedConversationKey(conversationId,ownerId),
           conversationId,
@@ -5699,7 +5843,14 @@
           lastSyncAt:new Date().toISOString(),
           lastServerSeq:Math.max(finiteNumber(previousState.lastServerSeq,0),batchMaxSeq),
           count:Math.max(finiteNumber(previousState.count,0),messageRecords.length)
-        }));
+        });
+        if(historyStateV968&&historyStateV968.oldestServerSeq>0){
+          syncRecordV968.historyOldestServerSeq=historyStateV968.oldestServerSeq;
+          syncRecordV968.historyExhausted=historyStateV968.olderExhausted===true;
+          syncRecordV968.historyPageSize=MESSAGE_HISTORY_PAGE_LIMIT_V968;
+          syncRecordV968.historyUpdatedAt=new Date().toISOString();
+        }
+        tx.objectStore('sync_state').put(syncRecordV968);
         await idbTransactionDone(tx);
         return true;
       }
@@ -5767,7 +5918,10 @@
       async function deleteLocalConversationCache(conversationId){
         const id = clean(conversationId);
         const key = fixedConversationKey(id);
-        if(key) conversationMessageBuckets.delete(key);
+        if(key){
+          conversationMessageBuckets.delete(key);
+          messageHistoryStatesV968.delete(key);
+        }
         const db = await openLocalMessageDb(authUser && authUser.id);
         if(!db || !isUuid(id)) return false;
         const oldMessages = await localStoreGetAll('messages','conversationId',id);
@@ -5787,7 +5941,10 @@
       async function clearLocalConversationMessages(conversationId){
         const id = clean(conversationId);
         const key = fixedConversationKey(id);
-        if(key) conversationMessageBuckets.set(key,[]);
+        if(key){
+          conversationMessageBuckets.set(key,[]);
+          messageHistoryStatesV968.delete(key);
+        }
         const db = await openLocalMessageDb(authUser && authUser.id);
         if(!db || !isUuid(id)) return false;
         const oldMessages = await localStoreGetAll('messages','conversationId',id);
@@ -9808,11 +9965,8 @@
         client = window.happyadSupabase || parentClient();
         if(client) return client;
         try{
-          if(window.supabase && typeof window.supabase.createClient === 'function'){
-            client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-              auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}
-            });
-          }
+          if(window.HappySupabaseClientMasterV972&&typeof window.HappySupabaseClientMasterV972.get==='function')client=window.HappySupabaseClientMasterV972.get();
+          else if(typeof window.happyadSb==='function')client=window.happyadSb();
         }catch(_e){ client = null; }
         return client;
       }
@@ -12798,6 +12952,130 @@
       window.addEventListener('online',() => {if(messageFrameVisibleV868())scheduleMessageConnectionWorkV869('receipt-poll',() => refreshCurrentReceiptExactV783('online',true).catch(() => {}),{delay:220,maxDelay:1400,minGap:900});},true);
       window.addEventListener('beforeunload',() => clearInterval(receiptRefreshTimerV783),{once:true});
 
+      function lightweightHistoricalMessageV968(row,conversationId){
+        const message=row&&row.conversationId?Object.assign({},row):normalizeMessage(row,conversationId);
+        if(!message)return null;
+        /* M0.11 : l'historique ne déclenche jamais une rafale de téléchargements.
+           Les chemins/metadata restent présents ; l'utilisateur peut demander le média. */
+        message.audioUrl='';
+        message.photoUrl='';
+        message.videoUrl='';
+        message.fileUrl='';
+        message.mediaDownloadState='';
+        if(Array.isArray(message.attachments)){
+          message.attachments=message.attachments.map(item=>item?Object.assign({},item,{signedUrl:'',localUrl:''}):item);
+        }
+        return message;
+      }
+
+      async function fetchOlderMessagePageV968(conversationId,beforeServerSeq,limit){
+        const id=clean(conversationId);
+        const before=Math.max(0,finiteNumber(beforeServerSeq,0));
+        if(!isUuid(id)||before<=0)return [];
+        const pageLimit=Math.max(1,Math.min(100,finiteNumber(limit,MESSAGE_HISTORY_PAGE_LIMIT_V968)));
+        const data=await rpc('happyad_msg_list_messages',[
+          {p_conversation_id:id,p_limit:pageLimit,p_before_server_seq:before,p_after_server_seq:null},
+          {conversation_id:id,limit:pageLimit,before_server_seq:before,after_server_seq:null}
+        ]);
+        return asArray(data).filter(row=>!row||!row.conversation_id||clean(row.conversation_id)===id);
+      }
+
+      async function loadOlderMessagesV968(conversationId){
+        const id=clean(conversationId);
+        const key=fixedConversationKey(id);
+        if(!isUuid(id)||!key||activeMessageView!=='chat'||clean(currentConversationId)!==id)return [];
+        const state=getMessageHistoryStateV968(id);
+        if(!state||state.olderLoading||state.olderExhausted||Date.now()<finiteNumber(state.retryAfter,0))return [];
+        const generation=activeConversationGeneration;
+        const token=openToken;
+        if(!conversationViewIsActive(id,token,key,generation))return [];
+        const bucket=conversationMessageBuckets.get(key)||[];
+        const actualOldest=earliestServerSeqV968(bucket,id);
+        if(!Number.isFinite(actualOldest)||actualOldest<=0)return [];
+        state.oldestServerSeq=state.oldestServerSeq>0?Math.min(state.oldestServerSeq,actualOldest):actualOldest;
+        if(state.oldestServerSeq<=1){
+          state.olderExhausted=true;
+          writeLocalMessageSyncState(id,{historyOldestServerSeq:state.oldestServerSeq,historyExhausted:true,historyPageSize:MESSAGE_HISTORY_PAGE_LIMIT_V968,historyUpdatedAt:new Date().toISOString()}).catch(()=>{});
+          return [];
+        }
+
+        const beforeSeq=state.oldestServerSeq;
+        const requestId=++state.requestId;
+        state.olderLoading=true;
+        state.generation=generation;
+        const anchor=captureMessageHistoryAnchorV968();
+        try{
+          const rawRows=await fetchOlderMessagePageV968(id,beforeSeq,MESSAGE_HISTORY_PAGE_LIMIT_V968);
+          if(requestId!==state.requestId||!conversationViewIsActive(id,token,key,generation))return [];
+          const olderRows=rawRows.map(row=>lightweightHistoricalMessageV968(row,id)).filter(Boolean);
+          if(!olderRows.length){
+            state.olderExhausted=true;
+            state.lastLoadedAt=Date.now();
+            await writeLocalMessageSyncState(id,{
+              historyOldestServerSeq:beforeSeq,historyExhausted:true,historyPageSize:MESSAGE_HISTORY_PAGE_LIMIT_V968,historyUpdatedAt:new Date().toISOString()
+            }).catch(()=>{});
+            return [];
+          }
+
+          const pageOldestV968=earliestServerSeqV968(olderRows,id);
+          olderRows.forEach(row=>mergeReceiptSnapshot(receiptSnapshot(row)));
+          mergeMessages(olderRows,id);
+          let mergedBucket=conversationMessageBuckets.get(key)||[];
+          if(olderRows.some(message=>message&&message.viewOnce)){
+            await hydrateViewOnceStates(mergedBucket,id).catch(()=>mergedBucket);
+            if(requestId!==state.requestId||!conversationViewIsActive(id,token,key,generation))return [];
+            mergedBucket=conversationMessageBuckets.get(key)||[];
+          }
+
+          if(Number.isFinite(pageOldestV968)){
+            state.oldestServerSeq=state.oldestServerSeq>0?Math.min(state.oldestServerSeq,pageOldestV968):pageOldestV968;
+          }
+          state.olderExhausted=rawRows.length<MESSAGE_HISTORY_PAGE_LIMIT_V968||state.oldestServerSeq<=1;
+          state.lastLoadedAt=Date.now();
+          state.retryAfter=0;
+
+          /* M0.09 : persister le lot ancien par upsert et son curseur séparé. */
+          queuePersistMessageBucket(id,{force:true});
+          await writeLocalMessageSyncState(id,{
+            historyOldestServerSeq:state.oldestServerSeq,
+            historyExhausted:state.olderExhausted,
+            historyPageSize:MESSAGE_HISTORY_PAGE_LIMIT_V968,
+            historyUpdatedAt:new Date().toISOString()
+          }).catch(()=>{});
+
+          if(requestId!==state.requestId||!conversationViewIsActive(id,token,key,generation))return olderRows;
+          lastMessageContentSignature='';
+          renderMessages(false);
+          restoreMessageHistoryAnchorV968(anchor,id,key,generation);
+          return olderRows;
+        }catch(error){
+          if(requestId===state.requestId){
+            state.retryAfter=Date.now()+1600;
+            state.lastErrorAt=Date.now();
+          }
+          console.warn('[HAPPYAD M0 V968] historique ancien:',error);
+          return [];
+        }finally{
+          if(requestId===state.requestId)state.olderLoading=false;
+        }
+      }
+
+      function maybeLoadOlderMessagesFromScrollV968(){
+        clearTimeout(messageHistoryScrollTimerV968);
+        messageHistoryScrollTimerV968=0;
+        if(!chatBody||activeMessageView!=='chat'||!isUuid(currentConversationId))return;
+        if(sharedReturnScrollLockedV711()||conversationLatestOpenActiveV963(currentConversationId))return;
+        if(chatBody.scrollTop>110)return;
+        const id=clean(currentConversationId);
+        const state=getMessageHistoryStateV968(id);
+        if(!state||state.olderLoading||state.olderExhausted||Date.now()<finiteNumber(state.retryAfter,0))return;
+        messageHistoryScrollTimerV968=setTimeout(()=>{
+          messageHistoryScrollTimerV968=0;
+          if(!chatBody||activeMessageView!=='chat'||clean(currentConversationId)!==id||chatBody.scrollTop>120)return;
+          loadOlderMessagesV968(id).catch(()=>{});
+        },45);
+      }
+
       async function fetchMessageDeltaPage(conversationId,afterServerSeq,limit){
         const id = clean(conversationId);
         if(!isUuid(id)) return [];
@@ -13128,14 +13406,23 @@
 
         try{
           const state = await readLocalMessageSyncState(id).catch(() => null);
+          applyPersistedMessageHistoryStateV968(id,state);
+          syncMessageHistoryStateFromBucketV968(id,conversationMessageBuckets.get(conversationKey) || []);
           const localBucket = conversationMessageBuckets.get(conversationKey) || [];
-          const afterSeq = latestKnownConversationSeq(id,localBucket,state);
+          const localTailSeq = latestServerSeq(localBucket);
+          const expectedTailSeq = expectedConversationTailSeqV967(id);
+          let afterSeq = latestKnownConversationSeq(id,localBucket,state);
+          /* Si l'Inbox/preview connaît une séquence plus récente que la dernière bulle
+             réellement disponible, repartir de cette dernière bulle. Cela récupère
+             immédiatement les messages 91..100 par exemple, même si sync_state avait
+             déjà mémorisé 100. Aucun historique ancien n'est relu ici. */
+          if(expectedTailSeq > localTailSeq) afterSeq = Math.max(0,localTailSeq);
           await syncConversationDelta(id,{
             afterServerSeq:afterSeq,
             token,
             viewKey:conversationKey,
             generation:requestGeneration,
-            scrollToBottom:afterSeq <= 0
+            scrollToBottom:afterSeq <= 0 || expectedTailSeq > localTailSeq
           });
           if(!stillActive()) return [];
           if(afterSeq > 0) await repairConversationTailIfDue(id).catch(() => []);
@@ -13211,15 +13498,47 @@
         try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_INTERNAL_SCREEN_OPEN_V591',detail:{id:'message-chat',source:'message-center-v591'}},'*');}catch(_e){}
       }
 
+      function previewSeedOnlyOpeningBucketV969(items){
+        const safe=Array.isArray(items)?items.filter(Boolean):[];
+        if(!safe.length)return false;
+        return safe.every(message=>{
+          const metadata=message&&message.metadata&&typeof message.metadata==='object'?message.metadata:{};
+          return metadata.happyad_realtime_seed_v930===true;
+        });
+      }
+
+      async function primeConversationOpeningRecentV969(conversationId,token,activation){
+        const id=clean(conversationId);
+        if(!activation||!conversationViewIsActive(id,token,activation.key,activation.generation))return [];
+        let bucket=(conversationMessageBuckets.get(activation.key)||[]).filter(message=>message&&clean(message.conversationId)===id);
+        /* Après fermeture/reconnexion, l'Inbox peut avoir déjà injecté uniquement le
+           dernier preview. Ne jamais présenter cette bulle seule si IndexedDB possède
+           encore la vraie fenêtre récente du même compte. */
+        if(bucket.length<MESSAGE_OPEN_RECENT_LIMIT_V969||previewSeedOnlyOpeningBucketV969(bucket)){
+          const cached=await readLocalMessages(id).catch(()=>[]);
+          if(!conversationViewIsActive(id,token,activation.key,activation.generation))return [];
+          if(cached.length){
+            mergeMessages(cached,id);
+            bucket=(conversationMessageBuckets.get(activation.key)||[]).filter(message=>message&&clean(message.conversationId)===id);
+            syncConversationPreviewFromBucket(id);
+          }
+        }
+        return bucket;
+      }
+
       async function commitConversationVisualFirstV872(conversationId,token,activation){
         const id=clean(conversationId);
         await waitForMessageVisualCommitV872();
         if(!activation||!conversationViewIsActive(id,token,activation.key,activation.generation))return false;
-        const bucket=conversationMessageBuckets.get(activation.key)||[];
+        let bucket=await primeConversationOpeningRecentV969(id,token,activation);
+        if(!activation||!conversationViewIsActive(id,token,activation.key,activation.generation))return false;
         if(!bucket.length)return false;
+        /* V969 : on exige d'abord la fenêtre locale récente (cible 11). Une fois
+           IndexedDB fusionné, le rendu utilise le seau canonique complet afin de ne
+           jamais tronquer l'historique déjà mis en cache. */
         messages=bucket.slice();
         lastMessageContentSignature='';
-        renderMessages(false);
+        renderMessages(true);
         return true;
       }
 
@@ -16360,6 +16679,8 @@
         messageChatPinnedV775 = chatNearBottom(96);
         chatBody.addEventListener('scroll',() => {
           if(!sharedReturnScrollLockedV711()) messageChatPinnedV775 = chatNearBottom(96);
+          /* M0.03 : aucun chargement ancien au milieu du fil ; uniquement au vrai haut. */
+          maybeLoadOlderMessagesFromScrollV968();
         },{passive:true});
         if(window.PointerEvent){
           chatBody.addEventListener('pointerdown',beginManualMessageScrollV851R5,{passive:true});

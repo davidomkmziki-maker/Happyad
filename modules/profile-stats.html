@@ -2,6 +2,8 @@
 
 <html lang="fr">
 <head>
+<script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script>
+<script src="../core/supabase-config-master-v973.js?v=973-p1-central-config"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
 <meta content="#07090d" name="theme-color"/>
@@ -3109,7 +3111,7 @@
       if(/^(https?:|data:|blob:)/i.test(src))return src;
       src=src.replace(/^\/+/, '').replace(/^happyad-media\//,'');
       try{const c=HappyadStatsDataProvider.client;if(c?.storage?.from){const r=c.storage.from('happyad-media').getPublicUrl(src);if(r?.data?.publicUrl)return r.data.publicUrl}}catch(_){}
-      const base=String(window.HAPPYAD_SUPABASE_URL||'https://txjjyhupbejgjcianrmr.supabase.co').replace(/\/+$/,'');
+      const base=String(window.HAPPYAD_SUPABASE_URL||'').replace(/\/+$/,'');
       return `${base}/storage/v1/object/public/happyad-media/${encodeURI(src)}`;
     }
     function normalizeEmbedUrl(value){

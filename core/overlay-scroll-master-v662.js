@@ -1,10 +1,10 @@
-/* HAPPYAD V662 — les transformations zoom photo ne relancent plus l'analyse globale des overlays. */
+/* HAPPYAD P1.05 — moteur overlay/scroll canonique unique. API V615 conservée comme alias de compatibilité. */
 (function(){
   'use strict';
   if(window.__HAPPYAD_OVERLAY_SCROLL_MASTER_V615__)return;
   window.__HAPPYAD_OVERLAY_SCROLL_MASTER_V615__=true;
 
-  var VERSION='V901_OVERLAY_SCROLL_COMMENTS_NATIVE';
+  var VERSION='V905_OVERLAY_SCROLL_SINGLE_CANONICAL';
   var TAP_SHIELD_ID='happyadAppTapShield';
   var scheduled=false;
   var observer=null;

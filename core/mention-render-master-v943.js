@@ -15,7 +15,7 @@
     return;
   }
 
-  var VERSION='V943_MENTION_PROFILE_LINK_UID_SAFE';
+  var VERSION='V943_MENTION_PROFILE_LINK_UID_SAFE_PHOTO_HANDOFF_V944';
   var CLASS_NAME='happyadMentionBlueV941';
   var CACHE_KEY='HAPPYAD_MENTION_PROFILE_NAMES_V942';
   var CLICK_GUARD_MS=650;
@@ -225,21 +225,49 @@
     var username=cleanHandle(rec&&rec.username)||handle||'';
     return {id:uid,user_id:uid,name:name,full_name:name,display_name:name,handle:username,username:username,avatar:'',avatar_url:'',badge:'',source:'mention_link_v943',__happyadUidLocked:true};
   }
+  function routeMentionDirectV944(uid,appUrl,localUrl){
+    try{
+      if(window.parent&&window.parent!==window){
+        window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:appUrl,uid:uid,extra:{page:'profile_public',source:'mention-profile-link-v943-photo-handoff'}},'*');
+        return true;
+      }
+    }catch(_parent){}
+    try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(appUrl,{source:'mention-profile-link-v943-photo-handoff'});return true;}}catch(_route){}
+    try{if(typeof window.happyadOpenVideoProfileRouteV493==='function'){window.happyadOpenVideoProfileRouteV493(appUrl);return true;}}catch(_guard){}
+    try{location.href=localUrl;return true;}catch(_nav){}
+    return false;
+  }
   function routeMention(uid,handle,rec,el){
     uid=safeUid(uid);if(!uid)return false;
     try{localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(activeProfileFor(uid,handle,rec,el)));}catch(_e){}
     var appUrl='modules/visitor-profile.html?uid='+encodeURIComponent(uid);
     var localUrl=(/\/modules\//.test(String(location.pathname||''))?'visitor-profile.html?uid=':'modules/visitor-profile.html?uid=')+encodeURIComponent(uid);
+    var openRoute=function(){return routeMentionDirectV944(uid,appUrl,localUrl);};
+
+    /* V944 : une mention cliquée dans le fullscreen photo doit suivre exactement
+       le même handoff que le nom/avatar du créateur. Le fullscreen B est suspendu
+       AVANT l'ouverture du profil C; il ne peut donc plus rester au-dessus du
+       profil ni permettre d'empiler plusieurs profils invisibles en arrière-plan.
+       Au Retour, le maître V928 restaure le fullscreen B à sa position précédente. */
+    try{
+      var fs=window.HappyHomePhotoFullscreenV591;
+      var box=document.getElementById('happyadHomePhotoFullscreen');
+      if(fs&&typeof fs.handoffToProfile==='function'&&box&&box.classList.contains('on')&&box.getAttribute('data-happyad-route-suspended-v928')!=='1'){
+        return fs.handoffToProfile(openRoute);
+      }
+    }catch(_localFs){}
+    /* Secours si ce moteur tourne dans une iframe alors que le fullscreen est porté
+       par le shell parent (même origine). */
     try{
       if(window.parent&&window.parent!==window){
-        window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:appUrl,uid:uid,extra:{page:'profile_public',source:'mention-profile-link-v943'}},'*');
-        return true;
+        var pfs=window.parent.HappyHomePhotoFullscreenV591;
+        var pbox=window.parent.document&&window.parent.document.getElementById('happyadHomePhotoFullscreen');
+        if(pfs&&typeof pfs.handoffToProfile==='function'&&pbox&&pbox.classList.contains('on')&&pbox.getAttribute('data-happyad-route-suspended-v928')!=='1'){
+          return pfs.handoffToProfile(openRoute);
+        }
       }
-    }catch(_parent){}
-    try{if(typeof window.happyadOpenInternalUrlV492==='function'){window.happyadOpenInternalUrlV492(appUrl,{source:'mention-profile-link-v943'});return true;}}catch(_route){}
-    try{if(typeof window.happyadOpenVideoProfileRouteV493==='function'){window.happyadOpenVideoProfileRouteV493(appUrl);return true;}}catch(_guard){}
-    try{location.href=localUrl;return true;}catch(_nav){}
-    return false;
+    }catch(_parentFs){}
+    return openRoute();
   }
   async function resolveAndOpenMention(el){
     if(!el)return false;
