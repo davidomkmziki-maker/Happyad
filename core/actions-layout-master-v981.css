@@ -619,3 +619,31 @@ html body .photoSlide .slideSide .act[data-act="fav"] > span:not(.haLineIcon){
   :root{--ha979-card-icon:22px;--ha979-count:12px;--ha979-touch:40px;}
 }
 
+/* HAPPYAD V983 — Favoris rempli en orange sur chaque surface portée par ce master.
+   Les sélecteurs complets gagnent aussi contre les anciens SVG fill:none!important. */
+html body #list.homeTimeline .miniActions [data-card-act="fav"].on,
+html body .feedGrid .miniActions [data-card-act="fav"].on,
+html body .hScroller .miniActions [data-card-act="fav"].on,
+html body #happyadHomePhotoFullscreen .haHomeFsActions .haHomeFsAct[data-card-act="fav"].on,
+html body #happyadHomePhotoFullscreen .haHomeFsActions .haHomeFsAct[data-profile-fs-act="fav"].on,
+html body .profilePost .profileActions [data-profile-act="fav"].on,
+html body .photoSlide .slideSide .act[data-act="fav"].on{
+  color:#ff8a00!important;
+}
+html body #list.homeTimeline .miniActions [data-card-act="fav"].on .haLineIcon svg,
+html body #list.homeTimeline .miniActions [data-card-act="fav"].on .haLineIcon svg path,
+html body .feedGrid .miniActions [data-card-act="fav"].on .haLineIcon svg,
+html body .feedGrid .miniActions [data-card-act="fav"].on .haLineIcon svg path,
+html body .hScroller .miniActions [data-card-act="fav"].on .haLineIcon svg,
+html body .hScroller .miniActions [data-card-act="fav"].on .haLineIcon svg path,
+html body #happyadHomePhotoFullscreen .haHomeFsActions .haHomeFsAct[data-card-act="fav"].on .haFsSvg svg,
+html body #happyadHomePhotoFullscreen .haHomeFsActions .haHomeFsAct[data-card-act="fav"].on .haFsSvg svg path,
+html body #happyadHomePhotoFullscreen .haHomeFsActions .haHomeFsAct[data-profile-fs-act="fav"].on .haFsSvg svg,
+html body #happyadHomePhotoFullscreen .haHomeFsActions .haHomeFsAct[data-profile-fs-act="fav"].on .haFsSvg svg path,
+html body .profilePost .profileActions [data-profile-act="fav"].on svg,
+html body .profilePost .profileActions [data-profile-act="fav"].on svg path,
+html body .photoSlide .slideSide .act[data-act="fav"].on .haLineIcon svg,
+html body .photoSlide .slideSide .act[data-act="fav"].on .haLineIcon svg path{
+  fill:currentColor!important;
+  stroke:currentColor!important;
+}

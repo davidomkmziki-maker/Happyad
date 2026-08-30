@@ -6,7 +6,7 @@
   'use strict';
   if(window.HappyHomeCardRendererV1)return;
 
-  var VERSION='V981_SINGLE_CARD_ACTIONS_INSIDE';
+  var VERSION='V986_CARD_FOLLOW_PROFESSIONAL_SVG';
   var bridge=null;
 
   function connect(adapter){bridge=adapter||null;return api;}
@@ -15,6 +15,46 @@
   function safeText(v){return String(v==null?'':v);}
   function esc(v){var fn=b('esc');if(fn)return fn(v);return safeText(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function mentionHtml(v,p){try{var m=window.HappyMentionRenderV937R1;if(m&&typeof m.html==='function')return m.html(v,p);}catch(_e){}return esc(v);}
+  function visibleTitle(v){
+    v=safeText(v).trim();
+    if(!v||/^(publication|photo|vid[eé]o)\s+happyad$/i.test(v))return '';
+    return v;
+  }
+  function visibleMeta(v){
+    v=safeText(v).trim();
+    return /^publication$/i.test(v)?'':v;
+  }
+  function visibleCreatorSubline(v){
+    v=safeText(v).trim();
+    return /^happyad$/i.test(v)?'':v;
+  }
+  function bindCardFollowV986(card,ownerUid,ownerName){
+    try{
+      ownerUid=safeText(ownerUid).trim();
+      if(!card||!ownerUid)return;
+      var top=card.querySelector('.miniTop'),avatar=top&&top.querySelector('.avatar');
+      if(!top||!avatar)return;
+      var wrap=avatar.parentElement&&avatar.parentElement.classList&&avatar.parentElement.classList.contains('haHomeAvatarFollowWrapV986')?avatar.parentElement:null;
+      if(!wrap){
+        wrap=document.createElement('div');
+        wrap.className='haHomeAvatarFollowWrapV986';
+        top.insertBefore(wrap,avatar);
+        wrap.appendChild(avatar);
+      }
+      var button=wrap.querySelector('.happyadHomeAvatarFollowV986');
+      if(!button){
+        button=document.createElement('button');
+        button.type='button';
+        button.className='happyadHomeAvatarFollowV986';
+        button.hidden=true;
+        button.dataset.happyadFollowVisual='compact-svg-v986';
+        button.setAttribute('aria-label','S’abonner à '+safeText(ownerName||'ce créateur'));
+        wrap.appendChild(button);
+      }
+      var master=window.HappyFollowMasterV855R34||window.HappyFollowMaster||null;
+      if(master&&typeof master.bindOneWay==='function')master.bindOneWay(button,{targetUid:ownerUid});
+    }catch(_e){}
+  }
   function videoViewsBadge(v){
     var value=esc(v==null?'0':v);
     return '<div class="happyadVideoViewsBadge" aria-label="'+value+' vues"><svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount">'+value+'</span></div>';
@@ -32,7 +72,8 @@
     var title=p.title||'Annonce HAPPYAD';
     var rawDesc=safeText(p.desc||p.description||p.caption||'').trim();
     var desc=(rawDesc&&rawDesc!==safeText(title).trim())?rawDesc:'';
-    var meta=p.location?('📍 '+p.location):(p.marketplaceCategory||p.marketplace_category||p.category||'Annonce');
+    var creatorSubline=visibleCreatorSubline(p.location);
+    var meta=creatorSubline?('📍 '+creatorSubline):(p.marketplaceCategory||p.marketplace_category||p.category||'Annonce');
     var card=document.createElement('div');
     card.__happyadPost=p;
     card.__happyadVideo=video;
@@ -45,7 +86,8 @@
     var avatarAttrs=(ownerUid?' data-happyad-avatar-uid="'+esc(ownerUid)+'"':'')+' data-happyad-avatar-name="'+esc(name)+'"';
     var ago=call('timeAgo',call('postTimestamp',p))||'';
     var badge=call('badgeHtml',owner.badge)||'';
-    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div><span class="happyadMarketplaceHomeTagV856">ANNONCE</span></div><div class="miniMedia">'+(video?'<div class="play">▶</div>':'')+'</div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Annonce HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc happyadMarketplaceDescV856">'+esc(desc)+'</div>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="happyadMarketplaceCtaRowV856"><button class="happyadMarketplaceShareOnlyV857" type="button" data-card-act="share" aria-label="Partager l’annonce"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button><button class="happyadMarketplaceCardCtaV856" type="button"><span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator'+(creatorSubline?'':' haCreatorSingleLineV984')+'"><b>'+esc(name)+badge+'</b>'+(creatorSubline?'<span>'+esc(creatorSubline)+'</span>':'')+'</div><div class="miniPostDate">'+esc(ago)+'</div><span class="happyadMarketplaceHomeTagV856">ANNONCE</span></div><div class="miniMedia">'+(video?'<div class="play">▶</div>':'')+'</div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Annonce HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc happyadMarketplaceDescV856">'+esc(desc)+'</div>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div></div><div class="happyadMarketplaceCtaRowV856"><button class="happyadMarketplaceShareOnlyV857" type="button" data-card-act="share" aria-label="Partager l’annonce"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button><button class="happyadMarketplaceCardCtaV856" type="button"><span>Voir l’annonce</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
+    bindCardFollowV986(card,ownerUid,name);
     try{var top=card.querySelector('.miniTop');if(top)top.onclick=function(e){e.preventDefault();e.stopPropagation();return call('openProfile',card.__happyadPost||p);};}catch(_e){}
     var cta=card.querySelector('.happyadMarketplaceCardCtaV856');
     if(cta)cta.onclick=function(e){e.preventDefault();e.stopPropagation();var cp=card.__happyadPost||p;return call('openListing',cp&& (cp.id||cp.post_id),cp);};
@@ -90,10 +132,12 @@
     var owner=call('ownerData',p)||{};
     var name=owner.name||'Utilisateur HAPPYAD';
     var ownerUid=safeText(owner.id||owner.user_id||p.creatorId||p.creator_id||p.user_id||p.owner_id||p.author_id||'').trim();
-    var title=p.title||'Publication HAPPYAD';
+    var rawTitle=safeText(p.title||'').trim();
+    var title=visibleTitle(rawTitle);
     var rawDesc=safeText(p.desc||p.description||p.caption||'').trim();
-    var desc=(rawDesc&&rawDesc!==safeText(title).trim())?rawDesc:'';
-    var meta=p.location?('📍 '+p.location):(p.category||'Publication');
+    var desc=(rawDesc&&rawDesc!==rawTitle)?rawDesc:'';
+    var creatorSubline=visibleCreatorSubline(p.location);
+    var meta=visibleMeta(creatorSubline?('📍 '+creatorSubline):(p.category||'Publication'));
     var showMore=desc.length>74;
     var card=document.createElement('div');
     card.__happyadPost=p;
@@ -109,13 +153,17 @@
 
     if(album){
       call('prepareAlbumShell',card,p);
+      bindCardFollowV986(card,ownerUid,name);
       call('refreshAction',card,p.id);
       call('observeCard',card,p,false);
       return card;
     }
 
     var badge=call('badgeHtml',owner.badge)||'';
-    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator"><b>'+esc(name)+badge+'</b><span>'+esc(p.location||'HAPPYAD')+'</span></div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia"><div class="play">▶</div></div><div class="miniBody"><div class="miniTitleRow"><div class="miniTitle">'+esc(title||'Publication HAPPYAD')+'</div></div>'+(desc?'<div class="miniDesc">'+mentionHtml(desc,p)+'</div>':'')+(showMore?'<button class="miniSeeMore" type="button">Voir plus</button>':'')+'<div class="miniMeta">'+esc(meta)+'</div></div><div class="miniActions"><button class="actionBtn" data-card-act="like"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="comment"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="share"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="repost"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><small>0</small></button><button class="actionBtn fav" data-card-act="fav"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span></button></div></div>';
+    var body=(title||desc||meta)?'<div class="miniBody haSocialBodyV983">'+(title?'<div class="miniTitleRow"><div class="miniTitle">'+esc(title)+'</div></div>':'')+(desc?'<div class="miniDesc">'+mentionHtml(desc,p)+'</div>':'')+(showMore?'<button class="miniSeeMore" type="button">Voir plus</button>':'')+(meta?'<div class="miniMeta">'+esc(meta)+'</div>':'')+'</div>':'';
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator'+(creatorSubline?'':' haCreatorSingleLineV984')+'"><b>'+esc(name)+badge+'</b>'+(creatorSubline?'<span>'+esc(creatorSubline)+'</span>':'')+'</div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="miniMedia"><div class="play">▶</div></div>'+body+'<div class="miniActions"><button class="actionBtn" data-card-act="like"><span class="haLineIcon haLikeIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.7-4.9-1.5-6.6.5L12 7.6 9.8 5.1C8.1 3.1 5.1 2.9 3.2 4.6 1.1 6.5 1 9.7 3 11.7l9 8.6 9-8.6c2-2 1.9-5.2-.2-7.1z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="comment"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 20l1.1-4.2A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="share"><span class="haLineIcon" aria-hidden="true"><svg class="haSharePlaneSvg" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><small>0</small></button><button class="actionBtn" data-card-act="repost"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><small>0</small></button><button class="actionBtn fav" data-card-act="fav"><span class="haLineIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span></button></div></div>';
+
+    bindCardFollowV986(card,ownerUid,name);
 
     try{
       var top=card.querySelector('.miniTop');
@@ -126,7 +174,8 @@
     if(seeBtn)seeBtn.onclick=function(e){
       e.preventDefault();e.stopPropagation();
       var cp=card.__happyadPost||p;
-      if(video)call('openVideo',cp&&cp.id,cp);else call('openPhoto',cp&&cp.id,cp);
+      if(video)call('openVideo',cp&&cp.id,cp);
+      else call('openPhoto',cp&&cp.id,Object.assign({},cp,{__happyadOpenDescriptionExpandedV983:true}));
       return false;
     };
 

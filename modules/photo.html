@@ -2,8 +2,8 @@
 <!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut -->
 <!DOCTYPE html><html lang="fr"><head>
 <!-- HAPPYAD V979 : dernier design dès la première peinture -->
-<link rel="preload" as="style" href="../core/actions-layout-master-v981.css?v=981-single-card-media">
-<link id="happyad-actions-layout-master-v981-prepaint" rel="stylesheet" href="../core/actions-layout-master-v981.css?v=981-single-card-media"><script id="happyad-frame-first-paint-v623">
+<link rel="preload" as="style" href="../core/actions-layout-master-v981.css?v=983-favorite-comments-front">
+<link id="happyad-actions-layout-master-v981-prepaint" rel="stylesheet" href="../core/actions-layout-master-v981.css?v=983-favorite-comments-front"><script id="happyad-frame-first-paint-v623">
 (function(){
   if(window.__HAPPYAD_FRAME_FIRST_PAINT_V623__)return;
   window.__HAPPYAD_FRAME_FIRST_PAINT_V623__=true;
@@ -2785,6 +2785,27 @@ html,body,.screen{background:#000!important;}
 }
 </style>
 
-<!-- HAPPYAD V978 : MASTER FINAL compact des actions Photo — dernier style chargé -->
-<link id="happyad-actions-layout-master-v981" rel="stylesheet" href="../core/actions-layout-master-v981.css?v=981-single-card-media">
+<!-- HAPPYAD V983 : MASTER FINAL Photo — commentaires devant + favoris rempli -->
+<link id="happyad-actions-layout-master-v981" rel="stylesheet" href="../core/actions-layout-master-v981.css?v=983-favorite-comments-front">
+<style id="happyad-v983-photo-comments-front-layer">
+.commentBackdrop.show{
+  display:block!important;
+  z-index:2147483500!important;
+  pointer-events:auto!important;
+}
+.commentPanel.show{
+  display:flex!important;
+  z-index:2147483600!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  isolation:isolate!important;
+}
+.photoSlide .slideSide .act[data-act="fav"].on{color:#ff8a00!important;}
+.photoSlide .slideSide .act[data-act="fav"].on .haLineIcon svg,
+.photoSlide .slideSide .act[data-act="fav"].on .haLineIcon svg path{
+  fill:currentColor!important;
+  stroke:currentColor!important;
+}
+</style>
 </body></html>

@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v982-grouped-photo-badge-20260829';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v986-base-video-text-20260830';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v982-grouped-photo-badge-20260829',
+  './index.html?v=v986-professional-icons-love-20260830',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -38,10 +38,10 @@ var HAPPYAD_APP_SHELL = [
   './core/home-media-loader-v1.js?v=982-grouped-photo-badge',
   './core/like-direct-master-v876.js?v=876-like-direct',
   './core/home-actions-master-v1.js?v=978-favorite-count-contract',
-  './core/actions-layout-master-v982.css?v=982-grouped-photo-badge',
-  './core/home-card-layout-master-v982.css?v=982-grouped-photo-badge',
+  './core/actions-layout-master-v982.css?v=985-love-follow-typography',
+  './core/home-card-layout-master-v982.css?v=986-professional-icons-love',
   './core/mention-render-master-v943.js?v=944-photo-profile-handoff',
-  './core/home-card-renderer-v1.js?v=978-favorite-count-contract',
+  './core/home-card-renderer-v1.js?v=986-professional-icons-love',
   './core/home-feed-view-v1.js?v=929-prepaint-anchor',
   './core/home-feed-boot-v1.js?v=937-account-story-cache',
   './core/master-registry.js?v=974-p1-module-lifecycle-registry',
@@ -51,8 +51,8 @@ var HAPPYAD_APP_SHELL = [
   './modules/notification-center.html?v=974-p1-module-lifecycle-registry',
   './core/notification-infinite-scroll-master-v700.js?v=869-connection-phase2',
   './modules/assistance.html?v=974-p1-module-lifecycle-registry',
-  './modules/video.html?v=979-last-design-master',
-  './modules/photo.html?v=979-last-design-master',
+  './modules/video.html?v=986-base-video-text',
+  './modules/photo.html?v=983-seven-media-actions',
   './modules/map.html?v=974-p1-module-lifecycle-registry',
   './modules/publish.html?v=974-p1-module-lifecycle-registry',
   './modules/live.html?v=974-p1-module-lifecycle-registry',
@@ -62,10 +62,10 @@ var HAPPYAD_APP_SHELL = [
   './core/global-scroll-coordinator-v868.js?v=869-connection-phase2',
   './core/connection-work-coordinator-v869.js?v=869-connection-phase2',
   './core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical',
-  './core/navigation-master-v668.js?v=931-visitor-profile-route-back',
+  './core/navigation-master-v668.js?v=986-professional-icons-love',
   './core/home-scroll-priority-master-v863.js?v=869-connection-phase2',
   './core/profile-avatar-master-v855r32.js?v=972-p1-single-client',
-  './core/follow-master-v855r34.js?v=972-p1-single-client',
+  './core/follow-master-v855r34.js?v=986-professional-icons-love',
   './core/auth-storage-quota-master-v752.js?v=937-idb-auth-purge',
   './core/supabase-config-master-v973.js?v=973-p1-central-config',
   './core/supabase-client-master-v972.js?v=973-p1-central-config',
@@ -80,7 +80,7 @@ var HAPPYAD_APP_SHELL = [
   './core/share-master.js?v=930-shared-video-single-open',
   './core/share-button-bridge.js?v=938-guest-share-gate',
   './modules/share-center.html?v=974-p1-module-lifecycle-registry',
-  './core/story-master-v699.js?v=971-notification-story-fast',
+  './core/story-master-v699.js?v=986-professional-icons-love',
   './core/notification-master-v700.js?v=972-p1-single-client',
   './core/auth-session-master-v598.js?v=972-p1-single-client',
   './core/profile-identity-stable-master-v741.js?v=937-auth-single-authority',
@@ -89,7 +89,7 @@ var HAPPYAD_APP_SHELL = [
   './core/home-scroll-prepaint-master-v696.js?v=855r100-home-scroll-physical-stable',
   './core/profile-edit-clear-master-v742.css?v=742-profile-edit-clear',
   './core/profile-edit-clear-master-v742.js?v=855r93-home-silent',
-  './core/main-tabs-master-v615.js?v=966-view-once-persistent-hide',
+  './core/main-tabs-master-v615.js?v=986-professional-icons-love',
   './core/guest-radar-auth-v599.js?v=940-guest-auth-rainbow',
   './core/auth-frame-gate-v596.js?v=938-guest-passive',
   './core/publish-master-v589.js?v=927-publish-canonical-return',

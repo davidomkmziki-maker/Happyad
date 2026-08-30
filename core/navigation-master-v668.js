@@ -40,7 +40,7 @@
     home:'index.html',
     profile:'modules/my-profile.html?v=877-dock-execution-direct',
     profile_public:'modules/visitor-profile.html',
-    video:'modules/video.html?v=931-text-free-more-no-panel',
+    video:'modules/video.html?v=986-base-video-text',
     photo:'modules/photo.html',
     message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide',
     publish:'modules/publish.html?v=937-post-mention-notification',
@@ -784,7 +784,7 @@
   }
   function persistentMainUrl(page){
     page=String(page||'');
-    if(page==='video')return 'modules/video.html?v=931-text-free-more-no-panel';
+    if(page==='video')return 'modules/video.html?v=986-base-video-text';
     if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide';
     if(page==='profile')return 'modules/my-profile.html?v=877-dock-execution-direct';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;

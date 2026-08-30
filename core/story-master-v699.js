@@ -6,7 +6,7 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V942_VISIBLE_RADAR_MEDIA_PRELOAD';
+  var VERSION='STORY_MASTER_V986_PROFESSIONAL_ADD_SVG';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,progressAnim:null,progressBaseElapsed:0,
@@ -32,6 +32,7 @@
   function $(id){return document.getElementById(id)}
   function clean(v){return String(v==null?'':v).trim()}
   function esc(v){return String(v==null?'':v).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c})}
+  function storyAddIconHtmlV986(){return '<svg class="haStoryAddGlyphV986" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5.5v13M5.5 12h13"></path></svg>'}
   function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clean(v))}
   function sb(){try{return typeof window.happyadSb==='function'?window.happyadSb():(window.happyadSupabase||null)}catch(_e){return null}}
   function readJson(k,d){try{var x=JSON.parse(localStorage.getItem(k)||'');return x==null?d:x}catch(_e){return d}}
@@ -645,14 +646,15 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 .radarRow .haStoryRadarUnitV629 .radarAvatar img{width:100%!important;height:100%!important;object-fit:cover!important}
 .radarRow .haStoryRadarUnitV629 .radarName{max-width:92px!important;margin-top:7px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:13px!important}
 .radarRow .haStoryRadarUnitV629 .radarMeta{max-width:92px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:11px!important}
-.radarRow .haStoryAddMiniV629{position:absolute!important;right:7px!important;top:51px!important;width:25px!important;height:25px!important;border-radius:50%!important;border:3px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:20px!important;font-weight:950!important;line-height:1!important;text-decoration:none!important;z-index:8!important;box-sizing:border-box!important}
+.radarRow .haStoryAddMiniV629{position:absolute!important;right:7px!important;top:51px!important;width:25px!important;height:25px!important;border-radius:50%!important;border:2.5px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:0!important;line-height:0!important;text-decoration:none!important;z-index:8!important;box-sizing:border-box!important;overflow:hidden!important}
 .radarRow .haStoryAddMiniV629:visited{background:#ff8500!important;color:#fff!important;text-decoration:none!important}.radarRow .haStoryAddMiniV629:active,.radarRow .haStoryAddMiniV629.happyadButtonPressedV604{background:#ff8500!important;color:#fff!important;filter:brightness(1.08)!important;translate:0 0!important;scale:.94!important;box-shadow:none!important}
+.radarRow .haStoryAddGlyphV986{display:block!important;width:13px!important;height:13px!important;overflow:visible!important;fill:none!important;stroke:currentColor!important;stroke-width:2.65!important;stroke-linecap:round!important;stroke-linejoin:round!important;pointer-events:none!important}
 .radarRow .haStoryAddOnlyV629 .radarAvatar{background:transparent!important;border:0!important;color:#fff!important;font-size:22px!important;padding:0!important;box-shadow:none!important;overflow:visible!important}
 .radarRow .haStoryAddOnlyV629 .radarAvatar img,.radarRow .haStoryAddOnlyV629 .radarAvatar .radarInitial{width:100%!important;height:100%!important;border-radius:50%!important;object-fit:cover!important;background:#11151d!important}
 .radarRow .haStoryAddOnlyV629 .radarAvatar.haStoryGuestBubbleV939{position:relative!important;overflow:visible!important;background:radial-gradient(circle at 32% 25%,#91f2ee 0%,#5ed9ea 22%,#5d9bea 48%,#6f70df 70%,#7456cf 88%,#5b45aa 100%)!important;border:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38)!important,inset 0 -12px 24px rgba(48,35,130,.18)!important,0 7px 20px rgba(70,93,210,.20)!important;color:#fff!important}
 .radarRow .haStoryAddOnlyV629 .radarAvatar.haStoryGuestBubbleV939:before{content:""!important;position:absolute!important;left:13px!important;right:13px!important;top:7px!important;height:25px!important;border-radius:50%!important;background:radial-gradient(ellipse at center,rgba(255,255,255,.40) 0%,rgba(255,255,255,.12) 48%,rgba(255,255,255,0) 76%)!important;filter:blur(.7px)!important;pointer-events:none!important}
 .radarRow .haStoryAddOnlyV629 .haStoryGuestOrbFaceV939{position:absolute!important;inset:0!important;border-radius:50%!important;background:radial-gradient(circle at 70% 78%,rgba(116,72,220,.22) 0%,rgba(116,72,220,0) 48%)!important;pointer-events:none!important}
-.radarRow .haStoryAddOnlyV629 .haStoryIdlePlusV936{position:absolute!important;right:-1px!important;bottom:-1px!important;width:23px!important;height:23px!important;border-radius:50%!important;border:3px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:18px!important;font-weight:950!important;line-height:1!important;box-sizing:border-box!important;z-index:3!important}
+.radarRow .haStoryAddOnlyV629 .haStoryIdlePlusV936{position:absolute!important;right:-1px!important;bottom:-1px!important;width:24px!important;height:24px!important;border-radius:50%!important;border:2.5px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:0!important;line-height:0!important;box-sizing:border-box!important;z-index:3!important;overflow:hidden!important}
 .radarRow .haStoryAddOnlyV629 .radarMeta{display:none!important}
 #haStoryActivityModalV629{position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.58)!important;display:flex!important;align-items:flex-end!important;justify-content:center!important;color:#fff!important;font-family:system-ui!important}
 #haStoryActivityModalV629 .haSamCard{width:min(100vw,520px)!important;max-height:72vh!important;overflow:auto!important;background:#0b0f16!important;border-radius:24px 24px 0 0!important;padding:14px 16px calc(18px + env(safe-area-inset-bottom))!important;box-shadow:0 -20px 70px rgba(0,0,0,.5)!important}
@@ -1882,7 +1884,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       if(w.getAttribute('data-idle-profile-sig-v936')!==sig){
         var face=guestIdle?'<span class="haStoryGuestOrbFaceV939" aria-hidden="true"></span>':(av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial">'+esc(initials(name))+'</span>');
         var avatarClass='radarAvatar haStoryOwnIdleV936'+(guestIdle?' haStoryGuestBubbleV939':'');
-        w.innerHTML='<a class="radarItem" href="modules/publish.html?mode=story" aria-label="Ajouter une story"><div class="'+avatarClass+'">'+face+'<span class="haStoryIdlePlusV936" aria-hidden="true">+</span></div><div class="radarName">Ta story</div></a>';
+        w.innerHTML='<a class="radarItem" href="modules/publish.html?mode=story" aria-label="Ajouter une story"><div class="'+avatarClass+'">'+face+'<span class="haStoryIdlePlusV936" aria-hidden="true">'+storyAddIconHtmlV986()+'</span></div><div class="radarName">Ta story</div></a>';
         w.setAttribute('data-idle-profile-sig-v936',sig);
       }
       if(row.firstElementChild!==w)row.insertBefore(w,row.firstElementChild);
@@ -1909,7 +1911,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       }
       var plus=w.querySelector('.haStoryAddMiniV629');
       if(owner===me){
-        if(!plus){plus=document.createElement('a');plus.className='haStoryAddMiniV629';plus.href='modules/publish.html?mode=story';plus.setAttribute('aria-label','Ajouter une story');plus.textContent='+';plus.onclick=function(e){e.stopPropagation()};w.appendChild(plus)}
+        if(!plus){plus=document.createElement('a');plus.className='haStoryAddMiniV629';plus.href='modules/publish.html?mode=story';plus.setAttribute('aria-label','Ajouter une story');plus.innerHTML=storyAddIconHtmlV986();plus.onclick=function(e){e.stopPropagation()};w.appendChild(plus)}
       }else if(plus)plus.remove();
       row.appendChild(w);
     }

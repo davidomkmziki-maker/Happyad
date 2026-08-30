@@ -2,7 +2,7 @@
   'use strict';
   if(window.HappyFollowMasterV855R34)return;
 
-  var VERSION='V855R34_FOLLOW_SINGLE_ENGINE_ONE_WAY_CTA';
+  var VERSION='V986_FOLLOW_SINGLE_ENGINE_COMPACT_SVG';
   var CACHE_KEY='HAPPYAD_FOLLOW_STATE_V855R34';
   var SYNC_KEY='HAPPYAD_FOLLOW_SYNC_V855R34';
   var CHANNEL_NAME='happyad-follow-v855r34';
@@ -72,17 +72,34 @@
     button.hidden=!on;
     if(on)button.removeAttribute('aria-hidden');else button.setAttribute('aria-hidden','true');
   }
+  function isCompactSvgV986(button){
+    return !!(button&&button.dataset&&button.dataset.happyadFollowVisual==='compact-svg-v986');
+  }
+  function compactIconHtmlV986(following){
+    return following
+      ? '<svg class="happyadFollowGlyphV986 happyadFollowCheckGlyphV986" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5.8 12.6 4 4 8.5-8.8"></path></svg>'
+      : '<svg class="happyadFollowGlyphV986 happyadFollowPlusGlyphV986" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5.5v13M5.5 12h13"></path></svg>';
+  }
+  function paintVisualV986(button,following){
+    if(!button)return;
+    if(isCompactSvgV986(button)){
+      button.innerHTML=compactIconHtmlV986(!!following);
+      button.setAttribute('aria-label',following?'Abonnement ajouté':clean(button.dataset.happyadFollowIdleLabel||'S’abonner'));
+      return;
+    }
+    button.textContent=following?'✔️':'S’abonner';
+  }
   function paintButton(button,known,following){
     if(!button)return;
     var successUntil=Number(button.dataset&&button.dataset.happyadFollowSuccessUntil||0);
     if(following&&successUntil>Date.now()){
-      show(button,true);button.disabled=true;button.textContent='✔️';button.classList.add('happyadFollowSuccessV855R34');
+      show(button,true);button.disabled=true;paintVisualV986(button,true);button.classList.add('happyadFollowSuccessV855R34');
       return;
     }
     button.classList.remove('happyadFollowSuccessV855R34');
     button.removeAttribute('data-happyad-follow-success-until');
     if(!known||following){button.disabled=!!following;show(button,false);return;}
-    button.disabled=false;button.textContent='S’abonner';show(button,true);
+    button.disabled=false;paintVisualV986(button,false);show(button,true);
   }
   function syncButtons(viewer,target,following){
     try{
@@ -191,13 +208,14 @@
   }
   function bindOneWay(button,options){
     options=options||{};if(!button)return null;
+    if(isCompactSvgV986(button)&&!clean(button.dataset.happyadFollowIdleLabel))button.dataset.happyadFollowIdleLabel=clean(button.getAttribute('aria-label')||'S’abonner');
     unbindOneWay(button);
     var binding={token:Date.now()+'-'+Math.random(),button:button,target:clean(options.targetUid),viewer:'',handler:null};
-    button.__happyadFollowBindingV855R34=binding;button.textContent='S’abonner';show(button,false);
+    button.__happyadFollowBindingV855R34=binding;paintVisualV986(button,false);show(button,false);
     binding.handler=function(event){
       event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();
       if(button.disabled||!binding.viewer||!binding.target)return false;
-      var until=Date.now()+720;button.dataset.happyadFollowSuccessUntil=String(until);button.textContent='✔️';button.disabled=true;button.classList.add('happyadFollowSuccessV855R34');show(button,true);
+      var until=Date.now()+720;button.dataset.happyadFollowSuccessUntil=String(until);paintVisualV986(button,true);button.disabled=true;button.classList.add('happyadFollowSuccessV855R34');show(button,true);
       setFollowing(binding.viewer,binding.target,true).then(function(){
         if(button.__happyadFollowBindingV855R34!==binding)return;
         setTimeout(function(){if(button.__happyadFollowBindingV855R34===binding){delete button.dataset.happyadFollowSuccessUntil;paintButton(button,true,true);}},Math.max(0,until-Date.now()));
@@ -222,7 +240,7 @@
     return binding;
   }
 
-  var api={version:VERSION,client:client,viewerUid:viewerUid,getEntry:getEntry,isFollowing:isFollowing,setFollowing:setFollowing,follow:function(viewer,target){return setFollowing(viewer,target,true);},bindOneWay:bindOneWay,unbindOneWay:unbindOneWay};
+  var api={version:VERSION,client:client,viewerUid:viewerUid,getEntry:getEntry,isFollowing:isFollowing,setFollowing:setFollowing,follow:function(viewer,target){return setFollowing(viewer,target,true);},bindOneWay:bindOneWay,unbindOneWay:unbindOneWay,compactIconHtmlV986:compactIconHtmlV986};
   window.HappyFollowMasterV855R34=Object.freeze(api);
   window.HappyFollowMaster=window.HappyFollowMasterV855R34;
   bindSync();
