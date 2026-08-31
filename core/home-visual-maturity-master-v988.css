@@ -787,3 +787,168 @@ html body > .app a:focus-visible{
     transition:none!important;
   }
 }
+
+/* HAPPYAD V988R9 — geste social mature + Voir plus intégré sans déplacer les actions.
+   - Publication normale : description 2 lignes, Voir plus sur la 2e ligne.
+   - Annonce : description 3 lignes, Voir plus sur la 3e ligne.
+   - Double tap média : love visuel identique à la centrale vidéo, sans cercle. */
+html body #list.homeTimeline .happyadInlineDescWrapV991,
+html body #list.homeTimeline .happyadMarketplaceDescWrapV991{
+  position:relative!important;
+  min-width:0!important;
+  width:100%!important;
+}
+html body #list.homeTimeline .happyadInlineDescWrapV991 .happyadInlineDescV991{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+  max-height:calc(1.36em * 2)!important;
+}
+html body #list.homeTimeline .happyadMarketplaceDescWrapV991 .happyadMarketplaceDescV856{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  overflow:hidden!important;
+  max-height:calc(1.36em * 3)!important;
+}
+html body #list.homeTimeline .happyadInlineMoreV991,
+html body #list.homeTimeline .happyadMarketplaceMoreV991{
+  position:absolute!important;
+  right:0!important;
+  bottom:0!important;
+  z-index:3!important;
+  min-height:0!important;
+  height:1.36em!important;
+  margin:0!important;
+  padding:0 0 0 18px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:linear-gradient(90deg,rgba(var(--ha988-home-surface-rgb),0) 0%,rgba(var(--ha988-home-surface-rgb),.96) 26%,var(--ha988-home-surface) 48%)!important;
+  color:var(--ha988-home-orange)!important;
+  font:inherit!important;
+  font-size:13px!important;
+  font-weight:650!important;
+  line-height:1.36!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+  touch-action:manipulation!important;
+}
+html body #list.homeTimeline .happyadInlineMoreV991[hidden],
+html body #list.homeTimeline .happyadMarketplaceMoreV991[hidden]{display:none!important;}
+html body #list.homeTimeline .happyadMarketplaceDescWrapV991.expanded .happyadMarketplaceDescV856{
+  display:block!important;
+  -webkit-line-clamp:unset!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+html body #list.homeTimeline .happyadMarketplaceDescWrapV991.expanded .happyadMarketplaceMoreV991{
+  position:static!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  height:auto!important;
+  margin-top:2px!important;
+  padding:2px 0!important;
+  background:transparent!important;
+}
+
+/* Love double-tap : forme SVG arrondie, grand coeur + échos + 4 confirmations dispersées. */
+html body #list.homeTimeline .happyadHomeLoveBurstV991{
+  position:absolute!important;
+  inset:0!important;
+  z-index:28!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  contain:layout paint!important;
+}
+html body #list.homeTimeline .happyadHomeLoveMainV991{
+  position:absolute!important;
+  left:var(--ha-home-love-x,50%)!important;
+  top:var(--ha-home-love-y,50%)!important;
+  width:132px!important;
+  height:132px!important;
+  transform:translate(-50%,-50%)!important;
+  overflow:visible!important;
+}
+html body #list.homeTimeline .happyadHomeLoveMainV991 svg{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  display:block!important;
+  width:124px!important;
+  height:124px!important;
+  fill:#ff315f!important;
+  stroke:none!important;
+  transform-origin:center!important;
+  opacity:0;
+}
+html body #list.homeTimeline .happyadHomeLoveCoreV991{
+  animation:happyadHomeLoveCoreV991 1.02s cubic-bezier(.18,.82,.24,1) forwards!important;
+}
+html body #list.homeTimeline .happyadHomeLoveEchoV991{
+  fill:#ff5b86!important;
+  animation-duration:1.08s!important;
+  animation-timing-function:cubic-bezier(.18,.82,.24,1)!important;
+  animation-fill-mode:forwards!important;
+}
+html body #list.homeTimeline .happyadHomeLoveEchoV991.e1{animation-name:happyadHomeLoveEchoLeftV991!important;}
+html body #list.homeTimeline .happyadHomeLoveEchoV991.e2{animation-name:happyadHomeLoveEchoRightV991!important;animation-delay:.035s!important;}
+html body #list.homeTimeline .happyadHomeLoveSparkV991{
+  position:absolute!important;
+  display:block!important;
+  width:27px!important;
+  height:27px!important;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.25) rotate(var(--ha-home-love-rotate,0deg));
+  animation:happyadHomeLoveSparkV991 .92s cubic-bezier(.2,.78,.24,1) forwards!important;
+}
+html body #list.homeTimeline .happyadHomeLoveSparkV991 svg{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  fill:#ff4775!important;
+  stroke:none!important;
+}
+html body #list.homeTimeline .happyadHomeLoveSparkV991.s1{left:17%!important;top:25%!important;--ha-home-love-rotate:-13deg;--ha-home-love-float-x:-7px;animation-delay:.02s!important;}
+html body #list.homeTimeline .happyadHomeLoveSparkV991.s2{left:76%!important;top:22%!important;--ha-home-love-rotate:11deg;--ha-home-love-float-x:8px;animation-delay:.08s!important;}
+html body #list.homeTimeline .happyadHomeLoveSparkV991.s3{left:20%!important;top:70%!important;--ha-home-love-rotate:8deg;--ha-home-love-float-x:-5px;animation-delay:.14s!important;}
+html body #list.homeTimeline .happyadHomeLoveSparkV991.s4{left:74%!important;top:73%!important;--ha-home-love-rotate:-9deg;--ha-home-love-float-x:7px;animation-delay:.20s!important;}
+@keyframes happyadHomeLoveCoreV991{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.34) rotate(-7deg)}
+  19%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(1deg)}
+  44%{opacity:1;transform:translate(-50%,-50%) scale(.98) rotate(0)}
+  76%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.08)}
+}
+@keyframes happyadHomeLoveEchoLeftV991{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.38) rotate(-8deg)}
+  24%{opacity:.30;transform:translate(-66%,-50%) scale(1.02) rotate(-10deg)}
+  67%{opacity:.18;transform:translate(-72%,-48%) scale(1.12) rotate(-12deg)}
+  100%{opacity:0;transform:translate(-78%,-45%) scale(1.22) rotate(-14deg)}
+}
+@keyframes happyadHomeLoveEchoRightV991{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.38) rotate(7deg)}
+  24%{opacity:.24;transform:translate(-34%,-52%) scale(.98) rotate(9deg)}
+  67%{opacity:.14;transform:translate(-28%,-50%) scale(1.09) rotate(11deg)}
+  100%{opacity:0;transform:translate(-23%,-47%) scale(1.18) rotate(13deg)}
+}
+@keyframes happyadHomeLoveSparkV991{
+  0%{opacity:0;transform:translate(-50%,-38%) scale(.25) rotate(var(--ha-home-love-rotate,0deg))}
+  22%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(var(--ha-home-love-rotate,0deg))}
+  66%{opacity:.94;transform:translate(calc(-50% + var(--ha-home-love-float-x,0px)),calc(-50% - 10px)) scale(1) rotate(var(--ha-home-love-rotate,0deg))}
+  100%{opacity:0;transform:translate(calc(-50% + var(--ha-home-love-float-x,0px)),calc(-50% - 28px)) scale(.92) rotate(var(--ha-home-love-rotate,0deg))}
+}
+html body #list.homeTimeline .happyadHomeDoubleTapPulseV991 [data-card-act="like"] .haLineIcon{
+  animation:happyadHomeDoubleTapPulseV991 .24s ease-out!important;
+}
+@keyframes happyadHomeDoubleTapPulseV991{0%{transform:scale(.78)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
+@media(max-width:390px){
+  html body #list.homeTimeline .happyadInlineMoreV991,
+  html body #list.homeTimeline .happyadMarketplaceMoreV991{font-size:12.5px!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  html body #list.homeTimeline .happyadHomeLoveCoreV991,
+  html body #list.homeTimeline .happyadHomeLoveEchoV991,
+  html body #list.homeTimeline .happyadHomeLoveSparkV991{animation-duration:.42s!important;animation-delay:0s!important;}
+}

@@ -150,8 +150,9 @@
       var title=el.querySelector('.haV872Identity strong');if(title)title.textContent=name;
       var avatar=el.querySelector('.haV872Avatar'),url=clean(target.avatar);
       if(avatar){
-        if(url){var img=document.createElement('img');img.alt='';img.src=url;img.referrerPolicy='no-referrer';img.onerror=function(){try{avatar.textContent=name.slice(0,1).toUpperCase();}catch(_e){}};avatar.appendChild(img);}
-        else avatar.textContent=name.slice(0,1).toUpperCase();
+        avatar.classList.remove('happyadDefaultProfileAvatarV989');avatar.replaceChildren();
+        if(url){var img=document.createElement('img');img.alt='';img.src=url;img.referrerPolicy='no-referrer';img.onerror=function(){try{avatar.replaceChildren();avatar.classList.add('happyadDefaultProfileAvatarV989');}catch(_e){}};avatar.appendChild(img);}
+        else avatar.classList.add('happyadDefaultProfileAvatarV989');
       }
       var back=el.querySelector('.haV872Back');if(back)back.addEventListener('click',function(ev){stop(ev);closeVisitorDirectChatV855R77('visitor-opening-back-v872');},true);
       root.appendChild(el);

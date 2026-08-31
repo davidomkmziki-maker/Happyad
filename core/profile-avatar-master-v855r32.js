@@ -2,7 +2,7 @@
   'use strict';
   if(window.HappyProfileAvatarMasterV855R32)return;
 
-  var VERSION='V990_PROFILE_AVATAR_GLOBAL_DEFAULT_ICON';
+  var VERSION='V995_PROFILE_AVATAR_SOURCE_DEFAULT_ICON';
   var CACHE_KEY='HAPPYAD_PROFILE_AVATAR_MASTER_V855R32';
   var SYNC_KEY='HAPPYAD_PROFILE_AVATAR_SYNC_V855R32';
   var CHANNEL_NAME='happyad-profile-avatar-v855r32';
@@ -452,7 +452,7 @@
     if(ids.length)resolveMany(ids).catch(function(){});
   }
 
-  var api={version:VERSION,getEntry:entry,isKnown:function(uid){var e=entry(uid);return !!(e&&e.known);},current:current,resolve:resolve,resolveMany:resolveMany,set:set,primeFromProfile:primeFromProfile,primeProfiles:primeProfiles,patchRecord:patchRecord,paintBox:paintBox,styleExactCropImage:styleExactCropImage,paint:function(uid,root){var e=entry(uid);if(e)paintEntryDom(e,root||document);return e;},invalidate:function(uid,url,options){return set(uid,url,options||{});},uidOf:uidOf};
+  var api={version:VERSION,getEntry:entry,isKnown:function(uid){var e=entry(uid);return !!(e&&e.known);},current:current,resolve:resolve,resolveMany:resolveMany,set:set,primeFromProfile:primeFromProfile,primeProfiles:primeProfiles,patchRecord:patchRecord,paintBox:paintBox,showDefaultAvatar:showDefaultAvatar,hideDefaultAvatar:hideDefaultAvatar,scanDefaultAvatars:scanDefaultAvatars,styleExactCropImage:styleExactCropImage,paint:function(uid,root){var e=entry(uid);if(e)paintEntryDom(e,root||document);return e;},invalidate:function(uid,url,options){return set(uid,url,options||{});},uidOf:uidOf};
   window.HappyProfileAvatarMasterV855R32=Object.freeze(api);
   window.HappyProfileAvatarMaster=window.HappyProfileAvatarMasterV855R32;
   bindSync();

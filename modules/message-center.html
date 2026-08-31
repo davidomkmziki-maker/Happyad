@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head><script id="happyad-frame-first-paint-v623">
+<head>
+<style id="happyad-profile-avatar-source-v995">
+/* V995 — fallback profil directement dans le source : aucune initiale B/C/K en connexion faible. */
+.avatar,.commentAvatar,.commentAvatarSmall,.haCommentAvatar,.radarInitial,.mentionAutoAvatar,.person-selector-avatar,.chat-avatar,.haProfileAvatar,.avatar-fallback,.ha629Avatar,.ha629SharedPostAvatarV912,.haMentionAvatarV63,.haSearchAvatar,.happy-avatar,.hsvAvatar,.haV872Avatar,.haHomeFsAvatar,.hsvmAv,.haSamAv,.sponsorCreatorInitial,#currentUserAvatar,#chatAvatar,#profileAvatar,#hsvAvatar{background-color:#fff;background-image:radial-gradient(circle at 50% 34%,#9299a4 0 19.5%,transparent 20.5%),radial-gradient(ellipse 61% 45% at 50% 103%,#9299a4 0 98%,transparent 100%);background-repeat:no-repeat;background-size:100% 100%;background-position:center;color:transparent!important;text-shadow:none!important}
+.avatar>img,.commentAvatar>img,.commentAvatarSmall>img,.haCommentAvatar>img,.person-selector-avatar>img,.chat-avatar>img,.haProfileAvatar>img,.ha629Avatar>img,.ha629SharedPostAvatarV912>img,.haMentionAvatarV63>img,.haSearchAvatar>img,.happy-avatar>img,.hsvAvatar>img,.haV872Avatar>img,.haHomeFsAvatar>img,.hsvmAv>img,.haSamAv>img,#currentUserAvatar>img,#chatAvatar>img,#profileAvatar>img,#hsvAvatar>img{position:relative;z-index:1}
+#currentUserInitials{display:none!important}
+</style><script id="happyad-frame-first-paint-v623">
 (function(){
   if(window.__HAPPYAD_FRAME_FIRST_PAINT_V623__)return;
   window.__HAPPYAD_FRAME_FIRST_PAINT_V623__=true;
@@ -73,7 +79,8 @@
     })();
   </script>
   <script src="../core/supabase-client-master-v972.js?v=973-p1-central-config"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=990-global-default-profile-icon"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=995-source-default-profile-icon"></script>
+<script src="../core/profile-link-master-v992.js?v=996-primary-name-badge"></script>
 <script id="happyad-auth-storage-quota-master-v752" src="../core/auth-storage-quota-master-v752.js?v=757-quota-audit-stable"></script>
   <script src="../core/message-privacy-master-v855r51.js?v=972-p1-single-client"></script>
   <script src="../core/filtering-privacy-master-v855r55.js?v=855r55-filtering"></script>
@@ -313,6 +320,8 @@
       overflow:hidden;
     }
     .chat-name-line .chat-name{flex:0 1 auto;min-width:0;max-width:calc(100% - 24px)}
+    .happyadMessageProfileLinkV992{cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .happyadMessageProfileLinkV992:active{opacity:.78}
     .topline .conversation-name-line{min-width:0;flex:1;display:flex;align-items:center;gap:6px;overflow:hidden}
     .topline .conversation-name-line .name{min-width:0;flex:0 1 auto}
     .topline .time{margin-left:auto}
@@ -9764,7 +9773,8 @@
       function showAvatarInitialsV965(element,name){
         if(!element) return;
         element.classList.remove('has-photo');
-        element.replaceChildren(document.createTextNode(initials(name)));
+        element.classList.add('happyadDefaultProfileAvatarV989');
+        element.replaceChildren();
       }
 
       function commitAvatarV965(element,name,url,token){
@@ -9784,6 +9794,7 @@
           showAvatarInitialsV965(element,clean(element.dataset.happyadAvatarNameV965) || renderedName);
         };
         img.src = url;
+        element.classList.remove('happyadDefaultProfileAvatarV989');
         element.classList.add('has-photo');
         element.replaceChildren(img);
         delete element.dataset.happyadAvatarLoadingV965;
@@ -9850,10 +9861,12 @@
         currentUserPhoto.onerror = function(){
           if(clean(currentUserPhoto.dataset.happyadAvatar) !== url) return;
           currentUserAvatar.classList.remove('has-photo');
+          currentUserAvatar.classList.add('happyadDefaultProfileAvatarV989');
           currentUserPhoto.removeAttribute('src');
           delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
         };
         currentUserPhoto.src = url;
+        currentUserAvatar.classList.remove('happyadDefaultProfileAvatarV989');
         currentUserAvatar.classList.add('has-photo');
         delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
         return true;
@@ -9874,6 +9887,7 @@
         currentUserPhoto.dataset.happyadAvatar = url;
         delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
         currentUserAvatar.classList.remove('has-photo');
+        currentUserAvatar.classList.add('happyadDefaultProfileAvatarV989');
         currentUserPhoto.removeAttribute('src');
         if(!url){
           delete currentUserPhoto.dataset.happyadDeferredSrcV876;
@@ -9895,6 +9909,7 @@
           if(clean(currentUserPhoto.dataset.happyadAvatarRequestV965) !== token) return;
           delete currentUserPhoto.dataset.happyadAvatarLoadingV965;
           currentUserAvatar.classList.remove('has-photo');
+          currentUserAvatar.classList.add('happyadDefaultProfileAvatarV989');
           currentUserPhoto.removeAttribute('src');
         });
       }
@@ -11486,6 +11501,28 @@
         requestAnimationFrame(clearNativeSelection);
       }
 
+      function openMessageProfileV992(target,event,source){
+        if(event){try{event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();}catch(_e){}}
+        target=targetFromProfile({},target||{})||target||{};
+        const uid=clean(target.id||target.user_id||target.uid||target.profile_id);
+        if(!isUuid(uid)) return showToast('Profil introuvable.');
+        try{
+          const m=window.HappyProfileLinkMasterV992;
+          if(m&&typeof m.openProfile==='function'){m.openProfile(Object.assign({},target,{id:uid,user_id:uid}),{uid,source:source||'message-profile-v992'});return true;}
+        }catch(_e){}
+        try{window.parent&&window.parent!==window&&window.parent.postMessage({type:'HAPPYAD_OPEN_INTERNAL_URL',url:'modules/visitor-profile.html?uid='+encodeURIComponent(uid),source:source||'message-profile-v992'},'*');return true;}catch(_e){}
+        return false;
+      }
+      function bindMessageHeaderProfileV992(){
+        [chatAvatar,chatName].forEach(el=>{
+          if(!el||el.dataset.happyadProfileBoundV992==='1')return;
+          el.dataset.happyadProfileBoundV992='1';el.classList.add('happyadMessageProfileLinkV992');el.setAttribute('role','link');el.setAttribute('tabindex','0');
+          el.addEventListener('click',e=>{if(currentTarget)openMessageProfileV992(currentTarget,e,'message-chat-header-v992');});
+          el.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&currentTarget)openMessageProfileV992(currentTarget,e,'message-chat-header-v992');});
+        });
+      }
+      bindMessageHeaderProfileV992();
+
       function bindConversationLongPress(button,item){
         if(!button || !item) return;
         let timer = 0;
@@ -11500,6 +11537,7 @@
         };
 
         button.addEventListener('pointerdown',event => {
+          if(event.target && event.target.closest && event.target.closest('.happyadMessageProfileLinkV992')) return;
           if(event.pointerType === 'mouse' && event.button !== 0) return;
           clearTimer();
           pointerId = event.pointerId;
@@ -11664,6 +11702,8 @@
 
           button.appendChild(avatar);
           button.appendChild(content);
+          const profileNameLinkV992=content.querySelector('.conversation-name-line .name');
+          [avatar,profileNameLinkV992].forEach(el=>{if(!el)return;el.classList.add('happyadMessageProfileLinkV992');el.setAttribute('role','link');el.setAttribute('tabindex','0');el.addEventListener('click',e=>openMessageProfileV992(target,e,'message-conversation-list-v992'));el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openMessageProfileV992(target,e,'message-conversation-list-v992');});});
           bindConversationLongPress(button,item);
           fragment.appendChild(button);
         });
@@ -13491,6 +13531,7 @@
         chatName.textContent = target.name;
         chatStatus.textContent = 'Conversation HAPPYAD';
         setAvatar(chatAvatar, target.name, target.avatar);
+        try{chatAvatar.setAttribute('aria-label','Ouvrir le profil de '+(target.name||'cet utilisateur'));chatName.setAttribute('aria-label','Ouvrir le profil de '+(target.name||'cet utilisateur'));}catch(_e){}
         applyCallPolicyUiV855R51(currentTargetPrivacyV855R51);
         setBadge(chatBadge, target.badge);
         if(blockStateTargetId !== clean(target && target.id)) resetBlockState(target && target.id);

@@ -110,7 +110,7 @@
     if(n.name){set('creatorName',n.name);set('creator_name',n.name);set('display_name',n.name);set('full_name',n.name);set('user_name',n.name);}
     if(n.handle){set('handle','@'+n.handle);set('username',n.handle);}
     /* Une publication ne doit jamais ressusciter son ancienne copie d'avatar.
-       Tant que profiles.avatar_url n'est pas résolu, on garde les initiales. */
+       Tant que profiles.avatar_url n'est pas résolu, on garde l'icône profil canonique. */
     set('avatar',n.avatar||'');set('avatar_url',n.avatar||'');set('creator_avatar',n.avatar||'');set('author_avatar',n.avatar||'');set('user_avatar',n.avatar||'');set('__happyadAvatarKnownV855R32',n.__happyadAvatarKnownV855R32===true);set('__happyadAvatarRevisionV855R32',n.__happyadAvatarRevisionV855R32||'');
     if(n.badge){set('badge',n.badge);set('user_badge',n.badge);set('userBadge',n.badge);}
     return q;
@@ -170,11 +170,11 @@
             var next=document.createElement('img');next.alt='';next.src=av;
             if(AVATAR_MASTER&&AVATAR_MASTER.styleExactCropImage)AVATAR_MASTER.styleExactCropImage(next);
             next.onerror=function(){
-              try{if(next.parentNode===box){next.remove();box.textContent=initials(profile.name);box.dataset.avatarFailed='1';}}catch(_e){}
+              try{if(next.parentNode===box){next.remove();if(AVATAR_MASTER&&AVATAR_MASTER.showDefaultAvatar)AVATAR_MASTER.showDefaultAvatar(box);else{box.textContent='';box.classList.add('happyadDefaultProfileAvatarV989');}box.dataset.avatarFailed='1';}}catch(_e){}
               if(!card.__happyadAvatarRetryV763){card.__happyadAvatarRetryV763=1;setTimeout(function(){hydrate(false,[card]);},1200);}
             };
             box.replaceChildren(next);delete box.dataset.avatarFailed;
-          }else if(!av){if(img)img.remove();var ini=initials(profile.name);if(box.textContent!==ini)box.textContent=ini;delete box.dataset.avatarFailed;}
+          }else if(!av){if(img)img.remove();if(AVATAR_MASTER&&AVATAR_MASTER.showDefaultAvatar)AVATAR_MASTER.showDefaultAvatar(box);else{box.textContent='';box.classList.add('happyadDefaultProfileAvatarV989');}delete box.dataset.avatarFailed;}
         }
       }
       if(title&&profile.name){var desired=esc(profile.name)+badgeHtml(profile.badge);if(title.innerHTML!==desired)title.innerHTML=desired;}

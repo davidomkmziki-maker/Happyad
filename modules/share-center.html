@@ -1,12 +1,18 @@
 <!doctype html>
 <html lang="fr">
-<head><script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script>
+<head>
+<style id="happyad-profile-avatar-source-v995">
+/* V995 — fallback profil directement dans le source : aucune initiale B/C/K en connexion faible. */
+.avatar,.commentAvatar,.commentAvatarSmall,.haCommentAvatar,.radarInitial,.mentionAutoAvatar,.person-selector-avatar,.chat-avatar,.haProfileAvatar,.avatar-fallback,.ha629Avatar,.ha629SharedPostAvatarV912,.haMentionAvatarV63,.haSearchAvatar,.happy-avatar,.hsvAvatar,.haV872Avatar,.haHomeFsAvatar,.hsvmAv,.haSamAv,.sponsorCreatorInitial,#currentUserAvatar,#chatAvatar,#profileAvatar,#hsvAvatar{background-color:#fff;background-image:radial-gradient(circle at 50% 34%,#9299a4 0 19.5%,transparent 20.5%),radial-gradient(ellipse 61% 45% at 50% 103%,#9299a4 0 98%,transparent 100%);background-repeat:no-repeat;background-size:100% 100%;background-position:center;color:transparent!important;text-shadow:none!important}
+.avatar>img,.commentAvatar>img,.commentAvatarSmall>img,.haCommentAvatar>img,.person-selector-avatar>img,.chat-avatar>img,.haProfileAvatar>img,.ha629Avatar>img,.ha629SharedPostAvatarV912>img,.haMentionAvatarV63>img,.haSearchAvatar>img,.happy-avatar>img,.hsvAvatar>img,.haV872Avatar>img,.haHomeFsAvatar>img,.hsvmAv>img,.haSamAv>img,#currentUserAvatar>img,#chatAvatar>img,#profileAvatar>img,#hsvAvatar>img{position:relative;z-index:1}
+#currentUserInitials{display:none!important}
+</style><script src="../core/module-lifecycle-master-v614.js?v=974-p1-module-lifecycle-registry"></script>
 <script src="../core/overlay-scroll-master-v662.js?v=905-p1-single-overlay-master"></script>
 <script src="../core/auth-frame-gate-v596.js?v=938-guest-passive"></script>
 <script src="../core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical"></script>
 <script src="../core/supabase-config-master-v973.js?v=973-p1-central-config"></script>
 <script src="../core/supabase-client-master-v972.js?v=973-p1-central-config"></script>
-<script src="../core/profile-avatar-master-v855r32.js?v=990-global-default-profile-icon"></script>
+<script src="../core/profile-avatar-master-v855r32.js?v=995-source-default-profile-icon"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#151a21">
@@ -163,7 +169,7 @@
   async function ensureDirectory(force){
     try{if(!authUser)await getSession();if(!directoryProfiles.length)readDirectoryCache(authUser.id);if(directoryProfiles.length)renderDirectory();return await loadDirectory(!!force);}catch(error){if(!directoryProfiles.length)$('directory').innerHTML='<div class="empty">Connectez-vous pour envoyer dans les inbox HAPPYAD.</div>';return [];}
   }
-  function personHtml(p){const initial=esc((p.name||'H').slice(0,1).toUpperCase());const av=p.avatar?'<img src="'+esc(p.avatar)+'" alt="" loading="lazy" decoding="async">':initial;return '<button class="person'+(selected.has(p.id)?' selected':'')+'" type="button" data-person="'+esc(p.id)+'"><span class="avatar">'+av+'<i class="check">✓</i></span><span class="nameRow"><span class="name">'+esc(p.name)+'</span>'+badgeHtml(p.badge,p.badgeUrl)+'</span></button>';}
+  function personHtml(p){const av=p.avatar?'<img src="'+esc(p.avatar)+'" alt="" loading="lazy" decoding="async">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';return '<button class="person'+(selected.has(p.id)?' selected':'')+'" type="button" data-person="'+esc(p.id)+'"><span class="avatar">'+av+'<i class="check">✓</i></span><span class="nameRow"><span class="name">'+esc(p.name)+'</span>'+badgeHtml(p.badge,p.badgeUrl)+'</span></button>';}
   function renderDirectory(){const q=clean($('searchInput').value);const list=q?searchResults:directoryProfiles;if(!q&&!directoryLoaded&&!list.length){$('directory').innerHTML=skeletonHtml();return;}$('directory').innerHTML=list.length?'<section class="section"><div class="contactsGrid">'+list.map(personHtml).join('')+'</div></section>':'<div class="empty">'+(q?'Aucun utilisateur trouvé.':'Aucun contact disponible. Utilisez la recherche.')+'</div>';}
   function syncSelectionDom(){
     document.querySelectorAll('[data-person]').forEach(el=>el.classList.toggle('selected',selected.has(el.dataset.person)));

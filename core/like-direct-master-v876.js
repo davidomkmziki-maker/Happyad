@@ -41,9 +41,9 @@
     if(!p||p.token!==t)return null;
     a.like=!!on;
     if(count!==null&&count!==undefined&&isFinite(Number(count)))a.likes=Math.max(0,Number(count)||0);
-    /* Garde courte apres confirmation : une lecture de happyad_posts encore en retard
-       ne peut pas remettre l'ancien compteur juste apres le clic. */
-    a.__happyadLikeDirectV876={token:t,on:a.like,count:a.likes,until:Date.now()+6000,at:Date.now(),confirmed:true};
+    /* Garde réseau après confirmation : une lecture distante lente ou un iframe en retard
+       ne peut pas blanchir le cœur pendant une connexion moyenne/faible. */
+    a.__happyadLikeDirectV876={token:t,on:a.like,count:a.likes,until:Date.now()+45000,at:Date.now(),confirmed:true};
     all[id]=a;write(all);signal(id,a.like,a.likes,'confirmed');return a;
   }
   function signal(id,on,count,source){
@@ -88,5 +88,5 @@
     settle(id,t,on,count);return count;
   }
 
-  window.HappyLikeDirectV876={version:'V876',read:read,write:write,action:action,pending:pending,mark:mark,keep:keep,apply:apply,isCurrent:isCurrent,settle:settle,signal:signal,queue:queue,countRemote:countRemote,confirm:confirm,syncPost:syncPost};
+  window.HappyLikeDirectV876={version:'V995_NETWORK_STABLE',read:read,write:write,action:action,pending:pending,mark:mark,keep:keep,apply:apply,isCurrent:isCurrent,settle:settle,signal:signal,queue:queue,countRemote:countRemote,confirm:confirm,syncPost:syncPost};
 })();

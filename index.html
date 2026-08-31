@@ -2,13 +2,19 @@
 <!-- HAPPYAD V885: Stories last-good immediate + skeleton <=180ms -->
 <!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r90-home-card-single-design | 855r91-radar-add-persistent -->
 <!DOCTYPE html><html lang="fr"><head>
+<style id="happyad-profile-avatar-source-v995">
+/* V995 — fallback profil directement dans le source : aucune initiale B/C/K en connexion faible. */
+.avatar,.commentAvatar,.commentAvatarSmall,.haCommentAvatar,.radarInitial,.mentionAutoAvatar,.person-selector-avatar,.chat-avatar,.haProfileAvatar,.avatar-fallback,.ha629Avatar,.ha629SharedPostAvatarV912,.haMentionAvatarV63,.haSearchAvatar,.happy-avatar,.hsvAvatar,.haV872Avatar,.haHomeFsAvatar,.hsvmAv,.haSamAv,.sponsorCreatorInitial,#currentUserAvatar,#chatAvatar,#profileAvatar,#hsvAvatar{background-color:#fff;background-image:radial-gradient(circle at 50% 34%,#9299a4 0 19.5%,transparent 20.5%),radial-gradient(ellipse 61% 45% at 50% 103%,#9299a4 0 98%,transparent 100%);background-repeat:no-repeat;background-size:100% 100%;background-position:center;color:transparent!important;text-shadow:none!important}
+.avatar>img,.commentAvatar>img,.commentAvatarSmall>img,.haCommentAvatar>img,.person-selector-avatar>img,.chat-avatar>img,.haProfileAvatar>img,.ha629Avatar>img,.ha629SharedPostAvatarV912>img,.haMentionAvatarV63>img,.haSearchAvatar>img,.happy-avatar>img,.hsvAvatar>img,.haV872Avatar>img,.haHomeFsAvatar>img,.hsvmAv>img,.haSamAv>img,#currentUserAvatar>img,#chatAvatar>img,#profileAvatar>img,#hsvAvatar>img{position:relative;z-index:1}
+#currentUserInitials{display:none!important}
+</style>
 <!-- HAPPYAD V979 : préchargement + première peinture du dernier design pour éviter tout flash ancien -->
 <link rel="preload" as="style" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
 <link id="happyad-actions-layout-master-v982-prepaint" rel="stylesheet" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
 <link rel="preload" as="style" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
 <link id="happyad-home-card-layout-master-v982-prepaint" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
-<link rel="preload" as="style" href="core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center">
-<link id="happyad-home-visual-maturity-master-v988-prepaint" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center">
+<link rel="preload" as="style" href="core/home-visual-maturity-master-v988.css?v=988r9-double-tap-love-inline-more">
+<link id="happyad-home-visual-maturity-master-v988-prepaint" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r9-double-tap-love-inline-more">
 <style id="happyad-v631-story-radar-first-paint">
 /* V631 — taille ronde finale dès le premier rendu et clic réarmé après fermeture. */
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629{
@@ -1572,14 +1578,17 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
   document.addEventListener('visibilitychange',function(){if(!document.hidden)scan()},true);
 })();
 </script>
-<script src="core/profile-avatar-master-v855r32.js?v=990-global-default-profile-icon"></script>
+<script src="core/profile-avatar-master-v855r32.js?v=995-source-default-profile-icon"></script>
+<script src="core/profile-link-master-v992.js?v=996-primary-name-badge"></script>
+<script src="core/comment-mention-master-v994.js?v=996-primary-name-visible"></script>
 <script src="core/follow-master-v855r34.js?v=986-professional-icons-love"></script>
 <script src="core/home-feed-repository-v1.js?v=2-batch-complete"></script>
 <script src="core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
 <script src="core/home-media-loader-v1.js?v=982-grouped-photo-badge"></script>
-<script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
-<script src="core/home-actions-master-v1.js?v=978-favorite-count-contract"></script>
-<script src="core/home-card-renderer-v1.js?v=990-global-default-profile-icon"></script>
+<script src="core/like-direct-master-v876.js?v=995-like-network-stable"></script>
+<script src="core/home-actions-master-v1.js?v=995-like-network-stable"></script>
+<script src="core/home-card-renderer-v1.js?v=991-home-double-tap-love-inline-more"></script>
+<script src="core/home-card-story-ring-master-v992.js?v=992-home-story-ring-exact"></script>
 <script src="core/home-feed-view-v1.js?v=929-prepaint-anchor"></script>
 <script src="core/home-feed-boot-v1.js?v=937-account-story-cache"></script>
 <script>
@@ -2689,12 +2698,16 @@ function happyadClearCommentComposerModeV907(clearText){
   if(clearText&&input)input.value='';
   happyadSyncCommentComposerModeV907();
 }
+function happyadCommentMentionHtmlV992(text){
+  try{var m=window.HappyProfileLinkMasterV992;if(m&&typeof m.mentionHtml==='function')return m.mentionHtml(text);}catch(_e){}
+  return esc(text);
+}
 function happyadCommentTextHtmlV469(c){
   var text=String((c&&(c.text||c.comment_text||c.body))||'').trim();
   var long=text.length>155;
   var id=happyadCommentIdV469(c);
   var cut=long?(text.slice(0,155).trim()+'...'):text;
-  return '<p data-full="'+esc(text)+'" data-short="'+esc(cut)+'" data-expanded="0">'+esc(cut)+'</p>'+(long?'<button class="haCommentSeeMore" type="button" data-comment-more="'+esc(id)+'">Voir plus</button>':'');
+  return '<p data-full="'+esc(text)+'" data-short="'+esc(cut)+'" data-expanded="0">'+happyadCommentMentionHtmlV992(cut)+'</p>'+(long?'<button class="haCommentSeeMore" type="button" data-comment-more="'+esc(id)+'">Voir plus</button>':'');
 }
 function happyadCommentAuthorHtmlV468(c,level){
   c=c||{};level=Number(level||0);
@@ -2706,11 +2719,11 @@ function happyadCommentAuthorHtmlV468(c,level){
   var liked=happyadGetCommentLikeStateV469(id)||!!c.liked;
   var mine=happyadCommentIsMineV469(c),editable=mine&&happyadCanEditCommentV911(c);
   return '<div class="haCommentItem" data-comment-id="'+esc(id)+'" data-level="'+Math.min(level,6)+'">'
-    +'<div class="haCommentAvatar" data-avatar-src="'+esc(avatar)+'" data-happyad-avatar-uid="'+esc(c.user_id||c.authorId||'')+'" data-happyad-avatar-name="'+esc(name||'Utilisateur')+'">'+(avatar?'<img src="'+esc(avatar)+'" alt="" loading="lazy" decoding="async" fetchpriority="low">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'</div>'
+    +'<div class="haCommentAvatar happyadProfileIdentityLinkV992" role="link" tabindex="0" data-comment-profile-id="'+esc(id)+'" data-avatar-src="'+esc(avatar)+'" data-happyad-avatar-uid="'+esc(c.user_id||c.authorId||'')+'" data-happyad-avatar-name="'+esc(name||'Utilisateur')+'">'+(avatar?'<img src="'+esc(avatar)+'" alt="" loading="lazy" decoding="async" fetchpriority="low">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'</div>'
     +'<div class="haCommentMain">'
       +'<div class="haCommentLine">'
         +'<div class="haCommentTextBlock">'
-          +'<div class="haCommentMeta"><b>'+esc(name)+badgeMarkHtml(badge)+'</b><span>'+esc(happyadCommentAgeV469(c))+'</span></div>'
+          +'<div class="haCommentMeta"><b class="happyadProfileIdentityLinkV992" role="link" tabindex="0" data-comment-profile-id="'+esc(id)+'">'+esc(name)+badgeMarkHtml(badge)+'</b><span>'+esc(happyadCommentAgeV469(c))+'</span></div>'
           +happyadCommentTextHtmlV469(c)
           +'<div class="haCommentTools"><button type="button" data-comment-reply="'+esc(id)+'">Répondre</button><button type="button" data-comment-menu="'+esc(id)+'">•••</button></div>'
           +'<div class="haCommentMenu" hidden>'+(mine?((editable?'<button type="button" data-comment-edit="'+esc(id)+'">Modifier</button>':'')+'<button type="button" data-comment-delete="'+esc(id)+'">Supprimer</button>'):'<button type="button" data-comment-report="'+esc(id)+'">Signaler</button>')+'</div>'
@@ -2753,7 +2766,7 @@ function happyadPatchCommentDecorationsV901(list,comments){
       var c=by[String(item.getAttribute('data-comment-id')||'')];if(!c)return;
       var id=happyadCommentIdV469(c),name=String((c.name||c.author||c.author_name)||'Utilisateur').trim(),avatar=String((c.avatar||c.author_avatar)||'').trim(),badge=String((c.badge||c.author_badge||c.user_badge)||'').trim();
       var av=item.querySelector(':scope > .haCommentAvatar');
-      if(av&&String(av.getAttribute('data-avatar-src')||'')!==avatar){av.setAttribute('data-avatar-src',avatar);av.innerHTML=avatar?'<img src="'+esc(avatar)+'" alt="" loading="lazy" decoding="async" fetchpriority="low">':esc(initials(name||'H'));}
+      if(av&&String(av.getAttribute('data-avatar-src')||'')!==avatar){av.setAttribute('data-avatar-src',avatar);av.innerHTML=avatar?'<img src="'+esc(avatar)+'" alt="" loading="lazy" decoding="async" fetchpriority="low">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';}
       var meta=item.querySelector(':scope > .haCommentMain > .haCommentLine > .haCommentTextBlock > .haCommentMeta');
       if(meta){var b=meta.querySelector('b'),age=meta.querySelector('span'),authorKey=name+'|'+badge;if(b&&b.getAttribute('data-author-key')!==authorKey){b.setAttribute('data-author-key',authorKey);b.innerHTML=esc(name)+badgeMarkHtml(badge);}if(age)age.textContent=happyadCommentAgeV469(c);}
       var like=item.querySelector(':scope > .haCommentMain > .haCommentLine > .haCommentLike');
@@ -2993,6 +3006,7 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
   form.onsubmit=async function(e){
     e.preventDefault();e.stopPropagation();
     var text=String(input.value||'').trim();
+    try{var cm996=window.HappyCommentMentionMasterV994;if(cm996&&typeof cm996.serializeValue==='function')text=String(cm996.serializeValue(input,text)||'').trim();}catch(_mentionSerialize996){}
     if(!text)return false;
     var editTarget=window.__HAPPYAD_COMMENT_EDIT_TARGET_V907||null;
     if(editTarget){
@@ -3027,6 +3041,7 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
     btn.disabled=true;
     try{
       input.value='';
+      try{var cmClear996=window.HappyCommentMentionMasterV994;if(cmClear996&&typeof cmClear996.clearAliases==='function')cmClear996.clearAliases(input);}catch(_mentionClear996){}
       try{happyadResizeCommentComposerV905(input);}catch(_grow){}
       var reply=window.__HAPPYAD_COMMENT_REPLY_TARGET_V469||null;
       parentId=reply?happyadCommentIdV469(reply):null;
@@ -3072,6 +3087,19 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
   if(!box.__haCommentDelegationV469){
     box.__haCommentDelegationV469=true;
     box.addEventListener('click',async function(e){
+      var mention=e.target&&e.target.closest?e.target.closest('[data-happyad-comment-mention-v992]'):null;
+      if(mention){
+        e.preventDefault();e.stopPropagation();
+        try{var ml=window.HappyProfileLinkMasterV992;if(ml&&typeof ml.openMention==='function')await ml.openMention(mention.getAttribute('data-happyad-comment-mention-v992')||'',{source:'home-comment-mention-v992'});}catch(_mentionErr){}
+        return false;
+      }
+      var profileLink=e.target&&e.target.closest?e.target.closest('[data-comment-profile-id]'):null;
+      if(profileLink){
+        e.preventDefault();e.stopPropagation();
+        var profilePostId=String(window.__HAPPYAD_COMMENT_POST_ID_V469||''),profileCommentId=profileLink.getAttribute('data-comment-profile-id')||'',profileComment=happyadFindCommentByIdV469(profilePostId,profileCommentId);
+        try{var pl=window.HappyProfileLinkMasterV992;if(pl&&profileComment&&typeof pl.openComment==='function')await pl.openComment(profileComment,{source:'home-comment-author-v992',postId:profilePostId});}catch(_profileErr){}
+        return false;
+      }
       var idBtn=e.target&&e.target.closest?e.target.closest('[data-comment-like],[data-comment-reply],[data-comment-more],[data-comment-replies],[data-comment-menu],[data-comment-edit],[data-comment-delete],[data-comment-report]'):null;
       if(!idBtn)return;
       e.preventDefault();e.stopPropagation();
@@ -3080,7 +3108,7 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
       var item=idBtn.closest('.haCommentItem');
       var cmt=happyadFindCommentByIdV469(postId,id);
       if(idBtn.hasAttribute('data-comment-more')){
-        var ptag=item&&item.querySelector('p[data-full]');if(ptag){var on=ptag.dataset.expanded==='1';ptag.dataset.expanded=on?'0':'1';ptag.textContent=on?ptag.dataset.short:ptag.dataset.full;idBtn.textContent=on?'Voir plus':'Réduire';}return false;
+        var ptag=item&&item.querySelector('p[data-full]');if(ptag){var on=ptag.dataset.expanded==='1';ptag.dataset.expanded=on?'0':'1';ptag.innerHTML=happyadCommentMentionHtmlV992(on?ptag.dataset.short:ptag.dataset.full);idBtn.textContent=on?'Voir plus':'Réduire';}return false;
       }
       if(idBtn.hasAttribute('data-comment-replies')){
         var hid=item&&item.querySelector('.haCommentRepliesHidden');if(hid){var opened=!hid.hidden;hid.hidden=opened;var n=hid.children?hid.children.length:0;idBtn.textContent=opened?('Voir plus de réponses ('+n+')'):'Masquer les réponses';}return false;
@@ -3107,6 +3135,7 @@ async function happyadOpenHomeCommentPopupV468(p,contentType){
       if(idBtn.hasAttribute('data-comment-report')){alert('Signalement enregistré.');return false;}
       return false;
     },true);
+    box.addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var t=e.target&&e.target.closest?e.target.closest('[data-comment-profile-id],[data-happyad-comment-mention-v992]'):null;if(!t)return;e.preventDefault();try{t.click();}catch(_e){}},true);
     var panel=box.querySelector('.haCommentPanel'),listEl=box.querySelector('.haCommentList');var sy=0,lastY=0,lastT=0,dragDy=0,dragUp=0,dragVelocity=0,active=false,dragSource='';
     var listCandidate=false,listStartY=0,listStartX=0,listStartT=0;
     function haCommentSetPanelV901(y){try{panel.style.setProperty('transform','translate3d(0,'+Math.max(0,Math.round(y||0))+'px,0)','important');}catch(_e){}}
@@ -3804,7 +3833,7 @@ async function happyadOpenHomePhotoFullscreen(id,sourcePost){
     var avatarMaster=window.HappyProfileAvatarMasterV855R32||window.HappyProfileAvatarMaster||null;
     var avatarEntry=avatarMaster&&ownerUid&&avatarMaster.getEntry&&avatarMaster.getEntry(ownerUid);
     if(avatarEntry&&avatarEntry.known&&avatarMaster.paintBox)avatarMaster.paintBox(av,avatarEntry,ownerName);
-    else{av.textContent=initials(ownerName||'H');if(avatarMaster&&ownerUid&&avatarMaster.resolve)avatarMaster.resolve(ownerUid).then(function(resolved){if(resolved&&resolved.known&&av.dataset.happyadAvatarUid===ownerUid&&avatarMaster.paintBox)avatarMaster.paintBox(av,resolved,ownerName);}).catch(function(){});}
+    else{if(avatarMaster&&avatarMaster.showDefaultAvatar)avatarMaster.showDefaultAvatar(av);else{av.textContent='';av.classList.add('happyadDefaultProfileAvatarV989');}if(avatarMaster&&ownerUid&&avatarMaster.resolve)avatarMaster.resolve(ownerUid).then(function(resolved){if(resolved&&resolved.known&&av.dataset.happyadAvatarUid===ownerUid&&avatarMaster.paintBox)avatarMaster.paintBox(av,resolved,ownerName);}).catch(function(){});}
     happyadBindHomePhotoFullscreenOwnerV855R34(box,av,nm,followBtn,ownerUid,ownerName,owner,it,p,closeFs);
     count.textContent=items.length>1?(idx+1)+'/'+items.length:'';
     prev.style.display=items.length>1?'grid':'none';
@@ -3921,10 +3950,26 @@ function happyadAlbumBodyHtmlV772(p,it){
   var location=happyadVisibleCreatorSublineV984(it.location||p.location||'');
   var meta=String(location||it.category||p.category||'Publication').trim();
   if(/^publication$/i.test(meta))meta='';
-  var long=desc.length>96;
-  var shortDesc=long?(desc.slice(0,96).trim()+'...'):desc;
   if(!title&&!desc&&!meta)return '';
-  return '<div class="miniBody haSocialBodyV983">'+(title?'<div class="miniTitleRow"><div class="miniTitle">'+esc(title)+'</div></div>':'')+(desc?'<div class="miniDesc" data-album-desc-full="'+esc(desc)+'" data-album-desc-short="'+esc(shortDesc)+'">'+happyadMentionHtmlV937R1(shortDesc,happyadAlbumMentionContextV942(p,it,(p&&p.__albumItems)||[]))+'</div>':'')+(long?'<button class="miniSeeMore" data-album-more type="button">Voir plus</button>':'')+(meta?'<div class="miniMeta">'+esc(meta)+'</div>':'')+'</div>';
+  return '<div class="miniBody haSocialBodyV983">'+(title?'<div class="miniTitleRow"><div class="miniTitle">'+esc(title)+'</div></div>':'')+(desc?'<div class="happyadInlineDescWrapV991"><div class="miniDesc happyadInlineDescV991" data-album-desc-full="'+esc(desc)+'">'+happyadMentionHtmlV937R1(desc,happyadAlbumMentionContextV942(p,it,(p&&p.__albumItems)||[]))+'</div><button class="miniSeeMore happyadInlineMoreV991" data-album-more type="button" hidden>Voir plus</button></div>':'')+(meta?'<div class="miniMeta">'+esc(meta)+'</div>':'')+'</div>';
+}
+function happyadBindAlbumInlineMoreV991(card){
+  try{
+    var wrap=card&&card.querySelector&&card.querySelector('.happyadInlineDescWrapV991');
+    var desc=wrap&&wrap.querySelector('.happyadInlineDescV991');
+    var btn=wrap&&wrap.querySelector('[data-album-more]');
+    if(!wrap||!desc||!btn)return;
+    var attempts=0;
+    function measure(){
+      if(!card.isConnected){if(attempts++<12)setTimeout(measure,40);return;}
+      btn.hidden=true;wrap.classList.remove('hasMore');
+      if(desc.scrollHeight>desc.clientHeight+2){wrap.classList.add('hasMore');btn.hidden=false;}
+    }
+    setTimeout(function(){requestAnimationFrame(measure);},0);
+  }catch(_e){}
+}
+function happyadAlbumShowDoubleTapLoveV991(media,event){
+  try{var renderer=window.HappyHomeCardRendererV1;if(renderer&&typeof renderer.showDoubleTapLove==='function')renderer.showDoubleTapLove(media,event);}catch(_e){}
 }
 function happyadPrepareAlbumShellV772(card,p){
   try{
@@ -3956,6 +4001,7 @@ function happyadPrepareAlbumShellV772(card,p){
     /* V981 : un groupe = UNE carte. Seul le viewport média glisse horizontalement.
        Header, description et actions restent uniques et ne changent jamais de taille. */
     card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator'+(creatorSubline?'':' haCreatorSingleLineV984')+'"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b>'+(creatorSubline?'<span>'+esc(creatorSubline)+'</span>':'')+'</div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="haAlbumMediaViewportV981"><div class="haAlbumFullTrack">'+slides+'</div><div class="haAlbumFullDots">'+dotHtml+'</div></div>'+happyadAlbumBodyHtmlV772(p,p)+happyadAlbumActionHtmlV772()+'</div>';
+    happyadBindAlbumInlineMoreV991(card);
     card.dataset.happyadAlbumShellV772='1';
     card.dataset.happyadAlbumShellV981='1';
     var track=card.querySelector('.haAlbumFullTrack');
@@ -3973,6 +4019,39 @@ function happyadPrepareAlbumShellV772(card,p){
         track.addEventListener('touchstart',function(ev){var q=ev.touches&&ev.touches[0];if(q){haSwipeStartX=q.clientX;haSwipeStartY=q.clientY;}},{passive:true});
         track.addEventListener('touchend',function(ev){var q=ev.changedTouches&&ev.changedTouches[0];if(!q)return;var dx=q.clientX-haSwipeStartX,dy=q.clientY-haSwipeStartY;if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)){track.__haAlbumSwipeUntilV472=Date.now()+360;}},{passive:true});
       }catch(_swipeGuard){}
+    }
+    if(track&&!track.__haAlbumTapGestureV991&&('PointerEvent' in window)){
+      track.__haAlbumTapGestureV991=true;
+      var haTapDownX=0,haTapDownY=0,haTapMoved=false,haLastTap=0,haLastTapX=0,haLastTapY=0,haOpenTimer=0;
+      function haClearOpenV991(){if(haOpenTimer){clearTimeout(haOpenTimer);haOpenTimer=0;}}
+      track.addEventListener('pointerdown',function(ev){if(ev.button!=null&&ev.button!==0)return;haTapDownX=Number(ev.clientX||0);haTapDownY=Number(ev.clientY||0);haTapMoved=false;},{passive:true});
+      track.addEventListener('pointermove',function(ev){if(Math.abs(Number(ev.clientX||0)-haTapDownX)>11||Math.abs(Number(ev.clientY||0)-haTapDownY)>11)haTapMoved=true;},{passive:true});
+      track.addEventListener('pointercancel',function(){haClearOpenV991();haLastTap=0;haTapMoved=false;},{passive:true});
+      track.addEventListener('pointerup',function(ev){
+        if(ev.button!=null&&ev.button!==0)return;
+        var slide=ev.target&&ev.target.closest?ev.target.closest('.haAlbumFullSlide'):null;if(!slide)return;
+        if(haTapMoved||(track.__haAlbumSwipeUntilV472&&Date.now()<track.__haAlbumSwipeUntilV472)){haClearOpenV991();haLastTap=0;haTapMoved=false;return;}
+        var now=Date.now(),x=Number(ev.clientX||0),y=Number(ev.clientY||0),near=Math.abs(x-haLastTapX)<58&&Math.abs(y-haLastTapY)<58;
+        if(haLastTap&&near&&now-haLastTap<280){
+          haClearOpenV991();haLastTap=0;
+          var likeBtn=card.querySelector('[data-card-act="like"]');
+          if(likeBtn&&!likeBtn.classList.contains('on'))likeBtn.click();
+          happyadAlbumShowDoubleTapLoveV991(slide.querySelector('.haAlbumSingleMedia')||slide,ev);
+          try{card.classList.remove('happyadHomeDoubleTapPulseV991');void card.offsetWidth;card.classList.add('happyadHomeDoubleTapPulseV991');setTimeout(function(){card.classList.remove('happyadHomeDoubleTapPulseV991');},260);}catch(_pulse){}
+          ev.preventDefault();ev.stopPropagation();return;
+        }
+        haLastTap=now;haLastTapX=x;haLastTapY=y;haClearOpenV991();
+        var idx=Number(slide.dataset.albumIndex||0)||0;
+        haOpenTimer=setTimeout(function(){
+          haOpenTimer=0;haLastTap=0;
+          var current=card.__happyadPost||p;
+          var currentItems=(current&&current.__albumItems&&current.__albumItems.length)?current.__albumItems:[current];
+          var safeIdx=Math.max(0,Math.min(currentItems.length-1,idx));
+          var pid=slide.dataset.albumPostId||((currentItems[safeIdx]||{}).id)||current.id;
+          var fsPost=Object.assign({},current,{__albumItems:currentItems,__startAlbumIndex:safeIdx});
+          if(typeof happyadOpenHomePhotoFullscreen==='function')happyadOpenHomePhotoFullscreen(pid,fsPost);
+        },290);
+      },false);
     }
     if(!card.__haAlbumDelegatedClicksV772){
       card.__haAlbumDelegatedClicksV772=true;
@@ -3998,6 +4077,7 @@ function happyadPrepareAlbumShellV772(card,p){
         var slide=t&&t.closest?t.closest('.haAlbumFullSlide'):null;
         if(!slide)return;
         e.preventDefault();e.stopPropagation();
+        if(track&&track.__haAlbumTapGestureV991)return false;
         var idx=Number(slide.dataset.albumIndex||0)||0;
         var pid=slide.dataset.albumPostId||((currentItems[idx]||{}).id)||current.id;
         var fsPost=Object.assign({},current,{__albumItems:currentItems,__startAlbumIndex:idx});
@@ -5179,7 +5259,7 @@ document.addEventListener('click',function(e){
     var avatar=(row&&row.user_avatar) || (p&&(p.avatar||p.user_avatar)) || '';
     var media=mediaUrlOf(row,p);
     var typ=mediaTypeOf(row,p);
-    box.querySelector('#hsvAvatar').innerHTML=avatar?'<img src="'+esc2(avatar)+'" alt="">':esc2((name||'S').trim().slice(0,1).toUpperCase());
+    box.querySelector('#hsvAvatar').innerHTML=avatar?'<img src="'+esc2(avatar)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     box.querySelector('#hsvName').innerHTML=esc2(name)+(typeof badgeMarkHtml==='function'?badgeMarkHtml((row&&(row.badge||row.user_badge))||(p&&(p.badge||p.userBadge||p.user_badge))):'');
     box.querySelector('#hsvSub').textContent='Story HAPPYAD';
     box.querySelector('#hsvCaption').textContent=(row&&(row.caption||row.description||row.story_description||row.story_caption)) || (p&&(p.story_description||p.story_caption||p.storyDesc)) || '';
@@ -5200,7 +5280,7 @@ document.addEventListener('click',function(e){
     var name=(row&&(row.user_name||row.title)) || (p&&(p.creatorName||p.user_name||p.title)) || 'Live';
     var avatar=(row&&row.user_avatar) || (p&&(p.avatar||p.user_avatar)) || '';
     var media=mediaUrlOf(row,p);
-    box.querySelector('#hsvAvatar').innerHTML=avatar?'<img src="'+esc2(avatar)+'" alt="">':esc2((name||'L').trim().slice(0,1).toUpperCase());
+    box.querySelector('#hsvAvatar').innerHTML=avatar?'<img src="'+esc2(avatar)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     box.querySelector('#hsvName').innerHTML=esc2(name)+(typeof badgeMarkHtml==='function'?badgeMarkHtml((row&&(row.badge||row.user_badge))||(p&&(p.badge||p.userBadge||p.user_badge))):'');
     box.querySelector('#hsvSub').textContent='🔴 En direct';
     box.querySelector('#hsvCaption').textContent=(row&&(row.description||row.caption||row.story_description||row.story_caption)) || (p&&(p.story_description||p.story_caption||p.storyDesc)) || 'Live en direct';
@@ -5629,7 +5709,7 @@ b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i
   async function fetchViewers(id){var c=sb();if(!c||!id)return [];var owner=ownerIdFromCtx(ctx());var vr=await c.from('happyad_story_views').select('*').eq('story_id',String(id)).order('viewed_at',{ascending:false}).limit(300);var rows=((vr&&vr.data)||[]).filter(function(v){var x=viewerIdOf(v);return x&&(!owner||String(x)!==String(owner))});var ids=[];rows.forEach(function(v){var x=viewerIdOf(v);if(x&&ids.indexOf(x)<0)ids.push(x)});var liked={};async function addLikedBy(col){try{var lr=await c.from('happyad_content_actions').select('user_id').eq(col,String(id)).in('content_type',['story','photo']).eq('action_type','like').eq('liked',true).limit(1000);((lr&&lr.data)||[]).forEach(function(r){if(r&&r.user_id)liked[String(r.user_id)]=1})}catch(_lk){}}await addLikedBy('post_id');await addLikedBy('content_id');var profiles=[];if(ids.length){try{var pr=await c.from('profiles').select('*').in('id',ids);profiles=(pr&&pr.data)||[]}catch(e){}try{var pr2=await c.from('profiles').select('*').in('user_id',ids);profiles=profiles.concat((pr2&&pr2.data)||[])}catch(e2){}try{var pr3=await c.from('happyad_profiles').select('*').in('user_id',ids);profiles=profiles.concat((pr3&&pr3.data)||[])}catch(e3){}}var map={};profiles.forEach(function(p){function merge(k){if(!k)return;var key=String(k),old=map[key]||{},nb=viewerBadgeFromProfile(p),ob=viewerBadgeFromProfile(old);map[key]=Object.assign({},p,old);if(ob&&!nb){map[key].badge=ob;map[key].user_badge=ob}else if(nb){map[key].badge=nb;map[key].user_badge=nb}}merge(p.id);merge(p.user_id);merge(p.uid)});return rows.map(function(v){var x=viewerIdOf(v);return {view:v,viewer_id:x,liked:!!(liked[String(x)]||liked[String((map[x]||{}).id||'')]||liked[String((map[x]||{}).user_id||'')]||liked[String((map[x]||{}).uid||'')]),profile:map[x]||{id:x,user_id:x}}})}
   function openViewerProfile(p,uid){try{uid=String(uid||p.id||p.user_id||p.uid||'').trim();if(!uid){alert('Profil introuvable: UID absent');return;}var ap={id:uid,user_id:uid,name:p.display_name||p.full_name||p.name||'Utilisateur HAPPYAD',full_name:p.display_name||p.full_name||p.name||'',handle:p.username||p.handle||'',username:p.username||p.handle||'',avatar:p.avatar_url||p.avatar||'',avatar_url:p.avatar_url||p.avatar||'',badge:p.badge||p.user_badge||'',__happyadUidLocked:true};localStorage.setItem('HAPPYAD_ACTIVE_PROFILE',JSON.stringify(ap));var __haUrl='modules/visitor-profile.html?uid='+encodeURIComponent(uid);if(window.happyadOpenInternalUrlV492){window.happyadOpenInternalUrlV492(__haUrl,{source:'index-viewer-profile-route-v527'});}else{location.href=__haUrl;}}catch(e){}}
   function renderViewerBadge(b){b=String(b||'').toLowerCase();if(!b||b==='aucun'||b==='none'||b==='false'||b==='0'||b==='1'||b==='true'||b==='null'||b==='undefined')return '';try{if(window.badgeMarkHtml)return window.badgeMarkHtml(b)}catch(e){}if(b.indexOf('bleu')>=0||b.indexOf('blue')>=0||b.indexOf('verify')>=0||b.indexOf('cert')>=0)return '<span class="happyBadgeMark blue" title="Badge vérifié"></span>';if(b.indexOf('violet')>=0||b.indexOf('jaune')>=0||b.indexOf('yellow')>=0||b.indexOf('business')>=0)return '<span class="happyBadgeMark yellow" title="Badge vérifié"></span>';return '<span class="happyBadgeMark blue" title="Badge vérifié"></span>'}
-  function showViewersModal(items,loading){var old=$('happyStoryViewersModal');if(old)old.remove();var m=document.createElement('div');m.id='happyStoryViewersModal';var html='<div class="hsvmCard"><div class="hsvmHead"><span>Vues story</span><button class="hsvmClose" type="button">×</button></div>';if(loading)html+='<div style="padding:18px 4px;color:#cbd2df;font-weight:800">Chargement...</div>';else if(!items.length)html+='<div style="padding:18px 4px;color:#cbd2df;font-weight:800">Aucune vue pour le moment</div>';(items||[]).forEach(function(it){var p=it.profile||{},uid=it.viewer_id||p.id||p.user_id||'',name=p.display_name||p.full_name||p.name||p.username||'Utilisateur HAPPYAD',av=p.avatar_url||p.avatar||'',badge=viewerBadgeFromProfile(p);html+='<div class="hsvmRow" data-happyad-viewer="'+esc(uid)+'"><button type="button" class="hsvmAv" data-happyad-viewer="'+esc(uid)+'">'+(av?'<img src="'+esc(av)+'" alt="">':esc(String(name).slice(0,1).toUpperCase()))+'</button><div class="hsvmName"><b>'+esc(name)+renderViewerBadge(badge)+(it.liked?' <span class="hsvmLikeHeart" title="A aimé la story">♥</span>':'')+'</b></div></div>'});html+='</div>';m.innerHTML=html;document.body.appendChild(m);var close=m.querySelector('.hsvmClose');if(close)close.onclick=function(){m.remove()};m.addEventListener('click',function(e){if(e.target===m)m.remove();var row=e.target&&e.target.closest&&e.target.closest('[data-happyad-viewer]');if(row){var uid=row.getAttribute('data-happyad-viewer');var it=(items||[]).find(function(x){return String(x.viewer_id||x.profile&&x.profile.id||x.profile&&x.profile.user_id||'')===String(uid)});if(it){m.remove();openViewerProfile(it.profile||{},uid)}}})}
+  function showViewersModal(items,loading){var old=$('happyStoryViewersModal');if(old)old.remove();var m=document.createElement('div');m.id='happyStoryViewersModal';var html='<div class="hsvmCard"><div class="hsvmHead"><span>Vues story</span><button class="hsvmClose" type="button">×</button></div>';if(loading)html+='<div style="padding:18px 4px;color:#cbd2df;font-weight:800">Chargement...</div>';else if(!items.length)html+='<div style="padding:18px 4px;color:#cbd2df;font-weight:800">Aucune vue pour le moment</div>';(items||[]).forEach(function(it){var p=it.profile||{},uid=it.viewer_id||p.id||p.user_id||'',name=p.display_name||p.full_name||p.name||p.username||'Utilisateur HAPPYAD',av=p.avatar_url||p.avatar||'',badge=viewerBadgeFromProfile(p);html+='<div class="hsvmRow" data-happyad-viewer="'+esc(uid)+'"><button type="button" class="hsvmAv" data-happyad-viewer="'+esc(uid)+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'</button><div class="hsvmName"><b>'+esc(name)+renderViewerBadge(badge)+(it.liked?' <span class="hsvmLikeHeart" title="A aimé la story">♥</span>':'')+'</b></div></div>'});html+='</div>';m.innerHTML=html;document.body.appendChild(m);var close=m.querySelector('.hsvmClose');if(close)close.onclick=function(){m.remove()};m.addEventListener('click',function(e){if(e.target===m)m.remove();var row=e.target&&e.target.closest&&e.target.closest('[data-happyad-viewer]');if(row){var uid=row.getAttribute('data-happyad-viewer');var it=(items||[]).find(function(x){return String(x.viewer_id||x.profile&&x.profile.id||x.profile&&x.profile.user_id||'')===String(uid)});if(it){m.remove();openViewerProfile(it.profile||{},uid)}}})}
   async function apply(){var box=$('happyStoryViewer');if(!box||!box.classList.contains('on'))return;var c=ctx(), id=storyId(c), mine=await isMine(c);var rep=$('hsvReply');if(rep)rep.style.display=mine?'none':'';var v=ensureViewsNode();if(!v)return;if(!mine||!id){v.classList.remove('on');return}v.classList.add('on');var n=await countViews(id);var span=$('hsvViewsCount');if(span)span.textContent=String(n);v.onclick=function(e){e.preventDefault();e.stopPropagation();showViewersModal([],true);fetchViewers(id).then(function(items){showViewersModal(items,false)}).catch(function(){showViewersModal([],false)})}}
   window.happyadApplyStoryOwnerViewsReply=apply;
   document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#hsvReply')){isMine(ctx()).then(function(mine){if(mine){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}})}},true);
@@ -6066,7 +6146,7 @@ async function saveStoryLike(id,on){
       var r=rows[ix];
       var item=rowToItem(r,prof,false);
       var name=item.creatorName||'Utilisateur HAPPYAD', av=item.avatar||'', media=mediaOf(r), mt=mtypeOf(r);
-      $('hsvAvatar').innerHTML=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));
+      $('hsvAvatar').innerHTML=av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
       $('hsvName').innerHTML=esc(name)+badgeHtml(item.badge);
       $('hsvSub').textContent=(ix+1)+'/'+rows.length+' · Story HAPPYAD';
       $('hsvCaption').textContent=descOf(r);
@@ -7921,7 +8001,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       var avatarEntry=avatarMaster&&ownerUid&&avatarMaster.getEntry&&avatarMaster.getEntry(ownerUid);
       if(avatarEntry&&avatarEntry.known&&avatarMaster.paintBox)avatarMaster.paintBox(av,avatarEntry,ownerName);
       else{
-        av.textContent=safeText((typeof initials==='function'?initials(ownerName):ownerName.charAt(0))||'H');
+        if(avatarMaster&&avatarMaster.showDefaultAvatar)avatarMaster.showDefaultAvatar(av);else av.classList.add('happyadDefaultProfileAvatarV989');
         if(avatarMaster&&ownerUid&&avatarMaster.resolve)avatarMaster.resolve(ownerUid).then(function(resolved){if(resolved&&resolved.known&&av.dataset.happyadAvatarUid===ownerUid&&avatarMaster.paintBox)avatarMaster.paintBox(av,resolved,ownerName);}).catch(function(){});
       }
       happyadBindHomePhotoFullscreenOwnerV855R34(box,av,nm,followBtn,ownerUid,ownerName,owner,it,p,closeFs);
@@ -8156,7 +8236,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       if(window.__HAPPYAD_PWA_DISABLED__)return;
       if(!('serviceWorker' in navigator))return;
       if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
-      navigator.serviceWorker.register('./service-worker.js?v=v978-actions-compact-master-20260829',{scope:'./',updateViaCache:'none'}).then(function(reg){
+      navigator.serviceWorker.register('./service-worker.js?v=v988r14-comment-mention-primary-name-20260831',{scope:'./',updateViaCache:'none'}).then(function(reg){
         try{
           if(reg.active)reg.active.postMessage({type:'HAPPYAD_CLEAR_OLD_CACHES'});
           if(reg.waiting)reg.waiting.postMessage({type:'HAPPYAD_SKIP_WAITING'});
@@ -9513,7 +9593,7 @@ body.haHomeCommentLock{overflow:hidden!important;overscroll-behavior:none!import
       if(av){
         f.innerHTML='<img src="'+esc(av)+'" alt=""><i>›</i>';
       }else{
-        f.innerHTML='<span class="sponsorCreatorInitial">'+esc((nm||'H').charAt(0).toUpperCase())+'</span><i>›</i>';
+        f.innerHTML='<span class="sponsorCreatorInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span><i>›</i>';
       }
       el.appendChild(f);
     }catch(e){}
@@ -11471,7 +11551,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
 <script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
 <script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=935-owner-first-paint"></script>
-<script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=933-market-owner-actions"></script>
+<script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=991-market-three-line-description"></script>
 <script id="happyad-keyboard-surface-master-v851r7-js" src="core/keyboard-surface-master-v851r7.js?v=855r93-home-silent"></script>
 <script id="happyad-language-preference-master-v855r59-js" src="core/language-preference-master-v855r59.js?v=855r59-language-storage-real"></script>
 <style id="happyadCommentFluidV901">
@@ -11817,7 +11897,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <!-- HAPPYAD V983 : MASTER FINAL — sept corrections médias/actions -->
 <link id="happyad-actions-layout-master-v982" rel="stylesheet" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
 <link id="happyad-home-card-layout-master-v982" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
-<link id="happyad-home-visual-maturity-master-v988" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center">
+<link id="happyad-home-visual-maturity-master-v988" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r9-double-tap-love-inline-more">
 <style id="happyad-v983-photo-comments-front-layer">
 /* Le panneau Commentaires doit rester au-dessus du fullscreen Accueil (1000200)
    et du fullscreen lancé depuis un profil (2147483000). */

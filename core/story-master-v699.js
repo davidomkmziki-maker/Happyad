@@ -399,7 +399,7 @@
     var box=ensureViewer(),seedProfile={id:owner,full_name:clean(detail.author_name)||'Story',avatar_url:clean(detail.author_avatar),badge:clean(detail.badge)};
     state.owner=owner;state.rows=[];state.profile=seedProfile;state.closed=false;state.paused=false;state.openToken++;
     activateViewerSurface(box);armStoryReturnV927();lock();
-    $('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':esc(initials(seedProfile.full_name));$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML='';
+    $('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML='';
     return true;
   }
   async function openExactNotificationV735(detail){
@@ -1264,7 +1264,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       replies.forEach(function(v){touch(v.sender_id||v.user_id,'reply',v.created_at)});
       var ids=Object.keys(actions);if(!ids.length){list.innerHTML='<div class="haSamEmpty">Aucune vue pour le moment.</div>';return}
       var pr=await c.from('profiles').select('*').in('id',ids),profiles=pr.data||[],map={};profiles.forEach(function(p){map[clean(p.id||p.user_id||p.uid)]=p});ids.sort(function(a,b){return actions[b].last-actions[a].last});
-      list.innerHTML=ids.map(function(uid){var p=map[uid]||{},a=actions[uid],name=clean(p.full_name||p.display_name||p.name||p.username)||'Utilisateur HAPPYAD',av=clean(p.avatar_url||p.avatar),tags='<span class="haSamAction">Vue</span>'+(a.like?'<span class="haSamAction like">♥ Aimé</span>':'')+(a.reply?'<span class="haSamAction reply">↩ Répondu</span>':'');return '<div class="haSamRow"><div class="haSamAv">'+(av?'<img src="'+esc(av)+'" alt="">':esc(initials(name)))+'</div><div class="haSamCopy"><div class="haSamNameLine"><b>'+esc(name)+'</b>'+badgeHtml(p.badge||p.user_badge)+'</div><div class="haSamActions">'+tags+'</div></div></div>'}).join('');
+      list.innerHTML=ids.map(function(uid){var p=map[uid]||{},a=actions[uid],name=clean(p.full_name||p.display_name||p.name||p.username)||'Utilisateur HAPPYAD',av=clean(p.avatar_url||p.avatar),tags='<span class="haSamAction">Vue</span>'+(a.like?'<span class="haSamAction like">♥ Aimé</span>':'')+(a.reply?'<span class="haSamAction reply">↩ Répondu</span>':'');return '<div class="haSamRow"><div class="haSamAv">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'</div><div class="haSamCopy"><div class="haSamNameLine"><b>'+esc(name)+'</b>'+badgeHtml(p.badge||p.user_badge)+'</div><div class="haSamActions">'+tags+'</div></div></div>'}).join('');
     }catch(_e){list.innerHTML='<div class="haSamEmpty">Impossible de charger les vues.</div>'}
   }
 
@@ -1480,7 +1480,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
   function sharedPostCardHtmlV912(row){
     var media=mediaOf(row),typ=sharedPostTypeV912(row),name=sourcePostAuthorV912(row),av=sourcePostAvatarV912(row),title=sourcePostTitleV912(row),cap=sourcePostCaptionV912(row);
-    var avHtml=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));
+    var avHtml=av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     /* V915 : pas de loop. Une vidéo partagée joue automatiquement une fois,
        puis la Story avance normalement. */
     var mediaHtml=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Publication partagee" draggable="false">';
@@ -1596,7 +1596,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
   }
   function sharedStoryCardHtmlV888(row){
     var media=mediaOf(row),typ=typeOf(row),name=sourceStoryAuthorV888(row),av=sourceStoryAvatarV888(row),badge=sourceStoryBadgeV888(row),cap=sourceStoryCaptionV888(row),depth=repostDepthV895(row);
-    var avHtml=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));
+    var avHtml=av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     var mediaHtml=typ==='video'?'<video src="'+esc(media)+'" autoplay playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></video>':'<img src="'+esc(media)+'" alt="Story ajoutée depuis une mention" draggable="false">';
     var loader='<span class="ha629SharedPostMediaLoaderV915" aria-hidden="true"><i></i></span>';
     var arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
@@ -1631,7 +1631,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 
   function paint(n){
     if(state.closed||!state.rows.length)return;stopTimer();resetZoom(false);state.index=Math.max(0,Math.min(state.rows.length-1,n));var row=currentRow(),p=state.profile||{},name=clean(p.full_name||p.display_name||p.name||row.user_name)||'Utilisateur HAPPYAD',av=clean(p.avatar_url||p.avatar||row.user_avatar),badge=clean(p.badge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge||row.badge||row.user_badge||row.badge_type),media=mediaOf(row),typ=typeOf(row);
-    $('ha629Avatar').innerHTML=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));$('ha629Name').innerHTML=esc(name)+badgeHtml(badge);$('ha629Sub').textContent=ageOf(row);$('ha629Caption').textContent=descOf(row);
+    $('ha629Avatar').innerHTML=av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';$('ha629Name').innerHTML=esc(name)+badgeHtml(badge);$('ha629Sub').textContent=ageOf(row);$('ha629Caption').textContent=descOf(row);
     var backdrop=$('ha629Backdrop'),mediaBox=$('ha629Media'),sharedStory=isSharedStoryV888(row),sharedPost=isSharedPostStoryV912(row),shared=sharedStory||sharedPost,backdropMedia=shared?clean(row.thumbnail_url||row.poster_url||media):media;if(typ==='photo'||shared)backdrop.style.backgroundImage='url("'+backdropMedia.replace(/["\\]/g,'\\$&')+'")';else backdrop.style.backgroundImage='none';
     mediaBox.classList.toggle('is-shared-post-v912',shared);
     mediaBox.classList.remove('haSharedPortraitV892','haSharedLandscapeV892','haSharedSquareV892');
@@ -1683,7 +1683,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
     }
     var row=current,p=state.profile||{},name=clean(p.full_name||p.display_name||p.name||row.user_name)||'Utilisateur HAPPYAD',av=clean(p.avatar_url||p.avatar||row.user_avatar),badge=clean(p.badge||p.user_badge||p.badge_type||p.verification_badge||p.verified_badge||p.profile_badge||row.badge||row.user_badge||row.badge_type);
     var avatar=$('ha629Avatar'),nameEl=$('ha629Name'),sub=$('ha629Sub'),caption=$('ha629Caption');
-    if(avatar)avatar.innerHTML=av?'<img src="'+esc(av)+'" alt="">':esc(initials(name));
+    if(avatar)avatar.innerHTML=av?'<img src="'+esc(av)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     if(nameEl)nameEl.innerHTML=esc(name)+badgeHtml(badge);
     if(sub)sub.textContent=ageOf(row);
     if(caption)caption.textContent=descOf(row);
@@ -1699,7 +1699,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
        "shared_post" ne doit JAMAIS être peint comme Story personnelle.
        On affiche seulement le loader pendant la très courte vérification DB. */
     if(cachedTrusted)show(owner,cached,seedProfile,startId||storyId(seed));
-    else{var box=ensureViewer();state.owner=owner;state.rows=[];state.profile=seedProfile;state.closed=false;state.openToken++;activateViewerSurface(box);armStoryReturnV927();lock();$('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':esc(initials(seedProfile.full_name));$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML=''}
+    else{var box=ensureViewer();state.owner=owner;state.rows=[];state.profile=seedProfile;state.closed=false;state.openToken++;activateViewerSurface(box);armStoryReturnV927();lock();$('ha629Progress').innerHTML='';$('ha629Avatar').innerHTML=seedProfile.avatar_url?'<img src="'+esc(seedProfile.avatar_url)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';$('ha629Name').innerHTML=esc(seedProfile.full_name||'Story')+badgeHtml(seedProfile.badge);$('ha629Sub').textContent='HAPPYAD';$('ha629Media').innerHTML='<div class="ha629Loading">Ouverture de la story…</div>';$('ha629Caption').textContent='';$('ha629Bottom').innerHTML=''}
     var token=state.openToken;
     Promise.all([fetchRows(owner),fetchProfile(owner,seedProfile)]).then(function(res){if(state.closed||token!==state.openToken||state.owner!==owner)return;var rows=res[0],profile=res[1]||seedProfile;if(!rows.length){if(cachedTrusted)return;toast('Aucune story active');close('empty');return}mergeStoryCache(owner,rows,profile);var keep=storyId(currentRow())||startId;if(cachedTrusted)syncVerifiedOwnerV785(owner,rows,profile);else show(owner,rows,profile,keep);setTimeout(renderRadarHomeV629,30)}).catch(function(){if(!cachedTrusted){toast('Story indisponible');close('error')}});
     return false
@@ -1873,7 +1873,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       row=block.querySelector('.radarRow');
     }
     block.setAttribute('data-happyad-story-master','v791');
-    function avatarHtml(p,name){var av=clean(p&&(p.avatar||p.user_avatar||p.avatar_url));return av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial">'+esc(initials(name))+'</span>'}
+    function avatarHtml(p,name){var av=clean(p&&(p.avatar||p.user_avatar||p.avatar_url));return av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>'}
     function addNode(){
       var w=row.querySelector('.haStoryAddOnlyV629'),meProfile=ownProfileForRenderV941()||{};
       if(!w){w=document.createElement('div');w.className='haStoryRadarUnitV629 haStoryAddOnlyV629';w.setAttribute('data-radar-static-add','1')}
@@ -1882,7 +1882,7 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       var guestIdle=true;try{guestIdle=localStorage.getItem('HAPPYAD_SESSION_ACTIVE')!=='1'||!isUuid(clean(localStorage.getItem('HAPPYAD_AUTH_UID')))}catch(_e){guestIdle=true}
       var sig=[name,av,guestIdle?'guest':'account'].join('|');
       if(w.getAttribute('data-idle-profile-sig-v936')!==sig){
-        var face=guestIdle?'<span class="haStoryGuestOrbFaceV939" aria-hidden="true"></span>':(av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial">'+esc(initials(name))+'</span>');
+        var face=guestIdle?'<span class="haStoryGuestOrbFaceV939" aria-hidden="true"></span>':(av?'<img src="'+esc(av)+'" alt="" decoding="async">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>');
         var avatarClass='radarAvatar haStoryOwnIdleV936'+(guestIdle?' haStoryGuestBubbleV939':'');
         w.innerHTML='<a class="radarItem" href="modules/publish.html?mode=story" aria-label="Ajouter une story"><div class="'+avatarClass+'">'+face+'<span class="haStoryIdlePlusV936" aria-hidden="true">'+storyAddIconHtmlV986()+'</span></div><div class="radarName">Ta story</div></a>';
         w.setAttribute('data-idle-profile-sig-v936',sig);

@@ -9,7 +9,7 @@
   'use strict';
   if(window.HappyHomeActionsV1)return;
 
-  var VERSION='V939_AUTH_ACTION_FAST_RESTORE';
+  var VERSION='V995_LIKE_STATE_NETWORK_RESILIENT';
   var KEY='HAPPYAD_VIDEO_ACTIONS_V1';
   var bridge=null;
   var memory=null;
@@ -114,8 +114,13 @@
   function applyAuthStateV938(detail){
     detail=detail||{};
     var authenticated=detail.authenticated===true,uid=authenticated?authUidFromDetailV938(detail):'',eventName=String(detail.event||'').toUpperCase();
+    var storedUid='';try{storedUid=String(localStorage.getItem('HAPPYAD_AUTH_UID')||'').trim();}catch(_stored){}
+    /* V995 : au démarrage/reconnexion lente, l'UID local confirmé peut arriver avant que
+       activeAuthUid soit hydraté. Si c'est exactement le même compte, ne jamais blanchir
+       le cœur rose entre deux états auth ; la requête personnelle le reconfirme ensuite. */
+    if(authenticated&&uid&&(!activeAuthUid&&storedUid===uid))activeAuthUid=uid;
     if(authenticated&&uid&&uid===activeAuthUid){
-      if(eventName==='SIGNED_IN'||eventName==='SIGNED_IN_READY'||eventName==='PROFILE_READY')refreshAuthVisibleV939(uid);
+      if(eventName==='SIGNED_IN'||eventName==='SIGNED_IN_READY'||eventName==='PROFILE_READY'||eventName==='INITIAL_SESSION'||eventName==='FRAME_READY')refreshAuthVisibleV939(uid);
       return false;
     }
     activeAuthUid=uid;
@@ -355,7 +360,6 @@
       var a=get(id),localPost=postById(id)||{};applyPostCounts(a,localPost,false);
       var requestEpoch=authEpoch;
       var user=null;try{user=await authUser();}catch(_e){}
-      a=resetMineV938(a);
       try{
         var pr=await c.from('happyad_posts').select('*').eq('id',id).maybeSingle();
         if(pr&&!pr.error&&pr.data)applyPostCounts(a,pr.data,true);
@@ -364,8 +368,10 @@
       if(user&&user.id){
         try{
           var ar=await c.from('happyad_content_actions').select('action_type,liked').eq('post_id',id).eq('user_id',String(user.id)).limit(12);
-          if(ar&&!ar.error)applyMine(a,ar.data||[]);
-        }catch(_a){}
+          if(ar&&!ar.error){a=resetMineV938(a);applyMine(a,ar.data||[]);}
+        }catch(_a){/* Connexion moyenne/faible : conserver le dernier état personnel confirmé localement. */}
+      }else if(!activeAuthUid){
+        a=resetMineV938(a);
       }
       preservePending(id,a);
       /* V908 : la requête ci-dessus a pu démarrer avant le chargement détaillé des commentaires.
@@ -397,12 +403,13 @@
       ids.forEach(function(id){if(byPost[id]&&Object.prototype.hasOwnProperty.call(exactCounts,id))applyExactCommentCount(id,byPost[id],exactCounts[id]);});
     }catch(_cc){}
     var user=null;try{user=await authUser();}catch(_e){}
-    ids.forEach(function(id){if(byPost[id])byPost[id]=resetMineV938(byPost[id]);});
     if(user&&user.id){
       try{
         var ar=await c.from('happyad_content_actions').select('post_id,action_type,liked').in('post_id',ids).eq('user_id',String(user.id)).limit(Math.max(80,ids.length*6));
-        if(ar&&!ar.error)(ar.data||[]).forEach(function(r){var id=String(r.post_id||'');if(byPost[id])applyMine(byPost[id],[r]);});
-      }catch(_a){}
+        if(ar&&!ar.error){ids.forEach(function(id){if(byPost[id])byPost[id]=resetMineV938(byPost[id]);});(ar.data||[]).forEach(function(r){var id=String(r.post_id||'');if(byPost[id])applyMine(byPost[id],[r]);});}
+      }catch(_a){/* Ne pas blanchir les likes locaux si la requête échoue. */}
+    }else if(!activeAuthUid){
+      ids.forEach(function(id){if(byPost[id])byPost[id]=resetMineV938(byPost[id]);});
     }
     ids.forEach(function(id){preservePending(id,byPost[id]);byPost[id]=preserveLatestCommentDetail(id,byPost[id]);loadedAt[id]=Date.now();});
     /* La peinture était déjà différée ; la persistance lourde doit l'être aussi. */
@@ -484,6 +491,7 @@
           ext.comments=Math.max(Number(ext.comments||0),Number(local.comments||0));
           ['__commentsLoading','__commentsRefreshing','__commentsExact','__commentsLoadedAt','__commentsHasMore','__commentsOffset'].forEach(function(k){if(Object.prototype.hasOwnProperty.call(local,k))ext[k]=local[k];});
         }
+        try{var direct=window.HappyLikeDirectV876;if(direct&&direct.apply)ext=direct.apply(id,ext)||ext;}catch(_direct){}
         merged[id]=ext;
       });
       memory=merged;
