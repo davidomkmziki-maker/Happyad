@@ -7,6 +7,8 @@
 <link id="happyad-actions-layout-master-v982-prepaint" rel="stylesheet" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
 <link rel="preload" as="style" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
 <link id="happyad-home-card-layout-master-v982-prepaint" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
+<link rel="preload" as="style" href="core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center">
+<link id="happyad-home-visual-maturity-master-v988-prepaint" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center">
 <style id="happyad-v631-story-radar-first-paint">
 /* V631 — taille ronde finale dès le premier rendu et clic réarmé après fermeture. */
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629{
@@ -243,7 +245,7 @@ html.happyadRadarBootUserV599 #happyadGuestRadarStableV599{display:none!importan
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content"><title>HAPPYAD</title>
 <!-- HAPPYAD V16ZJ — actualisation garde la page ouverte sans flash accueil -->
 <link rel="manifest" href="manifest.webmanifest?v=623-direct-surface">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#11151b">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="HAPPYAD">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1570,14 +1572,14 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
   document.addEventListener('visibilitychange',function(){if(!document.hidden)scan()},true);
 })();
 </script>
-<script src="core/profile-avatar-master-v855r32.js?v=972-p1-single-client"></script>
+<script src="core/profile-avatar-master-v855r32.js?v=990-global-default-profile-icon"></script>
 <script src="core/follow-master-v855r34.js?v=986-professional-icons-love"></script>
 <script src="core/home-feed-repository-v1.js?v=2-batch-complete"></script>
 <script src="core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
 <script src="core/home-media-loader-v1.js?v=982-grouped-photo-badge"></script>
 <script src="core/like-direct-master-v876.js?v=880-share-rich-card-preview"></script>
 <script src="core/home-actions-master-v1.js?v=978-favorite-count-contract"></script>
-<script src="core/home-card-renderer-v1.js?v=986-professional-icons-love"></script>
+<script src="core/home-card-renderer-v1.js?v=990-global-default-profile-icon"></script>
 <script src="core/home-feed-view-v1.js?v=929-prepaint-anchor"></script>
 <script src="core/home-feed-boot-v1.js?v=937-account-story-cache"></script>
 <script>
@@ -2704,7 +2706,7 @@ function happyadCommentAuthorHtmlV468(c,level){
   var liked=happyadGetCommentLikeStateV469(id)||!!c.liked;
   var mine=happyadCommentIsMineV469(c),editable=mine&&happyadCanEditCommentV911(c);
   return '<div class="haCommentItem" data-comment-id="'+esc(id)+'" data-level="'+Math.min(level,6)+'">'
-    +'<div class="haCommentAvatar" data-avatar-src="'+esc(avatar)+'">'+(avatar?'<img src="'+esc(avatar)+'" alt="" loading="lazy" decoding="async" fetchpriority="low">':esc(initials(name||'H')))+'</div>'
+    +'<div class="haCommentAvatar" data-avatar-src="'+esc(avatar)+'" data-happyad-avatar-uid="'+esc(c.user_id||c.authorId||'')+'" data-happyad-avatar-name="'+esc(name||'Utilisateur')+'">'+(avatar?'<img src="'+esc(avatar)+'" alt="" loading="lazy" decoding="async" fetchpriority="low">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'</div>'
     +'<div class="haCommentMain">'
       +'<div class="haCommentLine">'
         +'<div class="haCommentTextBlock">'
@@ -3937,7 +3939,7 @@ function happyadPrepareAlbumShellV772(card,p){
     var owner=postOwnerData(p)||{};
     var name=owner.name||'Utilisateur HAPPYAD';
     var ownerUid=String(owner.id||owner.user_id||p.creatorId||p.creator_id||p.user_id||p.owner_id||p.author_id||'').trim();
-    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':esc(initials(name));
+    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     var avatarAttrs=(ownerUid?' data-happyad-avatar-uid="'+esc(ownerUid)+'"':'')+' data-happyad-avatar-name="'+esc(name)+'"';
     var ago=happyadTimeAgo(happyadPostTimestamp(p));
     var creatorSubline=happyadVisibleCreatorSublineV984(p.location);
@@ -3953,7 +3955,7 @@ function happyadPrepareAlbumShellV772(card,p){
     card.classList.add('haAlbumFullPagerCard','haAlbumStructureStableV772','haAlbumSingleCardV981');
     /* V981 : un groupe = UNE carte. Seul le viewport média glisse horizontalement.
        Header, description et actions restent uniques et ne changent jamais de taille. */
-    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator'+(creatorSubline?'':' haCreatorSingleLineV984')+'"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b>'+(creatorSubline?'<span>'+esc(creatorSubline)+'</span>':'')+'</div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="haAlbumMediaViewportV981"><div class="haAlbumFullTrack">'+slides+'</div></div>'+happyadAlbumBodyHtmlV772(p,p)+happyadAlbumActionHtmlV772()+'</div><div class="haAlbumFullDots">'+dotHtml+'</div>';
+    card.innerHTML='<div class="miniCardFrame"><div class="miniTop"><div class="avatar"'+avatarAttrs+'>'+av+'</div><div class="creator'+(creatorSubline?'':' haCreatorSingleLineV984')+'"><b>'+esc(name)+badgeMarkHtml(owner.badge)+'</b>'+(creatorSubline?'<span>'+esc(creatorSubline)+'</span>':'')+'</div><div class="miniPostDate">'+esc(ago)+'</div></div><div class="haAlbumMediaViewportV981"><div class="haAlbumFullTrack">'+slides+'</div><div class="haAlbumFullDots">'+dotHtml+'</div></div>'+happyadAlbumBodyHtmlV772(p,p)+happyadAlbumActionHtmlV772()+'</div>';
     card.dataset.happyadAlbumShellV772='1';
     card.dataset.happyadAlbumShellV981='1';
     var track=card.querySelector('.haAlbumFullTrack');
@@ -4564,7 +4566,7 @@ function renderRadarHome(){
  block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
  const row=block.querySelector('.radarRow');
  const add=document.createElement('a'); add.href='modules/publish.html?mode=story'; add.className='radarItem'; add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>'; row.appendChild(add);
- items.forEach(p=>{const owner=postOwnerData(p);const live=happyadIsLive(p);const isStory=(happyadIsStory(p)||String(p.sourceType||p.source_type||p.type||p.mode||'').toLowerCase()==='story');const a=document.createElement('button');a.type='button';a.className='radarItem';a.style.background='transparent';a.style.border='0';a.style.padding='0';a.style.cursor='pointer'; const av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="radarInitial">'+esc(initials(owner.name))+'</span>'; const meta=live?'👁 '+(Number(getA(p.id).likes||p.likes_count||24)+24):(isStory?(typeof happyadTimeAgo==='function'?happyadTimeAgo(p.createdAt||p.created_at||Date.now()):'Story'):''); a.innerHTML='<div class="radarAvatar '+(live?'live':'')+'">'+av+(live?'<span class="liveBadge">LIVE</span>':'')+'<i class="typeDot '+happyadTypeClass(p)+'"></i></div><div class="radarName">'+esc(owner.name)+badgeMarkHtml(owner.badge)+'</div><div class="radarMeta">'+esc(meta)+'</div>'; a.onclick=()=>{ try{ if(String(p.sourceType||p.source_type||'').toLowerCase()==='story'){ openRadarPost(p); return;} openRadarPost(p);}catch(e){openRadarPost(p);} }; row.appendChild(a);});
+ items.forEach(p=>{const owner=postOwnerData(p);const live=happyadIsLive(p);const isStory=(happyadIsStory(p)||String(p.sourceType||p.source_type||p.type||p.mode||'').toLowerCase()==='story');const a=document.createElement('button');a.type='button';a.className='radarItem';a.style.background='transparent';a.style.border='0';a.style.padding='0';a.style.cursor='pointer'; const av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>'; const meta=live?'👁 '+(Number(getA(p.id).likes||p.likes_count||24)+24):(isStory?(typeof happyadTimeAgo==='function'?happyadTimeAgo(p.createdAt||p.created_at||Date.now()):'Story'):''); a.innerHTML='<div class="radarAvatar '+(live?'live':'')+'">'+av+(live?'<span class="liveBadge">LIVE</span>':'')+'<i class="typeDot '+happyadTypeClass(p)+'"></i></div><div class="radarName">'+esc(owner.name)+badgeMarkHtml(owner.badge)+'</div><div class="radarMeta">'+esc(meta)+'</div>'; a.onclick=()=>{ try{ if(String(p.sourceType||p.source_type||'').toLowerCase()==='story'){ openRadarPost(p); return;} openRadarPost(p);}catch(e){openRadarPost(p);} }; row.appendChild(a);});
  chips.insertAdjacentElement('afterend',block);
 }
 function bindHomeSearchAndQuickPost(){
@@ -5389,7 +5391,7 @@ function stableStoryCache(){
   function badge(p){var a=readCache()[uidOf(p)]||{};var b=(p&&(p.badge||p.userBadge||p.user_badge))||'';b=String(b||'').trim();if(!b||b==='aucun'||b==='none'||b==='null'||b==='undefined')b=a.badge||'';return b}
   function dist(p){try{return typeof happyadDistanceLabel==='function'?happyadDistanceLabel(p):'1.2 km'}catch(e){return '1.2 km'}}
   function badgeHtml(p){try{return typeof badgeMarkHtml==='function'?badgeMarkHtml(badge(p)):''}catch(e){return ''}}
-  function preview(p){var av=avatar(p);if(av)return '<img src="'+esc(av)+'" alt="">';return '<span class="radarInitial">'+esc(String(name(p)).trim().slice(0,1).toUpperCase()||'H')+'</span>';}
+  function preview(p){var av=avatar(p);if(av)return '<img src="'+esc(av)+'" alt="">';return '<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';}
   window.renderRadarHome=function(){
     var old=document.getElementById('homeRadarBlock'); if(old)old.remove();
     var chips=document.querySelector('.chips'); if(!chips)return;
@@ -6174,7 +6176,7 @@ if(like)like.onclick=function(e){
   function renderAvatar(p){return p.avatar||p.user_avatar||p.avatar_url||p.userAvatar||''}
   function renderBadge(p){return p.badge||p.userBadge||p.user_badge||''}
   var oldRender=window.renderRadarHome;
-  window.renderRadarHome=function(){var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}var old=$('homeRadarBlock');if(old)old.remove();var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});list=list.slice(0,14);var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';var row=block.querySelector('.radarRow');var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);list.forEach(function(g){var p=g.first,av=renderAvatar(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(name))+'</span>')+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">Story '+g.items.length+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn)});chips.insertAdjacentElement('afterend',block)};
+  window.renderRadarHome=function(){var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}var old=$('homeRadarBlock');if(old)old.remove();var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});list=list.slice(0,14);var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';var row=block.querySelector('.radarRow');var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);list.forEach(function(g){var p=g.first,av=renderAvatar(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">Story '+g.items.length+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn)});chips.insertAdjacentElement('afterend',block)};
   setTimeout(function(){try{if(typeof window.fetchRadarItems==='function'){Promise.resolve(window.fetchRadarItems()).then(function(){try{window.renderRadarHome()}catch(e){}})}else window.renderRadarHome()}catch(e){}},250);
 })();
 </script>
@@ -6368,7 +6370,7 @@ async function saveRemote(id,on){
   function renderAvatar(p){return (p&&(p.avatar||p.user_avatar||p.avatar_url||p.userAvatar))||''}
   function renderBadge(p){return (p&&(p.badge||p.userBadge||p.user_badge))||''}
   function isMineItem(p){try{return typeof happyadIsMine==='function'&&happyadIsMine(p)}catch(e){try{var u=JSON.parse(localStorage.getItem('happyad_user')||localStorage.getItem('HAPPYAD_USER')||'{}');return String(ownerOf(p))===String(u.id||u.user_id||'')}catch(_e){return false}}}
-  function previewHtml(p){var av=renderAvatar(p), nm=renderName(p);return av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(nm))+'</span>'}
+  function previewHtml(p){var av=renderAvatar(p), nm=renderName(p);return av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>'}
   function stopAll(){document.querySelectorAll('.radarAvatar.happyadStoryPreparing').forEach(function(el){el.classList.remove('happyadStoryPreparing')})}
   function startOn(btn){stopAll();var av=btn&&btn.querySelector&&btn.querySelector('.radarAvatar');if(av)av.classList.add('happyadStoryPreparing');setTimeout(stopAll,9000)}
   document.addEventListener('happyad:story-opened',function(){setTimeout(stopAll,20);setTimeout(updateViewerAge,40);setTimeout(updateViewerAge,220)});
@@ -7568,8 +7570,10 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
 
     if(profiles.length){
       html+='<div class="haSearchSection"><div class="haSearchSectionTitle">Profils disponibles</div><div class="haSearchUsersGrid">'+profiles.map(function(p){
-        var av=p.avatar?'<img src="'+esc(p.avatar)+'" alt="">':'<span>'+esc(initial(p.name))+'</span>';
-        return '<button type="button" class="haSearchUser" data-ha-profile-uid="'+esc(p.id)+'" data-ha-profile-name="'+esc(p.name)+'" data-ha-profile-handle="'+esc(p.handle)+'" data-ha-profile-avatar="'+esc(p.avatar)+'" data-ha-profile-badge="'+esc(p.badge)+'"><div class="haSearchUserTop"><div class="haSearchAvatar">'+av+'</div><div class="haSearchUserText"><b>'+esc(p.name)+badgeHtml(p.badge)+'</b><span>'+(p.handle?'@'+esc(p.handle):'')+'</span></div></div><div class="haSearchUserBottom"><em>Voir</em></div></button>';
+        var hasAvatar=!!String(p.avatar||'').trim();
+        var av=hasAvatar?'<img src="'+esc(p.avatar)+'" alt="">':'';
+        var avatarClass='haSearchAvatar'+(hasAvatar?'':' happyadDefaultProfileAvatarV989');
+        return '<button type="button" class="haSearchUser" data-ha-profile-uid="'+esc(p.id)+'" data-ha-profile-name="'+esc(p.name)+'" data-ha-profile-handle="'+esc(p.handle)+'" data-ha-profile-avatar="'+esc(p.avatar)+'" data-ha-profile-badge="'+esc(p.badge)+'"><div class="haSearchUserTop"><div class="'+avatarClass+'">'+av+'</div><div class="haSearchUserText"><b>'+esc(p.name)+badgeHtml(p.badge)+'</b><span>'+(p.handle?'@'+esc(p.handle):'')+'</span></div></div><div class="haSearchUserBottom"><em>Voir</em></div></button>';
       }).join('')+'</div></div>';
     }
 
@@ -8220,7 +8224,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
 </script>
 
 
-<!-- HAPPYAD V495 — barre système noire + carte média Chrome nettoyée -->
+<!-- HAPPYAD V988R4 — play des cartes aligné sur la centrale + points album lisibles -->
 <script id="happyad-v495-status-media-cleaner">
 (function(){
   if(window.__HAPPYAD_V495_STATUS_MEDIA_CLEANER__)return;window.__HAPPYAD_V495_STATUS_MEDIA_CLEANER__=true;
@@ -8229,12 +8233,12 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     try{
       var m=document.querySelector('meta[name="theme-color"]');
       if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m);}
-      m.setAttribute('content','#000000');
+      m.setAttribute('content','#11151b');
       var cs=document.querySelector('meta[name="color-scheme"]');
       if(!cs){cs=document.createElement('meta');cs.name='color-scheme';document.head.appendChild(cs);}
       cs.setAttribute('content','dark');
-      document.documentElement.style.backgroundColor='#000';
-      document.body&& (document.body.style.backgroundColor=document.body.style.backgroundColor||'#000');
+      document.documentElement.style.backgroundColor='#11151b';
+      document.body&& (document.body.style.backgroundColor=document.body.style.backgroundColor||'#11151b');
     }catch(_e){}
   }
   function cleanMediaSession(){
@@ -8613,7 +8617,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     if(seenChanged)writeSeen(seen);
   }
   function groupSeen(items){var seen=readSeen();return (items||[]).length>0 && (items||[]).every(function(p){return itemSeen(p,seen)})}
-  function previewHtml(p){var av=renderAvatar(p), nm=renderName(p);return av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial">'+esc(initials(nm))+'</span>'}
+  function previewHtml(p){var av=renderAvatar(p), nm=renderName(p);return av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>'}
   function stopAll(){document.querySelectorAll('.radarAvatar.happyadStoryPreparing').forEach(function(el){el.classList.remove('happyadStoryPreparing')})}
   function startOn(btn){stopAll();var av=btn&&btn.querySelector&&btn.querySelector('.radarAvatar');if(av)av.classList.add('happyadStoryPreparing');setTimeout(stopAll,9000)}
 
@@ -11048,7 +11052,7 @@ body.happyadPhotoSurfaceV591 #happyadAppShell{inset:0!important;width:100vw!impo
 window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 </script>
 
-<script>window.HAPPYAD_PUBLIC_VERSION="V986_PROFESSIONAL_ICONS_LOVE";</script>
+<script>window.HAPPYAD_PUBLIC_VERSION="V988R4_HOME_CENTRAL_PLAY_ALBUM_DOTS";</script>
 <style id="happyad-v595-action-counters-stable">
 #list.homeTimeline .miniActions,.feedGrid .miniActions,.hScroller .miniActions{
   display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
@@ -11813,6 +11817,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <!-- HAPPYAD V983 : MASTER FINAL — sept corrections médias/actions -->
 <link id="happyad-actions-layout-master-v982" rel="stylesheet" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
 <link id="happyad-home-card-layout-master-v982" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
+<link id="happyad-home-visual-maturity-master-v988" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center">
 <style id="happyad-v983-photo-comments-front-layer">
 /* Le panneau Commentaires doit rester au-dessus du fullscreen Accueil (1000200)
    et du fullscreen lancé depuis un profil (2147483000). */

@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v986-base-video-text-20260830';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v988r8-play-optical-center-20260831';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v986-professional-icons-love-20260830',
+  './index.html?v=v988r8-play-optical-center-20260831',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -40,8 +40,9 @@ var HAPPYAD_APP_SHELL = [
   './core/home-actions-master-v1.js?v=978-favorite-count-contract',
   './core/actions-layout-master-v982.css?v=985-love-follow-typography',
   './core/home-card-layout-master-v982.css?v=986-professional-icons-love',
+  './core/home-visual-maturity-master-v988.css?v=988r8-play-optical-center',
   './core/mention-render-master-v943.js?v=944-photo-profile-handoff',
-  './core/home-card-renderer-v1.js?v=986-professional-icons-love',
+  './core/home-card-renderer-v1.js?v=990-global-default-profile-icon',
   './core/home-feed-view-v1.js?v=929-prepaint-anchor',
   './core/home-feed-boot-v1.js?v=937-account-story-cache',
   './core/master-registry.js?v=974-p1-module-lifecycle-registry',
@@ -64,7 +65,7 @@ var HAPPYAD_APP_SHELL = [
   './core/return-reset-master-v633-story-safe.js?v=929-return-reset-canonical',
   './core/navigation-master-v668.js?v=986-professional-icons-love',
   './core/home-scroll-priority-master-v863.js?v=869-connection-phase2',
-  './core/profile-avatar-master-v855r32.js?v=972-p1-single-client',
+  './core/profile-avatar-master-v855r32.js?v=990-global-default-profile-icon',
   './core/follow-master-v855r34.js?v=986-professional-icons-love',
   './core/auth-storage-quota-master-v752.js?v=937-idb-auth-purge',
   './core/supabase-config-master-v973.js?v=973-p1-central-config',

@@ -6,7 +6,7 @@
   'use strict';
   if(window.HappyHomeCardRendererV1)return;
 
-  var VERSION='V986_CARD_FOLLOW_PROFESSIONAL_SVG';
+  var VERSION='V989_CARD_DEFAULT_PROFILE_ICON';
   var bridge=null;
 
   function connect(adapter){bridge=adapter||null;return api;}
@@ -82,7 +82,7 @@
     card.dataset.feedKey=safeText(p.__feedCardKey||('post:'+safeText(p.id||p.post_id||'')));
     card.dataset.happyadMarketplace='1';
     if(ownerUid)card.dataset.happyadOwnerUid=ownerUid;
-    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':esc(call('initials',name)||'H');
+    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     var avatarAttrs=(ownerUid?' data-happyad-avatar-uid="'+esc(ownerUid)+'"':'')+' data-happyad-avatar-name="'+esc(name)+'"';
     var ago=call('timeAgo',call('postTimestamp',p))||'';
     var badge=call('badgeHtml',owner.badge)||'';
@@ -146,7 +146,7 @@
     card.dataset.feedKey=safeText(p.__feedCardKey||('post:'+safeText(p.id||'')));
     if(ownerUid)card.dataset.happyadOwnerUid=ownerUid;
 
-    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':esc(call('initials',name)||'H');
+    var av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="happyadDefaultProfileAvatarV989" aria-hidden="true"></span>';
     var avatarAttrs=(ownerUid?' data-happyad-avatar-uid="'+esc(ownerUid)+'"':'')+' data-happyad-avatar-name="'+esc(name)+'"';
     var ago=call('timeAgo',call('postTimestamp',p))||'';
     var album=!video&&Number(p&&p.__albumCount||0)>1;

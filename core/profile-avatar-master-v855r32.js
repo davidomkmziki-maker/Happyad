@@ -2,7 +2,7 @@
   'use strict';
   if(window.HappyProfileAvatarMasterV855R32)return;
 
-  var VERSION='V855R33_PROFILE_AVATAR_EXACT_USER_CROP';
+  var VERSION='V990_PROFILE_AVATAR_GLOBAL_DEFAULT_ICON';
   var CACHE_KEY='HAPPYAD_PROFILE_AVATAR_MASTER_V855R32';
   var SYNC_KEY='HAPPYAD_PROFILE_AVATAR_SYNC_V855R32';
   var CHANNEL_NAME='happyad-profile-avatar-v855r32';
@@ -125,6 +125,101 @@
     try{if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'HAPPYAD_PROFILE_AVATAR_INVALIDATE_V855R32',uids:Object.keys(changes),source:VERSION});}catch(_e3){}
   }
   function initials(name){return clean(name||'H').split(/\s+/).slice(0,2).map(function(x){return x.charAt(0);}).join('').toUpperCase()||'H';}
+  var DEFAULT_AVATAR_CLASS='happyadDefaultProfileAvatarV989';
+  var DEFAULT_AVATAR_STYLE_ID='happyad-default-profile-avatar-v989-style';
+  var DEFAULT_AVATAR_SELECTOR=[
+    '.avatar','.commentAvatar','.commentAvatarSmall','.haCommentAvatar','.radarInitial','.mentionAutoAvatar',
+    '.person-selector-avatar','.chat-avatar','.haProfileAvatar','.avatar-fallback','.ha629Avatar',
+    '.ha629SharedPostAvatarV912','.haMentionAvatarV63','.haSearchAvatar','.happy-avatar','.hsvAvatar',
+    '.haV872Avatar','.haHomeFsAvatar','#currentUserAvatar','#chatAvatar','#profileAvatar','#hsvAvatar'
+  ].join(',');
+  function ensureDefaultAvatarStyle(){
+    try{
+      if(document.getElementById(DEFAULT_AVATAR_STYLE_ID))return;
+      var st=document.createElement('style');st.id=DEFAULT_AVATAR_STYLE_ID;
+      st.textContent='.'+DEFAULT_AVATAR_CLASS+'{background-color:#fff!important;background-image:radial-gradient(circle at 50% 34%,#9299a4 0 19.5%,transparent 20.5%),radial-gradient(ellipse 61% 45% at 50% 103%,#9299a4 0 98%,transparent 100%)!important;background-repeat:no-repeat!important;background-size:100% 100%!important;background-position:center!important;color:transparent!important;text-shadow:none!important;}.'+DEFAULT_AVATAR_CLASS+'#currentUserAvatar #currentUserInitials{display:none!important;}.'+DEFAULT_AVATAR_CLASS+'>img[data-happyad-avatar-failed-v989="1"]{display:none!important;}';
+      (document.head||document.documentElement).appendChild(st);
+    }catch(_e){}
+  }
+  function directImage(box){
+    try{return box&&box.querySelector?box.querySelector(':scope > img'):null;}catch(_e){return box&&box.querySelector?box.querySelector('img'):null;}
+  }
+  function clearDirectFallbackText(box){
+    try{[].slice.call(box.childNodes||[]).forEach(function(node){if(node&&node.nodeType===3&&clean(node.nodeValue))node.nodeValue='';});}catch(_e){}
+  }
+  function showDefaultAvatar(box){
+    if(!box)return;
+    ensureDefaultAvatarStyle();
+    try{
+      box.classList.add(DEFAULT_AVATAR_CLASS);
+      clearDirectFallbackText(box);
+      /* V990 : le fallback doit rester visible même quand une surface impose
+         son propre background avec !important (cartes, fullscreen, vidéo). */
+      if(box.style){
+        box.style.setProperty('background-color','#fff','important');
+        box.style.setProperty('background-image','radial-gradient(circle at 50% 34%,#9299a4 0 19.5%,transparent 20.5%),radial-gradient(ellipse 61% 45% at 50% 103%,#9299a4 0 98%,transparent 100%)','important');
+        box.style.setProperty('background-repeat','no-repeat','important');
+        box.style.setProperty('background-size','100% 100%','important');
+        box.style.setProperty('background-position','center','important');
+        box.style.setProperty('color','transparent','important');
+        box.style.setProperty('text-shadow','none','important');
+      }
+    }catch(_e){}
+  }
+  function hideDefaultAvatar(box){
+    if(!box)return;
+    try{
+      box.classList.remove(DEFAULT_AVATAR_CLASS);
+      if(box.style){
+        ['background-color','background-image','background-repeat','background-size','background-position','color','text-shadow'].forEach(function(prop){box.style.removeProperty(prop);});
+      }
+    }catch(_e){}
+  }
+  function avatarBoxForImage(image){
+    if(!image||!image.closest)return null;
+    try{return image.closest(DEFAULT_AVATAR_SELECTOR);}catch(_e){return null;}
+  }
+  function refreshDefaultAvatarBox(box){
+    if(!box||!box.matches)return;
+    try{
+      if(box.matches('.radarAvatar.add,.haProfileAvatarEdit,[data-happyad-avatar-no-default-v989]'))return;
+      var image=directImage(box),src=image&&clean(image.getAttribute('src'));
+      if(image&&src&&image.dataset.happyadAvatarFailedV989!=='1')hideDefaultAvatar(box);
+      else showDefaultAvatar(box);
+    }catch(_e){}
+  }
+  function scanDefaultAvatars(root){
+    root=root||document;if(!root)return;
+    var boxes=[];
+    try{if(root.matches&&root.matches(DEFAULT_AVATAR_SELECTOR))boxes.push(root);if(root.querySelectorAll)root.querySelectorAll(DEFAULT_AVATAR_SELECTOR).forEach(function(box){boxes.push(box);});}catch(_e){}
+    boxes.forEach(refreshDefaultAvatarBox);
+  }
+  function bindDefaultAvatarFallback(){
+    ensureDefaultAvatarStyle();
+    scanDefaultAvatars(document);
+    document.addEventListener('error',function(event){
+      var image=event&&event.target;if(!image||image.tagName!=='IMG')return;
+      var box=avatarBoxForImage(image);if(!box)return;
+      try{image.dataset.happyadAvatarFailedV989='1';image.style.setProperty('display','none','important');}catch(_e){}
+      showDefaultAvatar(box);
+    },true);
+    document.addEventListener('load',function(event){
+      var image=event&&event.target;if(!image||image.tagName!=='IMG')return;
+      var box=avatarBoxForImage(image);if(!box)return;
+      try{delete image.dataset.happyadAvatarFailedV989;image.style.removeProperty('display');}catch(_e){}
+      hideDefaultAvatar(box);
+    },true);
+    try{
+      var observer=new MutationObserver(function(records){
+        records.forEach(function(record){
+          if(record.type==='attributes'){var box=avatarBoxForImage(record.target);if(box)refreshDefaultAvatarBox(box);return;}
+          try{if(record.target&&record.target.matches&&record.target.matches(DEFAULT_AVATAR_SELECTOR))refreshDefaultAvatarBox(record.target);}catch(_target){}
+          [].slice.call(record.addedNodes||[]).forEach(function(node){if(node&&node.nodeType===1)scanDefaultAvatars(node);});
+        });
+      });
+      observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+    }catch(_e){}
+  }
   function styleExactCropImage(image){
     if(!image||!image.style)return image;
     try{
@@ -147,18 +242,27 @@
     if(!box||!e||!e.known)return;
     if(box.tagName==='IMG'){
       styleExactCropImage(box);
-      if(e.url){if(clean(box.getAttribute('src'))!==e.url)box.src=e.url;box.hidden=false;}else{box.removeAttribute('src');box.hidden=true;}
+      if(e.url){
+        try{delete box.dataset.happyadAvatarFailedV989;}catch(_clearFail){}
+        if(clean(box.getAttribute('src'))!==e.url)box.src=e.url;box.hidden=false;
+        var parentBox=avatarBoxForImage(box);if(parentBox)hideDefaultAvatar(parentBox);
+      }else{
+        box.removeAttribute('src');box.hidden=true;
+        var fallbackParent=avatarBoxForImage(box);if(fallbackParent)showDefaultAvatar(fallbackParent);
+      }
       try{box.dataset.happyadAvatarUid=e.uid;box.dataset.happyadAvatarKnown='1';box.dataset.happyadAvatarRevision=e.revision;}catch(_e){}
       return;
     }
-    var image=box.querySelector&&box.querySelector(':scope > img');
+    var image=directImage(box);
     if(e.url){
+      hideDefaultAvatar(box);
       if(!image){image=document.createElement('img');image.alt='';image.decoding='async';box.replaceChildren(image);}
+      try{delete image.dataset.happyadAvatarFailedV989;}catch(_clearFail2){}
       styleExactCropImage(image);
       if(clean(image.getAttribute('src'))!==e.url)image.src=e.url;
     }else{
       if(image)image.remove();
-      if(!clean(box.textContent))box.textContent=initials(name||box.dataset&&box.dataset.happyadAvatarName||'H');
+      showDefaultAvatar(box);
     }
     try{box.dataset.happyadAvatarUid=e.uid;box.dataset.happyadAvatarKnown='1';box.dataset.happyadAvatarRevision=e.revision;}catch(_e){}
   }
@@ -352,6 +456,6 @@
   window.HappyProfileAvatarMasterV855R32=Object.freeze(api);
   window.HappyProfileAvatarMaster=window.HappyProfileAvatarMasterV855R32;
   bindSync();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){paintKnownNodes(document);watchDom();bootstrapCurrent();},{once:true});
-  else{paintKnownNodes(document);watchDom();bootstrapCurrent();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){paintKnownNodes(document);watchDom();bindDefaultAvatarFallback();bootstrapCurrent();},{once:true});
+  else{paintKnownNodes(document);watchDom();bindDefaultAvatarFallback();bootstrapCurrent();}
 })();
