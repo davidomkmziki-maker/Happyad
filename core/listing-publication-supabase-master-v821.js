@@ -40,7 +40,16 @@
     try{if(error&&error.message)parts.push('message='+error.message);}catch(_e){}
     return clean(parts.join(' | ')||error&&error.message||error);
   }
+  /* V1001 — le nom de l'infrastructure reste interne. Tous les textes transmis
+     à l'interface Marketplace sont formulés comme des étapes HAPPYAD. */
+  function publicMessage(message){
+    return clean(message)
+      .replace(/Vérification\s+Supabase/gi,'Vérification de la publication')
+      .replace(/Enregistrement\s+Supabase/gi,'Enregistrement de la publication')
+      .replace(/Supabase/gi,'HAPPYAD');
+  }
   function progress(payload,message){
+    message=publicMessage(message);
     try{if(payload&&typeof payload.onProgress==='function')payload.onProgress(message);}catch(_e){}
     try{document.dispatchEvent(new CustomEvent('happyad:listing-publication-progress',{detail:{message:message,source:VERSION}}));}catch(_e){}
   }
@@ -126,8 +135,8 @@
     if(message.indexOf('PUBLICATION_RETURN_INVALID')>=0)return 'HAPPYAD n’a pas confirmé l’identifiant de l’annonce publiée.';
     if(message.indexOf('Could not find the function')>=0||message.indexOf(RPC)>=0)return 'Le SQL de publication toutes catégories V811 doit être exécuté.';
     if(message.indexOf('row-level security')>=0||message.indexOf('policy')>=0)return 'Les règles Storage Marketplace V811 ne sont pas encore installées.';
-    if(isNetworkError(error))return 'Connexion interrompue avec Supabase pendant la publication. HAPPYAD a réessayé automatiquement, mais aucune confirmation fiable n’a été reçue. Tes informations restent affichées : réessaie lorsque le réseau est stable.';
-    return message||'Publication de l’annonce impossible.';
+    if(isNetworkError(error))return 'Connexion interrompue pendant la publication. HAPPYAD a réessayé automatiquement, mais aucune confirmation fiable n’a été reçue. Tes informations restent affichées : réessaie lorsque le réseau est stable.';
+    return publicMessage(message)||'Publication de l’annonce impossible.';
   }
   async function freshSession(c){
     var sessionResult=await withTimeout(c.auth.getSession(),15000,'Vérification de session');
@@ -357,10 +366,10 @@
   async function callPublishRpc(c,args,listingId,user,payload){
     var lastError=null;
     for(var attempt=1;attempt<=3;attempt++){
-      progress(payload,attempt===1?'Enregistrement de l’annonce…':'Vérification Supabase — nouvel essai '+attempt+'/3');
+      progress(payload,attempt===1?'Enregistrement de l’annonce…':'Vérification de la publication — nouvel essai '+attempt+'/3');
       try{
         if(attempt>1)await freshSession(c);
-        var result=await withTimeout(c.rpc(RPC,args),45000,'Enregistrement Supabase');
+        var result=await withTimeout(c.rpc(RPC,args),45000,'Enregistrement de la publication');
         if(result&&result.error){
           var msg=errorDetails(result.error);
           if(msg.indexOf('LISTING_ALREADY_EXISTS')>=0){
@@ -378,7 +387,7 @@
         await sleep(attempt*1000);
       }
     }
-    var wrapped=new Error('Enregistrement Supabase : '+(errorDetails(lastError)||'échec réseau'));
+    var wrapped=new Error('Enregistrement de la publication : '+(errorDetails(lastError)||'échec réseau'));
     wrapped.cause=lastError;
     wrapped.happyadNetwork=isNetworkError(lastError);
     throw wrapped;

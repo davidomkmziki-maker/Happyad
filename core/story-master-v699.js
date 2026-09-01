@@ -6,7 +6,7 @@
   window.__HAPPYAD_STORY_MASTER_V697__=true;
   window.__HAPPYAD_STORY_MASTER_V629__=true;
 
-  var VERSION='STORY_MASTER_V986_PROFESSIONAL_ADD_SVG';
+  var VERSION='STORY_MASTER_V1000_ROOT_RADAR_IDENTITY';
   var state={
     box:null,owner:'',rows:[],profile:{},index:0,closed:true,paused:false,
     raf:0,timer:0,startedAt:0,elapsed:0,duration:10000,activeFill:null,progressAnim:null,progressBaseElapsed:0,
@@ -252,7 +252,15 @@
     var cr=createdOf(p);
     return cr>0&&Date.now()-cr<86400000;
   }
-  function badgeHtml(b){try{return typeof window.badgeMarkHtml==='function'?window.badgeMarkHtml(b):''}catch(_e){return ''}}
+  function badgeHtml(b){
+    b=clean(b);if(!b)return '';
+    try{if(typeof window.badgeMarkHtml==='function'){var html=window.badgeMarkHtml(b);if(html)return html}}catch(_e){}
+    var value=b.toLowerCase(),cls='';
+    if(/rose|pink/.test(value))cls='rose';
+    else if(/violet|purple|jaune|yellow|business/.test(value))cls='violet';
+    else if(/bleu|blue|verif|cert/.test(value))cls='bleu';
+    return cls?'<span class="happyBadgeMark '+cls+'" aria-label="Compte vérifié"></span>':'';
+  }
   function initials(n){n=clean(n)||'H';return (n[0]||'H').toUpperCase()}
   function ageOf(v){var d=createdOf(v);if(!d)return 'À l’instant';var s=Math.max(0,Math.floor((Date.now()-d)/1000));if(s<60)return s+' s';if(s<3600)return Math.floor(s/60)+' min';if(s<86400)return Math.floor(s/3600)+' h';return Math.floor(s/86400)+' j'}
   function stopAgeTickerV783(){if(state.ageTimer){clearInterval(state.ageTimer);state.ageTimer=0}}
@@ -645,6 +653,11 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
 .radarRow .haStoryRadarUnitV629 .radarAvatar{width:74px!important;height:74px!important;min-width:74px!important;max-width:74px!important;border-width:3px!important;margin:0 auto!important;box-sizing:border-box!important}
 .radarRow .haStoryRadarUnitV629 .radarAvatar img{width:100%!important;height:100%!important;object-fit:cover!important}
 .radarRow .haStoryRadarUnitV629 .radarName{max-width:92px!important;margin-top:7px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:13px!important}
+.radarRow .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000{display:flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;width:max-content!important;max-width:92px!important;min-width:0!important;margin-left:auto!important;margin-right:auto!important;overflow:hidden!important;text-overflow:clip!important}
+.radarRow .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryNameTextV1000{display:block!important;flex:0 1 auto!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important}
+.radarRow .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryBadgeSlotV1000{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;width:auto!important;min-width:max-content!important;overflow:visible!important}
+.radarRow .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryBadgeSlotV1000:empty{display:none!important}
+.radarRow .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryBadgeSlotV1000 .happyBadgeMark{flex:0 0 auto!important;margin:0!important}
 .radarRow .haStoryRadarUnitV629 .radarMeta{max-width:92px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:11px!important}
 .radarRow .haStoryAddMiniV629{position:absolute!important;right:7px!important;top:51px!important;width:25px!important;height:25px!important;border-radius:50%!important;border:2.5px solid #07080d!important;background:#ff8500!important;color:#fff!important;display:grid!important;place-items:center!important;font-size:0!important;line-height:0!important;text-decoration:none!important;z-index:8!important;box-sizing:border-box!important;overflow:hidden!important}
 .radarRow .haStoryAddMiniV629:visited{background:#ff8500!important;color:#fff!important;text-decoration:none!important}.radarRow .haStoryAddMiniV629:active,.radarRow .haStoryAddMiniV629.happyadButtonPressedV604{background:#ff8500!important;color:#fff!important;filter:brightness(1.08)!important;translate:0 0!important;scale:.94!important;box-shadow:none!important}
@@ -1902,9 +1915,10 @@ body.haStoryOpenV629,html.haStoryOpenV629{overflow:hidden!important;overscroll-b
       var btn=w.querySelector('button.radarItem[data-story-owner]');if(!btn){btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.dataset.storyOwner=owner;w.insertBefore(btn,w.firstChild||null)}
       btn.dataset.storyOwner=owner;btn.dataset.storyId=storyId(start);
       var av=clean(first&&(first.avatar||first.user_avatar||first.avatar_url));
-      var visualSig=[storyId(first),storyId(start),name,badge,seen?'1':'0',String(items.length),av].join('|');
+      var visualSig=['v1000',storyId(first),storyId(start),name,badge,seen?'1':'0',String(items.length),av].join('|');
       if(btn.getAttribute('data-radar-visual-sig')!==visualSig){
-        btn.innerHTML='<div class="radarAvatar '+(seen?'seen ':'')+'">'+avatarHtml(first,name)+'<i class="typeDot story"></i>'+(items.length>1?'<span class="radarStoryCount">'+items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+(owner===me?'':badgeHtml(badge))+'</div><div class="radarMeta" data-story-age-v783="1" data-story-created-at="'+esc(String(createdOf(first)||''))+'">'+esc(ageOf(first))+'</div>';
+        var renderedBadge=owner===me?'':badgeHtml(badge);
+        btn.innerHTML='<div class="radarAvatar '+(seen?'seen ':'')+'">'+avatarHtml(first,name)+(items.length>1?'<span class="radarStoryCount">'+items.length+'</span>':'')+'</div><div class="radarName haStoryNameMasterV1000" title="'+esc(name)+'"><span class="haStoryNameTextV1000">'+esc(name)+'</span><span class="haStoryBadgeSlotV1000">'+renderedBadge+'</span></div><div class="radarMeta" data-story-age-v783="1" data-story-created-at="'+esc(String(createdOf(first)||''))+'">'+esc(ageOf(first))+'</div>';
         btn.setAttribute('data-radar-visual-sig',visualSig);
       }else{
         var meta=btn.querySelector('.radarMeta');if(meta){meta.setAttribute('data-story-created-at',String(createdOf(first)||''));meta.textContent=ageOf(first)}

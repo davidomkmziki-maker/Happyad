@@ -3,7 +3,7 @@
   if(window.__HAPPYAD_MAIN_TABS_MASTER_V615__)return;
   window.__HAPPYAD_MAIN_TABS_MASTER_V615__=true;
 
-  var VERSION='MAIN_TABS_V965_POINT3_MESSAGE_AVATAR_STABLE';
+  var VERSION='MAIN_TABS_V998_EXCLUSIVE_MAIN_SURFACE';
   var lastAction='';
   var lastAt=0;
   var pendingMessageContext=null;
@@ -76,7 +76,7 @@
     try{
       if(n&&typeof n.activateMainTab==='function')return n.activateMainTab(page,extra);
       if(n&&typeof n.open==='function'){
-        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide',profile:'modules/my-profile.html?v=877-dock-execution-direct',publish:'modules/publish.html'};
+        var urls={video:'modules/video.html',message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide',profile:'modules/my-profile.html?v=1001-profile-identity-scale',publish:'modules/publish.html?v=1001-public-publication-wording'};
         return n.open(urls[page]||'index.html',Object.assign({},extra,{page:page,source:extra.source||VERSION,force:true}));
       }
     }catch(_e){}
@@ -386,11 +386,56 @@
   function setPublishFullscreen(on){
     try{document.body.classList.toggle('happyadPublishFullscreenV586',!!on);if(on)document.body.classList.remove('happyadMainDockVisible');}catch(_e){}
   }
+  /* V998 — Un bouton du menu principal représente un changement de surface,
+     pas l'ouverture d'une couche au-dessus de la précédente. Les iframes restent
+     en cache pour la vitesse, mais l'ancienne surface est immédiatement mise en
+     pause + retirée visuellement avant l'activation de la suivante. */
+  function closeParentMenuLayersV998(){
+    try{
+      var search=document.getElementById('happyadSmartSearchV427');
+      if(search&&search.classList.contains('on')){
+        search.classList.remove('on');
+        try{var ae=document.activeElement;if(ae&&search.contains(ae)&&typeof ae.blur==='function')ae.blur();}catch(_blur){}
+      }
+      document.documentElement.classList.remove('haSearchLocked');
+      document.body&&document.body.classList.remove('haSearchLocked');
+    }catch(_e){}
+  }
+  function cutPreviousMainSurfaceV998(next){
+    try{
+      closeParentMenuLayersV998();
+      next=clean(next).toLowerCase();
+      var n=nav(),current='';
+      try{current=n&&typeof n.currentPage==='function'?clean(n.currentPage()).toLowerCase():'';}catch(_c){}
+      if(current===next)return true;
+      var root=document.getElementById('happyadAppShell');
+      if(root){
+        root.querySelectorAll('.happyadAppFrame.on').forEach(function(fr){
+          var pg=clean(fr.getAttribute('data-happyad-page')).toLowerCase();
+          if(pg===next)return;
+          try{if(n&&typeof n.pauseFrame==='function')n.pauseFrame(fr,'dock-exclusive-switch-v998-'+next);}catch(_p){}
+          fr.classList.remove('on');
+          fr.style.opacity='';fr.style.visibility='';
+          fr.setAttribute('aria-hidden','true');fr.setAttribute('inert','');
+        });
+        if(next==='home'){root.classList.remove('on','happyadSkeletonOpen','happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');root.setAttribute('aria-hidden','true');}
+        else{root.classList.add('on');root.classList.remove('happyadMessageCachePreparingV876');root.setAttribute('aria-hidden','false');}
+      }
+      if(document.body){
+        if(next==='home')document.body.classList.remove('happyadAppOpen');
+        else document.body.classList.add('happyadAppOpen');
+      }
+      return true;
+    }catch(_e){return false;}
+  }
   function openMain(name,detail){
     name=clean(name).toLowerCase();
     var resumeDetail=detail&&typeof detail==='object'?detail:{};
     if(!name||(!resumeDetail.authResume&&dedupe(name)))return false;
     setPressed(name);
+    /* Même si une authentification est demandée avant la route, le menu principal
+       ferme d'abord la Recherche parent : aucune ancienne couche ne reste derrière. */
+    closeParentMenuLayersV998();
     var auth=window.HappyAuthSessionV598||window.HappyAuthSessionV596||window.HappyAuthSessionV595||null;
     if(name!=='video'&&name!=='home'&&auth&&typeof auth.isAuthenticated==='function'&&!auth.isAuthenticated()&&!loggedIn()&&!resumeDetail.authResume){
       auth.require({
@@ -400,6 +445,7 @@
       });
       return false;
     }
+    cutPreviousMainSurfaceV998(name);
     if(name==='home'){clearVideoDirectV855R79();return goHome();}
     rememberHomeScroll();
     if(name==='video'){clearVideoDirectV855R79();setPublishFullscreen(false);activate('video',{source:'main-tabs-video-v855r79-central',menu:true});return false;}
@@ -407,7 +453,7 @@
     if(name==='message'){setPublishFullscreen(false);return openMessage(Object.assign({mode:'inbox',source:'main-tabs-message-v877',menu:true},resumeDetail));}
     if(name==='profile'){
       setPublishFullscreen(false);
-      activateDockSurfaceV877('profile',{source:'main-tabs-profile-v877',url:'modules/my-profile.html?v=877-dock-execution-direct',menu:true});return false;
+      activateDockSurfaceV877('profile',{source:'main-tabs-profile-v877',url:'modules/my-profile.html?v=1001-profile-identity-scale',menu:true});return false;
     }
     if(name==='publish'){setPublishFullscreen(true);activate('publish',{source:'main-tabs-publish-v595',menu:true});return false;}
     return false;

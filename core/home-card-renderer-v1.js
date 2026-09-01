@@ -57,7 +57,7 @@
   }
   function videoViewsBadge(v){
     var value=esc(v==null?'0':v);
-    return '<div class="happyadVideoViewsBadge" aria-label="'+value+' vues"><svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount">'+value+'</span></div>';
+    return '<div class="happyadVideoViewsBadge" aria-label="'+value+' vues"><svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5.25 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L8.03 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"></path></svg><span class="happyadVideoViewsCount">'+value+'</span></div>';
   }
 
   function roundedLoveSvg(className){

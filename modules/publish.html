@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-happyad-page="publish">
 <head>
 <style id="happyad-profile-avatar-source-v995">
 /* V995 — fallback profil directement dans le source : aucune initiale B/C/K en connexion faible. */
@@ -359,9 +359,9 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
         script.crossOrigin='anonymous';
         (document.head||document.documentElement).appendChild(script);
       }
-      function done(){var c=resolveClient();if(c)resolve(c);else reject(new Error('Supabase indisponible'));}
+      function done(){var c=resolveClient();if(c)resolve(c);else reject(new Error('Service de publication indisponible'));}
       script.addEventListener('load',done,{once:true});
-      script.addEventListener('error',function(){reject(new Error('Chargement Supabase impossible'));},{once:true});
+      script.addEventListener('error',function(){reject(new Error('Chargement du service de publication impossible'));},{once:true});
       if(window.supabase&&window.supabase.createClient)done();
     });
     return sdkPromise;
@@ -371,8 +371,8 @@ textarea.field{min-height:136px;resize:vertical;line-height:1.45}
     var wait=Math.max(3000,Number(timeoutMs)||15000);
     return Promise.race([
       loadSdk(),
-      new Promise(function(_,reject){setTimeout(function(){reject(new Error('Délai Supabase dépassé'));},wait);})
-    ]).then(function(){var c=resolveClient();if(!c)throw new Error('Supabase indisponible');return c;});
+      new Promise(function(_,reject){setTimeout(function(){reject(new Error('Délai du service de publication dépassé'));},wait);})
+    ]).then(function(){var c=resolveClient();if(!c)throw new Error('Service de publication indisponible');return c;});
   };
   adoptParent();
 })();
@@ -583,7 +583,7 @@ button:disabled{filter:none;transform:none}
     <div id="progressText" class="progressText">Préparation...</div>
     <div class="progressTrack"><div id="progressFill" class="progressFill"></div></div>
     <div id="progressNum" class="progressNum">0%</div>
-    <div class="progressHint">Ne ferme pas cette page pendant l’envoi vers Supabase.</div>
+    <div class="progressHint">Ne ferme pas cette page pendant la publication.</div>
   </div>
 </div>
 <div class="app">
@@ -697,8 +697,17 @@ button:disabled{filter:none;transform:none}
     return true;
   }
 
+  /* V1001 — aucune technologie interne ne doit apparaître dans l'interface
+     Story, publication normale ou dans leurs messages d'erreur. */
+  function publicPublishMessage(msg){
+    return String(msg==null?'':msg)
+      .replace(/Storage\s+Supabase/gi,'service de médias HAPPYAD')
+      .replace(/Session\s+Supabase/gi,'session HAPPYAD')
+      .replace(/Upload\s+Supabase/gi,'envoi du média')
+      .replace(/Supabase/gi,'HAPPYAD');
+  }
   function toast(msg){
-    $("toast").textContent=msg;
+    $("toast").textContent=publicPublishMessage(msg);
     $("toast").classList.add("show");
     clearTimeout(window.__happyadToast);
     window.__happyadToast=setTimeout(()=>$("toast").classList.remove("show"),1800);
@@ -712,7 +721,7 @@ button:disabled{filter:none;transform:none}
     if(box) box.classList.add("show");
     if(fill) fill.style.width=progressValue+"%";
     if(num) num.textContent=progressValue+"%";
-    if(label && text) label.textContent=text;
+    if(label && text) label.textContent=publicPublishMessage(text);
   }
   function startProgress(text){
     clearInterval(progressTimer);
@@ -734,7 +743,7 @@ button:disabled{filter:none;transform:none}
   function failProgress(text){
     clearInterval(progressTimer);
     const label=$("progressText");
-    if(label) label.textContent=text||"Échec publication";
+    if(label) label.textContent=publicPublishMessage(text||"Échec publication");
     setTimeout(()=>{ const box=$("publishProgress"); if(box) box.classList.remove("show"); },1400);
   }
 
@@ -1424,19 +1433,19 @@ button:disabled{filter:none;transform:none}
   async function getFreshAuth(c){
     let session=null, user=null, profile=null;
     try{
-      const s=await withTimeout(c.auth.getSession(),20000,'Lecture session Supabase');
+      const s=await withTimeout(c.auth.getSession(),20000,'Lecture de la session');
       session=s&&s.data&&s.data.session?s.data.session:null;
     }catch(_e){}
     if(!session){
       try{
-        const r=await withTimeout(c.auth.refreshSession(),25000,'Renouvellement session Supabase');
+        const r=await withTimeout(c.auth.refreshSession(),25000,'Renouvellement de la session');
         session=r&&r.data&&r.data.session?r.data.session:null;
       }catch(_e){}
     }
     user=session&&session.user?session.user:null;
     if(!user){
       try{
-        const u=await withTimeout(c.auth.getUser(),20000,'Lecture utilisateur Supabase');
+        const u=await withTimeout(c.auth.getUser(),20000,'Lecture du compte');
         user=u&&u.data&&u.data.user?u.data.user:null;
       }catch(_e){}
     }
@@ -1517,11 +1526,11 @@ button:disabled{filter:none;transform:none}
   async function savePostToSupabase(localPost,file){
     let c=happySb();
     if(!c){try{c=await window.happyadEnsureSupabaseV936(15000);}catch(_e){}}
-    if(!c) throw new Error('Supabase non chargé');
+    if(!c) throw new Error('Service de publication indisponible');
     setProgress(8,'Vérification session...');
     const auth=await getFreshAuth(c);
     const session=auth.session, user=auth.user, profile=auth.profile;
-    if(!user) throw new Error('Session Supabase absente : reconnecte-toi');
+    if(!user) throw new Error('Session absente : reconnecte-toi');
     setProgress(18,'Session prête');
     const id=localPost.id;
     const ext=cleanName((file.name&&file.name.includes('.'))?file.name.split('.').pop():(localPost.kind==='video'?'mp4':'jpg')).replace(/^\.+/,'') || (localPost.kind==='video'?'mp4':'jpg');
@@ -1547,7 +1556,7 @@ button:disabled{filter:none;transform:none}
       }
       return 90000;
     }
-    setProgress(35,'Upload Supabase...');
+    setProgress(35,'Envoi du média...');
     let keepAuthAlive=setInterval(function(){touchAuthSession(c);},25000);
     let up;
     try{
@@ -1568,10 +1577,10 @@ button:disabled{filter:none;transform:none}
       try{if(up.error.message)detailParts.push('message='+up.error.message)}catch(_d4){}
       let msg=detailParts.join(' | ') || up.error.message || up.error.error_description || JSON.stringify(up.error);
       if(/database schema is invalid|schema is invalid|incompatible/i.test(msg)){
-        throw new Error('Storage Supabase refuse côté serveur. Le bucket existe, mais le service Storage/API du projet répond schema invalide. Exécute SUPABASE_STORAGE_OWNER_SAFE_V29.sql. Si ça reste pareil, vérifie Status/Logs Supabase ou redémarre le projet Supabase. Détail: '+msg);
+        throw new Error('Le service de médias refuse momentanément l’envoi. Réessaie plus tard. Détail : '+msg);
       }
       if(/must be owner|owner of table objects/i.test(msg)){
-        throw new Error('Storage Supabase: impossible de modifier storage.objects depuis SQL Editor. N’exécute plus V28. Utilise SUPABASE_STORAGE_OWNER_SAFE_V29.sql puis vérifie les policies dans Storage Dashboard. Détail: '+msg);
+        throw new Error('Le service de médias ne peut pas enregistrer ce fichier. Réessaie plus tard. Détail : '+msg);
       }
       throw new Error('Storage upload: '+msg);
     }
@@ -2343,5 +2352,9 @@ return {source:'story',id:storyId};
 <link rel="stylesheet" href="../core/button-state-master-v604.css?v=604">
 <script src="../core/button-state-master-v604.js?v=604"></script>
 <script src="../core/internal-return-fast-v611.js?v=611"></script>
+
+<!-- HAPPYAD V997 GLOBAL COHERENCE -->
+<link rel="stylesheet" href="../core/happyad-global-coherence-v997.css?v=1000-global-coherence-no-story-overlay">
+<script src="../core/happyad-global-coherence-v997.js?v=1000-global-coherence-no-story-overlay"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 :root{
-  --ha-bg:#020303;--ha-panel:#090c11;--ha-panel2:#11161e;--ha-line:rgba(255,255,255,.11);
+  --ha-bg:#0d1117;--ha-panel:#111720;--ha-panel2:#151c26;--ha-line:rgba(255,255,255,.11);
   --ha-text:#f8f9fb;--ha-muted:#9ca4b2;--ha-orange:#ff7a00;--ha-orange2:#ff4f21;
   --ha-green:#28d881;--ha-red:#ff496b;--ha-safe-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -11,7 +11,7 @@ button{touch-action:manipulation}
 .haProfileApp{min-height:100dvh;background:var(--ha-bg);padding:0 0 calc(24px + var(--ha-safe-bottom))}
 body[data-profile-mode="owner"] .haProfileApp{padding-bottom:calc(96px + var(--ha-safe-bottom))}
 .haProfileBack{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(14px,calc((100vw - 520px)/2 + 14px));z-index:150;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,138,0,.48);background:linear-gradient(145deg,rgba(255,138,0,.28),rgba(255,75,34,.08));color:#fff;font-size:32px;line-height:1;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.32)}
-.haProfileHero{position:relative;padding:34px 18px 14px;background:linear-gradient(180deg,#090b0f 0%,#030405 100%);text-align:center;min-height:320px}
+.haProfileHero{position:relative;padding:34px 18px 14px;background:var(--ha-bg);text-align:center;min-height:320px}
 .haProfileAvatarWrap{position:relative;width:110px;height:110px;margin:4px auto 0;isolation:isolate}
 .haProfileAvatar{position:relative;z-index:2;width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid #313846;background:#141923;display:grid;place-items:center;color:#8f98a8;font-size:45px;box-shadow:0 14px 38px rgba(0,0,0,.48);background-size:cover;background-position:center}
 .haProfileAvatar img{width:100%;height:100%;min-width:100%;min-height:100%;max-width:none;max-height:none;object-fit:cover;object-position:50% 50%;transform:none;transform-origin:50% 50%;display:block}
@@ -20,14 +20,14 @@ body[data-profile-mode="owner"] .haProfileApp{padding-bottom:calc(96px + var(--h
 .haProfileAvatarEdit{position:absolute;right:0;bottom:2px;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;border:2px solid #050607;background:linear-gradient(135deg,var(--ha-orange),var(--ha-orange2));color:#fff;font-size:22px;font-weight:900;z-index:4}
 body[data-profile-mode="visitor"] .haProfileAvatarEdit{display:none}
 .haProfileNameRow{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:13px;min-width:0}
-.haProfileName{font-size:25px;line-height:1.12;font-weight:950;max-width:86%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.haProfileName{font-size:23px;line-height:1.08;font-weight:950;max-width:86%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .haProfileBadge{display:inline-grid;place-items:center;flex:0 0 auto}
 .happyBadgeMark{position:relative!important;display:inline-block!important;width:14px!important;height:14px!important;margin-left:4px!important;vertical-align:-2px!important;overflow:visible!important;font-size:0!important;line-height:1!important;clip-path:polygon(50% 0%,58% 12%,71% 6%,76% 20%,91% 22%,88% 38%,100% 50%,88% 62%,91% 78%,76% 80%,71% 94%,58% 88%,50% 100%,42% 88%,29% 94%,24% 80%,9% 78%,12% 62%,0% 50%,12% 38%,9% 22%,24% 20%,29% 6%,42% 12%)!important}.happyBadgeMark:before{content:""!important;position:absolute!important;inset:0!important;clip-path:inherit!important;z-index:0!important}.happyBadgeMark:after{content:"✓"!important;position:absolute!important;top:50%!important;left:50%!important;transform:translate(-50%,-52%)!important;color:#fff!important;font-size:9px!important;font-weight:1000!important;line-height:1!important;text-shadow:0 0 3px rgba(255,255,255,.75)!important;z-index:1!important}.happyBadgeMark.bleu:before,.happyBadgeMark.blue:before{background:linear-gradient(135deg,#6fd4ff,#38b6ff,#0090ff)!important;box-shadow:0 0 3px rgba(79,195,255,.45),0 0 8px rgba(0,120,255,.25)!important}.happyBadgeMark.violet:before{background:linear-gradient(135deg,#e9d5ff,#c084fc,#9333ea)!important;box-shadow:0 0 3px rgba(147,51,234,.45),0 0 8px rgba(109,40,217,.25)!important}.happyBadgeMark.rose:before,.happyBadgeMark.pink:before{background:linear-gradient(135deg,#ffb4d4,#ff5ca8,#e60073)!important;box-shadow:0 0 3px rgba(255,92,168,.55),0 0 9px rgba(230,0,115,.30)!important}
-.haProfileBadge .happyBadgeMark{width:19px!important;height:19px!important;margin-left:0!important;vertical-align:0!important}
+.haProfileBadge .happyBadgeMark{width:17px!important;height:17px!important;margin-left:0!important;vertical-align:0!important}
 .haProfileHandle{margin-top:4px;color:var(--ha-muted);font-size:15px;min-height:20px}
 .haProfilePills{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:9px}
 .haProfilePill{padding:5px 9px;border:1px solid var(--ha-line);border-radius:999px;background:rgba(255,255,255,.035);font-size:11px;font-weight:800;color:#dfe3ea}
-.haProfileStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:16px 0 0;border:1px solid var(--ha-line);border-radius:18px;background:#080a0e;overflow:hidden}
+.haProfileStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:16px 0 0;border:1px solid var(--ha-line);border-radius:18px;background:var(--ha-panel);overflow:hidden}
 .haProfileStat{padding:10px 3px;border-right:1px solid var(--ha-line);min-width:0}
 .haProfileStat:last-child{border-right:0}.haProfileStat b{display:block;font-size:17px;line-height:1.1;font-variant-numeric:tabular-nums}.haProfileStat span{display:block;margin-top:4px;font-size:10.5px;color:var(--ha-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .haProfileBio{padding:14px 20px 8px;text-align:center;white-space:pre-wrap;line-height:1.45;color:#e8ebf0;min-height:8px}
@@ -39,14 +39,14 @@ body[data-profile-mode="visitor"] .haProfileActions{grid-template-columns:repeat
 .haProfileAction.primary{background:linear-gradient(135deg,#b44c00,#7c220a);border-color:rgba(255,138,0,.55)}
 .haProfileAction.following{background:#111821;border-color:rgba(40,216,129,.45);color:#cffff0}.haProfileAction:disabled{opacity:.55}
 .haProfileAction svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
-.haProfileTabs{position:sticky;top:0;z-index:80;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:54px;background:rgba(3,4,5,.98);border-top:1px solid rgba(255,255,255,.055);border-bottom:1px solid var(--ha-line)}
+.haProfileTabs{position:sticky;top:0;z-index:80;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:54px;background:rgba(13,17,23,.98);border-top:1px solid rgba(255,255,255,.055);border-bottom:1px solid var(--ha-line)}
 body[data-profile-mode="visitor"] .haProfileTabs{grid-template-columns:repeat(2,minmax(0,1fr))}
 .haProfileTab{position:relative;border:0;background:transparent;color:#7f8794;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}.haProfileTab.active{color:#fff}.haProfileTab.active:after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;border-radius:999px;background:linear-gradient(90deg,var(--ha-orange),var(--ha-orange2))}.haProfileTab svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .haProfileGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;width:100%;padding:3px 0 0;align-content:start;min-height:230px}
 .haProfileTile{touch-action:manipulation;position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;border:0;border-radius:3px;background:#0e1117;padding:0;display:block;color:#fff}.haProfileTile img,.haProfileTile video{width:100%;height:100%;object-fit:cover;display:block;background:#10141b}.haProfileTile video{pointer-events:none}.haProfileTileFallback{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,rgba(255,122,0,.14),transparent 30%),#10141b;color:#8892a1;font-size:28px}.haProfilePlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:39px;height:39px;border-radius:50%;display:grid;place-items:center;padding-left:2px;background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.72);z-index:3}.haProfilePlay:before{content:"";border-left:13px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:2px}.haProfileAlbumMark{position:absolute;right:7px;top:7px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(5,7,10,.72);border:1px solid rgba(255,255,255,.22);font-size:12px;font-weight:900;z-index:4}.haProfilePrivateMark{position:absolute;left:7px;top:7px;padding:4px 6px;border-radius:999px;background:rgba(0,0,0,.72);font-size:9px;font-weight:900;z-index:4}
 .haProfileSentinel{height:2px;width:100%}.haProfileLoadingRow{grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:70px;color:var(--ha-muted);font-size:12px}.haProfileEmpty{grid-column:1/-1;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 18px;color:var(--ha-muted)}.haProfileEmpty b{color:#fff;margin-bottom:6px}
 .haSkTile{position:relative;aspect-ratio:4/5;background:#10141b;overflow:hidden}.haSkTile:after,.haSkAvatar:after,.haSkLine:after{content:"";position:absolute;inset:0 auto 0 -90%;width:72%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.12),transparent);animation:haShimmer 1.7s ease-in-out infinite;transform:skewX(-14deg)}@keyframes haShimmer{55%,100%{left:120%}}
-.haProfileBoot{position:fixed;inset:0;z-index:130;background:#030405;display:flex;flex-direction:column;align-items:center;padding:52px 18px 0;transition:opacity .18s ease,visibility .18s ease}.haProfileBoot.off{opacity:0;visibility:hidden;pointer-events:none}.haProfileBoot .haSkAvatar{position:relative;width:104px;height:104px;border-radius:50%;background:#151a23;overflow:hidden}.haProfileBoot .haSkLine{position:relative;width:160px;height:18px;border-radius:999px;background:#11161d;margin-top:15px;overflow:hidden}.haProfileBoot .haSkLine.sm{width:112px;height:11px;margin-top:8px}.haProfileBootStats{display:grid;grid-template-columns:repeat(4,1fr);width:100%;margin-top:19px;border:1px solid var(--ha-line);border-radius:18px;overflow:hidden}.haProfileBootStats span{height:49px;background:#090c11;border-right:1px solid var(--ha-line)}.haProfileBootStats span:last-child{border-right:0}.haProfileBootGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:calc(100% + 36px);margin-top:80px}.haProfileBootGrid .haSkTile{border-radius:3px}
+.haProfileBoot{position:fixed;inset:0;z-index:130;background:var(--ha-bg);display:flex;flex-direction:column;align-items:center;padding:52px 18px 0;transition:opacity .18s ease,visibility .18s ease}.haProfileBoot.off{opacity:0;visibility:hidden;pointer-events:none}.haProfileBoot .haSkAvatar{position:relative;width:104px;height:104px;border-radius:50%;background:#151a23;overflow:hidden}.haProfileBoot .haSkLine{position:relative;width:160px;height:18px;border-radius:999px;background:#11161d;margin-top:15px;overflow:hidden}.haProfileBoot .haSkLine.sm{width:112px;height:11px;margin-top:8px}.haProfileBootStats{display:grid;grid-template-columns:repeat(4,1fr);width:100%;margin-top:19px;border:1px solid var(--ha-line);border-radius:18px;overflow:hidden}.haProfileBootStats span{height:49px;background:var(--ha-panel);border-right:1px solid var(--ha-line)}.haProfileBootStats span:last-child{border-right:0}.haProfileBootGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:calc(100% + 36px);margin-top:80px}.haProfileBootGrid .haSkTile{border-radius:3px}
 .haProfileToast{position:fixed;left:50%;bottom:calc(24px + var(--ha-safe-bottom));transform:translateX(-50%) translateY(14px);z-index:300;max-width:min(90vw,450px);padding:11px 14px;border-radius:13px;background:rgba(20,24,32,.97);border:1px solid var(--ha-line);box-shadow:0 18px 44px rgba(0,0,0,.46);opacity:0;visibility:hidden;transition:.18s ease;font-size:13px;text-align:center}.haProfileToast.on{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
 .haProfileSettingsList{display:grid;gap:9px}.haProfileSettingsList button{width:100%;min-height:48px;border:1px solid var(--ha-line);border-radius:14px;background:#11161e;color:#fff;text-align:left;padding:12px 14px;font-weight:800}.haProfileSettingsList button.danger{color:#ff8298}
 @media(max-width:360px){.haProfileHero{padding-left:10px;padding-right:10px}.haProfileStats{grid-template-columns:repeat(4,minmax(0,1fr))}.haProfileStat span{font-size:9px}.haProfileActions{padding-left:10px;padding-right:10px;gap:6px}.haProfileAction{font-size:10px}.haProfileTab span{display:none}}
@@ -70,9 +70,10 @@ body.haProfileCompactV854R2 .haProfileAvatarWrap{margin-top:1px}
 body.haProfileCompactV854R2 .haProfileAvatar{border-width:2px;font-size:37px;box-shadow:0 10px 28px rgba(0,0,0,.42)}
 body.haProfileCompactV854R2 .haProfileStoryRing{inset:-4px;padding:2px}
 body.haProfileCompactV854R2 .haProfileAvatarEdit{width:27px;height:27px;bottom:0;font-size:18px}
-body.haProfileCompactV854R2 .haProfileNameRow{gap:6px;margin-top:8px}
-body.haProfileCompactV854R2 .haProfileName{font-size:21px;line-height:1.08;max-width:84%}
-body.haProfileCompactV854R2 .haProfileBadge svg{width:17px;height:17px}
+body.haProfileCompactV854R2 .haProfileNameRow{gap:5px;margin-top:8px}
+body.haProfileCompactV854R2 .haProfileName{font-size:19px;line-height:1.04;max-width:84%}
+body.haProfileCompactV854R2 .haProfileBadge .happyBadgeMark{width:16px!important;height:16px!important}
+body.haProfileCompactV854R2 .haProfileBadge svg{width:16px;height:16px}
 body.haProfileCompactV854R2 .haProfileHandle{margin-top:2px;font-size:13px;min-height:17px}
 body.haProfileCompactV854R2 .haProfilePills{gap:5px;margin-top:5px}
 body.haProfileCompactV854R2 .haProfilePill{padding:4px 8px;font-size:10px}
@@ -132,7 +133,7 @@ body[data-profile-mode="visitor"] .haProfileActions{padding-top:7px!important;}
    à chaque frame, ce qui produisait le léger tremblement observé uniquement en
    haut du profil. Les fonds restent visuellement identiques, sans flou vivant. */
 body[data-profile-mode="owner"] .haProfileTabs{
-  background:#030405;
+  background:var(--ha-bg);
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
 }

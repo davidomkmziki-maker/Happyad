@@ -1,7 +1,7 @@
 <!-- V68 server guard compatibility: canPost(String(postId),'comments',true) is enforced by Supabase RLS, not awaited on the UI hot path. -->
 <!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r80-video-options-visible | 855r81-video-popup-gap -->
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-happyad-page="video">
 <head>
 <style id="happyad-profile-avatar-source-v995">
 /* V995 — fallback profil directement dans le source : aucune initiale B/C/K en connexion faible. */
@@ -2956,5 +2956,9 @@ html.happyadVideoEmbeddedV613E .reel .side{
   .reel .side .act .actCount{font-size:12px!important;}
 }
 </style>
+
+<!-- HAPPYAD V997 GLOBAL COHERENCE -->
+<link rel="stylesheet" href="../core/happyad-global-coherence-v997.css?v=1000-global-coherence-no-story-overlay">
+<script src="../core/happyad-global-coherence-v997.js?v=1000-global-coherence-no-story-overlay"></script>
 </body>
 </html>

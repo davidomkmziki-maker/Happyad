@@ -38,12 +38,12 @@
 
   var pages={
     home:'index.html',
-    profile:'modules/my-profile.html?v=877-dock-execution-direct',
+    profile:'modules/my-profile.html?v=1001-profile-identity-scale',
     profile_public:'modules/visitor-profile.html',
     video:'modules/video.html?v=986-base-video-text',
     photo:'modules/photo.html',
     message:'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide',
-    publish:'modules/publish.html?v=937-post-mention-notification',
+    publish:'modules/publish.html?v=1001-public-publication-wording',
     map:'modules/map.html'
   };
 
@@ -786,9 +786,9 @@
     page=String(page||'');
     if(page==='video')return 'modules/video.html?v=986-base-video-text';
     if(page==='message')return 'modules/message-center.html?mode=inbox&source=v738-assistance&v=966-view-once-persistent-hide';
-    if(page==='profile')return 'modules/my-profile.html?v=877-dock-execution-direct';
+    if(page==='profile')return 'modules/my-profile.html?v=1001-profile-identity-scale';
     if(page==='profile_public')return VISITOR_PROFILE_PRELOAD_URL_V601;
-    if(page==='publish')return 'modules/publish.html?v=937-post-mention-notification';
+    if(page==='publish')return 'modules/publish.html?v=1001-public-publication-wording';
     return pages[page]||'index.html';
   }
   function ownerAuthUidHintV855R23(){
@@ -1591,7 +1591,7 @@
          reconstruction à chaque passage Accueil -> Profil. */
       if(!ownerReusableV756)deliverOwnerTargetV649(fr,url,extra);
       else{
-        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=877-dock-execution-direct');
+        fr.setAttribute('data-happyad-src','modules/my-profile.html?v=1001-profile-identity-scale');
         fr.setAttribute('data-happyad-owner-persistent-v756','1');
       }
     }
@@ -1659,12 +1659,16 @@
           var currentSurfaceV876=root.querySelector('.happyadAppFrame.on[data-happyad-page]');
           var prepareOverHomeV876=activePage==='home'||!currentSurfaceV876||currentSurfaceV876===fr;
           root.classList.remove('happyadMessageCachePreparingV876','happyadMessageCachePreparingWithinShellV876');
-          if(prepareOverHomeV876){
+          /* V998 : via le dock, l'ancienne page est déjà coupée. Le shell reste
+             opaque pendant la préparation de Messages afin qu'Accueil ou une
+             autre frame ne réapparaisse jamais derrière la nouvelle surface. */
+          if(prepareOverHomeV876&&!extra.menu){
             root.classList.remove('on');
             root.classList.add('happyadMessageCachePreparingV876');
             root.setAttribute('aria-hidden','true');
           }else{
             root.classList.add('on','happyadMessageCachePreparingWithinShellV876');
+            root.classList.remove('happyadMessageCachePreparingV876');
             root.setAttribute('aria-hidden','false');
           }
           fr.classList.remove('on');

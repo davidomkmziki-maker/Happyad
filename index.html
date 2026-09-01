@@ -1,7 +1,7 @@
 <!-- V68 server guard compatibility: canPost(String(p.id),'comments',true) is enforced by Supabase RLS, not awaited on the UI hot path. -->
 <!-- HAPPYAD V885: Stories last-good immediate + skeleton <=180ms -->
 <!-- Regression lineage cache-bust: 855r65-options-reactivation-fluide | 855r66-options-optimistic-supabase-bg | 855r67-popup-persistant-confirmation-haut | 855r90-home-card-single-design | 855r91-radar-add-persistent -->
-<!DOCTYPE html><html lang="fr"><head>
+<!DOCTYPE html><html lang="fr" data-happyad-page="home"><head>
 <style id="happyad-profile-avatar-source-v995">
 /* V995 — fallback profil directement dans le source : aucune initiale B/C/K en connexion faible. */
 .avatar,.commentAvatar,.commentAvatarSmall,.haCommentAvatar,.radarInitial,.mentionAutoAvatar,.person-selector-avatar,.chat-avatar,.haProfileAvatar,.avatar-fallback,.ha629Avatar,.ha629SharedPostAvatarV912,.haMentionAvatarV63,.haSearchAvatar,.happy-avatar,.hsvAvatar,.haV872Avatar,.haHomeFsAvatar,.hsvmAv,.haSamAv,.sponsorCreatorInitial,#currentUserAvatar,#chatAvatar,#profileAvatar,#hsvAvatar{background-color:#fff;background-image:radial-gradient(circle at 50% 34%,#9299a4 0 19.5%,transparent 20.5%),radial-gradient(ellipse 61% 45% at 50% 103%,#9299a4 0 98%,transparent 100%);background-repeat:no-repeat;background-size:100% 100%;background-position:center;color:transparent!important;text-shadow:none!important}
@@ -9,12 +9,12 @@
 #currentUserInitials{display:none!important}
 </style>
 <!-- HAPPYAD V979 : préchargement + première peinture du dernier design pour éviter tout flash ancien -->
-<link rel="preload" as="style" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
-<link id="happyad-actions-layout-master-v982-prepaint" rel="stylesheet" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
+<link rel="preload" as="style" href="core/actions-layout-master-v982.css?v=1005r1-action-count-18-text-only">
+<link id="happyad-actions-layout-master-v982-prepaint" rel="stylesheet" href="core/actions-layout-master-v982.css?v=1005r1-action-count-18-text-only">
 <link rel="preload" as="style" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
 <link id="happyad-home-card-layout-master-v982-prepaint" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
-<link rel="preload" as="style" href="core/home-visual-maturity-master-v988.css?v=988r9-double-tap-love-inline-more">
-<link id="happyad-home-visual-maturity-master-v988-prepaint" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r9-double-tap-love-inline-more">
+<link rel="preload" as="style" href="core/home-visual-maturity-master-v988.css?v=1005r3-action-count-16-final">
+<link id="happyad-home-visual-maturity-master-v988-prepaint" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=1005r3-action-count-16-final">
 <style id="happyad-v631-story-radar-first-paint">
 /* V631 — taille ronde finale dès le premier rendu et clic réarmé après fermeture. */
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629{
@@ -41,6 +41,11 @@
 }
 #homeRadarStoryMasterV629 .haStoryAddOnlyV629 .radarAvatar.add span{color:#ff8a00!important;opacity:1!important;visibility:visible!important;}
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName{max-width:92px!important;margin-top:7px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:13px!important;}
+#homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000{display:flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;width:max-content!important;max-width:92px!important;min-width:0!important;margin-left:auto!important;margin-right:auto!important;overflow:hidden!important;text-overflow:clip!important;}
+#homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryNameTextV1000{display:block!important;flex:0 1 auto!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;}
+#homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryBadgeSlotV1000{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;width:auto!important;min-width:max-content!important;overflow:visible!important;}
+#homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryBadgeSlotV1000:empty{display:none!important;}
+#homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarName.haStoryNameMasterV1000>.haStoryBadgeSlotV1000 .happyBadgeMark{flex:0 0 auto!important;margin:0!important;}
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629 .radarMeta{max-width:92px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:11px!important;}
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629>.radarItem:hover,
 #homeRadarStoryMasterV629 .haStoryRadarUnitV629>.radarItem:focus,
@@ -287,6 +292,7 @@ html.happyadRadarBootUserV599 #happyadGuestRadarStableV599{display:none!importan
 .happyBadgeMark:after{content:"✓"!important;position:absolute!important;top:50%!important;left:50%!important;transform:translate(-50%,-52%)!important;color:#fff!important;font-size:9px!important;font-weight:1000!important;line-height:1!important;text-shadow:0 0 3px rgba(255,255,255,.75)!important;z-index:1!important}
 .happyBadgeMark.violet:before{background:linear-gradient(135deg,#e9d5ff,#c084fc,#9333ea)!important;box-shadow:0 0 3px rgba(147,51,234,.45),0 0 8px rgba(109,40,217,.25)!important}
 .happyBadgeMark.bleu:before,.happyBadgeMark.blue:before{background:linear-gradient(135deg,#6fd4ff,#38b6ff,#0090ff)!important;box-shadow:0 0 3px rgba(79,195,255,.45),0 0 8px rgba(0,120,255,.25)!important}
+.happyBadgeMark.rose:before,.happyBadgeMark.pink:before{background:linear-gradient(135deg,#ffb4d4,#ff5ca8,#e60073)!important;box-shadow:0 0 3px rgba(255,92,168,.55),0 0 9px rgba(230,0,115,.30)!important}
 .miniTop .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 #adminAccessBtn,#ownerAdminAccessBtn{display:none!important}
 
@@ -1532,7 +1538,7 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <button class="nav" type="button" data-happyad-main-nav="profile" aria-label="Mon profil"><span class="ico mainDockIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.7-4.2 3.2-6.4 7.5-6.4s6.8 2.2 7.5 6.4"></path></svg></span><span class="mainDockLabel">Profil</span></button>
 </nav></div>
 <!-- R89 : Story + Chat sont montés avant les gros traitements Accueil. -->
-<script src="core/story-master-v699.js?v=986-professional-icons-love"></script>
+<script src="core/story-master-v699.js?v=1000-root-radar-identity"></script>
 <script>try{if(window.HappyStoryV629&&typeof window.HappyStoryV629.renderRadar==='function')window.HappyStoryV629.renderRadar();}catch(_e){}</script>
 <script id="happyad-chat-sticker-living-v791-js" src="core/chat-sticker-living-v791.js?v=855r89-opening-stable"></script>
 <script id="happyad-v855r89-sponsor-first-paint">
@@ -1586,8 +1592,8 @@ html.happyadSharedDirectBootV713 body::after{content:"";position:fixed;left:50%;
 <script src="core/home-feed-master-v1.js?v=937r2-multi-mention-fullscreen-blue"></script>
 <script src="core/home-media-loader-v1.js?v=982-grouped-photo-badge"></script>
 <script src="core/like-direct-master-v876.js?v=995-like-network-stable"></script>
-<script src="core/home-actions-master-v1.js?v=995-like-network-stable"></script>
-<script src="core/home-card-renderer-v1.js?v=991-home-double-tap-love-inline-more"></script>
+<script src="core/home-actions-master-v1.js?v=1002-view-play-professional"></script>
+<script src="core/home-card-renderer-v1.js?v=1002-view-play-professional"></script>
 <script src="core/home-card-story-ring-master-v992.js?v=992-home-story-ring-exact"></script>
 <script src="core/home-feed-view-v1.js?v=929-prepaint-anchor"></script>
 <script src="core/home-feed-boot-v1.js?v=937-account-story-cache"></script>
@@ -3473,7 +3479,7 @@ function renderHomeVideoPreview(box,p,url){
       if(im.complete&&im.naturalWidth)try{happyadApplyCardFitV981(box,p,im.naturalWidth,im.naturalHeight);}catch(_fit2){}
     }
   }else happyadRenderVideoFallbackV643(box);
-  try{var vb=document.createElement('div');vb.className='happyadVideoViewsBadge';var a=(typeof getA==='function')?getA(p&&p.id):{};var viewText=(typeof happyadFmtViews==='function')?happyadFmtViews((a&&a.views)||p.views_count||p.video_views_count||0):String((a&&a.views)||p.views_count||p.video_views_count||0);vb.setAttribute('aria-label',viewText+' vues');vb.innerHTML='<svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.2v13.6L18.5 12 7.5 5.2Z"></path></svg><span class="happyadVideoViewsCount">'+esc(viewText)+'</span>';box.appendChild(vb);}catch(_viewsBadge){}
+  try{var vb=document.createElement('div');vb.className='happyadVideoViewsBadge';var a=(typeof getA==='function')?getA(p&&p.id):{};var viewText=(typeof happyadFmtViews==='function')?happyadFmtViews((a&&a.views)||p.views_count||p.video_views_count||0):String((a&&a.views)||p.views_count||p.video_views_count||0);vb.setAttribute('aria-label',viewText+' vues');vb.innerHTML='<svg class="happyadVideoViewsPlaySvg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5.25 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L8.03 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"></path></svg><span class="happyadVideoViewsCount">'+esc(viewText)+'</span>';box.appendChild(vb);}catch(_viewsBadge){}
 }
 
 async function happyadMediaUrlForPost(p){
@@ -4646,7 +4652,7 @@ function renderRadarHome(){
  block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
  const row=block.querySelector('.radarRow');
  const add=document.createElement('a'); add.href='modules/publish.html?mode=story'; add.className='radarItem'; add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>'; row.appendChild(add);
- items.forEach(p=>{const owner=postOwnerData(p);const live=happyadIsLive(p);const isStory=(happyadIsStory(p)||String(p.sourceType||p.source_type||p.type||p.mode||'').toLowerCase()==='story');const a=document.createElement('button');a.type='button';a.className='radarItem';a.style.background='transparent';a.style.border='0';a.style.padding='0';a.style.cursor='pointer'; const av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>'; const meta=live?'👁 '+(Number(getA(p.id).likes||p.likes_count||24)+24):(isStory?(typeof happyadTimeAgo==='function'?happyadTimeAgo(p.createdAt||p.created_at||Date.now()):'Story'):''); a.innerHTML='<div class="radarAvatar '+(live?'live':'')+'">'+av+(live?'<span class="liveBadge">LIVE</span>':'')+'<i class="typeDot '+happyadTypeClass(p)+'"></i></div><div class="radarName">'+esc(owner.name)+badgeMarkHtml(owner.badge)+'</div><div class="radarMeta">'+esc(meta)+'</div>'; a.onclick=()=>{ try{ if(String(p.sourceType||p.source_type||'').toLowerCase()==='story'){ openRadarPost(p); return;} openRadarPost(p);}catch(e){openRadarPost(p);} }; row.appendChild(a);});
+ items.forEach(p=>{const owner=postOwnerData(p);const live=happyadIsLive(p);const isStory=(happyadIsStory(p)||String(p.sourceType||p.source_type||p.type||p.mode||'').toLowerCase()==='story');const a=document.createElement('button');a.type='button';a.className='radarItem';a.style.background='transparent';a.style.border='0';a.style.padding='0';a.style.cursor='pointer'; const av=owner.avatar?'<img src="'+esc(owner.avatar)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>'; const meta=live?'👁 '+(Number(getA(p.id).likes||p.likes_count||24)+24):(isStory?(typeof happyadTimeAgo==='function'?happyadTimeAgo(p.createdAt||p.created_at||Date.now()):'Story'):''); a.innerHTML='<div class="radarAvatar '+(live?'live':'')+'">'+av+(live?'<span class="liveBadge">LIVE</span>':'')+(isStory?'':'<i class="typeDot '+happyadTypeClass(p)+'"></i>')+'</div><div class="radarName haStoryNameMasterV1000" title="'+esc(owner.name)+'"><span class="haStoryNameTextV1000">'+esc(owner.name)+'</span><span class="haStoryBadgeSlotV1000">'+badgeMarkHtml(owner.badge)+'</span></div><div class="radarMeta">'+esc(meta)+'</div>'; a.onclick=()=>{ try{ if(String(p.sourceType||p.source_type||'').toLowerCase()==='story'){ openRadarPost(p); return;} openRadarPost(p);}catch(e){openRadarPost(p);} }; row.appendChild(a);});
  chips.insertAdjacentElement('afterend',block);
 }
 function bindHomeSearchAndQuickPost(){
@@ -5487,7 +5493,7 @@ function stableStoryCache(){
     items.forEach(function(p){
       var b=document.createElement('button'); b.type='button'; b.className='radarItem'; b.style.background='transparent'; b.style.border='0'; b.style.padding='0'; b.style.cursor='pointer';
       var meta=(typeof happyadTimeAgo==='function')?happyadTimeAgo(p.createdAt||p.created_at||p.created_at_ms||p.timestamp||Date.now()):'Story';
-b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'<i class="typeDot story"></i></div><div class="radarName">'+esc(name(p))+badgeHtml(p)+'</div><div class="radarMeta">'+esc(meta)+'</div>';
+b.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+preview(p)+'</div><div class="radarName haStoryNameMasterV1000" title="'+esc(name(p))+'"><span class="haStoryNameTextV1000">'+esc(name(p))+'</span><span class="haStoryBadgeSlotV1000">'+badgeHtml(p)+'</span></div><div class="radarMeta">'+esc(meta)+'</div>';
       b.onclick=function(e){e.preventDefault();e.stopPropagation();try{window.openRadarPost(p)}catch(_e){}return false};
       row.appendChild(b);
     });
@@ -6256,7 +6262,28 @@ if(like)like.onclick=function(e){
   function renderAvatar(p){return p.avatar||p.user_avatar||p.avatar_url||p.userAvatar||''}
   function renderBadge(p){return p.badge||p.userBadge||p.user_badge||''}
   var oldRender=window.renderRadarHome;
-  window.renderRadarHome=function(){var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}var old=$('homeRadarBlock');if(old)old.remove();var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});list=list.slice(0,14);var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';var row=block.querySelector('.radarRow');var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);list.forEach(function(g){var p=g.first,av=renderAvatar(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">Story '+g.items.length+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn)});chips.insertAdjacentElement('afterend',block)};
+  window.renderRadarHome=function(){
+    var chips=document.querySelector('.chips');if(!chips){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}
+    try{if(typeof currentFilter!=='undefined'&&currentFilter!=='all')return}catch(e){}
+    var old=$('homeRadarBlock');if(old)old.remove();
+    var arr=sourceItems().filter(function(p){return !p.expiresAt||new Date(p.expiresAt).getTime()>Date.now()});
+    if(!arr.length){if(typeof oldRender==='function')return oldRender.apply(this,arguments);return}
+    var groups={};arr.forEach(function(p){var o=ownerOf(p)||storyId(p);if(!groups[o])groups[o]=[];groups[o].push(p)});
+    var list=Object.keys(groups).map(function(o){groups[o].sort(function(a,b){return Number(a.createdAt||0)-Number(b.createdAt||0)});return {owner:o,items:groups[o],first:groups[o][groups[o].length-1]}});
+    list.sort(function(a,b){var am=isMineItem(a.first)?1:0,bm=isMineItem(b.first)?1:0;if(am!==bm)return bm-am;return Number(b.first.createdAt||0)-Number(a.first.createdAt||0)});
+    list=list.slice(0,14);
+    var block=document.createElement('section');block.id='homeRadarBlock';block.className='radarBlock';
+    block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
+    var row=block.querySelector('.radarRow');
+    var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);
+    list.forEach(function(g){
+      var p=g.first,av=renderAvatar(p),name=renderName(p),btn=document.createElement('button');
+      btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';
+      btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+(av?'<img src="'+esc(av)+'" alt="">':'<span class="radarInitial happyadDefaultProfileAvatarV989" aria-hidden="true"></span>')+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName haStoryNameMasterV1000" title="'+esc(name)+'"><span class="haStoryNameTextV1000">'+esc(name)+'</span><span class="haStoryBadgeSlotV1000">'+badgeHtml(renderBadge(p))+'</span></div><div class="radarMeta">Story '+g.items.length+'</div>';
+      btn.onclick=function(e){e.preventDefault();e.stopPropagation();openOwnerStories(g.owner,storyId(g.items[0]));return false};row.appendChild(btn);
+    });
+    chips.insertAdjacentElement('afterend',block);
+  };
   setTimeout(function(){try{if(typeof window.fetchRadarItems==='function'){Promise.resolve(window.fetchRadarItems()).then(function(){try{window.renderRadarHome()}catch(e){}})}else window.renderRadarHome()}catch(e){}},250);
 })();
 </script>
@@ -6491,7 +6518,7 @@ async function saveRemote(id,on){
     block.innerHTML='<div class="radarHead"><div class="radarTitle">◎ RADAR <b>pour toi</b></div><a class="mapLite" role="button" tabindex="0" aria-label="Annonces" data-happyad-annonces-placeholder-v791="1">📍 Annonces</a></div><div class="radarRow"></div>';
     var row=block.querySelector('.radarRow');
     var add=document.createElement('a');add.href='modules/publish.html?mode=story';add.className='radarItem';add.innerHTML='<div class="radarAvatar add"><span>+</span></div><div class="radarName">Ta story</div><div class="radarMeta">Poster Story</div>';row.appendChild(add);
-    list.forEach(function(g){var p=g.first,av=previewHtml(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+av+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">'+esc(ageOf(p))+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();startOn(btn);try{var start=g.items[0]||p;if(typeof window.openRadarPost==='function')window.openRadarPost(start);else if(typeof window.openHappyadStoryViewer==='function')window.openHappyadStoryViewer(start)}catch(_e){stopAll()}return false};row.appendChild(btn)});
+    list.forEach(function(g){var p=g.first,av=previewHtml(p),name=renderName(p);var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';btn.innerHTML='<div class="radarAvatar '+(p.isSeen?'seen ':'')+'">'+av+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName haStoryNameMasterV1000" title="'+esc(name)+'"><span class="haStoryNameTextV1000">'+esc(name)+'</span><span class="haStoryBadgeSlotV1000">'+badgeHtml(renderBadge(p))+'</span></div><div class="radarMeta">'+esc(ageOf(p))+'</div>';btn.onclick=function(e){e.preventDefault();e.stopPropagation();startOn(btn);try{var start=g.items[0]||p;if(typeof window.openRadarPost==='function')window.openRadarPost(start);else if(typeof window.openHappyadStoryViewer==='function')window.openHappyadStoryViewer(start)}catch(_e){stopAll()}return false};row.appendChild(btn)});
     chips.insertAdjacentElement('afterend',block);
   };
   patchOpenWrappers();
@@ -7620,7 +7647,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
       root.className='haSearchOverlay';
       document.body.appendChild(root);
     }
-    root.innerHTML='<div class="haSearchBox"><div class="haSearchHead"><div><b>Recherche HAPPYAD</b></div><button type="button" class="haSearchClose" aria-label="Fermer">×</button></div><div class="haSearchInputWrap"><input id="haSearchInputV427" class="haSearchInput" placeholder="Tape une lettre, un nom, @username ou vidéo" autocomplete="off"></div><div id="haSearchResultsV427" class="haSearchResults"></div></div>';
+    root.innerHTML='<div class="haSearchBox"><div class="haSearchHead"><div><b>Recherche HAPPYAD</b></div><button type="button" class="haSearchClose" aria-label="Fermer">×</button></div><div class="haSearchInputWrap"><input id="haSearchInputV427" class="haSearchInput" placeholder="Recherche" autocomplete="off"></div><div id="haSearchResultsV427" class="haSearchResults"></div></div>';
     root.querySelector('.haSearchClose').onclick=function(){clearTimeout(remoteTimer);root.classList.remove('on');};
     var input=root.querySelector('#haSearchInputV427');
     input.addEventListener('input',function(){
@@ -7653,7 +7680,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
         var hasAvatar=!!String(p.avatar||'').trim();
         var av=hasAvatar?'<img src="'+esc(p.avatar)+'" alt="">':'';
         var avatarClass='haSearchAvatar'+(hasAvatar?'':' happyadDefaultProfileAvatarV989');
-        return '<button type="button" class="haSearchUser" data-ha-profile-uid="'+esc(p.id)+'" data-ha-profile-name="'+esc(p.name)+'" data-ha-profile-handle="'+esc(p.handle)+'" data-ha-profile-avatar="'+esc(p.avatar)+'" data-ha-profile-badge="'+esc(p.badge)+'"><div class="haSearchUserTop"><div class="'+avatarClass+'">'+av+'</div><div class="haSearchUserText"><b>'+esc(p.name)+badgeHtml(p.badge)+'</b><span>'+(p.handle?'@'+esc(p.handle):'')+'</span></div></div><div class="haSearchUserBottom"><em>Voir</em></div></button>';
+        return '<button type="button" class="haSearchUser" data-ha-profile-uid="'+esc(p.id)+'" data-ha-profile-name="'+esc(p.name)+'" data-ha-profile-handle="'+esc(p.handle)+'" data-ha-profile-avatar="'+esc(p.avatar)+'" data-ha-profile-badge="'+esc(p.badge)+'"><div class="haSearchUserTop"><div class="'+avatarClass+'">'+av+'</div><div class="haSearchUserText"><b><span class="haSearchNameTextV997">'+esc(p.name)+'</span><span class="haSearchNameBadgeV997">'+badgeHtml(p.badge)+'</span></b><span>'+(p.handle?'@'+esc(p.handle):'')+'</span></div></div><div class="haSearchUserBottom"><em>Voir</em></div></button>';
       }).join('')+'</div></div>';
     }
 
@@ -8722,7 +8749,7 @@ html.haSearchLocked,html.haSearchLocked body{overflow:hidden!important;height:10
     list.forEach(function(g){
       var p=g.first, name=renderName(p), seen=groupSeen(g.items);
       var btn=document.createElement('button');btn.type='button';btn.className='radarItem';btn.style.background='transparent';btn.style.border='0';btn.style.padding='0';btn.style.cursor='pointer';
-      btn.innerHTML='<div class="radarAvatar '+(seen?'seen ':'')+'">'+previewHtml(p)+'<i class="typeDot story"></i>'+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName">'+esc(name)+badgeHtml(renderBadge(p))+'</div><div class="radarMeta">'+esc(ageOf(p))+'</div>';
+      btn.innerHTML='<div class="radarAvatar '+(seen?'seen ':'')+'">'+previewHtml(p)+(g.items.length>1?'<span class="radarStoryCount">'+g.items.length+'</span>':'')+'</div><div class="radarName haStoryNameMasterV1000" title="'+esc(name)+'"><span class="haStoryNameTextV1000">'+esc(name)+'</span><span class="haStoryBadgeSlotV1000">'+badgeHtml(renderBadge(p))+'</span></div><div class="radarMeta">'+esc(ageOf(p))+'</div>';
       btn.onclick=function(e){
         e.preventDefault();e.stopPropagation();startOn(btn);
         try{var start=g.items[0]||p;if(typeof window.openRadarPost==='function')window.openRadarPost(start);else if(typeof window.openHappyadStoryViewer==='function')window.openHappyadStoryViewer(start);}
@@ -10453,11 +10480,11 @@ html.haProfilePhotoFullscreenV854R8 body #happyadAppShell{pointer-events:none!im
 })();
 </script>
 <script src="core/profile/profile-photo-parent-v854r8.js?v=932-profile-handoff-pointer-release"></script>
-<script src="core/navigation-master-v668.js?v=986-professional-icons-love"></script>
+<script src="core/navigation-master-v668.js?v=1001-publication-profile-routes"></script>
 <script src="core/auth-session-master-v598.js?v=972-p1-single-client"></script>
 <script id="happyad-profile-identity-stable-master-v741" src="core/profile-identity-stable-master-v741.js?v=937-auth-single-authority"></script>
 <script id="happyad-profile-avatar-recovery-master-v743" src="core/profile-avatar-recovery-master-v743.js?v=855r32-no-resurrection"></script>
-<script src="core/main-tabs-master-v615.js?v=986-professional-icons-love"></script>
+<script src="core/main-tabs-master-v615.js?v=1001-publication-profile-routes"></script>
 <style id="happyad-v855r77-visitor-direct-chat-overlay">
 body.happyadVisitorDirectChatOpenV855R77 .bottom.happyadMainDockV585{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body.happyadVisitorDirectChatOpenV855R77 #happyadAppShell{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important}
@@ -11549,7 +11576,7 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 <!-- R89 chat-sticker chargé avec RADAR au premier écran -->
 <script id="happyad-system-notification-master-v807-js" src="core/system-notification-master-v807.js?v=855r56-notification-preferences"></script>
 <script id="happyad-seller-verification-supabase-v801-js" src="core/seller-verification-supabase-master-v801.js?v=807-team-wording-system-notifications"></script>
-<script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=828-poster-gallery-home-stable"></script>
+<script id="happyad-listing-publication-supabase-v821-js" src="core/listing-publication-supabase-master-v821.js?v=1001-public-publication-wording"></script>
 <script id="happyad-chat-integration-master-v795-js" src="core/chat-integration-master-v795.js?v=935-owner-first-paint"></script>
 <script id="happyad-marketplace-home-master-v828-js" src="core/marketplace-home-master-v828.js?v=991-market-three-line-description"></script>
 <script id="happyad-keyboard-surface-master-v851r7-js" src="core/keyboard-surface-master-v851r7.js?v=855r93-home-silent"></script>
@@ -11895,9 +11922,9 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 
 
 <!-- HAPPYAD V983 : MASTER FINAL — sept corrections médias/actions -->
-<link id="happyad-actions-layout-master-v982" rel="stylesheet" href="core/actions-layout-master-v982.css?v=985-love-follow-typography">
+<link id="happyad-actions-layout-master-v982" rel="stylesheet" href="core/actions-layout-master-v982.css?v=1005r1-action-count-18-text-only">
 <link id="happyad-home-card-layout-master-v982" rel="stylesheet" href="core/home-card-layout-master-v982.css?v=986-professional-icons-love">
-<link id="happyad-home-visual-maturity-master-v988" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=988r9-double-tap-love-inline-more">
+<link id="happyad-home-visual-maturity-master-v988" rel="stylesheet" href="core/home-visual-maturity-master-v988.css?v=1005r3-action-count-16-final">
 <style id="happyad-v983-photo-comments-front-layer">
 /* Le panneau Commentaires doit rester au-dessus du fullscreen Accueil (1000200)
    et du fullscreen lancé depuis un profil (2147483000). */
@@ -11913,4 +11940,11 @@ window.__HAPPYAD_V35_ACCOUNT_RECONNECT_ROUTE_FIX__=true;
 #happyadHomeCommentPopup.on .haCommentPanel{pointer-events:auto!important;}
 body.haHomeCommentLock #happyadHomePhotoFullscreen{pointer-events:none!important;}
 </style>
+
+<!-- HAPPYAD V1000 GLOBAL COHERENCE — palette/recherche uniquement ; le Radar est rendu par son maître. -->
+<link rel="stylesheet" href="core/happyad-global-coherence-v997.css?v=1000-global-coherence-no-story-overlay">
+<script src="core/happyad-global-coherence-v997.js?v=1000-global-coherence-no-story-overlay"></script>
+
+<!-- HAPPYAD V998 SEARCH ROW + STORY RING -->
+<link rel="stylesheet" href="core/happyad-search-nav-v998.css?v=1005r4-search-primary-name-white-locked">
 </body></html>
