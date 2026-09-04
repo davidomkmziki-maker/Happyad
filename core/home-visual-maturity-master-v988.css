@@ -953,11 +953,10 @@ html body #list.homeTimeline .happyadHomeDoubleTapPulseV991 [data-card-act="like
   html body #list.homeTimeline .happyadHomeLoveSparkV991{animation-duration:.42s!important;animation-delay:0s!important;}
 }
 
-/* HAPPYAD V1005R3 — correctif final compteurs Accueil.
-   Le maître visuel V988 est chargé après le maître d'actions :
-   seule la taille du texte des compteurs est verrouillée à 16 px ici.
-   Les chiffres et suffixes K/M/D/MD partagent exactement la même taille. */
+/* HAPPYAD V1006 — compteurs Accueil verrouillés à 15 px.
+   Le maître visuel V988 est chargé après le maître d'actions.
+   Chiffres et suffixes K/M/D/MD partagent exactement la même taille. */
 html body #list.homeTimeline .miniActions .actionBtn small,
 html body #list.homeTimeline .haAlbumFullSlide .miniActions .actionBtn small{
-  font-size:16px!important;
+  font-size:15px!important;
 }

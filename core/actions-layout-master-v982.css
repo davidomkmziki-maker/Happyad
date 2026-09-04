@@ -665,11 +665,11 @@ html body .homeTimeline .miniActions .actionBtn small{
   opacity:1!important;
 }
 
-/* HAPPYAD V1005R1 — uniquement la taille du texte des compteurs Accueil.
-   Chiffres et suffixes K/M/D/MD restent dans le même nœud texte : 18 px. */
+/* HAPPYAD V1006 — taille source des compteurs Accueil : 15 px.
+   Chiffres et suffixes K/M/D/MD restent dans le même nœud texte. */
 html body #list.homeTimeline .miniActions .actionBtn small,
 html body .feedGrid .miniActions .actionBtn small,
 html body .hScroller .miniActions .actionBtn small,
 html body .homeTimeline .miniActions .actionBtn small{
-  font-size:18px!important;
+  font-size:15px!important;
 }

@@ -3,7 +3,7 @@
 /* HAPPYAD V855R66 - Options instantanées, Supabase vérifié en arrière-plan */
 'use strict';
 
-var HAPPYAD_SW_VERSION = 'happyad-pwa-v1005r4-search-name-white-locked-20260901';
+var HAPPYAD_SW_VERSION = 'happyad-pwa-v1006-counts-15-video-home-size-20260901';
 var HAPPYAD_STATIC_CACHE = HAPPYAD_SW_VERSION + '-static';
 var HAPPYAD_RUNTIME_CACHE = HAPPYAD_SW_VERSION + '-runtime';
 var HAPPYAD_MEDIA_CACHE = 'happyad-message-media-v1';
@@ -12,7 +12,7 @@ var HAPPYAD_PUSH_AVATAR_CACHE = 'happyad-push-avatar-v2';
 var HAPPYAD_VAPID_PUBLIC_KEY = 'BA3UgDp8-6VYN6nZgSNX14LeZVLK6FesJgLXVytEKkKgplK_3KVssohN_SAKPDdkhoAmpQzIo3Ev9VGIXNZP-bE';
 var HAPPYAD_APP_SHELL = [
   './',
-  './index.html?v=v1005r3-action-count-16-final-20260901',
+  './index.html?v=v1006-counts-15-video-home-size-20260901',
   './manifest.webmanifest',
   './icons/happyad-icon-v535center1-192.png',
   './icons/happyad-share-logo-free-v884.png',
@@ -38,9 +38,10 @@ var HAPPYAD_APP_SHELL = [
   './core/home-media-loader-v1.js?v=982-grouped-photo-badge',
   './core/like-direct-master-v876.js?v=995-like-network-stable',
   './core/home-actions-master-v1.js?v=1002-view-play-professional',
-  './core/actions-layout-master-v982.css?v=1005r1-action-count-18-text-only',
+  './core/actions-layout-master-v982.css?v=1006-action-count-15',
   './core/home-card-layout-master-v982.css?v=986-professional-icons-love',
-  './core/home-visual-maturity-master-v988.css?v=1005r3-action-count-16-final',
+  './core/home-visual-maturity-master-v988.css?v=1006-action-count-15',
+  './core/action-counters-global-v1006.css?v=1006-counts-15-video-home-size',
   './core/happyad-global-coherence-v997.css?v=1000-global-coherence-no-story-overlay',
   './core/happyad-global-coherence-v997.js?v=1000-global-coherence-no-story-overlay',
   './core/happyad-search-nav-v998.css?v=1005r4-search-primary-name-white-locked',
@@ -60,7 +61,7 @@ var HAPPYAD_APP_SHELL = [
   './modules/notification-center.html?v=974-p1-module-lifecycle-registry',
   './core/notification-infinite-scroll-master-v700.js?v=869-connection-phase2',
   './modules/assistance.html?v=974-p1-module-lifecycle-registry',
-  './modules/video.html?v=986-base-video-text',
+  './modules/video.html?v=1006-counts-15-video-home-size',
   './modules/photo.html?v=983-seven-media-actions',
   './modules/map.html?v=974-p1-module-lifecycle-registry',
   './modules/publish.html?v=1001-public-publication-wording',
